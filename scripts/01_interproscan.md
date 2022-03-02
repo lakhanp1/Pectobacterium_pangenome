@@ -41,6 +41,7 @@ export -f run_interproscan
 ## Run InterProScan on all files using GNU parallel
 ls ${pan_db}/proteins/*.fasta | parallel --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel.log run_interproscan {} ${ANALYSIS_DIR}
 
+conda deactivate
 
 ```
 

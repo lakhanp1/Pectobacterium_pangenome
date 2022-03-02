@@ -49,16 +49,15 @@ error_exit $?
 
 ```
 
-## InterProScan annotations
+## Build InterProScan functional annotations
 
-``` bash
+Once the protein sequences are generated in the `${pan_db}/proteins/` directory, run [InterProScan annotation pipeline](01_interproscan.md) independently. Once InterProScan annotation is generated (as GFF files), add these annotations to the pangenome using `add_function` command.
 
-```
-
-## Add functional annotations
+## Add InterProScan annotations
 
 ``` bash
 ## add_functions
+process_start add_InterProScan_annotations
 pantools add_functions  -tn 20 -dp ${pan_db}  -if $ANALYSIS_DIR/functional_annotations.txt
 error_exit $?
 ```
@@ -116,27 +115,24 @@ process_start pangenome_size_genes
 pantools pangenome_size_genes -dp ${pan_db} -tn 20
 error_exit $?
 
-# Rscript ${pan_db}/pangenome_size/gene/core_accessory_unique_size.R 
-# Rscript ${pan_db}/pangenome_size/gene/core_accessory_size.R 
-# Rscript ${pan_db}/pangenome_size/gene/gains_losses.R
 Rscript ${pan_db}/pangenome_size/gene/pangenome_growth.R
 Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
 Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
 Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
 
-## Pangenome size k-mers
-process_start pangenome_size_kmer
-pantools pangenome_size_kmer -dp ${pan_db} -tn 20
-error_exit $?
+# ## Pangenome size k-mers
+# process_start pangenome_size_kmer
+# pantools pangenome_size_kmer -dp ${pan_db} -tn 20
+# error_exit $?
 
-Rscript ${pan_db}/pangenome_size/kmer/core_accessory_size.R
-Rscript ${pan_db}/pangenome_size/kmer/core_accessory_unique_size.R 
+# Rscript ${pan_db}/pangenome_size/kmer/core_accessory_size.R
+# Rscript ${pan_db}/pangenome_size/kmer/core_accessory_unique_size.R 
 
-## K-mer classification
-pantools kmer_classification -dp ${pan_db} -tn 20
-error_exit $?
+# ## K-mer classification
+# pantools kmer_classification -dp ${pan_db} -tn 20
+# error_exit $?
 
-Rscript ${pan_db}/kmer_classification/kmer_distance_tree.R
+# Rscript ${pan_db}/kmer_classification/kmer_distance_tree.R
 
 ```
 
