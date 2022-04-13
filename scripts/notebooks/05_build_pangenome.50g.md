@@ -6,10 +6,14 @@
 shopt -s expand_aliases
 source ~/.bash_aliases
 
+set -e
+set -u
+set -o pipefail
+
 conda activate pantools
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium/'
+PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
 ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_50g"
 analysis_prefix='pectobacterium.50g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
@@ -106,8 +110,20 @@ Rscript ${pan_db}/core_unique_thresholds/core_unique_thresholds.R
 
 ## Gene classification
 process_start gene_classification
-pantools gene_classification -dp ${pan_db} --core-threshold 95 --phenotype species
+pantools gene_classification -dp ${pan_db} --core-threshold 95
 error_exit $?
+
+## Gene classification for each phenotype
+phenotypes=("species" "virulance")
+for phn in ${phenotypes[@]}
+do
+    process_start "gene_classification for phenotype $phn"
+    [ -d ${pan_db}/gene_classification/${phn} ] && rm -r ${pan_db}/gene_classification/${phn}
+    mkdir ${pan_db}/gene_classification/${phn}
+    pantools gene_classification -dp ${pan_db} --core-threshold 95 --phenotype ${phn}
+    mv ${pan_db}/gene_classification/{phenotype_*,gene_classification_phenotype_overview.txt} ${pan_db}/gene_classification/${phn}/
+    error_exit $?
+done
 
 
 ## Pangenome structure
@@ -134,32 +150,81 @@ Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
 
 # Rscript ${pan_db}/kmer_classification/kmer_distance_tree.R
 
+## functional_classification
+process_start functional_classification
+pantools functional_classification -dp ${pan_db} --core-threshold 95 --phenotype species
+error_exit $?
+
+## function_overview
+process_start function_overview
+pantools function_overview -dp ${pan_db} 
+error_exit $?
+
+
+## group_info: P_odoriferum specific: FAILED
+process_start group_info
+pantools group_info -dp ${pan_db}  -hm ${ANALYSIS_DIR}/P_odoriferum.specific_group.csv
+error_exit $?
+
+## GO enrichment of P_odoriferum specific: FAILED
+process_start go_enrichment
+pantools go_enrichment -dp ${pan_db}  -hm ${ANALYSIS_DIR}/P_odoriferum.specific_group.csv
+error_exit $?
+
+
 ```
 
+## Phylogeny analysis
+
 ``` bash
+## Gene distance tree
+Rscript ${pan_db}/gene_classification/gene_distance_tree.R 
+
 ## SNP tree using core gene SNPs
 process_start core_snp_tree
-pantools core_snp_tree -dp ${pan_db} --mode ML -tn 20 -hm ${pan_db}/gene_classification/single_copy_orthologs.csv --phenotype species
+pantools core_snp_tree -dp ${pan_db} --mode ML -tn 20 --phenotype virulance
+# pantools core_snp_tree -dp ${pan_db} --mode ML -tn 20 -hm $ANALYSIS_DIR/sco_groups.csv --phenotype species
 error_exit $?
+
 
 ## IQtree variable
 process_start iqtree_variable
-rm /mnt/scratch/parde001/projects/03_Pectobacterium/analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/variable.fasta.*
-iqtree -nt 20 -s /mnt/scratch/parde001/projects/03_Pectobacterium/analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/variable.fasta -redo -bb 1000
+rm ${pan_db}/core_snp_tree/variable.fasta.*
+iqtree -nt 20 -s ${pan_db}/core_snp_tree/variable.fasta -redo -bb 1000
 error_exit $?
 
 ## IQtree informative
 process_start iqtree_informative
-rm /mnt/scratch/parde001/projects/03_Pectobacterium//analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/informative.fasta.*
-iqtree -nt 20 -s /mnt/scratch/parde001/projects/03_Pectobacterium//analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/informative.fasta -redo -bb 1000
+rm ${pan_db}/core_snp_tree/informative.fasta.*
+iqtree -nt 20 -s ${pan_db}/core_snp_tree/informative.fasta -redo -bb 1000
 error_exit $?
 
+## ANI tree
+process_start ANI_tree
+pantools ani -dp ${pan_db} --phenotype species --mode fastani -tn 20 
+error_exit $?
+
+## generate tree from ANI distances
+Rscript ${pan_db}/ANI/fastANI/ANI_tree.R
+
+## Rename trees
+pantools rename_phylogeny -dp ${pan_db} --phenotype strain -if ${pan_db}/gene_classification/gene_distance.tree
+pantools rename_phylogeny -dp ${pan_db} --phenotype strain -if ${pan_db}/core_snp_tree/variable.fasta.treefile
+pantools rename_phylogeny -dp ${pan_db} --phenotype strain -if ${pan_db}/core_snp_tree/informative.fasta.treefile
+pantools rename_phylogeny -dp ${pan_db} --phenotype strain -if ${pan_db}/ANI/fastANI/ANI.newick
 
 
-Rscript ${pan_db}/gene_classification/gene_distance_tree.R 
+## Create iTOL templates
+# pantools create_tree_template -dp ${pan_db}
+pantools create_tree_template -dp ${pan_db} -ph strain
 
-pantools rename_phylogeny -dp ${pan_db} --phenotype strain_name -if ${pan_db}/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile
+```
 
-cat /mnt/scratch/parde001/projects/01_pantools_explore/data/pecto_dickeya_DB/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile_RENAMED
+## Explore specific homology groups
 
+``` bash
+## go_enrichment for virulent enriched homology groups
+process_start "go_enrichment for virulent enriched homology groups"
+pantools go_enrichment -dp ${pan_db} -hm ${ANALYSIS_DIR}/virulent_enriched_hm.txt
+error_exit $?
 ```
