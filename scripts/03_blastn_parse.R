@@ -169,7 +169,7 @@ pt_pcrBlast <- ggplot2::ggplot(
     mapping = aes(fill = pident, size = primerCov,
                width = qcovs/100, height = qcovs/100),
     color = "black") +
-  geom_point(mapping = aes(alpha = mismatch)) +
+  geom_point(mapping = aes(alpha = mismatch), size = 2) +
   labs(
     title = "blastn results for forward (F), probe (P) and reverse (R) PCR primers"
   ) +
@@ -324,25 +324,17 @@ pt_tissue <- dplyr::select(phenotypes, genomeId, tissue) %>%
 #     axis.ticks = element_blank()
 #   )
 
-# ## arrange plots one by one
-# pt_all <- pt_vir %>% aplot::insert_left(pt_tree, width = 14) %>% 
-#   aplot::insert_right(pt_symptoms, width = 2) %>% 
-#   aplot::insert_right(pt_virPcr, width = 1) %>% 
-#   aplot::insert_right(pt_sampleYear, width = 2) %>% 
-#   aplot::insert_right(pt_tissue, width = 1.5) %>% 
-#   aplot::insert_right(pt_region, width = 3)
-# 
+## arrange plots one by one
+pt_all <- pt_vir %>% aplot::insert_left(pt_tree, width = 15) %>%
+  aplot::insert_right(pt_pcr, width = 0.5) %>%
+  aplot::insert_right(pt_symptoms, width = 1) %>%
+  aplot::insert_right(pt_sampleYear, width = 2) %>%
+  aplot::insert_right(pt_tissue, width = 1.5) %>%
+  aplot::insert_right(pt_pcrBlast, width = 12)
 
-## arrange plots as a list
-pt_all2 <- aplot::plot_list(
-  gglist = list(pt_tree, pt_vir, pt_pcr, pt_symptoms, pt_sampleYear, pt_tissue, pt_pcrBlast),
-  nrow = 1,
-  widths = c(15, 0.5, 0.5, 1, 2, 0.5, 12),
-  guides = "collect"
-)
 
-png(filename = paste(outPrefix, ".png", sep = ""), width = 3000, height = 1500, res = 150)
-pt_all2
+png(filename = paste(outPrefix, ".23.png", sep = ""), width = 3000, height = 1500, res = 150)
+pt_all
 dev.off()
 
 
