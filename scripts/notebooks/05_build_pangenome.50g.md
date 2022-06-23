@@ -231,24 +231,3 @@ process_start "go_enrichment for virulent enriched homology groups"
 $PANTOOLS go_enrichment -dp ${pan_db} -hm ${ANALYSIS_DIR}/virulent_enriched_hm.txt
 error_exit $?
 ```
-
-## Search the probe sequences in genomes using blastn
-
-``` bash
-cd $ANALYSIS_DIR/primer_blastn
-
-## get the chromosome IDs for each genome
-count=1
-for i in `cat $ANALYSIS_DIR/genomes.list`
-do
-grep '^>' $PROJECT_DIR/analysis/01_prokka_annotation/${i}/${i}.fna | sed 's/>//' | xargs -I {} printf "${count}_${i}\t{}\n"
-((count=count+1))
-done > genome_chr.tab
-
-## run blastn in blastn-short mode
-blastn -db $ANALYSIS_DIR/blastdb/sequences.fasta -query probes.fasta -task blastn-short \
--outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen pident length mismatch qcovs gapopen evalue bitscore" \
--out probe_blasnt.out -num_threads 12
-
-## parse the blastn results
-```
