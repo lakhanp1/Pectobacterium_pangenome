@@ -3,11 +3,11 @@
 ## Prepare the conda environment with the required packages
 
 ``` bash
-conda create -n interproscan python=3.8
+mamba create -n interproscan python=3.8
 
-nohup conda install -y -c conda-forge openjdk=11.0.13 perl=5.32.1 >nohup.out 2>&1 &
+nohup mamba install -y -c conda-forge openjdk=11.0.13 perl=5.32.1 >nohup.out 2>&1 &
 
-conda activate interproscan
+mamba activate interproscan
 ```
 
 ## Download the InterProScan and follow the installation instructions
