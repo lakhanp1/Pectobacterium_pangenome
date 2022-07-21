@@ -11,10 +11,12 @@
 *.xlsx
 *.docx
 *.xml
-/Rplots.pdf
+Rplots.pdf
 /logs
 sample_info.txt
 /data/*
 !/data/reference_data/
 /analysis
 /reports
+.DS_Store
+

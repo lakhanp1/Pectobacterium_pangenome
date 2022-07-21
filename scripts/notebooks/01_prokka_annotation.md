@@ -13,29 +13,46 @@ shopt -s expand_aliases
 source ~/.bash_aliases
 
 source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
-conda deactivate & conda activate prokka
+conda activate prokka
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium/'
-ANALYSIS_DIR="$PROJECT_DIR/analysis/01_prokka_annotation"
+PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
+ANALYSIS_DIR="$PROJECT_DIR/data/prokka_annotation"
 
 ```
 
 ## Annotate each genome using prokka
 
 ``` bash
-for fa in /mnt/scratch/parde001/projects/03_Pectobacterium/data/fasta/* /mnt/scratch/parde001/projects/03_Pectobacterium/data/new_genomes/*.fa
+
+function run_prokka(){
+    prefix=`basename -z ${1} | sed -r 's/(.*)\..*$/\1/' | sed -r 's/_genomic//'`
+
+    if [ ! -f ${2}/${prefix}/${prefix}.log ] || ! grep -q 'Annotation finished successfully.' ${2}/${prefix}/${prefix}.log
+    then
+        echo "Annotating $prefix genome"
+        prokka --cpus 8 --outdir ${2}/${prefix} --prefix ${prefix} ${1}
+        error_exit $?
+    else
+        echo "prokka results exists"
+    fi
+}
+
+export -f run_prokka
+
+# run_prokka $PROJECT_DIR/data/genomes/ncbi/GCF_000011605.1_ASM1160v1_genomic.fna ${ANALYSIS_DIR}
+
+## serial run
+for fa in $PROJECT_DIR/data/genomes/?(ncbi|local)/*.?(fa|fna|fasta)
 do
-prefix=`basename ${fa} | sed -r 's/\.(fna|fa)$//'`
-echo "Annotating $prefix genome"
-prokka --cpus 8 --outdir ${ANALYSIS_DIR}/${prefix} --prefix ${prefix} ${fa}
-error_exit $?
-
-# echo "prokka --cpus 8 --outdir ${ANALYSIS_DIR}/${prefix} --prefix ${prefix} ${fa}
-# error_exit \$?
-# "
-
+run_prokka ${fa} ${ANALYSIS_DIR}
 done
+
+# ## Run Prokka on all files using GNU parallel
+# ls $PROJECT_DIR/data/genomes/?(ncbi|local)/*.?(fa|fna|fasta) | \
+# parallel --gnu --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/prokka/{/.} --joblog $PROJECT_DIR/logs/prokka/parallel.log run_prokka {} ${ANALYSIS_DIR}
+
+
 
 ```
 
@@ -46,34 +63,5 @@ for i in `cat analysis/03_pangenome/genomes.list`
 do
 sed -n '1,/##FASTA/ {/##FASTA/!p}' analysis/01_prokka_annotation/${i}/${i}.gff > analysis/01_prokka_annotation/${i}/${i}.gff3
 done
-
-```
-
---------------
-
-## Alternatively, generate commands
-
-``` bash
-for fa in /mnt/scratch/parde001/projects/03_Pectobacterium/data/fasta/* /mnt/scratch/parde001/projects/03_Pectobacterium/data/new_genomes/*.fa
-do
-prefix=`basename ${fa} | sed -r 's/\.(fna|fa)$//'`
-#echo "Annotating $prefix genome"
-echo "prokka --cpus 8 --outdir ${ANALYSIS_DIR}/${prefix} --prefix ${prefix} ${fa}
-error_exit \$?
-"
-done > scripts/prokka_commands.txt
-
-```
-
-## Split the commands into 5 batches and submit the jobs
-
-``` bash
-split --additional-suffix ".sh" -d -l 132 scripts/prokka_commands.txt scripts/prokka_fa_set
-
-nohup bash ./scripts/01_prokka_batch.sh ./scripts/prokka_fa_set00.sh >logs/prokka_set00.log 2>&1 &
-nohup bash ./scripts/01_prokka_batch.sh ./scripts/prokka_fa_set01.sh >logs/prokka_set01.log 2>&1 &
-nohup bash ./scripts/01_prokka_batch.sh ./scripts/prokka_fa_set02.sh >logs/prokka_set02.log 2>&1 &
-nohup bash ./scripts/01_prokka_batch.sh ./scripts/prokka_fa_set03.sh >logs/prokka_set03.log 2>&1 &
-nohup bash ./scripts/01_prokka_batch.sh ./scripts/prokka_fa_set04.sh >logs/prokka_set04.log 2>&1 &
 
 ```
