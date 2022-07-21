@@ -5,6 +5,7 @@ suppressMessages(library(RColorBrewer))
 suppressMessages(library(viridis))
 suppressMessages(library(ggpubr))
 suppressMessages(library(here))
+suppressMessages(library(ComplexHeatmap))
 
 ## plot tree and phenotype annotations
 
@@ -20,14 +21,32 @@ pangenome <- here::here("analysis", "04_pangenome.50g", "pectobacterium.50g.DB")
 
 file_phenotypes <- file.path(outDir, "pectobacterium.50g.phenotypes.txt")
 file_aniTree <- file.path(pangenome, "ANI", "fastANI", "ANI_RENAMED.newick")
+file_aniScores <- file.path(pangenome, "ANI", "fastANI", "ANI_scores.csv")
+
+##################################################################################
 
 phenotypes <- suppressMessages(readr::read_tsv(file_phenotypes)) %>% 
-  tidyr::unite(genomeId, Genome, id, sep = "_", remove = F)
+  tidyr::unite(genomeId, Genome, id, sep = "_", remove = F) %>% 
+  tidyr::unite(pgSampleId, Genome, species, sep = " ", remove = F) %>% 
+  tidyr::unite(pgSampleId, pgSampleId, batch, sep = "_", remove = F) %>% 
+  dplyr::mutate(
+    pgSampleId = stringr::str_replace(
+      string = pgSampleId, pattern = "_old", replacement = ""
+    )
+  )
 
 aniTreeTibble <- treeio::read.newick(file = file_aniTree) %>% 
   # treeio::as.treedata() %>% 
   as_tibble()
 
+aniScores <- suppressMessages(read_csv(file = file_aniScores)) %>% 
+  dplyr::left_join(
+    y = dplyr::select(phenotypes, genomeId, id, pgSampleId),
+    by = c("Genome" = "pgSampleId")
+  ) %>% 
+  dplyr::select(genomeId, id, everything(), -Genome) %>% 
+  dplyr::rename(!!! set_names(x = phenotypes$pgSampleId, nm = phenotypes$genomeId))
+  
 
 aniTree <- dplyr::full_join(
   x = aniTreeTibble, y = phenotypes, by = c("label" = "genomeId")
@@ -39,6 +58,8 @@ aniTree <- dplyr::full_join(
 # treeio::get.fields(aniTree)
 # treeio::get.data(aniTree) %>% view()
 ##################################################################################
+
+
 
 pt_tree <- ggtree::ggtree(
   tr = aniTree,
@@ -71,10 +92,41 @@ phenotypes <- dplyr::mutate(
 )
 
 ##################################################################################
+## ANI score heatmap with tree
+
+tempTree <- treeio::read.newick(file = file_aniTree)
+ape::is.ultrametric(tempTree)
+# ape::chronos(tempTree)
+# as.hclust(tempTree)
+
+aniScoresMat <- dplyr::select(aniScores, -id)%>% 
+  tibble::column_to_rownames(var = "genomeId") %>% 
+  as.matrix()
+
+pt_aniHt <- ComplexHeatmap::Heatmap(
+  matrix = aniScoresMat,
+  col = circlize::colorRamp2(
+    breaks = seq(from = 91, length.out = 9, by = 1),
+    colors = RColorBrewer::brewer.pal(n = 9, name = "RdPu")
+  ) ,
+  cluster_rows = F,
+  row_order = rev(leafOrder),
+  column_order = rev(leafOrder),
+  row_labels = aniScores$id,
+  column_title = "Pairwise ANI comparison",
+  column_title_gp = gpar(fontsize = 20, fontface = "bold"),
+  heatmap_legend_param = list(title = "ANI %")
+)
+
+png(filename = paste(outPrefix, ".score_heatmap.png", sep = ""), width = 1500, height = 1500, res = 150)
+pt_aniHt
+dev.off()
+
+##################################################################################
 ## generate annotation plots
 pt_theme <- theme_bw() +
   theme(
-    axis.text.x = element_text(angle = 90, face = "bold", vjust = 0.5),
+    axis.text.x = element_text(size = 14, angle = 90, face = "bold", vjust = 0.5),
     axis.text.y = element_blank(),
     axis.title = element_blank(),
     panel.grid = element_blank(),
@@ -205,11 +257,11 @@ pt_all <- pt_vir %>% aplot::insert_left(pt_tree, width = 14) %>%
 pt_all2 <- aplot::plot_list(
   gglist = list(pt_tree, pt_vir, pt_symptoms, pt_pcr, pt_sampleYear, pt_tissue, pt_region),
   nrow = 1,
-  widths = c(15, 1, 2, 1, 2, 1, 3),
+  widths = c(15, 1, 4, 1, 6, 1, 3),
   guides = "collect"
 )
 
-png(filename = paste(outPrefix, ".png", sep = ""), width = 2000, height = 1500, res = 150)
+png(filename = paste(outPrefix, ".png", sep = ""), width = 2500, height = 1500, res = 160)
 pt_all
 dev.off()
 

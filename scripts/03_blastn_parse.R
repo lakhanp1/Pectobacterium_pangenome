@@ -157,7 +157,7 @@ pcrPlotDf <- dplyr::filter(mergedDf, assay != "P_wasabiae_WPP163") %>%
     primerCov = if_else(condition = qcovs == 100, true = "complete", false = "incomplete"),
     mismatch = if_else(condition = mismatch == 0, true = "no", false = "yes")
   ) %>% 
-  dplyr::filter(n != 1)
+  dplyr::filter(n == 3)
 
 table(pcrPlotDf$mismatch, pcrPlotDf$n)
 
@@ -190,14 +190,16 @@ pt_pcrBlast <- ggplot2::ggplot(
   guides(
     size = guide_legend(override.aes = list(fill = "white"))
   ) +
-  facet_grid(cols = vars(assay, n), scales = "free_y") +
+  facet_grid(cols = vars(assay), scales = "free_y") +
   theme_bw() +
   theme(
     panel.grid = element_blank(),
     axis.title = element_blank(),
     axis.text.y = element_blank(),
     axis.ticks.y = element_blank(),
-    plot.title = element_text(hjust = 0.5, vjust = 0)
+    axis.text.x = element_text(size = 14, face = "bold"),
+    plot.title = element_text(hjust = 0.5, vjust = 0),
+    strip.text.x = element_text(size = 14, face = "bold") 
   )
 
 
@@ -333,13 +335,16 @@ pt_all <- pt_vir %>% aplot::insert_left(pt_tree, width = 15) %>%
   aplot::insert_right(pt_pcrBlast, width = 12)
 
 
-png(filename = paste(outPrefix, ".23.png", sep = ""), width = 3000, height = 1500, res = 150)
+png(filename = paste(outPrefix, ".3.png", sep = ""), width = 3000, height = 1500, res = 150)
 pt_all
 dev.off()
 
 
+pt_treeBlast <- pt_vir %>% aplot::insert_right(pt_tree, width = 15) %>%
+  aplot::insert_right(pt_pcrBlast, width = 15)
 
 
-
-
+png(filename = paste(outPrefix, ".treeBlast.png", sep = ""), width = 2500, height = 1500, res = 150)
+pt_treeBlast
+dev.off()
 
