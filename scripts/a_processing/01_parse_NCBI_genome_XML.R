@@ -24,3 +24,4 @@ assemblyDf <- tibble::tibble(
 
 
 readr::write_tsv(x = assemblyDf, file = here::here("data", "reference_data", "assembly_result.xml"))
+
