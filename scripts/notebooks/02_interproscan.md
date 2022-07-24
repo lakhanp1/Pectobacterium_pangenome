@@ -44,8 +44,16 @@ function run_interproscan(){
 
 export -f run_interproscan
 
-## Run InterProScan on all files using GNU parallel
-cat scripts/sub_commands/interproscan_batch.00 | parallel --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel.log run_interproscan {} ${ANALYSIS_DIR}
+export -f run_interproscan
+
+# ## GNU parallel on single server
+# cat scripts/sub_commands/interproscan_batch.00 | parallel --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel.log run_interproscan {} ${ANALYSIS_DIR}
+
+## GNU parallel on multiple servers
+cat scripts/sub_commands/interproscan_batch.00 | parallel --keep-order --sshloginfile parallel_job_nodes.txt --halt now,fail=1 --dry-run --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel_across.log run_interproscan {} ${ANALYSIS_DIR}
+
+# cat scripts/sub_commands/interproscan_batch.00 | parallel --sshloginfile parallel_job_nodes.txt echo "File {}: Running on \`hostname\`"
+
 
 
 
