@@ -20,9 +20,14 @@ function run_interproscan(){
     # sed '/>/{H;$!d} ; x ; s/^/\nSTART-->/ ; s/$/\n<--END/'
     prefix=`basename -z ${1} | sed -r 's/(.*)\..*$/\1/'`.interProScan
 
-    process_start "InterProScan on file $prefix"
-    interproscan.sh -verbose -cpu 12 -goterms -f GFF3 -iprlookup  --output-file-base $2/${prefix} -i $1
-    error_exit $?
+    if [ ! -f $2/${prefix}.gff3 ]
+    then
+        process_start "InterProScan on file $prefix"
+        interproscan.sh -verbose -cpu 12 -goterms -f GFF3 -iprlookup  --output-file-base $2/${prefix} -i $1
+        error_exit $?
+    else
+        echo "${prefix}.gff3 InterProScan results exists"
+    fi
     
 }
 
@@ -31,4 +36,5 @@ export -f run_interproscan
 ## Run InterProScan on all files using GNU parallel
 cat scripts/sub_commands/interproscan_batch.00 | parallel --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel.log run_interproscan {} ${ANALYSIS_DIR}
 
+#parallel --gnu --resume --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/prokka/{/.} --joblog $PROJECT_DIR/logs/prokka/parallel.log run_prokka {} ${ANALYSIS_DIR}
 

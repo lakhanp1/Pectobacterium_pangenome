@@ -31,9 +31,14 @@ function run_interproscan(){
     # sed '/>/{H;$!d} ; x ; s/^/\nSTART-->/ ; s/$/\n<--END/'
     prefix=`basename -z ${1} | sed -r 's/(.*)\..*$/\1/'`.interProScan
 
-    process_start "InterProScan on file $prefix"
-    interproscan.sh -verbose -cpu 12 -goterms -f GFF3 -iprlookup  --output-file-base $2/${prefix} -i $1
-    error_exit $?
+    if [ ! -f $2/${prefix}.gff3 ]
+    then
+        process_start "InterProScan on file $prefix"
+        interproscan.sh -verbose -cpu 12 -goterms -f GFF3 -iprlookup  --output-file-base $2/${prefix} -i $1
+        error_exit $?
+    else
+        echo "${prefix}.gff3 InterProScan results exists"
+    fi
     
 }
 
