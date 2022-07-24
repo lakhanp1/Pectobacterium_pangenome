@@ -12,7 +12,7 @@ conda activate pantools
 export PANTOOLS="$PANTOOLS_MAIN"
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_50g"
 analysis_prefix='pectobacterium.50g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"

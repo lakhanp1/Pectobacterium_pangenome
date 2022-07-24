@@ -11,7 +11,7 @@ source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
 conda deactivate & conda activate pantools
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium/'
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/analysis/02_pangenome_pecto_197g"
 analysis_prefix='pectobacterium.197g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"

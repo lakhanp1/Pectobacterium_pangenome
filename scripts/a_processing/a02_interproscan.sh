@@ -11,24 +11,24 @@ source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
 conda activate interproscan
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
-ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_50g/interProScan"
-pan_db="$PROJECT_DIR/analysis/04_pangenome_pecto_50g/pectobacterium.50g.DB"
-
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
+ANALYSIS_DIR="$PROJECT_DIR/data/interproscan"
 
 function run_interproscan(){
     ## replace * in the FASTA file
     sed -i 's/*//g' ${1}
     # sed '/>/{H;$!d} ; x ; s/^/\nSTART-->/ ; s/$/\n<--END/'
+    prefix=`basename -z ${1} | sed -r 's/(.*)\..*$/\1/'`.interProScan
 
-    file_outPrefix=`basename ${1} | sed 's/.fasta//'`.interproscan
-    interproscan.sh -verbose -cpu 12 -goterms -f GFF3 -iprlookup -dp  --output-file-base $2/${file_outPrefix} -i $1
+    process_start "InterProScan on file $prefix"
+    interproscan.sh -verbose -cpu 12 -goterms -f GFF3 -iprlookup  --output-file-base $2/${prefix} -i $1
     error_exit $?
+    
 }
 
 export -f run_interproscan
 
 ## Run InterProScan on all files using GNU parallel
-ls ${pan_db}/proteins/*.fasta | parallel --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel.log run_interproscan {} ${ANALYSIS_DIR}
+cat scripts/sub_commands/interproscan_batch.00 | parallel --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/interproscan/{/.} --joblog $PROJECT_DIR/logs/interproscan/parallel.log run_interproscan {} ${ANALYSIS_DIR}
 
 

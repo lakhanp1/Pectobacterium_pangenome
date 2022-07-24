@@ -12,7 +12,7 @@ source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
 conda activate prokka
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/data/prokka_annotation"
 
 
@@ -21,7 +21,7 @@ function run_prokka(){
 
     if [ ! -f ${2}/${prefix}/${prefix}.log ] || ! grep -q 'Annotation finished successfully.' ${2}/${prefix}/${prefix}.log
     then
-        echo "Annotating $prefix genome"
+        process_start "prokka $prefix"
         prokka --cpus 8 --outdir ${2}/${prefix} --prefix ${prefix} ${1}
         error_exit $?
     else
