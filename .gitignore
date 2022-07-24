@@ -12,6 +12,7 @@
 *.docx
 *.xml
 Rplots.pdf
+temp
 /logs
 sample_info.txt
 /data/*
@@ -19,4 +20,3 @@ sample_info.txt
 /analysis
 /reports
 .DS_Store
-
