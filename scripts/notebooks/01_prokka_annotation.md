@@ -12,11 +12,11 @@
 shopt -s expand_aliases
 source ~/.bash_aliases
 
-source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
+source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate prokka
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/data/prokka_annotation"
 
 ```
