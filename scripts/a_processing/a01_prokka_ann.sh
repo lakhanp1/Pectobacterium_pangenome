@@ -15,28 +15,18 @@ conda activate prokka
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/data/prokka_annotation"
 
+file_faa=$1
 
-function run_prokka(){
-    prefix=`basename -z ${1} | sed -r 's/(.*)\..*$/\1/' | sed -r 's/_genomic//'`
+prefix=`basename -z ${file_faa} | sed -r 's/(.*)\..*$/\1/' | sed -r 's/_genomic//'`
+out_dir=${ANALYSIS_DIR}/${prefix}
 
-    if [ ! -f ${2}/${prefix}/${prefix}.log ] || ! grep -q 'Annotation finished successfully.' ${2}/${prefix}/${prefix}.log
-    then
-        process_start "prokka $prefix"
-        prokka --cpus 8 --outdir ${2}/${prefix} --prefix ${prefix} ${1}
-        error_exit $?
-    else
-        echo "prokka results exists"
-    fi
-}
- 
-export -f run_prokka
+if [ ! -f ${out_dir}/${prefix}.log ] || ! grep -q 'Annotation finished successfully.' ${out_dir}/${prefix}.log
+then
+    process_start "prokka $prefix"
+    prokka --cpus 8 --outdir ${out_dir} --prefix ${prefix} ${file_faa}
+    error_exit $?
+else
+    echo "prokka results exists"
+fi
 
-## Run Prokka on all files using GNU parallel
-#ls $PROJECT_DIR/data/genomes/?(ncbi|local)/*.?(fa|fna|fasta) | \
-#parallel --gnu --resume --keep-order --jobs 4 --halt now,fail=1 --results $PROJECT_DIR/logs/prokka/{/.} --joblog $PROJECT_DIR/logs/prokka/parallel.log run_prokka {} ${ANALYSIS_DIR}
-
-for fa in $PROJECT_DIR/data/genomes/?(ncbi|local)/*.?(fa|fna|fasta)
-do
-run_prokka ${fa} ${ANALYSIS_DIR}
-done
 

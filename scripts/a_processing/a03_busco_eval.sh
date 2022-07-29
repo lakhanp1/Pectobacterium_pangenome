@@ -13,17 +13,19 @@ conda activate pantools
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/data/busco_eval"
+
 busco_lineage="data/busco_downloads/lineages/enterobacterales_odb10"
 
-for file_faa in `cat scripts/sub_commands/interproscan_files.list`
-do
-    prefix=`basename -z ${file_faa} | sed -r 's/(.*)\..*$/\1/'`
+file_faa=${1}
+prefix=`basename -z ${file_faa} | sed -r 's/(.*)\..*$/\1/'`
 
-    process_start "BUSCO on file $prefix"
-    busco -i ${file_faa} -o ${prefix} -l ${busco_lineage} -m proteins \
-    --offline --download_path $PROJECT_DIR/data/busco_downloads \
-    --cpu 8 --tar --out_path ${ANALYSIS_DIR} -f --quiet
-    error_exit $?
+process_start "BUSCO on file $prefix"
 
-done
+busco -i ${file_faa} -o ${prefix} -l ${busco_lineage} -m proteins \
+--offline --download_path $PROJECT_DIR/data/busco_downloads \
+--cpu 8 --tar --out_path ${ANALYSIS_DIR} -f --quiet
+
+error_exit $?
+
+
 
