@@ -24,6 +24,30 @@ xargs -I {} wget --timestamping {} -P data/genomes/ncbi/
 
 ```
 
+## Check if there are any new assemblies which recently became available
+
+``` bash
+## check and extract new assembly IDs
+for sampleId in `cat data/reference_data/assembly_ids.txt`
+do
+    if ! find data/genomes/ -name ${sampleId}* | grep -q "."
+    then
+        echo $sampleId
+    fi
+done > data/reference_data/new_assembly_ids.txt
+
+
+## download and unzip the FASTA files
+for sampleId in `cat data/reference_data/new_assembly_ids.txt`
+do
+    grep $sampleId data/reference_data/ncbi_assembly_ftp.txt
+done | \
+xargs -I {} wget --timestamping {} -P data/genomes/ncbi/
+
+gzip -d data/genomes/ncbi/*.gz
+
+```
+
 ## Prokka annotation for bacterial genomes
 
 #### Processing using GNU `parallel`
@@ -40,13 +64,8 @@ scripts/a_processing/a01_prokka_ann.sh {} \
 
 Processing in parallel is failing without any specific error. Hence the
 data will be processed in serial mode. Further debugging is required to
-understand the parallel processing failure.
-
-#### Serial run
-
-``` bash
-nohup bash scripts/a_processing/a01_prokka_serial.sh >> logs/prokka/prokka.log 2>&1 &
-```
+understand the parallel processing failure. For now, running GNU `parallel`
+with `--jobs 1` setting is serial mode.
 
 ## BUSCO assembly evaluation
 
@@ -55,30 +74,25 @@ nohup bash scripts/a_processing/a01_prokka_serial.sh >> logs/prokka/prokka.log 2
 ``` bash
 ## !GNU parallel on single server
 nohup \
-cat data/reference_data/sample_subsets/genebank_ass.txt | \
+cat data/reference_data/new_assembly_ids.txt | \
 parallel --jobs 4 --workdir $PWD --halt now,fail=1 --keep-order \
---results logs/busco/{/.} --joblog logs/busco/parallel_batch00.log \
+--results logs/busco/{} --joblog logs/busco/parallel.log \
 $PWD/scripts/a_processing/a03_busco_eval.sh {} \
->>logs/busco/nohup_batch00.out 2>&1 &
+>>logs/busco/nohup.out 2>&1 &
 
 ```
 
 This is failing with `parallel`, most likely because of the number of open files
-exceeding the `ulimit`. Need to debug further.
-
-#### Alternatively run BUSCO in serial mode
-
-``` bash
-nohup bash scripts/a_processing/a03_busco_serial.sh >> logs/busco/busco.log 2>&1 &
-```
+exceeding the `ulimit`. Need to debug further. For now, running GNU `parallel`
+with `--jobs 1` setting is serial mode.
 
 ## QUAST assembly evaluation
 
 ``` bash
 nohup \
-cat data/reference_data/assembly_ids.txt | \
+cat data/reference_data/new_assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
---keep-order --results logs/quast/{} --resume \
+--keep-order --results logs/quast/{} \
 --joblog logs/quast/parallel.log \
 ./scripts/a_processing/a04_quast_eval.sh {} \
 >>logs/quast/nohup.out 2>&1 &
@@ -91,7 +105,7 @@ parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 ``` bash
 ## GNU parallel on single server
 nohup \
-cat data/reference_data/sample_subsets/genebank_ass.txt | \
+cat data/reference_data/new_assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/interproscan/{} \
 --joblog logs/interproscan/parallel_batch05.log \
@@ -102,7 +116,8 @@ parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 ## GNU parallel: submit jobs to another server
 head -n 10 data/reference_data/sample_subsets/genebank_ass.txt | \
 env_parallel --jobs 4 --workdir $PWD --halt now,fail=1 \
---keep-order --results logs/interproscan/{/.} --joblog logs/interproscan/parallel.log \
+--keep-order --results logs/interproscan/{} \
+--joblog logs/interproscan/parallel.log \
 --sshlogin 4/waterman.bioinformatics.nl --cleanup \
 --env error_exit --env process_start --env TOOLS_PATH --env LUSTRE_HOME \
 ./scripts/a_processing/a02_interproscan.sh {}

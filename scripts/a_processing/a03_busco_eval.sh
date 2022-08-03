@@ -12,7 +12,7 @@ conda activate pantools
 
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
-ANALYSIS_DIR="$PROJECT_DIR/data/busco_eval"
+ANALYSIS_DIR="$PROJECT_DIR/data/busco"
 
 busco_lineage="data/busco_downloads/lineages/enterobacterales_odb10"
 
@@ -25,11 +25,17 @@ then
     error_exit $?
 fi
 
+file_busco_log=${${ANALYSIS_DIR}}/${sampleId}/logs/busco.log
 
-process_start "BUSCO on file $sampleId"
+if [ ! -f ${file_busco_log} ] || ! grep -q 'BUSCO analysis done' ${file_busco_log}
+then
+    process_start "BUSCO on file $sampleId"
 
-busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \
---offline --download_path $PROJECT_DIR/data/busco_downloads \
---cpu 8 --tar --out_path ${ANALYSIS_DIR} -f --quiet
+    busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \
+    --offline --download_path $PROJECT_DIR/data/busco_downloads \
+    --cpu 8 --tar --out_path ${ANALYSIS_DIR} -f --quiet
 
-error_exit $?
+    error_exit $?
+else
+    echo "BUSCO results exists for $sampleId"
+fi
