@@ -8,7 +8,7 @@ shopt -s expand_aliases
 shopt -s extglob
 source ~/.bash_aliases
 
-source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
+source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate prokka
 
 ## Setup
@@ -16,6 +16,12 @@ PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 ANALYSIS_DIR="$PROJECT_DIR/data/prokka_annotation"
 
 file_faa=$1
+
+if [ ! -f ${file_faa} ]
+then
+    ls "${file_faa}"
+    error_exit $?
+fi
 
 prefix=`basename -z ${file_faa} | sed -r 's/(.*)\..*$/\1/' | sed -r 's/_genomic//'`
 out_dir=${ANALYSIS_DIR}/${prefix}
@@ -28,5 +34,3 @@ then
 else
     echo "prokka results exists"
 fi
-
-

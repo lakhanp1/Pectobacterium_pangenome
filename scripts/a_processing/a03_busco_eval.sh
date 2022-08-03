@@ -16,16 +16,20 @@ ANALYSIS_DIR="$PROJECT_DIR/data/busco_eval"
 
 busco_lineage="data/busco_downloads/lineages/enterobacterales_odb10"
 
-file_faa=${1}
-prefix=`basename -z ${file_faa} | sed -r 's/(.*)\..*$/\1/'`
+sampleId=$1
+file_faa="$PROJECT_DIR/data/prokka_annotation/$sampleId/$sampleId.faa"
 
-process_start "BUSCO on file $prefix"
+if [ ! -f ${file_faa} ]
+then
+    ls "${file_faa}"
+    error_exit $?
+fi
 
-busco -i ${file_faa} -o ${prefix} -l ${busco_lineage} -m proteins \
+
+process_start "BUSCO on file $sampleId"
+
+busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \
 --offline --download_path $PROJECT_DIR/data/busco_downloads \
 --cpu 8 --tar --out_path ${ANALYSIS_DIR} -f --quiet
 
 error_exit $?
-
-
-

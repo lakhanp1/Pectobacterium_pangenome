@@ -8,7 +8,7 @@ shopt -s expand_aliases
 shopt -s extglob
 source ~/.bash_aliases
 
-source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
+source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate prokka
 
 ## Setup

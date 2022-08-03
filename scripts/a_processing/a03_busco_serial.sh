@@ -17,13 +17,19 @@ ANALYSIS_DIR="$PROJECT_DIR/data/busco_eval"
 busco_lineage="data/busco_downloads/lineages/enterobacterales_odb10"
 
 ## process file one by one
-for file_faa in `cat scripts/sub_commands/interproscan_files.list`
+for sampleId in `cat data/reference_data/data/reference_data/assembly_ids.txt`
 do
-    prefix=`basename -z ${file_faa} | sed -r 's/(.*)\..*$/\1/'`
+    file_faa="$PROJECT_DIR/data/prokka_annotation/$sampleId/$sampleId.faa"
 
-    process_start "BUSCO on file $prefix"
+    if [ ! -f ${file_faa} ]
+    then
+        ls "${file_faa}"
+        error_exit $?
+    fi
+
+    process_start "BUSCO on file $sampleId"
     
-    busco -i ${file_faa} -o ${prefix} -l ${busco_lineage} -m proteins \
+    busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \
     --offline --download_path $PROJECT_DIR/data/busco_downloads \
     --cpu 8 --tar --out_path ${ANALYSIS_DIR} -f --quiet
     
