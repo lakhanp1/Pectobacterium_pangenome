@@ -13,6 +13,7 @@
 *.xml
 Rplots.pdf
 temp
+temp*
 /logs
 sample_info.txt
 /data/*
