@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Author: Lakhansing Pardeshi
 # Contact: lakhansing.pardeshi@wur.nl

@@ -65,7 +65,17 @@ scripts/a_processing/a01_prokka_ann.sh {} \
 Processing in parallel is failing without any specific error. Hence the
 data will be processed in serial mode. Further debugging is required to
 understand the parallel processing failure. For now, running GNU `parallel`
-with `--jobs 1` setting is serial mode.
+with `--jobs 1` setting in serial mode.
+
+#### Remove the FASTA sequence at the end of prokka gff files
+
+``` bash
+for i in `cat analysis/03_pangenome/genomes.list`
+do
+sed -n '1,/##FASTA/ {/##FASTA/!p}' analysis/01_prokka_annotation/${i}/${i}.gff > analysis/01_prokka_annotation/${i}/${i}.gff3
+done
+
+```
 
 ## BUSCO assembly evaluation
 
@@ -121,5 +131,22 @@ env_parallel --jobs 4 --workdir $PWD --halt now,fail=1 \
 --sshlogin 4/waterman.bioinformatics.nl --cleanup \
 --env error_exit --env process_start --env TOOLS_PATH --env LUSTRE_HOME \
 ./scripts/a_processing/a02_interproscan.sh {}
+
+```
+
+## MultiQC
+
+``` bash
+## QUAST MultiQC
+nohup \
+multiqc -f --filename quast_multiqc --interactive --title "QUAST report" \
+--outdir analysis/01_multiqc/ --module quast data/quast/ \
+>>nohup.out 2>&1 &
+
+## BUSCO MultiQC
+nohup \
+multiqc -f --filename busco_multiqc --interactive --title "BUSCO report" \
+--outdir analysis/01_multiqc/ --module busco data/busco/ \
+>>nohup.out 2>&1 &
 
 ```
