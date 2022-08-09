@@ -10,7 +10,6 @@
 *.pptx
 *.xlsx
 *.docx
-*.xml
 Rplots.pdf
 temp
 temp*
