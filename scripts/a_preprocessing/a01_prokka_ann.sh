@@ -9,7 +9,6 @@ shopt -s extglob
 source ~/.bash_aliases
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-conda activate prokka
 
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
@@ -28,6 +27,7 @@ out_dir=${ANALYSIS_DIR}/${prefix}
 
 if [ ! -f ${out_dir}/${prefix}.log ] || ! grep -q 'Annotation finished successfully.' ${out_dir}/${prefix}.log
 then
+    conda activate prokka
     process_start "prokka $prefix"
     prokka --cpus 8 --outdir ${out_dir} --prefix ${prefix} ${file_faa}
     error_exit $?

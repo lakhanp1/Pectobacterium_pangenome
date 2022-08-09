@@ -8,7 +8,6 @@ shopt -s expand_aliases
 source ~/.bash_aliases
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-conda activate pantools
 
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
@@ -29,6 +28,7 @@ file_busco_log=${${ANALYSIS_DIR}}/${sampleId}/logs/busco.log
 
 if [ ! -f ${file_busco_log} ] || ! grep -q 'BUSCO analysis done' ${file_busco_log}
 then
+    conda activate pantools
     process_start "BUSCO on file $sampleId"
 
     busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \

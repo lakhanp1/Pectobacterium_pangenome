@@ -8,7 +8,6 @@ shopt -s expand_aliases
 source ~/.bash_aliases
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-conda activate interproscan
 
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
@@ -31,6 +30,7 @@ prefix=${sampleId}.interProScan
 
 if [ ! -f $ANALYSIS_DIR/${prefix}.gff3 ]
 then
+    conda activate interproscan
     process_start "InterProScan on file $prefix"
 
     interproscan.sh -cpu 8 -goterms -f GFF3 -iprlookup  \

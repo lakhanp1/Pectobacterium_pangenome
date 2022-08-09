@@ -8,7 +8,6 @@ shopt -s expand_aliases
 source ~/.bash_aliases
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-conda activate omics_py37
 
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
@@ -29,6 +28,7 @@ file_report=${ANALYSIS_DIR}/${sampleId}/report.txt
 
 if [ ! -f ${file_report} ]
 then
+    conda activate omics_py37
     process_start "Quast on sample $sampleId"
 
     quast --output-dir ${ANALYSIS_DIR}/${sampleId} -t 8 --silent \
