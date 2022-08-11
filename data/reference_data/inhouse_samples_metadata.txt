@@ -1,0 +1,24 @@
+sampleId	SpeciesName	SubmitterOrganization	tissue	region	sampling_year	symptom_per_2019	symptom_per_2020	symptom_per_2021	virulence	virulence2	pcr
+JGAR-030718-1	Pectobacterium brasiliense	Wageningen University and Research	Stem	Groningen, Netherlands	2018	0	0.720385973	0	yes	yes	negative
+JGAR-080719-2	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Holland, Netherlands	2019	0	0.642761723	0	yes	yes	negative
+JGAR-100719-1	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Holland, Netherlands	2019	0	0.593263644	0	yes	yes	negative
+JGAR-120719-4	Pectobacterium brasiliense	Wageningen University and Research	Stem	Friesland, Netherlands	2019	0	0.656878532	0	yes	yes	negative
+NAK238	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Groningen, Netherlands	2016	0	0.002638837	0	no	no	positive
+NAK246	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2016	0	0	0	no	no	positive
+NAK616	Pectobacterium brasiliense	Wageningen University and Research	Stem	Friesland, Netherlands	2019	0	0.494157062	0	yes	yes	negative
+NAK617	Pectobacterium brasiliense	Wageningen University and Research	Stem	Zeeland, Netherlands	2019	0	0.665436521	0	yes	yes	negative
+NAK638	Pectobacterium brasiliense	Wageningen University and Research	Stem	Friesland, Netherlands	2019	0	0	0	unknown	unknown	negative
+NAK641	Pectobacterium brasiliense	Wageningen University and Research	Stem	Zeeland, Netherlands	2019	0	0	1	yes	yes	negative
+NAK644	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Holland, Netherlands	2019	0	0	0.989472505	yes	yes	negative
+NAK650	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Brabant, Netherlands	2019	0	0	0.984554296	yes	yes	negative
+NAK673	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Brabant, Netherlands	2020	0	0	0	unknown	unknown	negative
+NAK679	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2020	0	0	0.436759219	yes	yes	negative
+NAK682	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Friesland, Netherlands	2020	0	0	0.978713554	yes	yes	positive
+NAK683	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Flevoland, Netherlands	2020	0	0	0.94498286	yes	yes	negative
+NAK698	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Zeeland, Netherlands	2020	0	0	0	unknown	unknown	positive
+NAK700	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Friesland, Netherlands	2020	0	0	0.539156476	yes	yes	negative
+NAK701	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2020	0	0	0.989472505	yes	yes	positive
+NAK709	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Flevoland, Netherlands	2020	0	0	0.367088713	maybe	yes	negative
+NAK716	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Groningen, Netherlands	2020	0	0	0.277636005	maybe	yes	negative
+NAK719	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2020	0	0	0	unknown	unknown	positive
+NAK727	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Friesland, Netherlands	2020	0	0	0.343084913	maybe	yes	negative
