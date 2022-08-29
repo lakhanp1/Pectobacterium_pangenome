@@ -3,10 +3,15 @@
 ## Data download from NCBI using EUtils
 
 ``` bash
+## download the Assembly DocumentSummary file
+esearch -db assembly -query "pectobacterium [ORGN]" -email "lakhansing.pardeshi@wur.nl" | \
+efetch -format docsum > data/reference_data/assembly_docsum.xml
 
-esearch -db assembly -query "pectobacterium [ORGN]" | \
-efetch -format docsum -email "lakhansing.pardeshi@wur.nl" > \
-data/reference_data/efetch_docsum.xml
+## download associated BioSample DocumentSummary file
+esearch -db assembly -query "pectobacterium [ORGN]" -email "lakhansing.pardeshi@wur.nl" | \
+elink -target biosample  | \
+efetch -format docsum > data/reference_data/biosample_docsum.xml
+
 
 ## get all FPT paths for NCBI assemblies
 esearch -db assembly -query "pectobacterium [ORGN]" | \
