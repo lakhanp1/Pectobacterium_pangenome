@@ -15,13 +15,14 @@ rm(list = ls())
 analysisName <- "raw_data_summary"
 outDir <- here::here("analysis", "02_raw_data_summary")
 
-file_docsum <- here::here("data/reference_data", "efetch_docsum.xml")
+file_assembly <- here::here("data/reference_data", "assembly_docsum.xml")
+file_biosample <- here::here("data/reference_data", "biosample_docsum.xml")
 file_inhouseMmetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
 file_buscoMqc <- here::here("analysis/01_multiqc", "busco_multiqc_data/multiqc_busco.txt")
 file_quastMqc <- here::here("analysis/01_multiqc", "quast_multiqc_data/multiqc_quast.txt")
 
 #####################################################################
-
+## inhouse genomes and QC data
 inhouseGenomes <- suppressMessages(readr::read_tsv(file = file_inhouseMmetadata)) %>% 
   dplyr::mutate(
     source = "inhouse",
@@ -68,16 +69,18 @@ quastMqc <- suppressMessages(readr::read_tsv(file = file_quastMqc)) %>%
     !!!quastCols
   )
 
-xmlDoc <- XML::xmlParse(file = file_docsum)
-## xmlDoc <- XML::xmlTreeParse(file = file_docsum)
-xmlNodes <- XML::getNodeSet(doc = xmlDoc, path = "//DocumentSummary")
-xmlDf <- XML::xmlToDataFrame(nodes = xmlNodes)
+#####################################################################
+## extract assembly information
+asmDoc <- XML::xmlParse(file = file_assembly)
+## asmDoc <- XML::xmlTreeParse(file = file_assembly)
+asmNodes <- XML::getNodeSet(doc = asmDoc, path = "//DocumentSummary")
+asmDf <- XML::xmlToDataFrame(nodes = asmNodes)
 
-# xmlList <- XML::xmlToList(node = xmlNodes[[1]])
+# xmlList <- XML::xmlToList(node = asmNodes[[1]])
 # intersect(unlist(xmlList$PropertyList), c("latest_genbank", "latest_refseq"))
 
-metadata <- purrr::map_dfr(
-  .x = xmlNodes,
+asmMetadata <- purrr::map_dfr(
+  .x = asmNodes,
   .f = function(x){
     xmlList <- XML::xmlToList(node = x)
     return(c(
@@ -90,13 +93,91 @@ metadata <- purrr::map_dfr(
   }
 )
 
+#####################################################################
+## extract BioSample information
+bsDoc <- XML::xmlParse(file = file_biosample)
+bsNodes <- XML::getNodeSet(doc = bsDoc, path = "//DocumentSummary")
+
+colInfo <- NULL
+
+# aNode <- bsNodes[[1]]
+# aNodeList <- XML::xmlToList(node = aNode)
+
+bsMetadata <- purrr::map_dfr(
+  .x = bsNodes,
+  .f = function(aNode){
+    aNodeDoc <- XML::xmlParse(XML::toString.XMLNode(aNode))
+    aNodeList <- XML::xmlToList(node = aNode)
+    
+    ## parse all the metadata from Attribute nodes
+    attrDf <- purrr::map_dfr(
+      .x = XML::getNodeSet(doc = aNodeDoc, path = "//Attribute"),
+      .f = function(nd){
+        return(c(
+          XML::xmlAttrs(node = nd),
+          value = XML::xmlValue(x = nd)
+        ))
+      }
+    )
+    
+    ## cleanup attribute names which will be used as column names
+    attrDf <- dplyr::mutate(
+      .data = attrDf,
+      attribute_name = tolower(
+        stringr::str_replace_all(
+          string = attribute_name, pattern = "(\\W+)", replacement = "_"
+        )
+      ),
+      attribute_name = stringr::str_replace(
+        string = attribute_name, pattern = "_$", replacement = ""
+      ),
+      harmonized_name = dplyr::coalesce(harmonized_name, attribute_name)
+    )
+    
+    ## cleanup the attribute values
+    attrDf <- dplyr::mutate(
+      .data = attrDf,
+      value = stringr::str_replace_all(
+        string = value,
+        pattern = regex(
+          pattern = "(not.applicable|missing|unknown|not.provided)",
+          ignore_case = TRUE
+        ),
+        replacement = NA_character_
+      )
+    )
+    
+    ## add the attribute name and description to global DF
+    colInfo <<- dplyr::bind_rows(
+      colInfo,
+      dplyr::filter(attrDf, !is.na(value)) %>% 
+        dplyr::select(attribute_name, harmonized_name, display_name)
+    )
+    
+    return(c(
+      BioSampleAccn = aNodeList$Accession,
+      tibble::deframe(x = dplyr::select(attrDf, harmonized_name, value))
+    ))
+  }
+)
+
+colStats <- dplyr::count(colInfo, harmonized_name, display_name, sort = TRUE)
+
+bsMetadata <- dplyr::select(
+  bsMetadata, BioSampleAccn, colStats$harmonized_name
+)
+
+
+#####################################################################
+## merge all data
 ncbiData <- dplyr::select(
-  .data = xmlDf,
+  .data = asmDf,
   AssemblyAccession, AssemblyName, SpeciesName, SpeciesTaxid, Organism, 
   AssemblyStatus, AssemblyType, BioSampleAccn, SubmissionDate, SubmitterOrganization,
   FtpPath_RefSeq, FtpPath_GenBank, assembly_id = Id
 ) %>% 
-  dplyr::left_join(y = metadata, by = c("assembly_id" = "Id")) %>% 
+  dplyr::left_join(y = asmMetadata, by = c("assembly_id" = "Id")) %>%
+  dplyr::left_join(y = bsMetadata, by = "BioSampleAccn") %>% 
   dplyr::mutate(
     AssemblyName = stringr::str_replace_all(
       string = AssemblyName, pattern = "\\s+", replacement = "_"
@@ -128,9 +209,18 @@ readr::write_tsv(
 wb <- openxlsx::createWorkbook()
 openxlsx::addWorksheet(wb, sheetName = "metadata")
 openxlsx::writeDataTable(
-  wb = wb, sheet = "metadata", x = genomeMetadata, withFilter = TRUE, na.string = "NA"
+  wb = wb, sheet = 1, x = genomeMetadata, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
 )
-openxlsx::freezePane(wb = wb, sheet = "metadata", firstActiveRow = 2, firstActiveCol = 2)
+openxlsx::freezePane(wb = wb, sheet = 1, firstActiveRow = 2, firstActiveCol = 2)
+openxlsx::addWorksheet(wb, sheetName = "column_info")
+openxlsx::writeDataTable(
+  wb = wb, sheet = 2, x = colStats, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = 2, firstActiveRow = 2, firstActiveCol = 2)
+
+# openxlsx::openXL(wb)
 saveWorkbook(
   wb = wb, file = here::here("data/reference_data", "sample_metadata.xlsx"), overwrite = TRUE
 )
@@ -190,11 +280,11 @@ pt_otherSummary <- ggplot2::ggplot(
 ) +
   geom_bar(
     stat = "identity", color = "grey", alpha = 0, size = 1
-    ) +
+  ) +
   geom_label(
     mapping = aes(label = label),
     position = position_stack(vjust = 0.5), color = "black", alpha = 0, label.size = 1
-    ) +
+  ) +
   pt_theme +
   theme(
     legend.position = "none",
@@ -257,7 +347,7 @@ ptHist_n50 <- ggplot2::ggplot(
   geom_histogram(bins = 100, color = "black", fill = "black") + 
   scale_x_continuous(
     labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
-    ) +
+  ) +
   labs(
     title = "Histogram of N50 (excluding 2 outliers)",
     x = "N50", y = "Count"
