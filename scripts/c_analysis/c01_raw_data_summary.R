@@ -20,6 +20,7 @@ file_biosample <- here::here("data/reference_data", "biosample_docsum.xml")
 file_inhouseMmetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
 file_buscoMqc <- here::here("analysis/01_multiqc", "busco_multiqc_data/multiqc_busco.txt")
 file_quastMqc <- here::here("analysis/01_multiqc", "quast_multiqc_data/multiqc_quast.txt")
+file_ncbiAni <- here::here("data/other", "ANI_report_prokaryotes.txt")
 
 #####################################################################
 ## inhouse genomes and QC data
@@ -69,6 +70,8 @@ quastMqc <- suppressMessages(readr::read_tsv(file = file_quastMqc)) %>%
     !!!quastCols
   )
 
+ncbiAni <- suppressMessages(readr::read_tsv(file = file_ncbiAni))
+
 #####################################################################
 ## extract assembly information
 asmDoc <- XML::xmlParse(file = file_assembly)
@@ -79,18 +82,49 @@ asmDf <- XML::xmlToDataFrame(nodes = asmNodes)
 # xmlList <- XML::xmlToList(node = asmNodes[[1]])
 # intersect(unlist(xmlList$PropertyList), c("latest_genbank", "latest_refseq"))
 
+parse_assembly_docsum <- function(node){
+  xmlList <- XML::xmlToList(node = node)
+  
+  exclFromRefSeq <- NA
+  if(!is.null(node[["ExclFromRefSeq"]])){
+    exclFromRefSeq <- paste(
+      XML::xmlSApply(node[["ExclFromRefSeq"]], xmlValue),
+      sep = ";", collapse = ";"
+    )
+  }
+  
+  Anomalous <- NA
+  if(!is.null(node[["AnomalousList"]])){
+    Anomalous <- paste(
+      XML::xmlSApply(node[["AnomalousList"]][["Anomalous"]], xmlValue),
+      sep = ";", collapse = ";"
+    )
+  }
+  
+  replaced <- NA
+  if(is.element(el = "replaced", xmlSApply(node[["PropertyList"]], xmlValue))){
+    replaced <- "replaced"
+  }
+  
+  
+  
+  return(c(
+    Id = xmlList$Id,
+    taxonomy_check_status = xmlList$Meta$`taxonomy-check-status`,
+    representative_status = xmlList$Meta$`representative-status`,
+    ExclFromRefSeq = exclFromRefSeq,
+    Anomalous = Anomalous,
+    replaced = replaced,
+    synonym_GB = xmlList$Synonym$Genbank,
+    synonym_RS = xmlList$Synonym$RefSeq,
+    synonym_similarity = xmlList$Synonym$Similarity
+  ))
+  
+}
+
 asmMetadata <- purrr::map_dfr(
   .x = asmNodes,
-  .f = function(x){
-    xmlList <- XML::xmlToList(node = x)
-    return(c(
-      Id = xmlList$Id,
-      taxonomy_check_status = xmlList$Meta$`taxonomy-check-status`,
-      representative_status = xmlList$Meta$`representative-status`,
-      RS_BioprojectAccn = xmlList$RS_BioProjects$Bioproj$BioprojectAccn,
-      GB_BioprojectAccn = xmlList$GB_BioProjects$Bioproj$BioprojectAccn
-    ))
-  }
+  .f = ~ parse_assembly_docsum(node = .)
 )
 
 #####################################################################
@@ -200,30 +234,87 @@ genomeMetadata <- dplyr::mutate(
   submission_m = lubridate::month(SubmissionDate)
 )
 
+#####################################################################
+## taxonomy check failed/inconclusive information
+taxCheckFail <- dplyr::select(
+  ncbiData, sampleId, AssemblyAccession, synonym_GB, taxonomy_check_status
+) %>% 
+  dplyr::filter(
+    taxonomy_check_status != "OK"
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(
+      ncbiAni, genbank_accession, species_name, organism_name,
+      declared_type_organism_name, declared_type_ANI,
+      declared_type_qcoverage, declared_type_scoverage, best_match_species_name,
+      best_match_type_ANI, best_match_type_qcoverage, best_match_type_scoverage,
+      best_match_status, comment
+    ),
+    by = c("synonym_GB" = "genbank_accession")
+  ) %>% 
+  dplyr::arrange(desc(taxonomy_check_status), species_name)
 
+#####################################################################
 readr::write_tsv(
   x = genomeMetadata,
   file = here::here("data/reference_data", "sample_metadata.tsv")
 )
 
 wb <- openxlsx::createWorkbook()
-openxlsx::addWorksheet(wb, sheetName = "metadata")
+
+currentSheet <- "metadata"
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeDataTable(
-  wb = wb, sheet = 1, x = genomeMetadata, withFilter = TRUE,
+  wb = wb, sheet = currentSheet, x = genomeMetadata, withFilter = TRUE,
   keepNA = TRUE, na.string = "NA"
 )
-openxlsx::freezePane(wb = wb, sheet = 1, firstActiveRow = 2, firstActiveCol = 2)
-openxlsx::addWorksheet(wb, sheetName = "column_info")
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
+
+currentSheet <- "column_info"
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeDataTable(
-  wb = wb, sheet = 2, x = colStats, withFilter = TRUE,
+  wb = wb, sheet = currentSheet, x = colStats, withFilter = TRUE,
   keepNA = TRUE, na.string = "NA"
 )
-openxlsx::freezePane(wb = wb, sheet = 2, firstActiveRow = 2, firstActiveCol = 2)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
+
+currentSheet <- "taxonomy_failed"
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+openxlsx::writeData(
+  wb = wb, sheet = currentSheet,
+  x = stringr::str_c("#details for genomes where taxonomy check by NCBI failed")
+)
+openxlsx::writeDataTable(
+  wb = wb, sheet = currentSheet, x = taxCheckFail, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA", startRow = 2
+)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
+
 
 # openxlsx::openXL(wb)
 saveWorkbook(
   wb = wb, file = here::here("data/reference_data", "sample_metadata.xlsx"), overwrite = TRUE
 )
+
+#####################################################################
+
+taxCheckFail <- dplyr::select(
+  ncbiData, sampleId, AssemblyAccession, synonym_GB, taxonomy_check_status
+) %>% 
+  dplyr::filter(
+    taxonomy_check_status != "OK"
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(
+      ncbiAni, genbank_accession, species_name, organism_name,
+      declared_type_organism_name, declared_type_ANI,
+      declared_type_qcoverage, declared_type_scoverage, best_match_species_name,
+      best_match_type_ANI, best_match_type_qcoverage, best_match_type_scoverage,
+      best_match_status, comment
+    ),
+    by = c("synonym_GB" = "genbank_accession")
+  ) %>% 
+  dplyr::arrange(desc(taxonomy_check_status), species_name)
 
 #####################################################################
 pt_theme <- theme_bw() +
@@ -233,6 +324,10 @@ pt_theme <- theme_bw() +
     plot.title = element_text(face = "bold", size = 18, color = "black"),
     axis.title = element_text(face = "bold", size = 16, color = "black")
   )
+
+pt_metadataStats <- ggplot2::ggplot(
+  data = colStats
+)
 
 pt_speciesCount <- ggplot2::ggplot(
   data = genomeMetadata,

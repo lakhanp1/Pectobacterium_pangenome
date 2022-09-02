@@ -28,6 +28,9 @@ awk '
     }
 '
 
+## NCBI prokaryotes ANI file
+wget --timestamping https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/ANI_report_prokaryotes.txt -P data/other/
+
 ```
 
 ## Check if there are any new assemblies which recently became available
