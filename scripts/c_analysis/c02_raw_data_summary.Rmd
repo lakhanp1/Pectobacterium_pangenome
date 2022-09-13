@@ -59,6 +59,12 @@ pt_theme <- theme_bw() +
 
 ### Assembly source
 
+Current data includes `r nrow(metadata)` assemblies for *Pectobacterium* species
+downloaded from NCBI Assembly database and internal assemblies provided by the
+collaborators. Metadata for all NCBI assemblies was downloaded as XML from 
+Assembly and BioSample databases using 
+[`Eutils`](https://www.ncbi.nlm.nih.gov/books/NBK25501/) tools provided by NCBI.
+
 ```{r, assCount, fig.height=2}
 
 pt_assCount <- dplyr::select(metadata, source) %>% 
@@ -92,11 +98,86 @@ plotly::ggplotly(pt_assCount) %>%
 
 ```
 
-## Row2 {data-height="400"}
+## Row2 {data-height="500"}
 
-### NCBI assembly taxanomy check status: count
+### NCBI internal QC summary {data-width=2}
 
-```{r, txQc, fig.height=8, fig.width=3}
+This sunburst chart shows following QC columns (innermost to outermost order):  
+
+*  Assembly: Total NCBI assemblies in the dataset (n = `r sum(metadata$source == "NCBI")`)
+*  ExclFromRefSeq: Whether assembly was excluded from the RefSeq
+*  Anomalous: If an assembly was detected as anomalous
+*  Replaced: Whether the assembly was replaced with an updated accession
+*  Taxonomy check status: internal taxonomy check performed by NCBI using ANI  
+
+### Sunburst chart {data-width=4, .no-padding}
+
+```{r qcSunburst}
+
+freqData <- dplyr::filter(
+  metadata, source == "NCBI"
+) %>% 
+  dplyr::select(
+    AssemblyAccession, ExclFromRefSeq, Anomalous, replaced, taxonomy_check_status
+  ) %>% 
+  tidyr::replace_na(
+    replace = list(
+      ExclFromRefSeq = "No",
+      Anomalous = "OK",
+      taxonomy_check_status = "unknown",
+      replaced = "No"
+    )
+  ) %>% 
+  dplyr::count(
+    Anomalous, ExclFromRefSeq, replaced, taxonomy_check_status, name = "count"
+  ) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = where(is.character),
+      .fns = ~ stringr::str_replace_all(
+        string = .x,  pattern = ";.*", replacement = ""
+      )
+    )
+  )
+
+qcTree <- d3r::d3_nest(data = freqData, value_cols = "count", root="Assemblies")
+
+# qcTree %>%
+#   listviewer::jsonedit()
+
+sb1 <- sunburst(
+  qcTree, width="100%", height=400, valueField = "count",
+  count = TRUE
+)
+
+sb3 <- sund2b(
+  qcTree, width="100%", valueField = "count", showLabels = TRUE,
+  height = 300,
+  rootLabel = "Assemblies",
+  tooltip = sund2bTooltip(
+    html = htmlwidgets::JS(
+      "function(nodedata, size, percent) {
+    return nodedata.colname + ': ' + '<br>' + size
+    }
+    "
+    )
+  ),
+  # breadcrumbs = sund2bBreadcrumb(
+  #   html = htmlwidgets::JS("
+  #   function(nodedata, size, percent) {
+  #   return '<span style=\"text-align:center;color:red\">' + nodedata.colname  + '<br>' +
+  #   nodedata.name + ' ' + size + '(' + percent + ')' + '</span>'
+  #   }
+  #   ")
+  # )
+)
+
+sb3
+```
+
+### NCBI assembly taxanomy check status {data-width=2}
+
+```{r, txQc, fig.width=3}
 pt_txQcBar <- dplyr::filter(metadata, source == "NCBI") %>% 
   dplyr::select(taxonomy_check_status) %>% 
   ggplot2::ggplot(
@@ -124,42 +205,6 @@ plotly::ggplotly(pt_txQcBar) %>%
       y = 0.5, yanchor = "center"
     )
   )
-
-```
-
-### NCBI assembly taxanomy check status: sanky
-
-```{r}
-
-freqData <- dplyr::select(
-  metadata, AssemblyAccession, ExclFromRefSeq, Anomalous, replaced,
-  taxonomy_check_status
-)
-
-dat <- data.frame(
-  level1 = rep(c("a", "b"), each=3),
-  level2 = paste0(rep(c("a", "b"), each=3), 1:3),
-  size = c(10,5,2,3,8,6),
-  stringsAsFactors = FALSE
-)
-
-tree <- d3_nest(dat, value_cols = "size")
-# tree
-
-sb1 <- sunburst(tree, width="100%", height=400)
-sb2 <- sunburst(
-  tree,
-  legend = FALSE,
-  width = "100%",
-  height = 400
-)
-
-# do side-by-side for comparison
-div(
-  style="display: flex; align-items:center;",
-  div(style="width:50%; border:1px solid #ccc;", sb1),
-  div(style="width:50%; border:1px solid #ccc;", sb2)
-)
 
 ```
 
@@ -279,6 +324,7 @@ reactable::reactable(
 ## Row3 {data-height="600"}
 
 ### Species
+
 ```{r speciesCount}
 pt_speciesCount <- ggplot2::ggplot(
   data = metadata
@@ -354,8 +400,6 @@ if(all(is.element(countryStats$geo_loc_country, world$name_long))){
 
 
 ```
-
-
 
 ## Row5
 
@@ -611,7 +655,3 @@ plotly::ggplotly(
 )
 
 ```
-
-
-
-
