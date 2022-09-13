@@ -1,4 +1,5 @@
 suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(xml2))
 suppressPackageStartupMessages(library(XML))
@@ -7,7 +8,8 @@ suppressPackageStartupMessages(library(openxlsx))
 
 # Author: Lakhansing Pardeshi
 # Contact: lakhansing.pardeshi@wur.nl
-# Script to summarize raw data and generate reports and tables
+## Script to parse NCBI assembly and BioSample XML file
+## summarize raw data and generate tables
 
 rm(list = ls())
 
@@ -18,7 +20,7 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 file_assembly <- here::here("data/reference_data", "assembly_docsum.xml")
 file_biosample <- here::here("data/reference_data", "biosample_docsum.xml")
 file_inhouseMmetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
-file_buscoMqc <- here::here("analysis/01_multiqc", "busco_multiqc_data/multiqc_busco.txt")
+file_buscopMqc <- here::here("analysis/01_multiqc", "busco_multiqc_data/multiqc_busco.txt")
 file_quastMqc <- here::here("analysis/01_multiqc", "quast_multiqc_data/multiqc_quast.txt")
 file_ncbiAni <- here::here("data/other", "ANI_report_prokaryotes.txt")
 
@@ -30,14 +32,18 @@ inhouseGenomes <- suppressMessages(readr::read_tsv(file = file_inhouseMmetadata)
     SubmissionDate = "2023"
   )
 
-buscoMqc <- suppressMessages(readr::read_tsv(file = file_buscoMqc)) %>% 
+buscopMqc <- suppressMessages(readr::read_tsv(file = file_buscopMqc)) %>% 
   dplyr::mutate(
     sampleId = stringr::str_replace(
       string = Sample, pattern = "short_summary.specific.enterobacterales_odb10.",
       replacement = ""
     )
   ) %>% 
-  dplyr::select(-Sample, -lineage_dataset)
+  dplyr::select(-Sample, -lineage_dataset) %>% 
+  dplyr::rename_with(
+    .fn = ~ paste("buscop.", .x, sep = ""),
+    .cols = !sampleId
+  )
 
 quastCols <- c(
   contigs_gt_0kb = "# contigs (>= 0 bp)",
@@ -91,6 +97,7 @@ parse_assembly_docsum <- function(node){
       XML::xmlSApply(node[["ExclFromRefSeq"]], xmlValue),
       sep = ";", collapse = ";"
     )
+    warning(xmlList$AssemblyAccession, exclFromRefSeq, ": ExclFromRefSeq\n")
   }
   
   Anomalous <- NA
@@ -99,11 +106,13 @@ parse_assembly_docsum <- function(node){
       XML::xmlSApply(node[["AnomalousList"]][["Anomalous"]], xmlValue),
       sep = ";", collapse = ";"
     )
+    warning(xmlList$AssemblyAccession, Anomalous, ": Anomalous\n")
   }
   
   replaced <- NA
   if(is.element(el = "replaced", xmlSApply(node[["PropertyList"]], xmlValue))){
     replaced <- "replaced"
+    warning(xmlList$AssemblyAccession, replaced, ": replaced\n")
   }
   
   
@@ -125,7 +134,21 @@ parse_assembly_docsum <- function(node){
 asmMetadata <- purrr::map_dfr(
   .x = asmNodes,
   .f = ~ parse_assembly_docsum(node = .)
-)
+) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = where(is.character),
+      .fns = ~ stringr::str_replace_all(
+        string = .x,
+        pattern = regex(
+          pattern = "^\\s*(not.applicable|missing|unknown|not.provided|na)\\s*$",
+          ignore_case = TRUE
+        ),
+        replacement = NA_character_
+      )
+    )
+    
+  )
 
 #####################################################################
 ## extract BioSample information
@@ -174,7 +197,7 @@ bsMetadata <- purrr::map_dfr(
       value = stringr::str_replace_all(
         string = value,
         pattern = regex(
-          pattern = "(not.applicable|missing|unknown|not.provided)",
+          pattern = "^\\s*(not.applicable|missing|unknown|not.provided|na)\\s*$",
           ignore_case = TRUE
         ),
         replacement = NA_character_
@@ -199,8 +222,41 @@ colStats <- dplyr::count(colInfo, harmonized_name, display_name, sort = TRUE)
 
 bsMetadata <- dplyr::select(
   bsMetadata, BioSampleAccn, colStats$harmonized_name
-)
+) %>% 
+  tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>% 
+  dplyr::mutate(
+    geo_loc_country = stringr::str_replace(
+      string = geo_loc_name, pattern = ":.*", replacement = ""
+    )
+  ) %>% 
+  dplyr::mutate(
+    geo_loc_country = dplyr::case_when(
+      geo_loc_country == "USA" ~ "United States",
+      geo_loc_country == "South Korea" ~ "Republic of Korea",
+      geo_loc_country == "Russia" ~ "Russian Federation",
+      geo_loc_country == "USSR" ~ "Russian Federation",
+      geo_loc_country == "Yugoslavia" ~ "Serbia",
+      TRUE ~ geo_loc_country
+    )
+  )
 
+
+if(!all(is.element(na.omit(unique(bsMetadata$geo_loc_country)), world$name_long))){
+  stop("Unmatched country name")
+}
+
+# library(rnaturalearth)
+# library(rnaturalearthdata)
+# library(maps)
+# library(sf)
+
+# library(spDataLarge)   # load larger geographic data
+
+## Loading country data from package maps
+# data(world.cities)
+
+
+# mapWorld <- maps::map(database = "world", plot = F, fill = TRUE)
 
 #####################################################################
 ## merge all data
@@ -224,8 +280,15 @@ ncbiData <- dplyr::select(
 genomeMetadata <- dplyr::bind_rows(
   ncbiData, inhouseGenomes
 ) %>% 
-  dplyr::left_join(y = buscoMqc, by = "sampleId") %>% 
-  dplyr::left_join(y = quastMqc, by = "sampleId")
+  dplyr::left_join(y = buscopMqc, by = "sampleId") %>% 
+  dplyr::left_join(y = quastMqc, by = "sampleId") %>% 
+  dplyr::mutate(
+    AssemblyStatus = dplyr::case_when(
+      source == "inhouse" & n_contigs == 1 ~ "Complete Genome",
+      source == "inhouse" & n_contigs > 1 ~ "Contig",
+      TRUE ~ AssemblyStatus
+    )
+  )
 
 genomeMetadata <- dplyr::mutate(
   .data = genomeMetadata,  
@@ -258,6 +321,11 @@ taxCheckFail <- dplyr::select(
 readr::write_tsv(
   x = genomeMetadata,
   file = here::here("data/reference_data", "sample_metadata.tsv")
+)
+
+readr::write_tsv(
+  x = taxCheckFail,
+  file = file.path(outDir, "ncbi_taxanomy_qc_failed.tsv")
 )
 
 wb <- openxlsx::createWorkbook()
@@ -298,267 +366,7 @@ saveWorkbook(
 
 #####################################################################
 
-taxCheckFail <- dplyr::select(
-  ncbiData, sampleId, AssemblyAccession, synonym_GB, taxonomy_check_status
-) %>% 
-  dplyr::filter(
-    taxonomy_check_status != "OK"
-  ) %>% 
-  dplyr::left_join(
-    y = dplyr::select(
-      ncbiAni, genbank_accession, species_name, organism_name,
-      declared_type_organism_name, declared_type_ANI,
-      declared_type_qcoverage, declared_type_scoverage, best_match_species_name,
-      best_match_type_ANI, best_match_type_qcoverage, best_match_type_scoverage,
-      best_match_status, comment
-    ),
-    by = c("synonym_GB" = "genbank_accession")
-  ) %>% 
-  dplyr::arrange(desc(taxonomy_check_status), species_name)
-
-#####################################################################
-pt_theme <- theme_bw() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text = element_text(face = "bold", size = 16, color = "black"),
-    plot.title = element_text(face = "bold", size = 18, color = "black"),
-    axis.title = element_text(face = "bold", size = 16, color = "black")
-  )
-
-pt_metadataStats <- ggplot2::ggplot(
-  data = colStats
-)
-
-pt_speciesCount <- ggplot2::ggplot(
-  data = genomeMetadata,
-  mapping = aes(y = forcats::fct_infreq(SpeciesName))
-) +
-  geom_bar(fill = "black") +
-  labs(
-    x = "#genomes",
-    y = NULL,
-    title = "# of genomes"
-  ) +
-  scale_x_continuous(expand = expansion(add = c(0, 2))) +
-  pt_theme +
-  theme(
-    axis.text.y = element_text(face = "bold.italic", size = 14, color = "black"),
-    axis.text.x = element_text(face = "bold", size = 16, color = "black"),
-    plot.title = element_text(face = "bold", size = 18, color = "black"),
-    axis.title = element_text(face = "bold", size = 16, color = "black")
-  )
-
-ggsave(
-  filename = file.path(outDir, "species_count_bar.pdf"),
-  plot = pt_speciesCount, width = 10, height = 8
-)
 
 
-#####################################################################
-
-summaryStatsDf <- pivot_longer(
-  data = dplyr::select(
-    genomeMetadata, sampleId, AssemblyStatus, taxonomy_check_status, source
-  ),
-  cols = -sampleId,
-  names_to = "variable"
-) %>% 
-  tidyr::replace_na(
-    replace = list(value = "NA")
-  ) %>% 
-  dplyr::count(variable, value, name = "count") %>% 
-  tidyr::unite(col = "label", value, count, sep = ": ", remove = F)
-
-pt_otherSummary <- ggplot2::ggplot(
-  data = summaryStatsDf,
-  mapping = aes(x = variable, y = count, fill = value)
-) +
-  geom_bar(
-    stat = "identity", color = "grey", alpha = 0, size = 1
-  ) +
-  geom_label(
-    mapping = aes(label = label),
-    position = position_stack(vjust = 0.5), color = "black", alpha = 0, label.size = 1
-  ) +
-  pt_theme +
-  theme(
-    legend.position = "none",
-    axis.text.x = element_text(face = "bold", size = 16, color = "black"),
-    plot.title = element_text(face = "bold", size = 18, color = "black"),
-    axis.title = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks = element_blank()
-  )
-
-
-ggsave(
-  filename = file.path(outDir, "other_summary_bar.pdf"),
-  plot = pt_otherSummary, width = 7, height = 6
-)
-
-#####################################################################
-
-## n_contigs histogram
-ptHist_contigs <- ggplot2::ggplot(
-  data = genomeMetadata,
-  mapping = aes(x = n_contigs)
-) +
-  geom_histogram(bins = 100, color = "black", fill = "black") + 
-  labs(
-    title = "Histogram of contig numbers",
-    x = "# contigs", y = "Count"
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "N_contigs.hist.pdf"),
-  plot = ptHist_contigs, width = 8, height = 8
-)
-
-
-## n_contigs histogram excluding outliers
-ptHist_contigs2 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = n_contigs)
-) +
-  geom_histogram(bins = 100, color = "black", fill = "black") + 
-  labs(
-    title = "Histogram of contig numbers (excluding 2 outliers)",
-    x = "# contigs", y = "Count"
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "N_contigs2.hist.pdf"),
-  plot = ptHist_contigs2, width = 8, height = 8
-)
-
-
-## N50 histogram
-ptHist_n50 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = N50)
-) +
-  geom_histogram(bins = 100, color = "black", fill = "black") + 
-  scale_x_continuous(
-    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
-  ) +
-  labs(
-    title = "Histogram of N50 (excluding 2 outliers)",
-    x = "N50", y = "Count"
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "N50.hist.pdf"),
-  plot = ptHist_n50, width = 8, height = 8
-)
-
-
-ptHist_l50 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = L50)
-) +
-  geom_histogram(bins = 100, color = "black", fill = "black") + 
-  labs(
-    title = "Histogram of L50 (excluding 2 outliers)",
-    x = "L50", y = "Count"
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "L50.hist.pdf"),
-  plot = ptHist_l50, width = 8, height = 8
-)
-
-
-## n_contigs vs N50
-ptScat_contig_vs_n50 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = N50, y = n_contigs)
-) +
-  geom_point() +
-  labs(title = "#contigs vs N50") +
-  scale_x_continuous(
-    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "contig_vs_n50.scatter.pdf"),
-  plot = ptScat_contig_vs_n50, width = 8, height = 8
-)
-
-## #contigs vs L50
-ptScat_contig_vs_l50 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = L50, y = n_contigs)
-) +
-  geom_point() +
-  labs(title = "#contigs vs L50") +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "contig_vs_l50.scatter.pdf"),
-  plot = ptScat_contig_vs_l50, width = 8, height = 8
-)
-
-
-## L50 vs N50
-ptScat_l50_vs_n50 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = N50, y = L50)
-) +
-  geom_point() +
-  labs(title = "L50 vs N50") +
-  scale_x_continuous(
-    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "l50_vs_n50.scatter.pdf"),
-  plot = ptScat_l50_vs_n50, width = 8, height = 8
-)
-
-
-
-#####################################################################
-# busco
-
-
-ptHist_buscoSC <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = complete_single_copy)
-) +
-  geom_histogram(bins = 100, color = "black", fill = "black") + 
-  labs(
-    title = "Histogram of Single Copy BUSCO (excluding 2 outliers)",
-    x = "Single Copy BUSCO", y = "Count"
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "BUSCO_SC.hist.pdf"),
-  plot = ptHist_buscoSC, width = 8, height = 8
-)
-
-
-## single copy BUSCO vs N50
-ptScat_buscoSC_vs_n50 <- ggplot2::ggplot(
-  data = dplyr::filter(.data = genomeMetadata, n_contigs < 500),
-  mapping = aes(x = N50, y = complete_single_copy)
-) +
-  geom_point() +
-  labs(title = "single copy BUSCO vs N50") +
-  scale_x_continuous(
-    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
-  ) +
-  pt_theme
-
-ggsave(
-  filename = file.path(outDir, "BUSCO_SC_vs_n50.scatter.pdf"),
-  plot = ptScat_buscoSC_vs_n50, width = 8, height = 8
-)
 
 
