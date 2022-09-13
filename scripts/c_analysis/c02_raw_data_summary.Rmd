@@ -1,0 +1,617 @@
+---
+title: "Pectobacterium NCBI assembly metadata summary"
+author: "Lakhansing Pardeshi"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: row
+    vertical_layout: scroll
+params:
+  species: Pectobacterium species
+---
+
+```{r setup, include=FALSE, fig.width=8, fig.height=10}
+suppressMessages(library(flexdashboard))
+suppressMessages(library(htmltools))
+suppressMessages(library(tidyverse))
+suppressMessages(library(scales))
+suppressMessages(library(viridis))
+suppressMessages(library(tmap))
+suppressMessages(library(plotly))
+suppressMessages(library(sf))
+suppressMessages(library(spData))
+suppressMessages(library(ggwordcloud))
+suppressMessages(library(reactablefmtr))
+suppressMessages(library(sunburstR))
+suppressMessages(library(d3r))
+
+
+rm(list = ls())
+
+## Loading country data from package spData
+data(world, package = "spData")
+
+#####################################################################
+analysisName <- "raw_data_summary"
+outDir <- here::here("analysis", "02_raw_data_summary")
+
+max_nContig <- 500
+file_summary <- here::here("data/reference_data", "sample_metadata.tsv")
+file_taxQc <- here::here("analysis/02_raw_data_summary", "ncbi_taxanomy_qc_failed.tsv")
+
+#####################################################################
+
+metadata <- suppressMessages(readr::read_tsv(file = file_summary))
+
+
+taxQc <- suppressMessages(readr::read_tsv(file = file_taxQc))
+
+pt_theme <- theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_text(face = "bold", size = 16, color = "black"),
+    plot.title = element_text(face = "bold", size = 18, color = "black"),
+    axis.title = element_text(face = "bold", size = 16, color = "black")
+  )
+
+```
+
+## Row1 {data-height="300"}
+
+### Assembly source
+
+```{r, assCount, fig.height=2}
+
+pt_assCount <- dplyr::select(metadata, source) %>% 
+  dplyr::mutate(
+    source = forcats::fct_relevel(.f = source, "NCBI")
+  ) %>% 
+  ggplot2::ggplot(mapping = aes(y = "assembly", fill = source)) +
+  ggplot2::geom_bar() +
+  ggplot2::scale_fill_manual(
+    name = NULL,
+    values = c("NCBI" = "#3BA99C", "inhouse" = "#E69F00")
+  ) +
+  ggplot2::scale_x_continuous(
+    expand = expansion(add = 0)
+  ) +
+  pt_theme +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "bottom"
+    
+  )
+
+plotly::ggplotly(pt_assCount) %>% 
+  plotly::layout(
+    legend = list(
+      orientation = "h", y = -1, x = 0.5, xanchor = "center"
+    )
+  )
+
+```
+
+## Row2 {data-height="400"}
+
+### NCBI assembly taxanomy check status: count
+
+```{r, txQc, fig.height=8, fig.width=3}
+pt_txQcBar <- dplyr::filter(metadata, source == "NCBI") %>% 
+  dplyr::select(taxonomy_check_status) %>% 
+  ggplot2::ggplot(
+    mapping = aes(x = "status", fill = taxonomy_check_status)
+  ) +
+  ggplot2::geom_bar() +
+  ggplot2::scale_fill_manual(
+    name = NULL,
+    values = c("Failed" = "red", "Inconclusive" = "blue", "OK" = "green", "NA" = "grey")
+  ) +
+  ggplot2::scale_y_continuous(
+    expand = expansion(add = 0)
+  ) +
+  pt_theme +
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.position = "right"
+  ) 
+
+plotly::ggplotly(pt_txQcBar) %>% 
+  plotly::layout(
+    legend = list(
+      y = 0.5, yanchor = "center"
+    )
+  )
+
+```
+
+### NCBI assembly taxanomy check status: sanky
+
+```{r}
+
+freqData <- dplyr::select(
+  metadata, AssemblyAccession, ExclFromRefSeq, Anomalous, replaced,
+  taxonomy_check_status
+)
+
+dat <- data.frame(
+  level1 = rep(c("a", "b"), each=3),
+  level2 = paste0(rep(c("a", "b"), each=3), 1:3),
+  size = c(10,5,2,3,8,6),
+  stringsAsFactors = FALSE
+)
+
+tree <- d3_nest(dat, value_cols = "size")
+# tree
+
+sb1 <- sunburst(tree, width="100%", height=400)
+sb2 <- sunburst(
+  tree,
+  legend = FALSE,
+  width = "100%",
+  height = 400
+)
+
+# do side-by-side for comparison
+div(
+  style="display: flex; align-items:center;",
+  div(style="width:50%; border:1px solid #ccc;", sb1),
+  div(style="width:50%; border:1px solid #ccc;", sb2)
+)
+
+```
+
+## Row2.5 {data-height="500"}
+
+### Reference genomes summary
+
+```{r speciesSummaryTab}
+rfStrains <- dplyr::filter(.data = metadata, !is.na(representative_status)) %>% 
+  dplyr::select(
+    AssemblyAccession, SpeciesName, AssemblyAccession,length, GC_per, n_contigs,
+    N50, representative_status
+  )
+
+
+speciesStats <- dplyr::filter(metadata, source == "NCBI") %>% 
+  dplyr::select(SpeciesName, taxonomy_check_status) %>% 
+  dplyr::group_by(SpeciesName) %>% 
+  dplyr::summarise(
+    taxonomy_check_status = list(taxonomy_check_status),
+    n = n()
+  )
+
+speciesSummary <- NULL
+
+if(!setequal(rfStrains$SpeciesName, speciesStats$SpeciesName)){
+  speciesSummary <- tibble::tibble(
+    SpeciesName = setdiff(metadata$SpeciesName, rfStrains$SpeciesName)
+  ) %>% 
+    dplyr::left_join(
+      y = dplyr::select(
+        metadata, SpeciesName, AssemblyAccession,length, GC_per, n_contigs, N50,
+        representative_status
+      ),
+      by = "SpeciesName"
+    ) %>% 
+    dplyr::group_by(SpeciesName) %>% 
+    dplyr::arrange(desc(N50), .by_group = TRUE) %>% 
+    dplyr::slice(1L) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::bind_rows(rfStrains) %>% 
+    tidyr::replace_na(
+      replace = list(representative_status = "no")
+    ) %>% 
+    dplyr::left_join(y = speciesStats, by = "SpeciesName") %>% 
+    dplyr::select(
+      SpeciesName, genomes = n, representative_status, AssemblyAccession, 
+      n_contigs, length, N50, GC_per, everything()
+    )
+  
+  speciesSummary <- dplyr::mutate(
+    .data = speciesSummary,
+    representative_icon = dplyr::case_when(
+      representative_status == "representative genome" ~ "check",
+      representative_status == "no" ~ "xmark",
+      TRUE ~ "cross"
+    )
+  )
+  
+}
+
+reactable::reactable(
+  data = speciesSummary,
+  defaultSortOrder = "desc",
+  defaultSorted = "genomes",
+  defaultPageSize = 10, compact = TRUE,
+  columns = list(
+    SpeciesName = reactable::colDef(
+      name = "Species"
+    ),
+    genomes = reactable::colDef(
+      name = "#genomes", align = "center"
+    ),
+    representative_status = reactable::colDef(
+      name = "Representative genome", align = "center",
+      cell = reactablefmtr::icon_sets(
+        data = speciesSummary, icon_ref = "representative_icon",
+        icon_position = "over", icon_size = 28, colors = "black"
+      )
+    ),
+    length = reactable::colDef(
+      align = "center",
+      cell = reactablefmtr::data_bars(
+        data = speciesSummary,
+        fill_color = 'white', background = 'darkgrey',
+        border_style = 'solid', border_width = '1px',
+        text_position = 'inside-base',
+        number_fmt = scales::comma
+      )
+    ),
+    N50 = reactable::colDef(
+      name = "N50", align = "center",
+      format = colFormat(separators = TRUE)
+    ),
+    AssemblyAccession = reactable::colDef(show = FALSE),
+    representative_icon = reactable::colDef(show = FALSE),
+    taxonomy_check_status = reactable::colDef(show = FALSE),
+    GC_per = reactable::colDef(
+      name = "GC%", align = "center",
+      cell = reactablefmtr::data_bars(
+        data = speciesSummary,
+        text_position = "inside-base",
+        max_value = 100
+      )
+    ),
+    n_contigs = reactable::colDef(
+      name = "# Contigs", align = "center"
+    )
+    
+  )
+)
+
+# htmltools::div(speciesTable)
+
+```
+
+## Row3 {data-height="600"}
+
+### Species
+```{r speciesCount}
+pt_speciesCount <- ggplot2::ggplot(
+  data = metadata
+) +
+  geom_bar(
+    mapping = aes(
+      y = forcats::fct_infreq(SpeciesName),
+      fill = AssemblyStatus
+    )
+  ) +
+  labs(
+    x = "#genomes",
+    y = NULL,
+    title = "# of genomes"
+  ) +
+  scale_x_continuous(expand = expansion(add = c(0, 2))) +
+  pt_theme +
+  theme(
+    axis.text.y = element_text(face = "bold.italic", size = 14, color = "black"),
+    axis.text.x = element_text(face = "bold.italic", size = 16, color = "black"),
+    plot.title = element_text(face = "bold", size = 18, color = "black"),
+    axis.title = element_text(face = "bold", size = 16, color = "black")
+  )
+
+plotly::ggplotly(pt_speciesCount)
+
+```
+
+## Row4 {data-height="600"}
+
+### Geographical location {.no-padding}
+
+```{r countryData, fig.height=8, fig.width=8, out.width='100%'}
+countryStats <- dplyr::select(metadata, geo_loc_country) %>% 
+  dplyr::filter(!is.na(geo_loc_country)) %>% 
+  dplyr::count(geo_loc_country)
+
+
+# Countries centroids
+countryCent <- sf::st_centroid(world, of_largest_polygon = TRUE)
+# st_coordinates(countryCent$geom)
+
+countryStatsSf <- sf::st_sf(
+  dplyr::left_join(
+    countryStats, countryCent, by = c("geo_loc_country" = "name_long")
+  )
+)
+
+if(all(is.element(countryStats$geo_loc_country, world$name_long))){
+  ## using ggplot
+  pt_mapSf <- ggplot() +
+    geom_sf(data = world, fill = "white") + 
+    geom_sf(
+      data = countryStatsSf, mapping = aes(size = n),
+      pch = 21, fill = alpha("red", 0.6)
+    ) +
+    # scale_x_continuous(expand = expansion(add = 0), limits = c(-150, 150)) +
+    # scale_y_continuous(expand = expansion(add = 0), limits = c(-70, 70)) +
+    scale_size(range = c(1, 9)) +
+    pt_theme
+  
+  plotly::ggplotly(pt_mapSf)
+}
+
+
+# 
+# mapWorld <- maps::map(database = "world", fill = FALSE, plot = F)
+# 
+# leaflet(data = mapWorld) %>% addTiles() %>% 
+#   addPolygons(fillColor = topo.colors(10, alpha = NULL), stroke = FALSE)
+# 
+# leaflet::leaflet(countryCent) %>% addTiles()
+
+
+```
+
+
+
+## Row5
+
+### Host
+
+```{r hostCloud}
+
+
+ptwc_host <- dplyr::select(metadata, sampleId, host) %>% 
+  dplyr::filter(!is.na(host)) %>% 
+  dplyr::mutate(
+    host = stringr::str_replace(
+      string = tolower(host), pattern = " .*", replacement = ""
+    )
+  ) %>% 
+  dplyr::count(host) %>% 
+  ggplot(mapping = aes(label = host, size = n, color = log10(n))) +
+  geom_text_wordcloud(rm_outside = TRUE) +
+  scale_size_area(trans = "log10", max_size = 10) +
+  scale_x_continuous(expand = expansion(add = 0)) +
+  scale_y_continuous(expand = expansion(add = 0)) +
+  scale_color_viridis() +
+  theme_minimal()
+
+ptwc_host
+
+```
+
+### Isolation source: (Top 25)
+
+```{r sourceCloud}
+ptwc_isoSource  <- dplyr::select(metadata, sampleId, isolation_source) %>% 
+  dplyr::filter(!is.na(isolation_source)) %>% 
+  dplyr::mutate(isolation_source = tolower(isolation_source)) %>% 
+  dplyr::count(isolation_source, sort = TRUE) %>% 
+  dplyr::slice_head(n = 25) %>% 
+  ggplot(mapping = aes(label = isolation_source, size = n, color = log10(n))) +
+  geom_text_wordcloud(rm_outside = TRUE) +
+  scale_size_area(max_size = 8) +
+  scale_x_continuous(expand = expansion(add = 0)) +
+  scale_y_continuous(expand = expansion(add = 0)) +
+  scale_color_viridis() +
+  theme_minimal()
+
+ptwc_isoSource
+
+```
+
+### Environmental medium
+
+```{r envCloud}
+ptwc_envMed <- dplyr::select(metadata, sampleId, env_medium) %>% 
+  dplyr::filter(!is.na(env_medium)) %>% 
+  dplyr::mutate(env_medium = tolower(env_medium)) %>% 
+  dplyr::count(env_medium) %>% 
+  ggplot(mapping = aes(label = env_medium, size = n, color = log10(n))) +
+  geom_text_wordcloud(rm_outside = TRUE) +
+  scale_size_area(trans = "sqrt", max_size = 8) +
+  scale_x_continuous(expand = expansion(add = 0)) +
+  scale_y_continuous(expand = expansion(add = 0)) +
+  scale_color_viridis() +
+  theme_minimal()
+
+ptwc_envMed
+
+```
+
+## Row6
+
+### N-contigs
+
+```{r contigsHist}
+## n_contigs histogram
+ptHist_contigs <- ggplot2::ggplot(
+  data = metadata,
+  mapping = aes(x = n_contigs)
+) +
+  geom_histogram(bins = 100, color = "black", fill = "black") + 
+  labs(
+    title = "Histogram of contig numbers",
+    x = "# contigs", y = "Count"
+  ) +
+  pt_theme
+
+plotly::ggplotly(ptHist_contigs)
+
+```
+
+### N-contigs (filtered)
+
+```{r contigsFiltered}
+
+metadataFiltered <- dplyr::select(
+  .data = metadata,
+  AssemblyAccession, N50, L50, n_contigs, AssemblyStatus, taxonomy_check_status,
+  buscop.complete, buscop.complete_single_copy
+) %>% 
+  dplyr::mutate(
+    text = stringr::str_c(
+      "Accession: ", AssemblyAccession, "\n",
+      "AssemblyStatus: ", AssemblyStatus, "\n",
+      "TaxonomyCheck: ", taxonomy_check_status, sep = ""
+    )
+  ) %>% 
+  dplyr::filter(n_contigs < max_nContig)
+
+## n_contigs histogram excluding outliers
+ptHist_contigs2 <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(x = n_contigs)
+) +
+  geom_histogram(bins = 100, color = "black", fill = "black") + 
+  labs(
+    title = "Histogram of contig numbers (excluding 2 outliers)",
+    x = "# contigs", y = "Count"
+  ) +
+  pt_theme
+
+plotly::ggplotly(ptHist_contigs2)
+```
+
+## Row7
+
+### N50
+
+```{r n50Hist}
+## N50 histogram
+ptHist_n50 <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(x = N50)
+) +
+  geom_histogram(bins = 100, color = "black", fill = "black") + 
+  scale_x_continuous(
+    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
+  ) +
+  labs(
+    title = "Histogram of N50 (excluding 2 outliers)",
+    x = "N50", y = "Count"
+  ) +
+  pt_theme
+
+plotly::ggplotly(ptHist_n50)
+
+```
+
+### L50
+
+```{r l50Hist}
+ptHist_l50 <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(x = L50)
+) +
+  geom_histogram(bins = 100, color = "black", fill = "black") + 
+  labs(
+    title = "Histogram of L50 (excluding 2 outliers)",
+    x = "L50", y = "Count"
+  ) +
+  pt_theme
+
+plotly::ggplotly(ptHist_l50)
+
+```
+
+## Row8 {data-height="600"}
+
+### #contigs vs N50
+
+```{r contigsVsN50}
+## #contigs vs N50
+ptScat_contig_vs_n50 <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(
+    x = N50, y = n_contigs, shape = AssemblyStatus, color = buscop.complete,
+    text = text
+  )
+) +
+  geom_point(alpha = 0.7) +
+  scale_color_viridis(direction = -1) +
+  labs(title = "#contigs vs N50") +
+  scale_x_continuous(
+    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
+  ) +
+  pt_theme
+
+plotly::ggplotly(
+  p = ptScat_contig_vs_n50,
+  tooltip = c("text", "x", "y", "colour")
+)
+```
+
+### #contigs vs L50
+
+```{r contigsVsL50}
+## #contigs vs L50
+ptScat_contig_vs_l50 <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(
+    x = L50, y = n_contigs, shape = AssemblyStatus, color = buscop.complete
+  )
+) +
+  geom_point(alpha = 0.7) +
+  scale_color_viridis(direction = -1) +
+  labs(title = "#contigs vs L50") +
+  pt_theme
+
+plotly::ggplotly(
+  ptScat_contig_vs_l50,
+  tooltip = c("text", "x", "y", "colour")
+)
+
+```
+
+## Row9 {data-height="600"}
+
+### Histogram of Single Copy BUSCO
+
+```{r buscoHist}
+
+ptHist_buscoSC <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(x = buscop.complete_single_copy)
+) +
+  geom_histogram(bins = 100, color = "black", fill = "black") + 
+  labs(
+    title = "Histogram of Single Copy BUSCO (excluding 2 outliers)",
+    x = "Single Copy BUSCO", y = "Count"
+  ) +
+  pt_theme
+
+plotly::ggplotly(ptHist_buscoSC)
+
+
+```
+
+### single copy BUSCO vs N50
+
+```{r buscoVsN50}
+## single copy BUSCO vs N50
+ptScat_buscoSC_vs_n50 <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(x = N50, y = buscop.complete_single_copy, text = text)
+) +
+  geom_point() +
+  labs(title = "single copy BUSCO vs N50") +
+  scale_x_continuous(
+    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
+  ) +
+  pt_theme
+
+plotly::ggplotly(
+  ptScat_buscoSC_vs_n50,
+  tooltip = c("text", "x", "y", "colour")
+)
+
+```
+
+
+
+
