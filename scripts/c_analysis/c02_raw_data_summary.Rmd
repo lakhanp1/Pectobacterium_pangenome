@@ -119,6 +119,9 @@ freqData <- dplyr::filter(
 ) %>% 
   dplyr::select(
     AssemblyAccession, ExclFromRefSeq, Anomalous, replaced, taxonomy_check_status
+  ) %>%
+  dplyr::filter(
+    !is.na(ExclFromRefSeq) | !is.na(Anomalous) | !is.na(replaced)
   ) %>% 
   tidyr::replace_na(
     replace = list(
@@ -129,7 +132,7 @@ freqData <- dplyr::filter(
     )
   ) %>% 
   dplyr::count(
-    Anomalous, ExclFromRefSeq, replaced, taxonomy_check_status, name = "count"
+    Anomalous, ExclFromRefSeq, replaced, name = "count"
   ) %>% 
   dplyr::mutate(
     dplyr::across(
