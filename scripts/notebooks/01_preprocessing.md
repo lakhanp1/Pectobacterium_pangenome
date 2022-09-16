@@ -3,6 +3,9 @@
 ## Data download from NCBI using EUtils
 
 ``` bash
+## number of records available in NCBI
+esearch -db assembly -query "pectobacterium [ORGN]" -email "lakhansing.pardeshi@wur.nl"
+
 ## download the Assembly DocumentSummary file
 esearch -db assembly -query "pectobacterium [ORGN]" -email "lakhansing.pardeshi@wur.nl" | \
 efetch -format docsum > data/reference_data/assembly_docsum.xml
@@ -31,6 +34,12 @@ awk '
 ## NCBI prokaryotes ANI file
 wget --timestamping https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/ANI_report_prokaryotes.txt -P data/other/
 
+cat data/reference_data/local_assembly_ids.txt data/reference_data/ncbi_assembly_ids.txt | \
+> data/reference_data/assembly_ids.txt
+
+mkdir data/reference_data/batches
+split -a 2 -d -n r/8 data/reference_data/assembly_ids.txt data/reference_data/batches/temp_ids_batch.
+
 ```
 
 ## Check if there are any new assemblies which recently became available
@@ -43,7 +52,7 @@ do
     then
         echo $sampleId
     fi
-done > data/reference_data/temp_assembly_ids.txt
+done > data/reference_data/local_assembly_ids.txt data/reference_data/temp_assembly_ids.txt
 
 
 ## download and unzip the FASTA files
@@ -85,22 +94,28 @@ done
 
 ```
 
-## BUSCO assembly evaluation
+## BUSCO protein and genome assembly evaluation
 
 ``` bash
 ## !GNU parallel on single server
 nohup \
-cat data/reference_data/temp_assembly_ids.txt | \
+cat data/reference_data/batches/temp_ids_batch.00 | \
 parallel --jobs 1 --workdir $PWD --halt now,fail=1 --keep-order \
 --results logs/busco/{} --joblog logs/busco/parallel.log \
 $PWD/scripts/a_preprocessing/a03_busco_eval.sh {} \
->>logs/busco/nohup.out 2>&1 &
+>>logs/busco/nohup00.out 2>&1 &
 
 ```
 
 This is failing with `parallel`, most likely because of the number of open files
 exceeding the `ulimit`. Need to debug further. For now, running GNU `parallel`
 with `--jobs 1` setting is serial mode.
+
+## BUSCO genome assembly evaluation
+
+``` bash
+
+```
 
 ## QUAST assembly evaluation
 
