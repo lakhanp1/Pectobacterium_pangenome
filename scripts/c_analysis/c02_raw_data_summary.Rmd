@@ -6,7 +6,8 @@ output:
     orientation: row
     vertical_layout: scroll
 params:
-  species: Pectobacterium species
+  level: genus
+  name: Pectobacterium
 ---
 
 ```{r setup, include=FALSE, fig.width=8, fig.height=10}
@@ -25,7 +26,7 @@ suppressMessages(library(sunburstR))
 suppressMessages(library(d3r))
 
 
-rm(list = ls())
+# rm(list = ls())
 
 ## Loading country data from package spData
 data(world, package = "spData")
@@ -37,33 +38,46 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 max_nContig <- 500
 file_summary <- here::here("data/reference_data", "sample_metadata.tsv")
 file_taxQc <- here::here("analysis/02_raw_data_summary", "ncbi_taxanomy_qc_failed.tsv")
+file_metadataFields <- here::here("analysis/02_raw_data_summary", "metadata_fields_stats.tsv")
 
+col_buscog = "#F9C80E"
+col_buscop = "#0676C6"
+col_pass <- "#058C42"
+col_fail <- "#FF0022"
+col_na <- "#898F94"
 #####################################################################
 
 metadata <- suppressMessages(readr::read_tsv(file = file_summary))
-
-
+mdFields <- suppressMessages(readr::read_tsv(file = file_metadataFields))
 taxQc <- suppressMessages(readr::read_tsv(file = file_taxQc))
 
 pt_theme <- theme_bw() +
   theme(
     panel.grid = element_blank(),
-    axis.text = element_text(face = "bold", size = 16, color = "black"),
-    plot.title = element_text(face = "bold", size = 18, color = "black"),
-    axis.title = element_text(face = "bold", size = 16, color = "black")
+    axis.text = element_text(face = "bold", size = 12, color = "black"),
+    plot.title = element_text(face = "bold", size = 14, color = "black"),
+    axis.title = element_text(face = "bold", size = 12, color = "black")
   )
 
 ```
 
-## Row1 {data-height="300"}
+## Row1.1 {data-height="100"}
 
 ### Assembly source
 
-Current data includes `r nrow(metadata)` assemblies for *Pectobacterium* species
-downloaded from NCBI Assembly database and internal assemblies provided by the
-collaborators. Metadata for all NCBI assemblies was downloaded as XML from 
-Assembly and BioSample databases using 
+<div style="overflow:scroll;height:80px">
+Current data includes `r nrow(metadata)` assemblies for *`r params$name`*
+`r params$level` downloaded from NCBI Assembly database and internal assemblies 
+provided by the collaborators. Metadata for all NCBI assemblies was downloaded as 
+XML from Assembly and BioSample databases using 
 [`Eutils`](https://www.ncbi.nlm.nih.gov/books/NBK25501/) tools provided by NCBI.
+Additionally, linked BioSample metadata was fetched from NCBI and this combined
+data is summarized in the figures below.
+</div>
+
+## Row1.2 {data-height="200"}
+
+### Assembly source bar plot {.no-title}
 
 ```{r, assCount, fig.height=2}
 
@@ -71,15 +85,20 @@ pt_assCount <- dplyr::select(metadata, source) %>%
   dplyr::mutate(
     source = forcats::fct_relevel(.f = source, "NCBI")
   ) %>% 
-  ggplot2::ggplot(mapping = aes(y = "assembly", fill = source)) +
+  ggplot2::ggplot(mapping = aes(x = "assembly", fill = source)) +
   ggplot2::geom_bar() +
+  geom_text(
+    mapping = aes(label = ..count..), stat = "count",
+    color = "black", position = position_stack(vjust = 0.5)
+  ) +
   ggplot2::scale_fill_manual(
     name = NULL,
     values = c("NCBI" = "#3BA99C", "inhouse" = "#E69F00")
   ) +
-  ggplot2::scale_x_continuous(
+  ggplot2::scale_y_continuous(
     expand = expansion(add = 0)
   ) +
+  coord_flip() +
   pt_theme +
   theme(
     axis.title = element_blank(),
@@ -100,20 +119,9 @@ plotly::ggplotly(pt_assCount) %>%
 
 ## Row2 {data-height="500"}
 
-### NCBI internal QC summary {data-width=2}
 
-This sunburst chart shows following QC columns (innermost to outermost order):  
-
-*  Assembly: Total NCBI assemblies in the dataset (n = `r sum(metadata$source == "NCBI")`)
-*  ExclFromRefSeq: Whether assembly was excluded from the RefSeq
-*  Anomalous: If an assembly was detected as anomalous
-*  Replaced: Whether the assembly was replaced with an updated accession
-*  Taxonomy check status: internal taxonomy check performed by NCBI using ANI  
-
-### Sunburst chart {data-width=4, .no-padding}
-
-```{r qcSunburst}
-
+```{r include=FALSE}
+## prepare summary data for NCBI internal QC statistics
 freqData <- dplyr::filter(
   metadata, source == "NCBI"
 ) %>% 
@@ -126,13 +134,10 @@ freqData <- dplyr::filter(
   tidyr::replace_na(
     replace = list(
       ExclFromRefSeq = "No",
-      Anomalous = "OK",
+      Anomalous = "No",
       taxonomy_check_status = "unknown",
       replaced = "No"
     )
-  ) %>% 
-  dplyr::count(
-    Anomalous, ExclFromRefSeq, replaced, name = "count"
   ) %>% 
   dplyr::mutate(
     dplyr::across(
@@ -141,9 +146,73 @@ freqData <- dplyr::filter(
         string = .x,  pattern = ";.*", replacement = ""
       )
     )
+  ) %>% 
+  dplyr::count(
+    Anomalous, ExclFromRefSeq, replaced, name = "count"
+  ) %>% 
+  dplyr::mutate(
+    color = if_else(
+      replaced == "No", true = col_pass, false = col_fail
+    )
   )
 
-qcTree <- d3r::d3_nest(data = freqData, value_cols = "count", root="Assemblies")
+```
+
+### NCBI internal QC summary {data-width=2}
+
+<div style="overflow:scroll;height:450px">
+<!-- ::: {.para-scroll} -->
+NCBI performs internal QC on the genome assemblies submitted by the users. A genome
+assembly can be excluded from NCBI because of multiple possible reasons (see [here](
+https://www.ncbi.nlm.nih.gov/assembly/help/anomnotrefseq/) for details). For the
+current dataset, `r sum(freqData$count)` genome assemblies are with know issues.
+Sunburst chart in the second column of current row shows the assembly counts which
+were flagged by NCBI for one of the QC metric mentioned below.
+(innermost to outermost order):  
+
+*  ExclFromRefSeq: Whether assembly was excluded from the RefSeq
+*  Anomalous: If an assembly was detected as anomalous
+*  Replaced: Whether the assembly was replaced with an updated accession
+
+
+Additionally, NCBI also performs the taxonomy validation for prokaryote genomes.
+It uses Average Nucleotide Identity (ANI) scores to verify the declared species
+for any genome submitted. The details about the method are described in
+[Cuifo et al 2018](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6978984/).
+Bar chart in the third column of current row shows the statistics for different
+taxonomy check status.
+<!-- ::: -->
+</div>
+
+
+### Sunburst chart {data-width=4, .no-padding}
+
+```{r qcSunburst}
+
+
+## add the colors for inner rings in sunburst chart
+anomalousRing1Count <- dplyr::group_by(freqData, Anomalous) %>% 
+  dplyr::summarise(count = sum(count)) %>% 
+  dplyr::mutate(
+    color = if_else(
+      Anomalous == "No", true = col_pass, false = col_fail
+    )
+  )
+
+anomalousRing2Count <- dplyr::group_by(freqData, Anomalous, ExclFromRefSeq) %>% 
+  dplyr::summarise(count = sum(count), .groups = "drop") %>% 
+  dplyr::mutate(
+    color = if_else(
+      ExclFromRefSeq == "No", true = col_pass, false = col_fail
+    )
+  )
+
+freqData <- dplyr::bind_rows(freqData, anomalousRing1Count, anomalousRing2Count)
+
+qcTree <- d3r::d3_nest(
+  data = freqData, value_cols = c("count", "color"),
+  root="Assemblies"
+)
 
 # qcTree %>%
 #   listviewer::jsonedit()
@@ -157,6 +226,7 @@ sb3 <- sund2b(
   qcTree, width="100%", valueField = "count", showLabels = TRUE,
   height = 300,
   rootLabel = "Assemblies",
+  # colors = htmlwidgets::JS("function(d){return d3.select(this).datum().data.color;}"),
   tooltip = sund2bTooltip(
     html = htmlwidgets::JS(
       "function(nodedata, size, percent) {
@@ -189,7 +259,7 @@ pt_txQcBar <- dplyr::filter(metadata, source == "NCBI") %>%
   ggplot2::geom_bar() +
   ggplot2::scale_fill_manual(
     name = NULL,
-    values = c("Failed" = "red", "Inconclusive" = "blue", "OK" = "green", "NA" = "grey")
+    values = c("Failed" = col_fail, "Inconclusive" = "blue", "OK" = col_pass, "NA" = col_na)
   ) +
   ggplot2::scale_y_continuous(
     expand = expansion(add = 0)
@@ -211,17 +281,38 @@ plotly::ggplotly(pt_txQcBar) %>%
 
 ```
 
+## Row2.5 {data-height="50"}
+
+### Type strains summary
+
+A species can have multiple type strain genomes available in NCBI. Following
+table summarizes all the type strains for *`r params$name`* `r params$level` available
+in the NCBI Assembly database.
+
 ## Row2.5 {data-height="500"}
 
-### Reference genomes summary
+### Type strains {.no-title}
 
 ```{r speciesSummaryTab}
-rfStrains <- dplyr::filter(.data = metadata, !is.na(representative_status)) %>% 
-  dplyr::select(
-    AssemblyAccession, SpeciesName, AssemblyAccession,length, GC_per, n_contigs,
-    N50, representative_status
+tabCols <- c(
+  "AssemblyAccession", "SpeciesName", "type_material", "length", "n_contigs",
+  "N50", "L50", "buscog.complete", "buscop.complete", "representative_status",
+  "ExclFromRefSeq",	"Anomalous",	"replaced"
+)
+
+
+typeStrains <- dplyr::filter(.data = metadata, !is.na(type_material)) %>% 
+  dplyr::select(!!!tabCols) %>% 
+  dplyr::mutate(
+    type_material = dplyr::if_else(
+      grepl(pattern = "type", x = type_material, ignore.case = TRUE),
+      true = "Yes", false = type_material, missing = "No"
+    )
   )
 
+
+maxGenomeLen <- max(typeStrains$length)
+maxBusco <- 100
 
 speciesStats <- dplyr::filter(metadata, source == "NCBI") %>% 
   dplyr::select(SpeciesName, taxonomy_check_status) %>% 
@@ -231,94 +322,174 @@ speciesStats <- dplyr::filter(metadata, source == "NCBI") %>%
     n = n()
   )
 
-speciesSummary <- NULL
+speciesDf <- NULL
 
-if(!setequal(rfStrains$SpeciesName, speciesStats$SpeciesName)){
-  speciesSummary <- tibble::tibble(
-    SpeciesName = setdiff(metadata$SpeciesName, rfStrains$SpeciesName)
+if(!setequal(typeStrains$SpeciesName, speciesStats$SpeciesName)){
+  speciesDf <- tibble::tibble(
+    SpeciesName = setdiff(metadata$SpeciesName, typeStrains$SpeciesName)
   ) %>% 
-    dplyr::left_join(
-      y = dplyr::select(
-        metadata, SpeciesName, AssemblyAccession,length, GC_per, n_contigs, N50,
-        representative_status
-      ),
-      by = "SpeciesName"
-    ) %>% 
+    dplyr::left_join(y = dplyr::select(metadata, !!!tabCols), by = "SpeciesName") %>% 
     dplyr::group_by(SpeciesName) %>% 
     dplyr::arrange(desc(N50), .by_group = TRUE) %>% 
     dplyr::slice(1L) %>% 
     dplyr::ungroup() %>% 
-    dplyr::bind_rows(rfStrains) %>% 
+    dplyr::bind_rows(typeStrains) %>% 
     tidyr::replace_na(
-      replace = list(representative_status = "no")
+      replace = list(
+        type_material = "No",
+        representative_status = "No",
+        ExclFromRefSeq = "No",
+        Anomalous = "No",
+        taxonomy_check_status = "unknown",
+        replaced = "No"
+      )
     ) %>% 
     dplyr::left_join(y = speciesStats, by = "SpeciesName") %>% 
     dplyr::select(
-      SpeciesName, genomes = n, representative_status, AssemblyAccession, 
-      n_contigs, length, N50, GC_per, everything()
+      SpeciesName, genomes = n, type_material, AssemblyAccession, representative_status, 
+      length, n_contigs, L50, N50, everything()
     )
   
-  speciesSummary <- dplyr::mutate(
-    .data = speciesSummary,
-    representative_icon = dplyr::case_when(
-      representative_status == "representative genome" ~ "check",
-      representative_status == "no" ~ "xmark",
-      TRUE ~ "cross"
-    )
+  speciesDf <- dplyr::mutate(
+    .data = speciesDf,
+    dplyr::across(
+      .cols = c(representative_status, type_material, ExclFromRefSeq, Anomalous, replaced),
+      .fns = ~dplyr::case_when(
+        . == "No" ~ "xmark",
+        is.na(.) ~ "xmark",
+        TRUE ~ "check"
+      ),
+      .names = "{.col}_icon"
+    ),
+    L50_per = L50/n_contigs
   )
   
 }
 
+speciesSummary <- dplyr::count(
+  speciesDf, SpeciesName, genomes, type_material, type_material_icon,
+  sort = TRUE, name = "n_type_strains"
+)
+
+
 reactable::reactable(
   data = speciesSummary,
   defaultSortOrder = "desc",
-  defaultSorted = "genomes",
+  defaultSorted = "n_type_strains",
+  defaultColDef = colDef(align = 'center'),
   defaultPageSize = 10, compact = TRUE,
   columns = list(
-    SpeciesName = reactable::colDef(
-      name = "Species"
-    ),
-    genomes = reactable::colDef(
-      name = "#genomes", align = "center"
-    ),
-    representative_status = reactable::colDef(
-      name = "Representative genome", align = "center",
+    SpeciesName = reactable::colDef(name = "Species", align = "left"),
+    genomes = reactable::colDef(name = "#genomes"),
+    n_type_strains = reactable::colDef(name = "# type strains"),
+    type_material = reactable::colDef(
+      name = "Type strain",
       cell = reactablefmtr::icon_sets(
-        data = speciesSummary, icon_ref = "representative_icon",
+        data = speciesSummary, icon_ref = "type_material_icon",
         icon_position = "over", icon_size = 28, colors = "black"
       )
     ),
-    length = reactable::colDef(
-      align = "center",
-      cell = reactablefmtr::data_bars(
-        data = speciesSummary,
-        fill_color = 'white', background = 'darkgrey',
-        border_style = 'solid', border_width = '1px',
-        text_position = 'inside-base',
-        number_fmt = scales::comma
-      )
-    ),
-    N50 = reactable::colDef(
-      name = "N50", align = "center",
-      format = colFormat(separators = TRUE)
-    ),
-    AssemblyAccession = reactable::colDef(show = FALSE),
-    representative_icon = reactable::colDef(show = FALSE),
-    taxonomy_check_status = reactable::colDef(show = FALSE),
-    GC_per = reactable::colDef(
-      name = "GC%", align = "center",
-      cell = reactablefmtr::data_bars(
-        data = speciesSummary,
-        text_position = "inside-base",
-        max_value = 100
-      )
-    ),
-    n_contigs = reactable::colDef(
-      name = "# Contigs", align = "center"
-    )
+    type_material_icon = reactable::colDef(show = FALSE)
+  ),
+  onClick = "expand",
+  details = function(index) {
+    speciesSubDf = speciesDf[speciesDf$SpeciesName == speciesSummary$SpeciesName[index], ]
     
-  )
+    speciesSubDf %>%
+      reactable::reactable(
+        defaultSortOrder = "desc",
+        defaultSorted = "N50",
+        defaultColDef = colDef(align = 'center', vAlign = "center"),
+        # defaultPageSize = 10, compact = TRUE,
+        columns = list(
+          SpeciesName = reactable::colDef(show = FALSE),
+          genomes = reactable::colDef(show = FALSE),
+          type_material = reactable::colDef(show = FALSE),
+          length = reactable::colDef(
+            cell = reactablefmtr::data_bars(
+              data = .,
+              fill_color = 'white', background = 'darkgrey',
+              border_style = 'solid', border_width = '1px',
+              text_position = 'inside-base', max_value = maxGenomeLen,
+              number_fmt = scales::comma
+            )
+          ),
+          representative_status = reactable::colDef(
+            name = "Representative genome",
+            cell = reactablefmtr::icon_sets(
+              data = ., icon_ref = "representative_status_icon",
+              icon_position = "over", icon_size = 28, colors = "black"
+            )
+          ),
+          n_contigs = reactable::colDef(name = "# Contigs"),
+          N50 = reactable::colDef(
+            name = "N50", format = colFormat(separators = TRUE)
+          ),
+          L50 = reactable::colDef(
+            name = "L50",
+            cell = reactablefmtr::data_bars(
+              data = .,
+              fill_by = "L50_per",
+              number_fmt = scales::comma, max_value = 1,
+              text_position = 'inside-end',
+              fill_color = '#EEEEEE',
+              bar_height = 7, round_edges = TRUE,
+              icon = 'circle', icon_color = '#226ab2', icon_size = 15,
+            )
+          ),
+          buscog.complete = reactable::colDef(
+            name = "BUSCO genome",
+            cell = reactablefmtr::gauge_chart(
+              data = ., fill_color = col_buscog,
+              number_fmt = scales::percent_format(accuracy = 0.01, scale = 1),
+              max_value = maxBusco, size = 2,
+              bold_text = TRUE, text_size = 18
+            )
+          ),
+          buscop.complete = reactable::colDef(
+            name = "BUSCO protein",
+            cell = reactablefmtr::gauge_chart(
+              data = ., fill_color = col_buscop,
+              number_fmt = scales::percent_format(accuracy = 0.01, scale = 1),
+              max_value = maxBusco, size = 2,
+              bold_text = TRUE, text_size = 18
+            )
+          ),
+          Anomalous = reactable::colDef(
+            name = "Anomalous",
+            cell = reactablefmtr::icon_sets(
+              data = ., icon_ref = "Anomalous_icon",
+              icon_position = "over", icon_size = 28, colors = "black"
+            )
+          ),
+          ExclFromRefSeq = reactable::colDef(
+            name = "ExclFromRefSeq",
+            cell = reactablefmtr::icon_sets(
+              data = ., icon_ref = "ExclFromRefSeq_icon",
+              icon_position = "over", icon_size = 28, colors = "black"
+            )
+          ),
+          replaced = reactable::colDef(
+            name = "Replaced",
+            cell = reactablefmtr::icon_sets(
+              data = ., icon_ref = "replaced_icon",
+              icon_position = "over", icon_size = 28, colors = "black"
+            )
+          ),
+          AssemblyAccession = reactable::colDef(show = FALSE),
+          type_material_icon = reactable::colDef(show = FALSE),
+          representative_status_icon = reactable::colDef(show = FALSE),
+          Anomalous_icon = reactable::colDef(show = FALSE),
+          replaced_icon = reactable::colDef(show = FALSE),
+          ExclFromRefSeq_icon = reactable::colDef(show = FALSE),
+          L50_per = reactable::colDef(show = FALSE),
+          taxonomy_check_status = reactable::colDef(show = FALSE)
+        )
+      )
+    
+  }
 )
+
 
 # htmltools::div(speciesTable)
 
@@ -326,7 +497,7 @@ reactable::reactable(
 
 ## Row3 {data-height="600"}
 
-### Species
+### Number of genomes per species
 
 ```{r speciesCount}
 pt_speciesCount <- ggplot2::ggplot(
@@ -358,7 +529,7 @@ plotly::ggplotly(pt_speciesCount)
 
 ## Row4 {data-height="600"}
 
-### Geographical location {.no-padding}
+### Geographical location of the sequenced species {.no-padding}
 
 ```{r countryData, fig.height=8, fig.width=8, out.width='100%'}
 countryStats <- dplyr::select(metadata, geo_loc_country) %>% 
@@ -470,9 +641,14 @@ ptwc_envMed
 
 ```
 
-## Row6
+## Row6.1 {data-height="50"}
 
-### N-contigs
+Following plots show the quantitative data such as N50, L50, contig counts and
+BUSCO score for genomes.
+
+## Row6.2
+
+### N-contigs {.no-title}
 
 ```{r contigsHist}
 ## n_contigs histogram
@@ -491,14 +667,14 @@ plotly::ggplotly(ptHist_contigs)
 
 ```
 
-### N-contigs (filtered)
+### N-contigs (filtered) {.no-title}
 
 ```{r contigsFiltered}
 
 metadataFiltered <- dplyr::select(
   .data = metadata,
   AssemblyAccession, N50, L50, n_contigs, AssemblyStatus, taxonomy_check_status,
-  buscop.complete, buscop.complete_single_copy
+  starts_with("busco")
 ) %>% 
   dplyr::mutate(
     text = stringr::str_c(
@@ -526,7 +702,7 @@ plotly::ggplotly(ptHist_contigs2)
 
 ## Row7
 
-### N50
+### N50 {.no-title}
 
 ```{r n50Hist}
 ## N50 histogram
@@ -548,7 +724,7 @@ plotly::ggplotly(ptHist_n50)
 
 ```
 
-### L50
+### L50 {.no-title}
 
 ```{r l50Hist}
 ptHist_l50 <- ggplot2::ggplot(
@@ -568,7 +744,7 @@ plotly::ggplotly(ptHist_l50)
 
 ## Row8 {data-height="600"}
 
-### #contigs vs N50
+### #contigs vs N50 {.no-title}
 
 ```{r contigsVsN50}
 ## #contigs vs N50
@@ -593,7 +769,7 @@ plotly::ggplotly(
 )
 ```
 
-### #contigs vs L50
+### #contigs vs L50 {.no-title}
 
 ```{r contigsVsL50}
 ## #contigs vs L50
@@ -617,44 +793,136 @@ plotly::ggplotly(
 
 ## Row9 {data-height="600"}
 
-### Histogram of Single Copy BUSCO
+### BUSCO genome and protein distribution {.no-title}
 
 ```{r buscoHist}
+buscoDf <- dplyr::select(
+  metadataFiltered, AssemblyAccession, n_contigs, N50, L50, taxonomy_check_status, text,
+  ends_with(".complete_single_copy"), ends_with(".missing"), ends_with(".complete")
+) %>% 
+  tidyr::pivot_longer(
+    cols = starts_with("busco"),
+    names_to = c("busco", ".value"),
+    names_pattern = "(busco.).(.*)"
+  )
 
-ptHist_buscoSC <- ggplot2::ggplot(
-  data = metadataFiltered,
-  mapping = aes(x = buscop.complete_single_copy)
+ptHist_buscoCSC <- ggplot2::ggplot(
+  data = buscoDf,
+  mapping = aes(x = complete_single_copy, fill = busco)
 ) +
-  geom_histogram(bins = 100, color = "black", fill = "black") + 
+  geom_histogram(bins = 100, alpha=0.7, position = 'identity') +
   labs(
-    title = "Histogram of Single Copy BUSCO (excluding 2 outliers)",
-    x = "Single Copy BUSCO", y = "Count"
+    x = "Complete single copy BUSCO",
+    title = "Complete single copy BUSCO score distribution"
+  ) +
+  ggplot2::scale_fill_manual(
+    name = NULL,
+    values = c("buscog" = col_buscog, "buscop" = col_buscop)
   ) +
   pt_theme
 
-plotly::ggplotly(ptHist_buscoSC)
-
+plotly::ggplotly(ptHist_buscoCSC)
 
 ```
 
-### single copy BUSCO vs N50
 
-```{r buscoVsN50}
-## single copy BUSCO vs N50
-ptScat_buscoSC_vs_n50 <- ggplot2::ggplot(
-  data = metadataFiltered,
-  mapping = aes(x = N50, y = buscop.complete_single_copy, text = text)
+## Row10 {data-height="600"}
+
+### N50 vs complete BUSCO(Genome) {.no-title}
+
+```{r n50_vs_buscogC}
+
+## N50 vs complete BUSCO
+ptScat_n50_vs_buscogC <- ggplot2::ggplot(
+  data = dplyr::filter(buscoDf, busco == "buscog"),
+  mapping = aes(y = N50, x = complete, text = text)
 ) +
-  geom_point() +
-  labs(title = "single copy BUSCO vs N50") +
-  scale_x_continuous(
+  geom_point(color = col_buscog, alpha = 0.7) +
+  labs(title = "N50 vs Complete BUSCO(genome)",
+       x = "BUSCO Complete"
+  ) +
+  scale_y_continuous(
     labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
   ) +
   pt_theme
 
 plotly::ggplotly(
-  ptScat_buscoSC_vs_n50,
+  ptScat_n50_vs_buscogC,
+  tooltip = c("text", "x", "y", "colour")
+)
+
+
+```
+
+### N50 vs complete BUSCO(Protein) {.no-title}
+
+```{r n50_vs_buscopC}
+## N50 vs complete BUSCO
+ptScat_n50_vs_buscopC <- ggplot2::ggplot(
+  data = dplyr::filter(buscoDf, busco == "buscop"),
+  mapping = aes(y = N50, x = complete, text = text)
+) +
+  geom_point(color = col_buscop, alpha = 0.7) +
+  labs(title = "N50 vs Complete BUSCO(protein)",
+       x = "BUSCO Complete"
+  ) +
+  scale_y_continuous(
+    labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
+  ) +
+  pt_theme
+
+plotly::ggplotly(
+  ptScat_n50_vs_buscopC,
   tooltip = c("text", "x", "y", "colour")
 )
 
 ```
+
+## Row11 {data-height="600"}
+
+### L50 vs complete BUSCO(Genome) {.no-title}
+
+```{r L50_vs_buscogC}
+
+## L50 vs complete BUSCO
+ptScat_l50_vs_buscogC <- ggplot2::ggplot(
+  data = dplyr::filter(buscoDf, busco == "buscog"),
+  mapping = aes(y = L50, x = complete, text = text)
+) +
+  geom_point(color = col_buscog, alpha = 0.7) +
+  labs(
+    title = "L50 vs Complete BUSCO(genome)",
+    x = "BUSCO Complete"
+  ) +
+  pt_theme
+
+plotly::ggplotly(
+  ptScat_l50_vs_buscogC,
+  tooltip = c("text", "x", "y", "colour")
+)
+
+
+```
+
+### N50 vs complete BUSCO(Protein) {.no-title}
+
+```{r L50_vs_buscopC}
+## N50 vs complete BUSCO
+ptScat_l50_vs_buscopC <- ggplot2::ggplot(
+  data = dplyr::filter(buscoDf, busco == "buscop"),
+  mapping = aes(y = L50, x = complete, text = text)
+) +
+  geom_point(color = col_buscop, alpha = 0.7) +
+  labs(title = "N50 vs Complete BUSCO(protein)",
+       x = "BUSCO Complete"
+  ) +
+  pt_theme
+
+plotly::ggplotly(
+  ptScat_l50_vs_buscopC,
+  tooltip = c("text", "x", "y", "colour")
+)
+
+```
+
+

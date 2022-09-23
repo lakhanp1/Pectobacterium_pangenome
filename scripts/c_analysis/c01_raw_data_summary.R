@@ -4,6 +4,7 @@ suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(xml2))
 suppressPackageStartupMessages(library(XML))
 suppressPackageStartupMessages(library(openxlsx))
+suppressPackageStartupMessages(library(spData))
 
 
 # Author: Lakhansing Pardeshi
@@ -13,6 +14,8 @@ suppressPackageStartupMessages(library(openxlsx))
 
 rm(list = ls())
 
+data(world, package = "spData")
+
 #####################################################################
 analysisName <- "raw_data_summary"
 outDir <- here::here("analysis", "02_raw_data_summary")
@@ -20,7 +23,8 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 file_assembly <- here::here("data/reference_data", "assembly_docsum.xml")
 file_biosample <- here::here("data/reference_data", "biosample_docsum.xml")
 file_inhouseMmetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
-file_buscopMqc <- here::here("analysis/01_multiqc", "busco_multiqc_data/multiqc_busco.txt")
+file_buscopMqc <- here::here("analysis/01_multiqc", "busco_prot_multiqc_data/multiqc_busco.txt")
+file_buscogMqc <- here::here("analysis/01_multiqc", "busco_geno_multiqc_data/multiqc_busco.txt")
 file_quastMqc <- here::here("analysis/01_multiqc", "quast_multiqc_data/multiqc_quast.txt")
 file_ncbiAni <- here::here("data/other", "ANI_report_prokaryotes.txt")
 
@@ -40,12 +44,46 @@ buscopMqc <- suppressMessages(readr::read_tsv(file = file_buscopMqc)) %>%
     )
   ) %>% 
   dplyr::select(-Sample, -lineage_dataset) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(starts_with("complete"), missing, fragmented),
+      .fns = ~ round(. * 100/total, digits = 3)
+    )
+  ) %>% 
   dplyr::rename_with(
     .fn = ~ paste("buscop.", .x, sep = ""),
     .cols = !sampleId
   )
 
+buscogMqc <- suppressMessages(readr::read_tsv(file = file_buscogMqc)) %>% 
+  dplyr::mutate(
+    sampleId = stringr::str_replace(
+      string = Sample, pattern = "short_summary.specific.enterobacterales_odb10.",
+      replacement = ""
+    )
+  ) %>% 
+  dplyr::select(-Sample, -lineage_dataset) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(starts_with("complete"), missing, fragmented),
+      .fns = ~ round(. * 100/total, digits = 3)
+    )
+  ) %>% 
+  dplyr::rename_with(
+    .fn = ~ paste("buscog.", .x, sep = ""),
+    .cols = !sampleId
+  )
+
 quastCols <- c(
+  length = "Total length",
+  GC_per = "GC (%)",
+  n_contigs = "# contigs",
+  N50 = "N50",
+  N90 = "N90",
+  L50 = "L50",
+  L90 = "L90",
+  auN = "auN",
+  N_per_100kb = "# N's per 100 kbp",
   contigs_gt_0kb = "# contigs (>= 0 bp)",
   contigs_gt_1kb = "# contigs (>= 1000 bp)",
   contigs_gt_5kb = "# contigs (>= 5000 bp)",
@@ -58,23 +96,11 @@ quastCols <- c(
   length_gt_10kb = "Total length (>= 10000 bp)",
   length_gt_25kb = "Total length (>= 25000 bp)",
   length_gt_50kb = "Total length (>= 50000 bp)",
-  n_contigs = "# contigs",
-  largest_contig = "Largest contig",
-  length = "Total length",
-  GC_per = "GC (%)",
-  N50 = "N50",
-  N90 = "N90",
-  auN = "auN",
-  L50 = "L50",
-  L90 = "L90",
-  N_per_100kb = "# N's per 100 kbp"
+  largest_contig = "Largest contig"
 )
 
 quastMqc <- suppressMessages(readr::read_tsv(file = file_quastMqc)) %>% 
-  dplyr::rename(
-    sampleId = Sample,
-    !!!quastCols
-  )
+  dplyr::select(sampleId = Sample, !!!quastCols)
 
 ncbiAni <- suppressMessages(readr::read_tsv(file = file_ncbiAni))
 
@@ -245,42 +271,33 @@ if(!all(is.element(na.omit(unique(bsMetadata$geo_loc_country)), world$name_long)
   stop("Unmatched country name")
 }
 
-# library(rnaturalearth)
-# library(rnaturalearthdata)
-# library(maps)
-# library(sf)
-
-# library(spDataLarge)   # load larger geographic data
-
-## Loading country data from package maps
-# data(world.cities)
-
-
-# mapWorld <- maps::map(database = "world", plot = F, fill = TRUE)
 
 #####################################################################
+
+keyColumns <- c(
+  "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism", 
+  "AssemblyStatus", "AssemblyType", "BioSampleAccn", "SubmissionDate", "SubmitterOrganization",
+  "FtpPath_RefSeq", "FtpPath_GenBank",  "Id"
+)
+
 ## merge all data
-ncbiData <- dplyr::select(
-  .data = asmDf,
-  AssemblyAccession, AssemblyName, SpeciesName, SpeciesTaxid, Organism, 
-  AssemblyStatus, AssemblyType, BioSampleAccn, SubmissionDate, SubmitterOrganization,
-  FtpPath_RefSeq, FtpPath_GenBank, assembly_id = Id
-) %>% 
-  dplyr::left_join(y = asmMetadata, by = c("assembly_id" = "Id")) %>%
-  dplyr::left_join(y = bsMetadata, by = "BioSampleAccn") %>% 
+ncbiData <- dplyr::select(.data = asmDf, !!!keyColumns)  %>% 
   dplyr::mutate(
     AssemblyName = stringr::str_replace_all(
       string = AssemblyName, pattern = "\\s+", replacement = "_"
     ),
     source = "NCBI"
   ) %>% 
-  tidyr::unite(col = sampleId, AssemblyAccession, AssemblyName, sep = "_", remove = F)
+  tidyr::unite(col = sampleId, AssemblyAccession, AssemblyName, sep = "_", remove = F) %>% 
+  dplyr::left_join(y = asmMetadata, by = "Id") %>%
+  dplyr::left_join(y = bsMetadata, by = "BioSampleAccn")
 
 
 genomeMetadata <- dplyr::bind_rows(
   ncbiData, inhouseGenomes
 ) %>% 
   dplyr::left_join(y = buscopMqc, by = "sampleId") %>% 
+  dplyr::left_join(y = buscogMqc, by = "sampleId") %>% 
   dplyr::left_join(y = quastMqc, by = "sampleId") %>% 
   dplyr::mutate(
     AssemblyStatus = dplyr::case_when(
@@ -289,6 +306,13 @@ genomeMetadata <- dplyr::bind_rows(
       TRUE ~ AssemblyStatus
     )
   )
+
+genomeMetadata <- dplyr::select(
+  genomeMetadata,
+  sampleId, source, !!!keyColumns, !!!colnames(quastMqc),
+  starts_with("buscog."), starts_with("buscop."),
+  everything()
+)
 
 genomeMetadata <- dplyr::mutate(
   .data = genomeMetadata,  
@@ -326,6 +350,11 @@ readr::write_tsv(
 readr::write_tsv(
   x = taxCheckFail,
   file = file.path(outDir, "ncbi_taxanomy_qc_failed.tsv")
+)
+
+readr::write_tsv(
+  x = colStats,
+  file = file.path(outDir, "metadata_fields_stats.tsv")
 )
 
 wb <- openxlsx::createWorkbook()
