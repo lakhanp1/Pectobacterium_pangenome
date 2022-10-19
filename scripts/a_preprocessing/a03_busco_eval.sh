@@ -26,22 +26,22 @@ then
     error_exit $?
 fi
 
-# ## BUSCO protein
-# file_buscop_log=${BUSCOP_DIR}/${sampleId}/logs/busco.log
+## BUSCO protein
+file_buscop_log=${BUSCOP_DIR}/${sampleId}/logs/busco.log
 
-# if [ ! -f ${file_buscop_log} ] || ! grep -q 'BUSCO analysis done' ${file_busco_log}
-# then
-#     conda activate pantools
-#     process_start "BUSCO protein on file $sampleId"
+if [ ! -f ${file_buscop_log} ] || ! grep -q 'BUSCO analysis done' ${file_busco_log}
+then
+    conda activate pantools
+    process_start "BUSCO protein on file $sampleId"
 
-#     busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \
-#     --offline --download_path $PROJECT_DIR/data/busco_downloads \
-#     --cpu 8 --tar --out_path ${BUSCOP_DIR} -f --quiet
+    busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \
+    --offline --download_path $PROJECT_DIR/data/busco_downloads \
+    --cpu 8 --tar --out_path ${BUSCOP_DIR} -f --quiet
 
-#     error_exit $?
-# else
-#     echo "BUSCO results exists for $sampleId"
-# fi
+    error_exit $?
+else
+    echo "BUSCO results exists for $sampleId"
+fi
 
 
 ## BUSCO genome
@@ -60,3 +60,4 @@ then
 else
     echo "BUSCO results exists for $sampleId"
 fi
+

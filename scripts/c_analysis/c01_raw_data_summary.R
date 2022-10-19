@@ -22,7 +22,8 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 
 file_assembly <- here::here("data/reference_data", "assembly_docsum.xml")
 file_biosample <- here::here("data/reference_data", "biosample_docsum.xml")
-file_inhouseMmetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
+file_missingMetadata <- here::here("data/pecto1_data", "WUR_assemblies_metadata.txt")
+file_inhouseMetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
 file_buscopMqc <- here::here("analysis/01_multiqc", "busco_prot_multiqc_data/multiqc_busco.txt")
 file_buscogMqc <- here::here("analysis/01_multiqc", "busco_geno_multiqc_data/multiqc_busco.txt")
 file_quastMqc <- here::here("analysis/01_multiqc", "quast_multiqc_data/multiqc_quast.txt")
@@ -30,11 +31,13 @@ file_ncbiAni <- here::here("data/other", "ANI_report_prokaryotes.txt")
 
 #####################################################################
 ## inhouse genomes and QC data
-inhouseGenomes <- suppressMessages(readr::read_tsv(file = file_inhouseMmetadata)) %>% 
+inhouseGenomes <- suppressMessages(readr::read_tsv(file = file_inhouseMetadata)) %>% 
   dplyr::mutate(
-    source = "inhouse",
-    SubmissionDate = "2023"
+    SubmissionDate = "2023",
+    collection_date = as.character(collection_date)
   )
+
+missingMetadata <- suppressMessages(readr::read_tsv(file = file_missingMetadata, na = "-"))
 
 buscopMqc <- suppressMessages(readr::read_tsv(file = file_buscopMqc)) %>% 
   dplyr::mutate(
@@ -176,6 +179,7 @@ asmMetadata <- purrr::map_dfr(
     
   )
 
+
 #####################################################################
 ## extract BioSample information
 bsDoc <- XML::xmlParse(file = file_biosample)
@@ -248,29 +252,7 @@ colStats <- dplyr::count(colInfo, harmonized_name, display_name, sort = TRUE)
 
 bsMetadata <- dplyr::select(
   bsMetadata, BioSampleAccn, colStats$harmonized_name
-) %>% 
-  tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>% 
-  dplyr::mutate(
-    geo_loc_country = stringr::str_replace(
-      string = geo_loc_name, pattern = ":.*", replacement = ""
-    )
-  ) %>% 
-  dplyr::mutate(
-    geo_loc_country = dplyr::case_when(
-      geo_loc_country == "USA" ~ "United States",
-      geo_loc_country == "South Korea" ~ "Republic of Korea",
-      geo_loc_country == "Russia" ~ "Russian Federation",
-      geo_loc_country == "USSR" ~ "Russian Federation",
-      geo_loc_country == "Yugoslavia" ~ "Serbia",
-      TRUE ~ geo_loc_country
-    )
-  )
-
-
-if(!all(is.element(na.omit(unique(bsMetadata$geo_loc_country)), world$name_long))){
-  stop("Unmatched country name")
-}
-
+)
 
 #####################################################################
 
@@ -301,8 +283,9 @@ genomeMetadata <- dplyr::bind_rows(
   dplyr::left_join(y = quastMqc, by = "sampleId") %>% 
   dplyr::mutate(
     AssemblyStatus = dplyr::case_when(
-      source == "inhouse" & n_contigs == 1 ~ "Complete Genome",
-      source == "inhouse" & n_contigs > 1 ~ "Contig",
+      source != "NCBI" & n_contigs == 1 ~ "Complete Genome",
+      source != "NCBI" & n_contigs > 1 ~ "Contig",
+      AssemblyStatus == "Chromosome" ~ "Complete Genome",
       TRUE ~ AssemblyStatus
     )
   )
@@ -320,6 +303,51 @@ genomeMetadata <- dplyr::mutate(
   submission_y = lubridate::year(SubmissionDate),
   submission_m = lubridate::month(SubmissionDate)
 )
+
+#####################################################################
+## add missing metadata for NCBI genomes: this metadata is collected
+## from the people who submitted the genomes but did not include the metadata
+missingMetadata <- dplyr::left_join(
+  x = missingMetadata,
+  y = dplyr::filter(genomeMetadata, source == "NCBI") %>% 
+    dplyr::select(AssemblyAccession) %>% 
+    dplyr::mutate(rowIndex = 1:n()),
+  by = "AssemblyAccession"
+)
+
+for(mtcol in setdiff(colnames(missingMetadata), c("AssemblyAccession", "rowIndex"))){
+  genomeMetadata[[mtcol]][missingMetadata$rowIndex] <- dplyr::coalesce(
+    genomeMetadata[[mtcol]][missingMetadata$rowIndex],
+    missingMetadata[[mtcol]]
+  )
+}
+
+#####################################################################
+## correct country name
+
+genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>% 
+  dplyr::mutate(
+    geo_loc_country = stringr::str_replace(
+      string = geo_loc_name, pattern = ":.*", replacement = ""
+    )
+  ) %>% 
+  dplyr::mutate(
+    geo_loc_country = dplyr::case_when(
+      geo_loc_country == "USA" ~ "United States",
+      geo_loc_country == "South Korea" ~ "Republic of Korea",
+      geo_loc_country == "Russia" ~ "Russian Federation",
+      geo_loc_country == "USSR" ~ "Russian Federation",
+      geo_loc_country == "Yugoslavia" ~ "Serbia",
+      TRUE ~ geo_loc_country
+    )
+  )
+
+
+if(!all(is.element(na.omit(unique(genomeMetadata$geo_loc_country)), world$name_long))){
+  stop("Unmatched country name")
+}
+
+
 
 #####################################################################
 ## taxonomy check failed/inconclusive information
@@ -394,6 +422,7 @@ saveWorkbook(
 )
 
 #####################################################################
+
 
 
 
