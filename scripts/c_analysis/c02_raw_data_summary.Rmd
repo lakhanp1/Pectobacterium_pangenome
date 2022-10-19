@@ -38,7 +38,6 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 max_nContig <- 500
 file_summary <- here::here("data/reference_data", "sample_metadata.tsv")
 file_taxQc <- here::here("analysis/02_raw_data_summary", "ncbi_taxanomy_qc_failed.tsv")
-file_metadataFields <- here::here("analysis/02_raw_data_summary", "metadata_fields_stats.tsv")
 
 col_buscog = "#F9C80E"
 col_buscop = "#0676C6"
@@ -48,7 +47,6 @@ col_na <- "#898F94"
 #####################################################################
 
 metadata <- suppressMessages(readr::read_tsv(file = file_summary))
-mdFields <- suppressMessages(readr::read_tsv(file = file_metadataFields))
 taxQc <- suppressMessages(readr::read_tsv(file = file_taxQc))
 
 pt_theme <- theme_bw() +
@@ -91,10 +89,11 @@ pt_assCount <- dplyr::select(metadata, source) %>%
     mapping = aes(label = ..count..), stat = "count",
     color = "black", position = position_stack(vjust = 0.5)
   ) +
-  ggplot2::scale_fill_manual(
-    name = NULL,
-    values = c("NCBI" = "#3BA99C", "inhouse" = "#E69F00")
-  ) +
+  ggplot2::scale_fill_viridis_d(name = NULL) +
+  # ggplot2::scale_fill_manual(
+  #   name = NULL,
+  #   values = viridis::viridis(n = 3)
+  # ) +
   ggplot2::scale_y_continuous(
     expand = expansion(add = 0)
   ) +
@@ -248,7 +247,7 @@ sb3 <- sund2b(
 sb3
 ```
 
-### NCBI assembly taxanomy check status {data-width=2}
+### NCBI assembly taxonomy check status {data-width=2}
 
 ```{r, txQc, fig.width=3}
 pt_txQcBar <- dplyr::filter(metadata, source == "NCBI") %>% 
@@ -515,6 +514,7 @@ pt_speciesCount <- ggplot2::ggplot(
     title = "# of genomes"
   ) +
   scale_x_continuous(expand = expansion(add = c(0, 2))) +
+  ggplot2::scale_fill_viridis_d() +
   pt_theme +
   theme(
     axis.text.y = element_text(face = "bold.italic", size = 14, color = "black"),
@@ -747,6 +747,13 @@ plotly::ggplotly(ptHist_l50)
 ### #contigs vs N50 {.no-title}
 
 ```{r contigsVsN50}
+
+# quantile(
+#   metadataFiltered$buscop.complete,
+#   c(seq(0, 0.09, by = 0.01), seq(0.1, 0.9, by = 0.1), 0.95, 0.99, 0.995, 0.999, 0.9999, 1), na.rm = T
+# )
+
+
 ## #contigs vs N50
 ptScat_contig_vs_n50 <- ggplot2::ggplot(
   data = metadataFiltered,
@@ -756,7 +763,15 @@ ptScat_contig_vs_n50 <- ggplot2::ggplot(
   )
 ) +
   geom_point(alpha = 0.7) +
-  scale_color_viridis(direction = -1) +
+  scale_color_gradientn(
+    colours = viridis::viridis(n = 7, direction = -1),
+    values = c(0, 0.9, 0.95, 0.99, 0.995, 0.999, 1),
+    breaks = c(
+      min((round(min(metadataFiltered$buscop.complete) / 10) + 1)*10, 80),
+      90, 95, 99, 99.5, 99.9, 100
+    ),
+    guide = guide_colorsteps(even.steps = TRUE, label.vjust = 0.5)
+  ) +
   labs(title = "#contigs vs N50") +
   scale_x_continuous(
     labels = label_comma(scale_cut = c(bp = 0, kb = 1000, mb = 1000000))
@@ -780,7 +795,15 @@ ptScat_contig_vs_l50 <- ggplot2::ggplot(
   )
 ) +
   geom_point(alpha = 0.7) +
-  scale_color_viridis(direction = -1) +
+  scale_color_gradientn(
+    colours = viridis::viridis(n = 7, direction = -1),
+    values = c(0, 0.9, 0.95, 0.99, 0.995, 0.999, 1),
+    breaks = c(
+      min((round(min(metadataFiltered$buscop.complete) / 10) + 1)*10, 80),
+      90, 95, 99, 99.5, 99.9, 100
+    ),
+    guide = guide_colorsteps(even.steps = TRUE, show.limits = TRUE, label.vjust = 0.5)
+  ) +
   labs(title = "#contigs vs L50") +
   pt_theme
 
@@ -793,7 +816,7 @@ plotly::ggplotly(
 
 ## Row9 {data-height="600"}
 
-### BUSCO genome and protein distribution {.no-title}
+### BUSCO genome and protein distribution {.no-title data-width=3}
 
 ```{r buscoHist}
 buscoDf <- dplyr::select(
@@ -821,7 +844,35 @@ ptHist_buscoCSC <- ggplot2::ggplot(
   ) +
   pt_theme
 
-plotly::ggplotly(ptHist_buscoCSC)
+plotly::ggplotly(ptHist_buscoCSC) %>% 
+  plotly::layout(
+    legend = list(
+      y = 0.9, x = 0.1, xanchor = "center"
+    )
+  )
+
+```
+
+### BUSCO(protein) vs BUSCO(genome) {.no-title data-width=2}
+
+```{r buscoScat}
+
+ptScat_buscos <- ggplot2::ggplot(
+  data = metadataFiltered,
+  mapping = aes(x = buscop.complete_single_copy, y = buscog.complete_single_copy)
+) +
+  geom_point() +
+  labs(
+    x = "BUSCO(genome)", y = "BUSCO(protein)",
+    title = "BUSCO(protein) vs BUSCO(genome)"
+  ) +
+  coord_cartesian(
+    ylim = c(quantile(metadataFiltered$buscop.complete_single_copy, c(0.01, 1))),
+    xlim = c(quantile(metadataFiltered$buscog.complete_single_copy, c(0.01, 1))),
+  ) +
+  pt_theme
+
+plotly::ggplotly(ptScat_buscos)
 
 ```
 
