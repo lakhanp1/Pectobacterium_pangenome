@@ -1,24 +1,59 @@
-sampleId	SpeciesName	SubmitterOrganization	tissue	region	sampling_year	symptom_per_2019	symptom_per_2020	symptom_per_2021	virulence	virulence2	pcr
-JGAR-030718-1	Pectobacterium brasiliense	Wageningen University and Research	Stem	Groningen, Netherlands	2018	0	0.720385973	0	yes	yes	negative
-JGAR-080719-2	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Holland, Netherlands	2019	0	0.642761723	0	yes	yes	negative
-JGAR-100719-1	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Holland, Netherlands	2019	0	0.593263644	0	yes	yes	negative
-JGAR-120719-4	Pectobacterium brasiliense	Wageningen University and Research	Stem	Friesland, Netherlands	2019	0	0.656878532	0	yes	yes	negative
-NAK238	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Groningen, Netherlands	2016	0	0.002638837	0	no	no	positive
-NAK246	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2016	0	0	0	no	no	positive
-NAK616	Pectobacterium brasiliense	Wageningen University and Research	Stem	Friesland, Netherlands	2019	0	0.494157062	0	yes	yes	negative
-NAK617	Pectobacterium brasiliense	Wageningen University and Research	Stem	Zeeland, Netherlands	2019	0	0.665436521	0	yes	yes	negative
-NAK638	Pectobacterium brasiliense	Wageningen University and Research	Stem	Friesland, Netherlands	2019	0	0	0	unknown	unknown	negative
-NAK641	Pectobacterium brasiliense	Wageningen University and Research	Stem	Zeeland, Netherlands	2019	0	0	1	yes	yes	negative
-NAK644	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Holland, Netherlands	2019	0	0	0.989472505	yes	yes	negative
-NAK650	Pectobacterium brasiliense	Wageningen University and Research	Stem	Noord-Brabant, Netherlands	2019	0	0	0.984554296	yes	yes	negative
-NAK673	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Brabant, Netherlands	2020	0	0	0	unknown	unknown	negative
-NAK679	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2020	0	0	0.436759219	yes	yes	negative
-NAK682	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Friesland, Netherlands	2020	0	0	0.978713554	yes	yes	positive
-NAK683	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Flevoland, Netherlands	2020	0	0	0.94498286	yes	yes	negative
-NAK698	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Zeeland, Netherlands	2020	0	0	0	unknown	unknown	positive
-NAK700	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Friesland, Netherlands	2020	0	0	0.539156476	yes	yes	negative
-NAK701	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2020	0	0	0.989472505	yes	yes	positive
-NAK709	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Flevoland, Netherlands	2020	0	0	0.367088713	maybe	yes	negative
-NAK716	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Groningen, Netherlands	2020	0	0	0.277636005	maybe	yes	negative
-NAK719	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Noord-Holland, Netherlands	2020	0	0	0	unknown	unknown	positive
-NAK727	Pectobacterium brasiliense	Wageningen University and Research	Tuber	Friesland, Netherlands	2020	0	0	0.343084913	maybe	yes	negative
+sampleId	source	SpeciesName	strain	SubmitterOrganization	geo_loc_name	collection_date	host	isolation_source	type_material	symptom_per_2019	symptom_per_2020	symptom_per_2021	virulence.old	virulence	virulence_pcr
+JGAR-030718-1	WUR	Pectobacterium brasiliense	JGAR-030718-1	Wageningen University and Research	Netherlands: Groningen	2018	Solanum tuberosum	potato stem		0	0.720385973	0	virulent	virulent	negative
+JGAR-080719-2	WUR	Pectobacterium brasiliense	JGAR-080719-2	Wageningen University and Research	Netherlands: Noord-Holland	2019	Solanum tuberosum	potato stem		0	0.642761723	0	virulent	virulent	negative
+JGAR-100719-1	WUR	Pectobacterium brasiliense	JGAR-100719-1	Wageningen University and Research	Netherlands: Noord-Holland	2019	Solanum tuberosum	potato stem		0	0.593263644	0	virulent	virulent	negative
+JGAR-120719-4	WUR	Pectobacterium brasiliense	JGAR-120719-4	Wageningen University and Research	Netherlands: Friesland	2019	Solanum tuberosum	potato stem		0	0.656878532	0	virulent	virulent	negative
+NAK238	WUR	Pectobacterium brasiliense	NAK238	Wageningen University and Research	Netherlands: Groningen	2016	Solanum tuberosum	potato tuber		0	0.002638837	0	avirulent	avirulent	positive
+NAK246	WUR	Pectobacterium brasiliense	NAK246	Wageningen University and Research	Netherlands: Noord-Holland	2016	Solanum tuberosum	potato tuber		0	0	0	avirulent	avirulent	positive
+NAK616	WUR	Pectobacterium brasiliense	NAK616	Wageningen University and Research	Netherlands: Friesland	2019	Solanum tuberosum	potato stem		0	0.494157062	0	virulent	virulent	negative
+NAK617	WUR	Pectobacterium brasiliense	NAK617	Wageningen University and Research	Netherlands: Zeeland	2019	Solanum tuberosum	potato stem		0	0.665436521	0	virulent	virulent	negative
+NAK638	WUR	Pectobacterium brasiliense	NAK638	Wageningen University and Research	Netherlands: Friesland	2019	Solanum tuberosum	potato stem		0	0	0			negative
+NAK641	WUR	Pectobacterium brasiliense	NAK641	Wageningen University and Research	Netherlands: Zeeland	2019	Solanum tuberosum	potato stem		0	0	1	virulent	virulent	negative
+NAK644	WUR	Pectobacterium brasiliense	NAK644	Wageningen University and Research	Netherlands: Noord-Holland	2019	Solanum tuberosum	potato stem		0	0	0.989472505	virulent	virulent	negative
+NAK650	WUR	Pectobacterium brasiliense	NAK650	Wageningen University and Research	Netherlands: Noord-Brabant	2019	Solanum tuberosum	potato stem		0	0	0.984554296	virulent	virulent	negative
+NAK673	WUR	Pectobacterium brasiliense	NAK673	Wageningen University and Research	Netherlands: Noord-Brabant	2020	Solanum tuberosum	potato tuber		0	0	0			negative
+NAK679	WUR	Pectobacterium brasiliense	NAK679	Wageningen University and Research	Netherlands: Noord-Holland	2020	Solanum tuberosum	potato tuber		0	0	0.436759219	virulent	virulent	negative
+NAK682	WUR	Pectobacterium brasiliense	NAK682	Wageningen University and Research	Netherlands: Friesland	2020	Solanum tuberosum	potato tuber		0	0	0.978713554	virulent	virulent	positive
+NAK683	WUR	Pectobacterium brasiliense	NAK683	Wageningen University and Research	Netherlands: Flevoland	2020	Solanum tuberosum	potato tuber		0	0	0.94498286	virulent	virulent	negative
+NAK698	WUR	Pectobacterium brasiliense	NAK698	Wageningen University and Research	Netherlands: Zeeland	2020	Solanum tuberosum	potato tuber		0	0	0			positive
+NAK700	WUR	Pectobacterium brasiliense	NAK700	Wageningen University and Research	Netherlands: Friesland	2020	Solanum tuberosum	potato tuber		0	0	0.539156476	virulent	virulent	negative
+NAK701	WUR	Pectobacterium brasiliense	NAK701	Wageningen University and Research	Netherlands: Noord-Holland	2020	Solanum tuberosum	potato tuber		0	0	0.989472505	virulent	virulent	positive
+NAK709	WUR	Pectobacterium brasiliense	NAK709	Wageningen University and Research	Netherlands: Flevoland	2020	Solanum tuberosum	potato tuber		0	0	0.367088713	maybe	virulent	negative
+NAK716	WUR	Pectobacterium brasiliense	NAK716	Wageningen University and Research	Netherlands: Groningen	2020	Solanum tuberosum	potato tuber		0	0	0.277636005	maybe	virulent	negative
+NAK719	WUR	Pectobacterium brasiliense	NAK719	Wageningen University and Research	Netherlands: Noord-Holland	2020	Solanum tuberosum	potato tuber		0	0	0			positive
+NAK727	WUR	Pectobacterium brasiliense	NAK727	Wageningen University and Research	Netherlands: Friesland	2020	Solanum tuberosum	potato tuber		0	0	0.343084913	maybe	virulent	negative
+104326-106-001	NVWA	Pectobacterium carotovorum	K 3536	NVWA	Netherlands	1997	Kalanchoe
+104326-106-002	NVWA	Pectobacterium brasiliense	K 3539	NVWA	Netherlands	2003	Spathiphyllum
+104326-106-003	NVWA	Pectobacterium odoriferum	K 3542	NVWA	Netherlands	2003	Delphinium
+104326-106-004	NVWA	Pectobacterium polonicum	K 3545	NVWA	Netherlands	2004	Calathea
+104326-106-005	NVWA	Pectobacterium versatile	K 3549	NVWA	Netherlands	2004	Cyclamen
+104326-106-006	NVWA	Pectobacterium brasiliense	K 3550	NVWA		2004	Lactuca
+104326-106-007	NVWA	Pectobacterium brasiliense	K 3552	NVWA	Netherlands	2004	Lycopersicon esculentum
+104326-106-008	NVWA	Pectobacterium brasiliense	K 3554	NVWA	Netherlands	2004	Osteospermum
+104326-106-023	NVWA	Pectobacterium punjabense	PD 5156	NVWA	Netherlands	2005	Anubias barteri
+104326-106-025	NVWA	Pectobacterium brasiliense	PD 5190	NVWA	Netherlands	2005	Ornithogalum
+104326-106-028	NVWA	Pectobacterium parmentieri	PD 5801	NVWA	Netherlands	2009	Solanum tuberosum
+104326-106-043	NVWA	Pectobacterium brasiliense	PD 6523	NVWA	Netherlands	2013	Yucca gigantea
+104326-106-045	NVWA	Pectobacterium odoriferum	PD 6860	NVWA	Netherlands	2014	Daucus carota
+104326-106-047	NVWA	Pectobacterium brasiliense	PD 6952	NVWA	Netherlands	2014	Cucumis sativus
+104326-106-048	NVWA	Pectobacterium odoriferum	PD 6958	NVWA	Netherlands	2014	Hyacinthus
+104326-106-049	NVWA	Pectobacterium brasiliense	PD 6993	NVWA	Netherlands	2014	Solanum melongena
+104326-106-050	NVWA	Pectobacterium versatile	PD 6994	NVWA	Netherlands	2014	Brassica oleracea
+104326-106-051	NVWA	Pectobacterium brasiliense	PD 6997	NVWA	Netherlands	2014	Zantedeschia albomaculata
+104326-106-052	NVWA	Pectobacterium brasiliense	PD 7079	NVWA	Netherlands	2014	Cucurbita pepo
+104326-106-053	NVWA	Pectobacterium brasiliense	PD 7081	NVWA	Netherlands	2015	Solanum torvum
+104326-106-054	NVWA	Pectobacterium zantedeschiae	PD 7096	NVWA	Netherlands	2015	Zantedeschia
+104326-106-055	NVWA	Pectobacterium brasiliense	PD 7231	NVWA	Netherlands	2016	Euphorbia neomontana
+104326-106-056	NVWA	Pectobacterium brasiliense	PD 7232	NVWA	Netherlands	2015	Dracaena
+104326-106-057	NVWA	Pectobacterium polaris	PD 7233	NVWA	Netherlands	2015	Brassica oleracea
+104326-106-058	NVWA	Pectobacterium brasiliense	PD 7236	NVWA	Netherlands	2016	Sansevieria trifasciata
+104326-106-059	NVWA	Pectobacterium brasiliense	PD 7271	NVWA	Netherlands	2016	Zantedeschia
+104326-106-061	NVWA	Pectobacterium polaris	PD 7434	NVWA	Netherlands	2018	Cucurbita pepo
+104326-106-064	NVWA	Pectobacterium versatile	PD 7537	NVWA	Netherlands	2019	Hyacinthus
+104326-106-069	NVWA	Pectobacterium versatile	PD 7836	NVWA	Netherlands	2020	Allium stipitatum
+104326-106-072	NVWA	Pectobacterium actinidiae	PD 7900	NVWA	Netherlands	2020	Dolichos
+104326-106-073	NVWA	Pectobacterium brasiliense	PD 8061	NVWA					type strain
+104326-106-074	NVWA	Pectobacterium carotovorum	PD 8066	NVWA					type strain
+104326-106-075	NVWA	Pectobacterium parmentieri	PD 8070	NVWA					type strain
+104326-106-076	NVWA	Pectobacterium parvum	PD 8074	NVWA					type strain
+104326-106-079	NVWA	Pectobacterium polaris	PD 8141	NVWA					type strain						

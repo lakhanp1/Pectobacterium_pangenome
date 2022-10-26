@@ -37,7 +37,6 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 
 max_nContig <- 500
 file_summary <- here::here("data/reference_data", "sample_metadata.tsv")
-file_taxQc <- here::here("analysis/02_raw_data_summary", "ncbi_taxanomy_qc_failed.tsv")
 
 col_buscog = "#F9C80E"
 col_buscop = "#0676C6"
@@ -47,7 +46,6 @@ col_na <- "#898F94"
 #####################################################################
 
 metadata <- suppressMessages(readr::read_tsv(file = file_summary))
-taxQc <- suppressMessages(readr::read_tsv(file = file_taxQc))
 
 pt_theme <- theme_bw() +
   theme(
@@ -110,7 +108,7 @@ pt_assCount <- dplyr::select(metadata, source) %>%
 plotly::ggplotly(pt_assCount) %>% 
   plotly::layout(
     legend = list(
-      orientation = "h", y = -1, x = 0.5, xanchor = "center"
+      orientation = "h", y = -0.2, x = 0.5, xanchor = "center"
     )
   )
 
@@ -523,7 +521,12 @@ pt_speciesCount <- ggplot2::ggplot(
     axis.title = element_text(face = "bold", size = 16, color = "black")
   )
 
-plotly::ggplotly(pt_speciesCount)
+plotly::ggplotly(pt_speciesCount) %>% 
+  plotly::layout(
+    legend = list(
+      y = 1, x = 1, xanchor = "right"
+    )
+  )
 
 ```
 
