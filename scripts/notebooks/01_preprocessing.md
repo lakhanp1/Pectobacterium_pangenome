@@ -34,7 +34,8 @@ awk '
 ## NCBI prokaryotes ANI file
 wget --timestamping https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/ANI_report_prokaryotes.txt -P data/other/
 
-cat data/reference_data/local_assembly_ids.txt data/reference_data/ncbi_assembly_ids.txt | \
+
+cat data/reference_data/local_assembly_ids.txt data/reference_data/ncbi_assembly_ids.txt \
 > data/reference_data/assembly_ids.txt
 
 mkdir data/reference_data/batches
@@ -52,7 +53,7 @@ do
     then
         echo $sampleId
     fi
-done > data/reference_data/local_assembly_ids.txt data/reference_data/temp_assembly_ids.txt
+done > data/reference_data/temp_assembly_ids.txt
 
 
 ## download and unzip the FASTA files
@@ -70,7 +71,7 @@ gzip -d data/genomes/ncbi/*.gz
 
 ``` bash
 nohup \
-ls data/genomes/?(ncbi|local)/*.?(fa|fna|fasta) | \
+ls data/genomes/?(NCBI|WUR|NVWA)/*.?(fa|fna|fasta) | \
 parallel --gnu --keep-order --jobs 1 --halt now,fail=1 \
 --results logs/prokka/{/.} --joblog logs/prokka/parallel.log \
 scripts/a_preprocessing/a01_prokka_ann.sh {} \
@@ -86,10 +87,29 @@ with `--jobs 1` setting in serial mode.
 ### Remove the FASTA sequence at the end of prokka gff files
 
 ``` bash
-for i in `cat cat data/reference_data/assembly_ids.txt`
+for i in `cat data/reference_data/temp_assembly_ids.txt`
 do
 sed -n '1,/##FASTA/ {/##FASTA/!p}' data/prokka_annotation/${i}/${i}.gff > \
 data/prokka_annotation/${i}/${i}.gff3
+done
+
+```
+
+### FASTA file indexing
+
+``` bash
+printf '' > analysis/01_multiqc/assembly_chr_size.txt
+
+conda activate omics_py37
+
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+samtools faidx data/prokka_annotation/${i}/${i}.fna
+sort -r -n -k 2,2 data/prokka_annotation/${i}/${i}.fna.fai | \
+awk  -v i=${i} '{print i, "\t", $1, "\t", $2}' >> analysis/01_multiqc/assembly_chr_size.txt
+
+faToTwoBit data/prokka_annotation/${i}/${i}.fna data/prokka_annotation/${i}/${i}.2bit
+
 done
 
 ```
@@ -99,23 +119,17 @@ done
 ``` bash
 ## !GNU parallel on single server
 nohup \
-cat data/reference_data/batches/temp_ids_batch.00 | \
+cat data/reference_data/temp_assembly_ids.txt | \
 parallel --jobs 1 --workdir $PWD --halt now,fail=1 --keep-order \
 --results logs/busco/{} --joblog logs/busco/parallel.log \
 $PWD/scripts/a_preprocessing/a03_busco_eval.sh {} \
->>logs/busco/nohup00.out 2>&1 &
+>>logs/busco/nohup02.out 2>&1 &
 
 ```
 
 This is failing with `parallel`, most likely because of the number of open files
 exceeding the `ulimit`. Need to debug further. For now, running GNU `parallel`
 with `--jobs 1` setting is serial mode.
-
-## BUSCO genome assembly evaluation
-
-``` bash
-
-```
 
 ## QUAST assembly evaluation
 
@@ -137,9 +151,9 @@ nohup \
 cat data/reference_data/temp_assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/interproscan/{} \
---joblog logs/interproscan/parallel_batch05.log \
+--joblog logs/interproscan/parallel_batch06.log \
 ./scripts/a_preprocessing/a02_interproscan.sh {} \
->>logs/interproscan/nohup_batch05.out 2>&1 &
+>>logs/interproscan/nohup_batch06.out 2>&1 &
 
 
 ## GNU parallel: submit jobs to another server
@@ -162,10 +176,16 @@ multiqc -f --filename quast_multiqc --interactive --title "QUAST report" \
 --outdir analysis/01_multiqc/ --module quast data/quast/ \
 >>nohup.out 2>&1 &
 
-## BUSCO MultiQC
+## BUSCO protein MultiQC
 nohup \
-multiqc -f --filename busco_multiqc --interactive --title "BUSCO report" \
---outdir analysis/01_multiqc/ --module busco data/busco/ \
+multiqc -f --filename busco_prot_multiqc --interactive --title "BUSCO report" \
+--outdir analysis/01_multiqc/ --module busco data/busco.prot/ \
+>>nohup.out 2>&1 &
+
+## BUSCO genome MultiQC
+nohup \
+multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
+--outdir analysis/01_multiqc/ --module busco data/busco.geno/ \
 >>nohup.out 2>&1 &
 
 ```
@@ -173,5 +193,12 @@ multiqc -f --filename busco_multiqc --interactive --title "BUSCO report" \
 ## fastANI
 
 ``` bash
+printf '' > data/reference_data/genome_fna.list
+
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+ls $PWD/data/prokka_annotation/${i}/${i}.fna >> data/reference_data/genome_fna.list
+done
+
 nohup bash scripts/a_preprocessing/a05_fastANI.sh >logs/fastANI.log 2>&1 &
 ```
