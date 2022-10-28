@@ -7,31 +7,49 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-conda activate pantools
+conda activate pantools_master
 
-export PANTOOLS="$PANTOOLS_MAIN"
+export PANTOOLS="$PANTOOLS_OPT"
+
+PANGENOME_NAME='pectobacterium.v2'
 
 ## Setup
-PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
-ANALYSIS_DIR="$PROJECT_DIR/analysis/06_pangenome_pecto_v2"
-analysis_prefix='pectobacterium.v2'
-pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
+PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
+PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 
-[ ! -d $ANALYSIS_DIR ] && mkdir $ANALYSIS_DIR
+## setup for local disk processing on handelsman
+BUILD_DIR="/local/$USER/03_Pectobacterium"
 
-## Download the raw data
-esearch -db assembly -query "pectobacterium [ORGN]" | \
-efetch -format docsum -email "lakhansing.pardeshi@wur.nl" | \
-xtract -pattern DocumentSummary \
--tab " || " -element FtpPath_RefSeq | \
-sed -r 's/((.*\/)([^\/]+))/\1\/\3_genomic.fna.gz/' | \
-sed -r 's/^ftp:/rsync:/' > $PROJECT_DIR/data/reference_data/ncbi_genomes_ftp.txt
+pan_db="$BUILD_DIR/${PANGENOME_NAME}.DB"
 
-# data/genomes/ncbi_genomes
-for file in `cat $PROJECT_DIR/data/reference_data/ncbi_genomes_ftp.txt`
-do
-rsync --copy-links --times --verbose ${file} $PROJECT_DIR/data/genomes/ncbi_genomes/
-sleep 5
-done
+
+[ ! -d $PANGENOME_DIR ] && mkdir $PANGENOME_DIR
+[ ! -d $PANGENOME_DIR/backup ] && mkdir $PANGENOME_DIR/backup
+[ ! -d $BUILD_DIR ] && mkdir -p $BUILD_DIR
+
+
+
+TMPDIR="/local/$USER/tmp"
+[ ! -d ${TMPDIR} ] && mkdir -p ${TMPDIR}
+[ -d ${TMPDIR}/pantools ] && rm -rd ${TMPDIR}/pantools
+[ ! -d ${TMPDIR}/pantools ] && mkdir -p ${TMPDIR}/pantools
+[ -d ${TMPDIR}/spark ] && rm -rd ${TMPDIR}/spark
+[ ! -d ${TMPDIR}/spark ] && mkdir -p ${TMPDIR}/spark
+
+cache=25000000
+PANTOOLS_LOCALIZATION_OUTPUT=${TMPDIR}/pantools
+SPARK_LOCAL_DIRS=${TMPDIR}/spark
+PANTOOLS_ADDRESS_CACHE_SIZE=${cache}
+PANTOOLS_NUM_DB_WRITER_THREADS=10
+
+## Construct pangenome using build_pangenome_parallel
+process_start build_pangenome_parallel
+$PANTOOLS build_pangenome_parallel --database-path ${pan_db} \
+--genomes-file $PANGENOME_DIR/genomes_fa.list -tn 40
+error_exit $?
+
+cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.backup_raw
+
+
 
 
