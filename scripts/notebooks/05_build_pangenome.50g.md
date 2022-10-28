@@ -12,7 +12,7 @@ set -o pipefail
 
 conda activate pantools
 
-export PANTOOLS="$PANTOOLS_MAIN"
+export PANTOOLS="$PANTOOLS_MASTER"
 
 ## Setup
 PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'

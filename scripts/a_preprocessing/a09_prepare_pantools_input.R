@@ -13,11 +13,17 @@ file_metadata <- here::here("data/reference_data", "sample_metadata.tsv")
 file_duplicateGenomes <- here::here("analysis", "01_multiqc", "duplicate_genomes.tab")
 file_excludeGenomes <- here::here("analysis", "01_multiqc", "exclude_genomes.txt")
 
+pangenomeName <- "pectobacterium.v2"
 path_genomes <- here::here("data", "prokka_annotation")
+path_out <- here::here("data", "pangenomes", pangenomeName)
 
 cutoff_buscog <- 99
 
 #####################################################################
+
+if(! dir.exists(path_out)){
+  dir.create(path = path_out, recursive = TRUE)
+}
 
 metadata <- suppressMessages(readr::read_tsv(file = file_metadata))
 duplicateGenomes <- suppressMessages(readr::read_tsv(file = file_duplicateGenomes)) %>% 
@@ -44,21 +50,29 @@ filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>%
   dplyr::mutate(
     genomeId = 1:n(),
     fasta = paste(path_genomes, "/", sampleId, "/", sampleId, ".fna", sep = ""),
-    gff3 = paste(path_genomes, "/", sampleId, "/", sampleId, ".gff", sep = "")
+    gff3 = paste(path_genomes, "/", sampleId, "/", sampleId, ".gff", sep = ""),
+    interpro = paste(path_genomes, "/", sampleId, "/", sampleId, ".interProScan.gff3", sep = "")
   )
 
 
 ## FASTA file paths
 dplyr::select(filteredMeta, fasta) %>% 
   readr::write_tsv(
-    file = here::here("analysis", "04_pangenome", "genomes_fa.list"),
+    file = file.path(path_out, "genomes_fa.list"),
     col_names = FALSE
   )
 
 ## GFF3 file paths
 dplyr::select(filteredMeta, genomeId, gff3) %>% 
   readr::write_tsv(
-    file = here::here("analysis", "04_pangenome", "genomes_gff3.list"),
+    file = file.path(path_out, "genomes_gff3.list"),
+    col_names = FALSE
+  )
+
+## functional annotation file paths
+dplyr::select(filteredMeta, genomeId, interpro) %>% 
+  readr::write_delim(
+    file = file.path(path_out, "functional_annotations.txt"),
     col_names = FALSE
   )
 
@@ -69,7 +83,7 @@ dplyr::select(
   isolation_source,	collected_by, env_broad_scale, type_material, virulence, virulence_pcr
   ) %>% 
   readr::write_csv(
-    file = here::here("analysis", "04_pangenome", "genomes_metadata.csv"),
+    file = file.path(path_out, "genomes_metadata.csv"),
     col_names = FALSE
   )
 
