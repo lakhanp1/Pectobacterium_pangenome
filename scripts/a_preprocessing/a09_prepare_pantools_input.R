@@ -6,7 +6,7 @@ suppressPackageStartupMessages(library(tidyverse))
 ## prepare input data for pangenome construction using PanTools
 
 rm(list = ls())
-
+set.seed(124)
 #####################################################################
 
 file_metadata <- here::here("data/reference_data", "sample_metadata.tsv")
@@ -14,12 +14,16 @@ file_duplicateGenomes <- here::here("analysis", "01_multiqc", "duplicate_genomes
 file_excludeGenomes <- here::here("analysis", "01_multiqc", "exclude_genomes.txt")
 
 pangenomeName <- "pectobacterium.v2"
+testPangenome <- "pectobacterium_test"
 path_genomes <- here::here("data", "prokka_annotation")
 path_out <- here::here("data", "pangenomes", pangenomeName)
+test_out <- here::here("data", "pangenomes", testPangenome)
 
 cutoff_buscog <- 99
 
 #####################################################################
+! dir.exists(path_out) && dir.create(path = path_out, recursive = TRUE)
+! dir.exists(test_out) && dir.create(path = test_out, recursive = TRUE)
 
 if(! dir.exists(path_out)){
   dir.create(path = path_out, recursive = TRUE)
@@ -51,10 +55,19 @@ filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>%
     genomeId = 1:n(),
     fasta = paste(path_genomes, "/", sampleId, "/", sampleId, ".fna", sep = ""),
     gff3 = paste(path_genomes, "/", sampleId, "/", sampleId, ".gff", sep = ""),
-    interpro = paste(path_genomes, "/", sampleId, "/", sampleId, ".interProScan.gff3", sep = "")
+    interpro = paste(
+      here::here("data/interproscan"), "/", sampleId, ".interProScan.gff3", sep = ""
+    ),
+    ## replace "," with ";"
+    dplyr::across(
+      .cols = everything(),
+      .fns = ~stringr::str_replace_all(
+        string = .x, pattern = ",", replacement = ";"
+      )
+    )
   )
 
-
+#####################################################################
 ## FASTA file paths
 dplyr::select(filteredMeta, fasta) %>% 
   readr::write_tsv(
@@ -78,15 +91,50 @@ dplyr::select(filteredMeta, genomeId, interpro) %>%
 
 ## metadata file
 dplyr::select(
-  filteredMeta, genomeId, sampleId, AssemblyAccession,	AssemblyName,	SpeciesName,
-  taxonomy_check_status, strain, virulence, virulence_pcr, geo_loc_country, host,
-  isolation_source,	collected_by, env_broad_scale, type_material, virulence, virulence_pcr
-  ) %>% 
+  filteredMeta, Genome=genomeId, id=sampleId, AssemblyAccession,	AssemblyName,
+  SpeciesName, taxonomy_check_status, strain, virulence, virulence_pcr, geo_loc_country,
+  host, isolation_source,	collected_by, env_broad_scale, type_material, virulence,
+  virulence_pcr
+) %>% 
   readr::write_csv(
     file = file.path(path_out, "genomes_metadata.csv"),
+    col_names = TRUE
+  )
+
+#####################################################################
+## write small subset for testing pangenome pipeline
+testSet <- dplyr::slice_sample(filteredMeta, n = 10)
+
+## FASTA file paths
+dplyr::select(testSet, fasta) %>% 
+  readr::write_tsv(
+    file = file.path(test_out, "genomes_fa.list"),
     col_names = FALSE
   )
 
+## GFF3 file paths
+dplyr::select(testSet, genomeId, gff3) %>% 
+  readr::write_tsv(
+    file = file.path(test_out, "genomes_gff3.list"),
+    col_names = FALSE
+  )
 
+## functional annotation file paths
+dplyr::select(testSet, genomeId, interpro) %>% 
+  readr::write_delim(
+    file = file.path(test_out, "functional_annotations.txt"),
+    col_names = FALSE
+  )
 
+## metadata file
+dplyr::select(
+  testSet, Genome=genomeId, id=sampleId, AssemblyAccession,	AssemblyName,
+  SpeciesName, taxonomy_check_status, strain, virulence, virulence_pcr, geo_loc_country,
+  host, isolation_source,	collected_by, env_broad_scale, type_material, virulence,
+  virulence_pcr
+) %>% 
+  readr::write_csv(
+    file = file.path(test_out, "genomes_metadata.csv"),
+    col_names = TRUE
+  )
 
