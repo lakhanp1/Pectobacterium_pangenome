@@ -103,7 +103,8 @@ dplyr::select(
 
 #####################################################################
 ## write small subset for testing pangenome pipeline
-testSet <- dplyr::slice_sample(filteredMeta, n = 10)
+testSet <- dplyr::slice_sample(filteredMeta, n = 10) %>% 
+  dplyr::mutate(genomeId = 1:n())
 
 ## FASTA file paths
 dplyr::select(testSet, fasta) %>% 
