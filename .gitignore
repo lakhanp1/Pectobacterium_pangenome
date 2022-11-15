@@ -12,10 +12,12 @@
 *.docx
 Rplots.pdf
 temp
-temp*
+*temp*
 /logs
 sample_info.txt
 /data/*
+/data/pangenomes/**/*.DB*/
+!/data/pangenomes/
 !/data/reference_data/
 /analysis
 /reports
