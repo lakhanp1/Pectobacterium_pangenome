@@ -1,0 +1,11 @@
+Genome,id,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collected_by,env_broad_scale,type_material
+1,104326-106-007,NA,NA,Pectobacterium brasiliense,NA,K 3552,NA,NA,Netherlands,Lycopersicon esculentum,NA,NA,NA,NA
+2,GCF_016949885.1_ASM1694988v1,GCF_016949885.1,ASM1694988v1,Pectobacterium brasiliense,OK,"NAK:241",virulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,Robert Vreeburg,NA,NA
+3,GCF_000808335.1_ASM80833v1,GCF_000808335.1,ASM80833v1,Pectobacterium brasiliense,OK,Y65,NA,NA,China,Brassica rapa ssp. chinensis,infected leaves,NA,NA,NA
+4,GCF_000808195.1_ASM80819v1,GCF_000808195.1,ASM80819v1,Pectobacterium brasiliense,OK,Y64,NA,NA,China,Brassica rapa ssp. chinensis,infected leaves,NA,NA,NA
+5,GCF_013449485.1_ASM1344948v1,GCF_013449485.1,ASM1344948v1,Pectobacterium brasiliense,OK,CFBP3230,NA,NA,United States,Gossypium sp.,NA,NA,infected host plant,NA
+6,104326-106-043,NA,NA,Pectobacterium brasiliense,NA,PD 6523,NA,NA,Netherlands,Yucca gigantea,NA,NA,NA,NA
+7,GCF_020295505.1_ASM2029550v1,GCF_020295505.1,ASM2029550v1,Pectobacterium brasiliense,OK,SR8,NA,NA,United States,NA,squash,Chloe Wasendorf,NA,NA
+8,GCF_002930555.1_ASM293055v1,GCF_002930555.1,ASM293055v1,Pectobacterium brasiliense,OK,F152,NA,NA,Russian Federation,Solanum tuberosum,NA,NA,NA,NA
+9,GCF_020297385.1_ASM2029738v1,GCF_020297385.1,ASM2029738v1,Pectobacterium brasiliense,OK,SR7,NA,NA,United States,NA,Pumpkin,Chloe Wasendorf,NA,NA
+10,GCF_016944295.1_ASM1694429v1,GCF_016944295.1,ASM1694429v1,Pectobacterium brasiliense,OK,IPO:4065 NAK:223,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,Robert Vreeburg,NA,NA

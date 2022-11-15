@@ -1,0 +1,10 @@
+1 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/104326-106-007.interProScan.gff3
+2 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_016949885.1_ASM1694988v1.interProScan.gff3
+3 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_000808335.1_ASM80833v1.interProScan.gff3
+4 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_000808195.1_ASM80819v1.interProScan.gff3
+5 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_013449485.1_ASM1344948v1.interProScan.gff3
+6 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/104326-106-043.interProScan.gff3
+7 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_020295505.1_ASM2029550v1.interProScan.gff3
+8 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_002930555.1_ASM293055v1.interProScan.gff3
+9 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_020297385.1_ASM2029738v1.interProScan.gff3
+10 /Users/lakhan/Library/CloudStorage/OneDrive-WageningenUniversity&Research/work_lakhan/projects/41_WUR_PhD/projects/03_Pectobacterium/data/interproscan/GCF_016944295.1_ASM1694429v1.interProScan.gff3

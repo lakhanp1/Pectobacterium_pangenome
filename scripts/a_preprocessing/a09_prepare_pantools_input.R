@@ -14,7 +14,7 @@ file_duplicateGenomes <- here::here("analysis", "01_multiqc", "duplicate_genomes
 file_excludeGenomes <- here::here("analysis", "01_multiqc", "exclude_genomes.txt")
 
 pangenomeName <- "pectobacterium.v2"
-testPangenome <- "pectobacterium_test"
+testPangenome <- "pectobacterium.10g"
 path_genomes <- here::here("data", "prokka_annotation")
 path_out <- here::here("data", "pangenomes", pangenomeName)
 test_out <- here::here("data", "pangenomes", testPangenome)
@@ -103,7 +103,8 @@ dplyr::select(
 
 #####################################################################
 ## write small subset for testing pangenome pipeline
-testSet <- dplyr::slice_sample(filteredMeta, n = 10) %>% 
+testSet <- dplyr::filter(filteredMeta, SpeciesName == "Pectobacterium brasiliense") %>% 
+  dplyr::slice_sample(n = 10) %>% 
   dplyr::mutate(genomeId = 1:n())
 
 ## FASTA file paths
