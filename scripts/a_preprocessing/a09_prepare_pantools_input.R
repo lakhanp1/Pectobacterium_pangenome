@@ -15,7 +15,7 @@ file_excludeGenomes <- here::here("analysis", "01_multiqc", "exclude_genomes.txt
 
 pangenomeName <- "pectobacterium.v2"
 testPangenome <- "pectobacterium.10g"
-path_genomes <- here::here("data", "prokka_annotation")
+path_genomes <- "./data/prokka_annotation"
 path_out <- here::here("data", "pangenomes", pangenomeName)
 test_out <- here::here("data", "pangenomes", testPangenome)
 
@@ -56,7 +56,7 @@ filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>%
     fasta = paste(path_genomes, "/", sampleId, "/", sampleId, ".fna", sep = ""),
     gff3 = paste(path_genomes, "/", sampleId, "/", sampleId, ".gff", sep = ""),
     interpro = paste(
-      here::here("data/interproscan"), "/", sampleId, ".interProScan.gff3", sep = ""
+      "./data/interproscan/", sampleId, ".interProScan.gff3", sep = ""
     ),
     ## replace "," with ";"
     dplyr::across(

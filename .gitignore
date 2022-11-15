@@ -11,7 +11,7 @@
 *.xlsx
 *.docx
 Rplots.pdf
-temp
+*backup*
 *temp*
 /logs
 sample_info.txt
