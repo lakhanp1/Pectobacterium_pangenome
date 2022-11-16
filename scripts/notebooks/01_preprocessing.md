@@ -193,12 +193,8 @@ multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
 ## fastANI
 
 ``` bash
-printf '' > data/reference_data/genome_fna.list
+nohup bash scripts/a_preprocessing/a05_fastANI.sh \
+data/pangenomes/pectobacterium.v2/genomes_fa.list \
+analysis/02_fastANI/ANI_results >logs/fastANI.log 2>&1 &
 
-for i in `cat data/reference_data/assembly_ids.txt`
-do
-ls $PWD/data/prokka_annotation/${i}/${i}.fna >> data/reference_data/genome_fna.list
-done
-
-nohup bash scripts/a_preprocessing/a05_fastANI.sh >logs/fastANI.log 2>&1 &
 ```

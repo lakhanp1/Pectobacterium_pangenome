@@ -31,7 +31,7 @@ file_buscop_log=${BUSCOP_DIR}/${sampleId}/logs/busco.log
 
 if [ ! -f ${file_buscop_log} ] || ! grep -q 'BUSCO analysis done' ${file_busco_log}
 then
-    conda activate pantools
+    conda activate pantools_master
     process_start "BUSCO protein on file $sampleId"
 
     busco -i ${file_faa} -o ${sampleId} -l ${busco_lineage} -m proteins \

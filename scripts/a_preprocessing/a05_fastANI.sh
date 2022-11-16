@@ -8,12 +8,24 @@ shopt -s expand_aliases
 source ~/.bash_aliases
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-conda activate pantools
+conda activate pantools_master
 
 ## Setup
-PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
-ANALYSIS_DIR="$PROJECT_DIR/analysis/01_fastANI"
+file_fna=$1
+outPrefix=$2
 
-fastANI --ql ${PROJECT_DIR}/data/reference_data/genome_fna.list \
---rl ${PROJECT_DIR}/data/reference_data/genome_fna.list \
---threads 30 --matrix -o ${ANALYSIS_DIR}/ANI_results
+if [ ! -f ${file_fna} ]
+then
+    ls "${file_fna}"
+    error_exit $?
+fi
+
+if [ ! -d `dirname ${outPrefix}` ]
+then
+    ls `dirname ${outPrefix}`
+    error_exit $?
+fi
+
+
+fastANI --ql ${file_fna} --rl ${file_fna} --threads 30 --matrix -o ${outPrefix}
+
