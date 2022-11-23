@@ -21,6 +21,12 @@ test_out <- here::here("data", "pangenomes", testPangenome)
 
 cutoff_buscog <- 99
 
+cols_metadata <- c(
+  "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
+  "strain", "virulence", "virulence_pcr", "geo_loc_country", "host", "isolation_source",
+  "collected_by", "env_broad_scale", "type_material", "virulence", "virulence_pcr",
+  "source", "type_material", "representative_status", "sample_type")
+
 #####################################################################
 ! dir.exists(path_out) && dir.create(path = path_out, recursive = TRUE)
 ! dir.exists(test_out) && dir.create(path = test_out, recursive = TRUE)
@@ -46,6 +52,10 @@ metadata %<>%
       sampleId %in% c(duplicateGenomes$genome2, excludeGenomes$sampleId) ~ "duplicate",
       buscog.complete < cutoff_buscog ~ paste("BUSCO <", cutoff_buscog),
       TRUE ~ "PASS"
+    ),
+    type_material = stringr::str_replace(
+      string = tolower(type_material), pattern = "(type (strain|material)).*", 
+      replacement = "type strain"
     )
   ) %>% 
   dplyr::relocate(filtered, .after = AssemblyName)
@@ -91,10 +101,7 @@ dplyr::select(filteredMeta, genomeId, interpro) %>%
 
 ## metadata file
 dplyr::select(
-  filteredMeta, Genome=genomeId, id=sampleId, AssemblyAccession,	AssemblyName,
-  SpeciesName, taxonomy_check_status, strain, virulence, virulence_pcr, geo_loc_country,
-  host, isolation_source,	collected_by, env_broad_scale, type_material, virulence,
-  virulence_pcr
+  filteredMeta, Genome=genomeId, id=sampleId, !!!cols_metadata
 ) %>% 
   readr::write_csv(
     file = file.path(path_out, "genomes_metadata.csv"),
@@ -105,6 +112,7 @@ dplyr::select(
 ## write small subset for testing pangenome pipeline
 testSet <- dplyr::filter(filteredMeta, SpeciesName == "Pectobacterium brasiliense") %>% 
   dplyr::slice_sample(n = 10) %>% 
+  dplyr::arrange(sampleId) %>% 
   dplyr::mutate(genomeId = 1:n())
 
 ## FASTA file paths
@@ -130,10 +138,7 @@ dplyr::select(testSet, genomeId, interpro) %>%
 
 ## metadata file
 dplyr::select(
-  testSet, Genome=genomeId, id=sampleId, AssemblyAccession,	AssemblyName,
-  SpeciesName, taxonomy_check_status, strain, virulence, virulence_pcr, geo_loc_country,
-  host, isolation_source,	collected_by, env_broad_scale, type_material, virulence,
-  virulence_pcr
+  testSet, Genome=genomeId, id=sampleId, !!!cols_metadata
 ) %>% 
   readr::write_csv(
     file = file.path(test_out, "genomes_metadata.csv"),
