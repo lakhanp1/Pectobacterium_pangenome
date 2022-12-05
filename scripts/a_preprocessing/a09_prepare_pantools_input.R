@@ -22,7 +22,7 @@ test_out <- here::here("data", "pangenomes", testPangenome)
 cutoff_buscog <- 99
 
 cols_metadata <- c(
-  "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
+  "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
   "strain", "virulence", "virulence_pcr", "geo_loc_country", "host", "isolation_source",
   "collected_by", "env_broad_scale", "type_material", "virulence", "virulence_pcr",
   "source", "type_material", "representative_status", "sample_type")
@@ -107,6 +107,12 @@ dplyr::select(
     file = file.path(path_out, "genomes_metadata.csv"),
     col_names = TRUE
   )
+
+## input genome lock file: this file should never change
+readr::write_tsv(
+  x = dplyr::select(filteredMeta, Genome = genomeId, id = sampleId),
+  file = file.path(path_out, "input_genomes.tab")
+)
 
 #####################################################################
 ## write small subset for testing pangenome pipeline

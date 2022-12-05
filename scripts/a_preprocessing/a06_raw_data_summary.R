@@ -2,6 +2,7 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(xml2))
+suppressPackageStartupMessages(library(taxize))
 suppressPackageStartupMessages(library(XML))
 suppressPackageStartupMessages(library(openxlsx))
 suppressPackageStartupMessages(library(spData))
@@ -287,12 +288,15 @@ genomeMetadata <- dplyr::bind_rows(
       source != "NCBI" & n_contigs > 1 ~ "Contig",
       AssemblyStatus == "Chromosome" ~ "Complete Genome",
       TRUE ~ AssemblyStatus
+    ),
+    sampleName = dplyr::if_else(
+      condition = is.na(AssemblyAccession), true = sampleId, false = AssemblyAccession
     )
   )
 
 genomeMetadata <- dplyr::select(
   genomeMetadata,
-  sampleId, source, !!!keyColumns, !!!colnames(quastMqc),
+  sampleId, sampleName, source, !!!keyColumns, !!!colnames(quastMqc),
   starts_with("buscog."), starts_with("buscop."),
   everything()
 )
