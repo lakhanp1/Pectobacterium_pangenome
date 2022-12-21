@@ -1,11 +1,3 @@
-#!/usr/bin/env bash
-
-shopt -s expand_aliases
-source ~/.bash_aliases
-
-# set -e
-# set -u
-set -o pipefail
 
 conda activate pantools
 

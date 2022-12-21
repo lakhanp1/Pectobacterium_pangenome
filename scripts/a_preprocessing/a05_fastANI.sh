@@ -11,6 +11,11 @@ source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 
 ## Setup
+usage="Usage: a05_fastANI.sh <genome fast list file> <output prefix>
+"
+
+if [ $# -ne 2 ] ; then printf "Error: No required arguments\n${usage}" >&2 ; exit 1 ; fi
+
 file_fna=$1
 outPrefix=$2
 
