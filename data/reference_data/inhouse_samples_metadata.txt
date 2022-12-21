@@ -23,37 +23,37 @@ NAK716	WUR	Pectobacterium brasiliense	NAK716	Wageningen University and Research	
 NAK719	WUR	Pectobacterium brasiliense	NAK719	Wageningen University and Research	Netherlands: Noord-Holland	2020	Solanum tuberosum	potato tuber		0	0	0			positive
 NAK727	WUR	Pectobacterium brasiliense	NAK727	Wageningen University and Research	Netherlands: Friesland	2020	Solanum tuberosum	potato tuber		0	0	0.343084913	maybe	virulent	negative
 104326-106-001	NVWA	Pectobacterium carotovorum	K 3536	NVWA	Netherlands	1997	Kalanchoe
-104326-106-002	NVWA	Pectobacterium brasiliense	K 3539	NVWA	Netherlands	2003	Spathiphyllum
+104326-106-002	NVWA	Pectobacterium carotovorum subsp. carotovorum	K 3539	NVWA	Netherlands	2003	Spathiphyllum
 104326-106-003	NVWA	Pectobacterium odoriferum	K 3542	NVWA	Netherlands	2003	Delphinium
 104326-106-004	NVWA	Pectobacterium polonicum	K 3545	NVWA	Netherlands	2004	Calathea
 104326-106-005	NVWA	Pectobacterium versatile	K 3549	NVWA	Netherlands	2004	Cyclamen
-104326-106-006	NVWA	Pectobacterium brasiliense	K 3550	NVWA		2004	Lactuca
+104326-106-006	NVWA	Pectobacterium carotovorum subsp. carotovorum	K 3550	NVWA		2004	Lactuca
 104326-106-007	NVWA	Pectobacterium brasiliense	K 3552	NVWA	Netherlands	2004	Lycopersicon esculentum
 104326-106-008	NVWA	Pectobacterium brasiliense	K 3554	NVWA	Netherlands	2004	Osteospermum
 104326-106-023	NVWA	Pectobacterium punjabense	PD 5156	NVWA	Netherlands	2005	Anubias barteri
 104326-106-025	NVWA	Pectobacterium brasiliense	PD 5190	NVWA	Netherlands	2005	Ornithogalum
 104326-106-028	NVWA	Pectobacterium parmentieri	PD 5801	NVWA	Netherlands	2009	Solanum tuberosum
-104326-106-043	NVWA	Pectobacterium brasiliense	PD 6523	NVWA	Netherlands	2013	Yucca gigantea
+104326-106-043	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 6523	NVWA	Guatemala	2013	Yucca gigantea
 104326-106-045	NVWA	Pectobacterium odoriferum	PD 6860	NVWA	Netherlands	2014	Daucus carota
 104326-106-047	NVWA	Pectobacterium brasiliense	PD 6952	NVWA	Netherlands	2014	Cucumis sativus
 104326-106-048	NVWA	Pectobacterium odoriferum	PD 6958	NVWA	Netherlands	2014	Hyacinthus
-104326-106-049	NVWA	Pectobacterium brasiliense	PD 6993	NVWA	Netherlands	2014	Solanum melongena
+104326-106-049	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 6993	NVWA	Suriname	2014	Solanum melongena
 104326-106-050	NVWA	Pectobacterium versatile	PD 6994	NVWA	Netherlands	2014	Brassica oleracea
-104326-106-051	NVWA	Pectobacterium brasiliense	PD 6997	NVWA	Netherlands	2014	Zantedeschia albomaculata
-104326-106-052	NVWA	Pectobacterium brasiliense	PD 7079	NVWA	Netherlands	2014	Cucurbita pepo
+104326-106-051	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 6997	NVWA	Netherlands	2014	Zantedeschia albomaculata
+104326-106-052	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 7079	NVWA	South Africa	2014	Cucurbita pepo
 104326-106-053	NVWA	Pectobacterium brasiliense	PD 7081	NVWA	Netherlands	2015	Solanum torvum
 104326-106-054	NVWA	Pectobacterium zantedeschiae	PD 7096	NVWA	Netherlands	2015	Zantedeschia
-104326-106-055	NVWA	Pectobacterium brasiliense	PD 7231	NVWA	Netherlands	2016	Euphorbia neomontana
-104326-106-056	NVWA	Pectobacterium brasiliense	PD 7232	NVWA	Netherlands	2015	Dracaena
+104326-106-055	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 7231	NVWA	Netherlands	2016	Euphorbia neomontana
+104326-106-056	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 7232	NVWA	Netherlands	2015	Dracaena
 104326-106-057	NVWA	Pectobacterium polaris	PD 7233	NVWA	Netherlands	2015	Brassica oleracea
-104326-106-058	NVWA	Pectobacterium brasiliense	PD 7236	NVWA	Netherlands	2016	Sansevieria trifasciata
-104326-106-059	NVWA	Pectobacterium brasiliense	PD 7271	NVWA	Netherlands	2016	Zantedeschia
+104326-106-058	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 7236	NVWA	China	2016	Sansevieria trifasciata
+104326-106-059	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD 7271	NVWA	Netherlands	2016	Zantedeschia
 104326-106-061	NVWA	Pectobacterium polaris	PD 7434	NVWA	Netherlands	2018	Cucurbita pepo
 104326-106-064	NVWA	Pectobacterium versatile	PD 7537	NVWA	Netherlands	2019	Hyacinthus
 104326-106-069	NVWA	Pectobacterium versatile	PD 7836	NVWA	Netherlands	2020	Allium stipitatum
-104326-106-072	NVWA	Pectobacterium actinidiae	PD 7900	NVWA	Netherlands	2020	Dolichos
-104326-106-073	NVWA	Pectobacterium brasiliense	PD 8061	NVWA					type strain
-104326-106-074	NVWA	Pectobacterium carotovorum	PD 8066	NVWA					type strain
+104326-106-072	NVWA	Pectobacterium actinidiae	PD 7900	NVWA	India	2020	Dolichos
+104326-106-073	NVWA	Pectobacterium aroidearum	PD 8061	NVWA					type strain
+104326-106-074	NVWA	Pectobacterium cacticida	PD 8066	NVWA					type strain
 104326-106-075	NVWA	Pectobacterium parmentieri	PD 8070	NVWA					type strain
 104326-106-076	NVWA	Pectobacterium parvum	PD 8074	NVWA					type strain
 104326-106-079	NVWA	Pectobacterium polaris	PD 8141	NVWA					type strain						

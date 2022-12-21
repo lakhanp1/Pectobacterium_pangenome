@@ -43,7 +43,7 @@ split -a 2 -d -n r/8 data/reference_data/assembly_ids.txt data/reference_data/ba
 
 ```
 
-## Check if there are any new assemblies which recently became available
+## Check if there are any new assemblies released on NCBI
 
 ``` bash
 ## check and extract new assembly IDs
