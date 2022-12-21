@@ -301,12 +301,6 @@ genomeMetadata <- dplyr::select(
   everything()
 )
 
-genomeMetadata <- dplyr::mutate(
-  .data = genomeMetadata,  
-  SubmissionDate = lubridate::ymd_hm(SubmissionDate),
-  submission_y = lubridate::year(SubmissionDate),
-  submission_m = lubridate::month(SubmissionDate)
-)
 
 #####################################################################
 ## add missing metadata for NCBI genomes: this metadata is collected
@@ -326,9 +320,19 @@ for(mtcol in setdiff(colnames(missingMetadata), c("AssemblyAccession", "rowIndex
   )
 }
 
-#####################################################################
-## correct country name
 
+#####################################################################
+## correct dates
+genomeMetadata <- dplyr::mutate(
+  .data = genomeMetadata,  
+  SubmissionDate = lubridate::ymd_hm(SubmissionDate),
+  submission_y = lubridate::year(SubmissionDate),
+  submission_m = lubridate::month(SubmissionDate),
+  collection_date = lubridate::ymd(collection_date, truncated = 2),
+  collection_year = lubridate::year(collection_date)
+)
+
+## correct country name
 genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>% 
   dplyr::mutate(
     geo_loc_country = stringr::str_replace(

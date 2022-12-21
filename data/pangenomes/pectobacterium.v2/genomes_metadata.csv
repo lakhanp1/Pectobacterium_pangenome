@@ -419,37 +419,37 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 418,NAK719,NAK719,NA,NA,Pectobacterium brasiliense,NA,NAK719,NA,positive,Netherlands,Solanum tuberosum,potato tuber,NA,NA,NA,WUR,NA,NA
 419,NAK727,NAK727,NA,NA,Pectobacterium brasiliense,NA,NAK727,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,NA,NA,NA,WUR,NA,NA
 420,104326-106-001,104326-106-001,NA,NA,Pectobacterium carotovorum,NA,K 3536,NA,NA,Netherlands,Kalanchoe,NA,NA,NA,NA,NVWA,NA,NA
-421,104326-106-002,104326-106-002,NA,NA,Pectobacterium brasiliense,NA,K 3539,NA,NA,Netherlands,Spathiphyllum,NA,NA,NA,NA,NVWA,NA,NA
+421,104326-106-002,104326-106-002,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,K 3539,NA,NA,Netherlands,Spathiphyllum,NA,NA,NA,NA,NVWA,NA,NA
 422,104326-106-003,104326-106-003,NA,NA,Pectobacterium odoriferum,NA,K 3542,NA,NA,Netherlands,Delphinium,NA,NA,NA,NA,NVWA,NA,NA
 423,104326-106-004,104326-106-004,NA,NA,Pectobacterium polonicum,NA,K 3545,NA,NA,Netherlands,Calathea,NA,NA,NA,NA,NVWA,NA,NA
 424,104326-106-005,104326-106-005,NA,NA,Pectobacterium versatile,NA,K 3549,NA,NA,Netherlands,Cyclamen,NA,NA,NA,NA,NVWA,NA,NA
-425,104326-106-006,104326-106-006,NA,NA,Pectobacterium brasiliense,NA,K 3550,NA,NA,NA,Lactuca,NA,NA,NA,NA,NVWA,NA,NA
+425,104326-106-006,104326-106-006,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,K 3550,NA,NA,NA,Lactuca,NA,NA,NA,NA,NVWA,NA,NA
 426,104326-106-007,104326-106-007,NA,NA,Pectobacterium brasiliense,NA,K 3552,NA,NA,Netherlands,Lycopersicon esculentum,NA,NA,NA,NA,NVWA,NA,NA
 427,104326-106-008,104326-106-008,NA,NA,Pectobacterium brasiliense,NA,K 3554,NA,NA,Netherlands,Osteospermum,NA,NA,NA,NA,NVWA,NA,NA
 428,104326-106-023,104326-106-023,NA,NA,Pectobacterium punjabense,NA,PD 5156,NA,NA,Netherlands,Anubias barteri,NA,NA,NA,NA,NVWA,NA,NA
 429,104326-106-025,104326-106-025,NA,NA,Pectobacterium brasiliense,NA,PD 5190,NA,NA,Netherlands,Ornithogalum,NA,NA,NA,NA,NVWA,NA,NA
 430,104326-106-028,104326-106-028,NA,NA,Pectobacterium parmentieri,NA,PD 5801,NA,NA,Netherlands,Solanum tuberosum,NA,NA,NA,NA,NVWA,NA,NA
-431,104326-106-043,104326-106-043,NA,NA,Pectobacterium brasiliense,NA,PD 6523,NA,NA,Netherlands,Yucca gigantea,NA,NA,NA,NA,NVWA,NA,NA
+431,104326-106-043,104326-106-043,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 6523,NA,NA,Guatemala,Yucca gigantea,NA,NA,NA,NA,NVWA,NA,NA
 432,104326-106-045,104326-106-045,NA,NA,Pectobacterium odoriferum,NA,PD 6860,NA,NA,Netherlands,Daucus carota,NA,NA,NA,NA,NVWA,NA,NA
 433,104326-106-047,104326-106-047,NA,NA,Pectobacterium brasiliense,NA,PD 6952,NA,NA,Netherlands,Cucumis sativus,NA,NA,NA,NA,NVWA,NA,NA
 434,104326-106-048,104326-106-048,NA,NA,Pectobacterium odoriferum,NA,PD 6958,NA,NA,Netherlands,Hyacinthus,NA,NA,NA,NA,NVWA,NA,NA
-435,104326-106-049,104326-106-049,NA,NA,Pectobacterium brasiliense,NA,PD 6993,NA,NA,Netherlands,Solanum melongena,NA,NA,NA,NA,NVWA,NA,NA
+435,104326-106-049,104326-106-049,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 6993,NA,NA,Suriname,Solanum melongena,NA,NA,NA,NA,NVWA,NA,NA
 436,104326-106-050,104326-106-050,NA,NA,Pectobacterium versatile,NA,PD 6994,NA,NA,Netherlands,Brassica oleracea,NA,NA,NA,NA,NVWA,NA,NA
-437,104326-106-051,104326-106-051,NA,NA,Pectobacterium brasiliense,NA,PD 6997,NA,NA,Netherlands,Zantedeschia albomaculata,NA,NA,NA,NA,NVWA,NA,NA
-438,104326-106-052,104326-106-052,NA,NA,Pectobacterium brasiliense,NA,PD 7079,NA,NA,Netherlands,Cucurbita pepo,NA,NA,NA,NA,NVWA,NA,NA
+437,104326-106-051,104326-106-051,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 6997,NA,NA,Netherlands,Zantedeschia albomaculata,NA,NA,NA,NA,NVWA,NA,NA
+438,104326-106-052,104326-106-052,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7079,NA,NA,South Africa,Cucurbita pepo,NA,NA,NA,NA,NVWA,NA,NA
 439,104326-106-053,104326-106-053,NA,NA,Pectobacterium brasiliense,NA,PD 7081,NA,NA,Netherlands,Solanum torvum,NA,NA,NA,NA,NVWA,NA,NA
 440,104326-106-054,104326-106-054,NA,NA,Pectobacterium zantedeschiae,NA,PD 7096,NA,NA,Netherlands,Zantedeschia,NA,NA,NA,NA,NVWA,NA,NA
-441,104326-106-055,104326-106-055,NA,NA,Pectobacterium brasiliense,NA,PD 7231,NA,NA,Netherlands,Euphorbia neomontana,NA,NA,NA,NA,NVWA,NA,NA
-442,104326-106-056,104326-106-056,NA,NA,Pectobacterium brasiliense,NA,PD 7232,NA,NA,Netherlands,Dracaena,NA,NA,NA,NA,NVWA,NA,NA
+441,104326-106-055,104326-106-055,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7231,NA,NA,Netherlands,Euphorbia neomontana,NA,NA,NA,NA,NVWA,NA,NA
+442,104326-106-056,104326-106-056,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7232,NA,NA,Netherlands,Dracaena,NA,NA,NA,NA,NVWA,NA,NA
 443,104326-106-057,104326-106-057,NA,NA,Pectobacterium polaris,NA,PD 7233,NA,NA,Netherlands,Brassica oleracea,NA,NA,NA,NA,NVWA,NA,NA
-444,104326-106-058,104326-106-058,NA,NA,Pectobacterium brasiliense,NA,PD 7236,NA,NA,Netherlands,Sansevieria trifasciata,NA,NA,NA,NA,NVWA,NA,NA
-445,104326-106-059,104326-106-059,NA,NA,Pectobacterium brasiliense,NA,PD 7271,NA,NA,Netherlands,Zantedeschia,NA,NA,NA,NA,NVWA,NA,NA
+444,104326-106-058,104326-106-058,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7236,NA,NA,China,Sansevieria trifasciata,NA,NA,NA,NA,NVWA,NA,NA
+445,104326-106-059,104326-106-059,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7271,NA,NA,Netherlands,Zantedeschia,NA,NA,NA,NA,NVWA,NA,NA
 446,104326-106-061,104326-106-061,NA,NA,Pectobacterium polaris,NA,PD 7434,NA,NA,Netherlands,Cucurbita pepo,NA,NA,NA,NA,NVWA,NA,NA
 447,104326-106-064,104326-106-064,NA,NA,Pectobacterium versatile,NA,PD 7537,NA,NA,Netherlands,Hyacinthus,NA,NA,NA,NA,NVWA,NA,NA
 448,104326-106-069,104326-106-069,NA,NA,Pectobacterium versatile,NA,PD 7836,NA,NA,Netherlands,Allium stipitatum,NA,NA,NA,NA,NVWA,NA,NA
-449,104326-106-072,104326-106-072,NA,NA,Pectobacterium actinidiae,NA,PD 7900,NA,NA,Netherlands,Dolichos,NA,NA,NA,NA,NVWA,NA,NA
-450,104326-106-073,104326-106-073,NA,NA,Pectobacterium brasiliense,NA,PD 8061,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-451,104326-106-074,104326-106-074,NA,NA,Pectobacterium carotovorum,NA,PD 8066,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+449,104326-106-072,104326-106-072,NA,NA,Pectobacterium actinidiae,NA,PD 7900,NA,NA,India,Dolichos,NA,NA,NA,NA,NVWA,NA,NA
+450,104326-106-073,104326-106-073,NA,NA,Pectobacterium aroidearum,NA,PD 8061,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+451,104326-106-074,104326-106-074,NA,NA,Pectobacterium cacticida,NA,PD 8066,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
 452,104326-106-075,104326-106-075,NA,NA,Pectobacterium parmentieri,NA,PD 8070,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
 453,104326-106-076,104326-106-076,NA,NA,Pectobacterium parvum,NA,PD 8074,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
 454,104326-106-079,104326-106-079,NA,NA,Pectobacterium polaris,NA,PD 8141,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA

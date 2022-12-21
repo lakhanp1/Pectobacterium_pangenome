@@ -8,6 +8,7 @@ output:
 params:
   level: genus
   name: Pectobacterium
+  genus: Pectobacterium
 ---
 
 ```{r setup, include=FALSE, fig.width=8, fig.height=10}
@@ -45,7 +46,17 @@ col_fail <- "#FF0022"
 col_na <- "#898F94"
 #####################################################################
 
-metadata <- suppressMessages(readr::read_tsv(file = file_summary))
+genusPattern <- paste("(", params$genus, " )(?!sp\\.)", sep = "")
+
+metadata <- suppressMessages(readr::read_tsv(file = file_summary)) %>% 
+  dplyr::mutate(
+    AssemblyStatus = forcats::fct_relevel(
+      .f = tolower(AssemblyStatus), "complete genome", "scaffold", "contig"
+    ),
+    SpeciesName = stringi::stri_replace(
+      str = SpeciesName, regex = genusPattern, replacement = "P. "
+    )
+  )
 
 pt_theme <- theme_bw() +
   theme(
@@ -84,7 +95,7 @@ pt_assCount <- dplyr::select(metadata, source) %>%
   ggplot2::ggplot(mapping = aes(x = "assembly", fill = source)) +
   ggplot2::geom_bar() +
   geom_text(
-    mapping = aes(label = ..count..), stat = "count",
+    mapping = aes(label = after_stat(count)), stat = "count",
     color = "black", position = position_stack(vjust = 0.5)
   ) +
   ggplot2::scale_fill_viridis_d(name = NULL) +
@@ -294,12 +305,12 @@ in the NCBI Assembly database.
 tabCols <- c(
   "AssemblyAccession", "SpeciesName", "type_material", "length", "n_contigs",
   "N50", "L50", "buscog.complete", "buscop.complete", "representative_status",
-  "ExclFromRefSeq",	"Anomalous",	"replaced"
+  "ExclFromRefSeq",	"Anomalous",	"replaced", "sampleName"
 )
 
 
-typeStrains <- dplyr::filter(.data = metadata, !is.na(type_material)) %>% 
-  dplyr::select(!!!tabCols) %>% 
+typeStrains <- dplyr::filter(.data = metadata, !is.na(type_material)) %>%
+  dplyr::select(!!!tabCols) %>%
   dplyr::mutate(
     type_material = dplyr::if_else(
       grepl(pattern = "type", x = type_material, ignore.case = TRUE),
@@ -311,9 +322,8 @@ typeStrains <- dplyr::filter(.data = metadata, !is.na(type_material)) %>%
 maxGenomeLen <- max(typeStrains$length)
 maxBusco <- 100
 
-speciesStats <- dplyr::filter(metadata, source == "NCBI") %>% 
-  dplyr::select(SpeciesName, taxonomy_check_status) %>% 
-  dplyr::group_by(SpeciesName) %>% 
+speciesStats <- dplyr::select(metadata, SpeciesName, taxonomy_check_status) %>%
+  dplyr::group_by(SpeciesName) %>%
   dplyr::summarise(
     taxonomy_check_status = list(taxonomy_check_status),
     n = n()
@@ -324,13 +334,13 @@ speciesDf <- NULL
 if(!setequal(typeStrains$SpeciesName, speciesStats$SpeciesName)){
   speciesDf <- tibble::tibble(
     SpeciesName = setdiff(metadata$SpeciesName, typeStrains$SpeciesName)
-  ) %>% 
-    dplyr::left_join(y = dplyr::select(metadata, !!!tabCols), by = "SpeciesName") %>% 
-    dplyr::group_by(SpeciesName) %>% 
-    dplyr::arrange(desc(N50), .by_group = TRUE) %>% 
-    dplyr::slice(1L) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::bind_rows(typeStrains) %>% 
+  ) %>%
+    dplyr::left_join(y = dplyr::select(metadata, !!!tabCols), by = "SpeciesName") %>%
+    dplyr::group_by(SpeciesName) %>%
+    dplyr::arrange(desc(N50), .by_group = TRUE) %>%
+    dplyr::slice(1L) %>%
+    dplyr::ungroup() %>%
+    dplyr::bind_rows(typeStrains) %>%
     tidyr::replace_na(
       replace = list(
         type_material = "No",
@@ -340,13 +350,13 @@ if(!setequal(typeStrains$SpeciesName, speciesStats$SpeciesName)){
         taxonomy_check_status = "unknown",
         replaced = "No"
       )
-    ) %>% 
-    dplyr::left_join(y = speciesStats, by = "SpeciesName") %>% 
+    ) %>%
+    dplyr::left_join(y = speciesStats, by = "SpeciesName") %>%
     dplyr::select(
-      SpeciesName, genomes = n, type_material, AssemblyAccession, representative_status, 
+      SpeciesName, genomes = n, type_material, AssemblyAccession, representative_status,
       length, n_contigs, L50, N50, everything()
     )
-  
+
   speciesDf <- dplyr::mutate(
     .data = speciesDf,
     dplyr::across(
@@ -360,7 +370,7 @@ if(!setequal(typeStrains$SpeciesName, speciesStats$SpeciesName)){
     ),
     L50_per = L50/n_contigs
   )
-  
+
 }
 
 speciesSummary <- dplyr::count(
@@ -391,7 +401,7 @@ reactable::reactable(
   onClick = "expand",
   details = function(index) {
     speciesSubDf = speciesDf[speciesDf$SpeciesName == speciesSummary$SpeciesName[index], ]
-    
+
     speciesSubDf %>%
       reactable::reactable(
         defaultSortOrder = "desc",
@@ -474,6 +484,7 @@ reactable::reactable(
             )
           ),
           AssemblyAccession = reactable::colDef(show = FALSE),
+          sampleName = reactable::colDef(show = FALSE),
           type_material_icon = reactable::colDef(show = FALSE),
           representative_status_icon = reactable::colDef(show = FALSE),
           Anomalous_icon = reactable::colDef(show = FALSE),
@@ -483,7 +494,7 @@ reactable::reactable(
           taxonomy_check_status = reactable::colDef(show = FALSE)
         )
       )
-    
+
   }
 )
 
@@ -512,7 +523,7 @@ pt_speciesCount <- ggplot2::ggplot(
     title = "# of genomes"
   ) +
   scale_x_continuous(expand = expansion(add = c(0, 2))) +
-  ggplot2::scale_fill_viridis_d() +
+  ggplot2::scale_fill_viridis_d(option = "C") +
   pt_theme +
   theme(
     axis.text.y = element_text(face = "bold.italic", size = 14, color = "black"),
