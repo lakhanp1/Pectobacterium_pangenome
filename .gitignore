@@ -13,6 +13,7 @@
 Rplots.pdf
 *backup*
 *temp*
+*test*
 /logs
 sample_info.txt
 /data/*
@@ -23,3 +24,4 @@ sample_info.txt
 /reports
 .DS_Store
 busco_downloads
+blastdb
