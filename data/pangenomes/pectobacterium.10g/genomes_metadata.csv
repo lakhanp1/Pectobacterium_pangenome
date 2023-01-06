@@ -1,11 +1,11 @@
 Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
-1,104326-106-058,104326-106-058,NA,NA,Pectobacterium brasiliense,NA,PD 7236,NA,NA,Netherlands,Sansevieria trifasciata,NA,NA,NA,NA,NVWA,NA,NA
-2,GCF_000808245.1_ASM80824v1,GCF_000808245.1,GCF_000808245.1,ASM80824v1,Pectobacterium brasiliense,OK,Y29,NA,NA,China,Brassica rapa ssp. chinensis,infected leaves,NA,NA,NA,NCBI,NA,whole organism
-3,GCF_002930555.1_ASM293055v1,GCF_002930555.1,GCF_002930555.1,ASM293055v1,Pectobacterium brasiliense,OK,F152,NA,NA,Russian Federation,Solanum tuberosum,NA,NA,NA,NA,NCBI,NA,cell culture
-4,GCF_009873295.1_ASM987329v1,GCF_009873295.1,GCF_009873295.1,ASM987329v1,Pectobacterium brasiliense,OK,1692,NA,NA,Brazil,potato,NA,NA,NA,NA,NCBI,representative genome,Cell culture
-5,GCF_016944235.1_ASM1694423v1,GCF_016944235.1,GCF_016944235.1,ASM1694423v1,Pectobacterium brasiliense,OK,IPO:4134 NAK:395,virulent,NA,Netherlands,Hyacinthus sp.,Asymptomatic flower bulb,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
-6,GCF_016949835.1_ASM1694983v1,GCF_016949835.1,GCF_016949835.1,ASM1694983v1,Pectobacterium brasiliense,OK,"NAK:243",virulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato plant,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
-7,GCF_016949915.1_ASM1694991v1,GCF_016949915.1,GCF_016949915.1,ASM1694991v1,Pectobacterium brasiliense,OK,IPO:4058 NAK:235,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
-8,GCF_016950075.1_ASM1695007v1,GCF_016950075.1,GCF_016950075.1,ASM1695007v1,Pectobacterium brasiliense,OK,IPO:3844 NAK:382 JGAR:12,avirulent,NA,Netherlands,Solanum tuberosum,Symptomatic potato plant,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
-9,GCF_016950125.1_ASM1695012v1,GCF_016950125.1,GCF_016950125.1,ASM1695012v1,Pectobacterium brasiliense,OK,IPO:3843 JGAR:11,NA,NA,Netherlands,Solanum tuberosum,NA,NA,NA,NA,NCBI,NA,cell culture
-10,GCF_922014665.1_Pectobacterium_brasiliense_LMG2407,GCF_922014665.1,GCF_922014665.1,Pectobacterium_brasiliense_LMG2407,Pectobacterium brasiliense,Inconclusive,NA,NA,NA,Tanzania,NA,NA,NA,Lycopersicon esculentum,NA,NCBI,NA,NA
+1,GCF_000808355.1_ASM80835v1,GCF_000808355.1,GCF_000808355.1,ASM80835v1,Pectobacterium brasiliense,OK,B6,NA,NA,China,Brassica rapa ssp. pekinensis (Chinese cabbage),infected leaves,NA,NA,NA,NCBI,NA,whole organism
+2,GCF_002930555.1_ASM293055v1,GCF_002930555.1,GCF_002930555.1,ASM293055v1,Pectobacterium brasiliense,OK,F152,NA,NA,Russian Federation,Solanum tuberosum,NA,NA,NA,NA,NCBI,NA,cell culture
+3,GCF_016944235.1_ASM1694423v1,GCF_016944235.1,GCF_016944235.1,ASM1694423v1,Pectobacterium brasiliense,OK,IPO:4134 NAK:395,virulent,NA,Netherlands,Hyacinthus sp.,Asymptomatic flower bulb,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+4,GCF_016949315.1_ASM1694931v1,GCF_016949315.1,GCF_016949315.1,ASM1694931v1,Pectobacterium brasiliense,OK,NAK:397,virulent,NA,Netherlands,Hyacint,Asymptomatic flower bulb,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+5,GCF_016949515.1_ASM1694951v1,GCF_016949515.1,GCF_016949515.1,ASM1694951v1,Pectobacterium brasiliense,OK,IPO:4056 NAK:264 GBBC:1756,avirulent,NA,Netherlands,NA,Symptomatic potato plant,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+6,GCF_016949735.1_ASM1694973v1,GCF_016949735.1,GCF_016949735.1,ASM1694973v1,Pectobacterium brasiliense,OK,NAK:252,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+7,GCF_016949885.1_ASM1694988v1,GCF_016949885.1,GCF_016949885.1,ASM1694988v1,Pectobacterium brasiliense,OK,NAK:241,virulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+8,GCF_020683105.1_ASM2068310v1,GCF_020683105.1,GCF_020683105.1,ASM2068310v1,Pectobacterium brasiliense,OK,TS20HJ1,NA,NA,China,Zingiber officinale,NA,NA,field,NA,NCBI,NA,NA
+9,GCF_922014665.1_Pectobacterium_brasiliense_LMG2407,GCF_922014665.1,GCF_922014665.1,Pectobacterium_brasiliense_LMG2407,Pectobacterium brasiliense,Inconclusive,NA,NA,NA,Tanzania,NA,NA,NA,Lycopersicon esculentum,NA,NCBI,NA,NA
+10,NAK638,NAK638,NA,NA,Pectobacterium brasiliense,NA,NAK638,NA,negative,Netherlands,Solanum tuberosum,potato stem,NA,NA,NA,WUR,NA,NA
