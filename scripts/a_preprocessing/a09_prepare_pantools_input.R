@@ -24,7 +24,8 @@ cutoff_buscog <- 99
 cols_metadata <- c(
   "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
   "strain", "virulence", "virulence_pcr", "geo_loc_country", "host", "isolation_source",
-  "collected_by", "env_broad_scale", "type_material", "virulence", "virulence_pcr",
+  "collection_year", "collected_by", "env_broad_scale", 
+  "type_material", "virulence", "virulence_pcr",
   "source", "type_material", "representative_status", "sample_type")
 
 #####################################################################

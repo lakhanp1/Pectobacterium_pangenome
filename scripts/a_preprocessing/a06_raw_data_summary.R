@@ -257,14 +257,14 @@ bsMetadata <- dplyr::select(
 
 #####################################################################
 
-keyColumns <- c(
+assemblyCols <- c(
   "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism", 
   "AssemblyStatus", "AssemblyType", "BioSampleAccn", "SubmissionDate", "SubmitterOrganization",
   "FtpPath_RefSeq", "FtpPath_GenBank",  "Id"
 )
 
 ## merge all data
-ncbiData <- dplyr::select(.data = asmDf, !!!keyColumns)  %>% 
+ncbiData <- dplyr::select(.data = asmDf, !!!assemblyCols)  %>% 
   dplyr::mutate(
     AssemblyName = stringr::str_replace_all(
       string = AssemblyName, pattern = "\\s+", replacement = "_"
@@ -294,9 +294,17 @@ genomeMetadata <- dplyr::bind_rows(
     )
   )
 
+
+informativeCols <- c(
+  "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism",
+  "AssemblyStatus", "AssemblyType", "BioSampleAccn", "strain", "geo_loc_name",
+  "collection_date", "host", "isolation_source",
+  "env_broad_scale", "env_local_scale", "env_medium"
+)
+
 genomeMetadata <- dplyr::select(
   genomeMetadata,
-  sampleId, sampleName, source, !!!keyColumns, !!!colnames(quastMqc),
+  sampleId, sampleName, source, !!!informativeCols, !!!colnames(quastMqc),
   starts_with("buscog."), starts_with("buscop."),
   everything()
 )
@@ -327,10 +335,11 @@ genomeMetadata <- dplyr::mutate(
   .data = genomeMetadata,  
   SubmissionDate = lubridate::ymd_hm(SubmissionDate),
   submission_y = lubridate::year(SubmissionDate),
-  submission_m = lubridate::month(SubmissionDate),
   collection_date = lubridate::ymd(collection_date, truncated = 2),
   collection_year = lubridate::year(collection_date)
-)
+) %>% 
+  dplyr::relocate(collection_year, .before = collection_date) %>% 
+  dplyr::relocate(submission_y, .before = SubmissionDate)
 
 ## correct country name
 genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>% 
@@ -354,8 +363,6 @@ genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_n
 if(!all(is.element(na.omit(unique(genomeMetadata$geo_loc_country)), world$name_long))){
   stop("Unmatched country name")
 }
-
-
 
 #####################################################################
 ## taxonomy check failed/inconclusive information
