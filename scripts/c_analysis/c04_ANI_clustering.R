@@ -17,15 +17,17 @@ suppressPackageStartupMessages(library(viridisLite))
 
 rm(list = ls())
 
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
 ################################################################################
 set.seed(124)
 
-file_fastani <- here::here("analysis", "02_fastANI", "ANI_results")
-file_pangenomeMeta <- here::here("data/pangenomes/pectobacterium.v2", "genomes_metadata.csv")
-file_metadata <- here::here("data/reference_data", "sample_metadata.tsv")
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
 
+outDir <- confs$analysis$ANI$dir
 genus <- "Pectobacterium"
-outDir <- here::here("analysis", "02_fastANI")
 
 pt_theme <- theme_bw(base_size = 14) +
   theme(
@@ -36,13 +38,18 @@ pt_theme <- theme_bw(base_size = 14) +
   )
 
 ################################################################################
-metadata <- suppressMessages(readr::read_tsv(file = file_metadata)) %>% 
-  dplyr::select(sampleId, length, GC_per, n_contigs, N50,L50, collection_year)
+metadata <- suppressMessages(
+  readr::read_tsv(file = confs$data$reference_data$files$sample_metadata)
+) %>% 
+  dplyr::select(sampleId, length, GC_per, n_contigs, N50, L50)
 
 genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
 
-sampleInfo <- suppressMessages(readr::read_csv(file = file_pangenomeMeta)) %>% 
+sampleInfo <- suppressMessages(
+  readr::read_csv(file = confs$data$pangenomes$pectobacterium.v2$files$metadata)
+) %>% 
   dplyr::mutate(
+    Genome = as.character(Genome),
     SpeciesName = stringi::stri_replace(
       str = SpeciesName, regex = genusPattern, replacement = "P. "
     ),
@@ -52,28 +59,33 @@ sampleInfo <- suppressMessages(readr::read_csv(file = file_pangenomeMeta)) %>%
     ),
     nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
   ) %>% 
-  dplyr::select(id, everything()) %>% 
+  dplyr::select(Genome, id, everything()) %>% 
   dplyr::left_join(y = metadata, by = c("id" = "sampleId"))
 
+genomeIds <- dplyr::pull(sampleInfo, Genome, name = id)
 
 sampleInfoList <- dplyr::select(
-  sampleInfo, id, sampleName, SpeciesName, strain, nodeLabs
+  sampleInfo, id, sampleName, SpeciesName, strain, nodeLabs, Genome
 ) %>% 
   purrr::transpose() %>% 
   purrr::set_names(nm = purrr::map(., "id"))
 
 aniDf <- suppressMessages(readr::read_tsv(
-  file = file_fastani,
-  col_names = c("g1", "g2", "ani", "mapped", "total")
+  file = confs$analysis$ANI$files$fastani_out,
+  col_names = c("id1", "id2", "ani", "mapped", "total")
 ))
 
 aniDf %<>% dplyr::mutate(
   dplyr::across(
-    .cols = c(g1, g2),
+    .cols = c(id1, id2),
     .fns = ~stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
   ),
   dist = 1 - (ani/100)
 ) %>% 
+  dplyr::mutate(
+    g1 = genomeIds[id1],
+    g2 = genomeIds[id2]
+  ) %>% 
   dplyr::arrange(g1, g2)
 
 
@@ -148,14 +160,14 @@ ggsave(
 ## ANI heatmap
 
 speciesMat <- tibble::tibble(
-  id = rownames(aniMat)
+  Genome = rownames(aniMat)
 ) %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, id, SpeciesName), by = "id") %>% 
+  dplyr::left_join(y = dplyr::select(sampleInfo, Genome, SpeciesName), by = "Genome") %>% 
   dplyr::mutate(sp = 1) %>% 
   tidyr::pivot_wider(
-    id_cols = id, names_from = SpeciesName, values_from = sp, values_fill = 0
+    id_cols = Genome, names_from = SpeciesName, values_from = sp, values_fill = 0
   ) %>% 
-  tibble::column_to_rownames(var = "id") %>% 
+  tibble::column_to_rownames(var = "Genome") %>% 
   as.matrix()
 
 ht_ani <- ComplexHeatmap::Heatmap(
@@ -204,45 +216,7 @@ ComplexHeatmap::draw(
 dev.off()
 
 ################################################################################
-aniTreeTable <- as_tibble(treeUpgma)
 
-## Genome, AssemblyAccession, AssemblyName, SpeciesName, , type_material,
-## taxonomy_check_status, strain, virulence, virulence_pcr,
-## geo_loc_country, host, isolation_source, collected_by, env_broad_scale
-pt_upgma1 <- ggtree::ggtree(tr = treeUpgma) +
-  labs(title = "UPGMA tree")
-
-pt_upgma2 <- pt_upgma1 %<+% sampleInfo + 
-  geom_point(
-    mapping = aes(shape = sampleName, color = sampleName),
-    size = 4
-  ) +
-  scale_shape_manual(name = "outgroup", values = c("104326-106-074" = 16)) +
-  scale_color_manual(name = "outgroup", values = c("104326-106-074" = "red")) +
-  ggnewscale::new_scale_color() 
-
-pt_upgma3 <- pt_upgma2 +
-  ggtree::geom_tiplab(
-    mapping = aes(color = SpeciesName, label = nodeLabs),
-    size = 3
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
-  scale_color_manual(
-    values = c(
-      "P. cacticida" = "red", "P. brasiliense" = "#E57A44",
-      "P. carotovorum" = "#088734", "P. carotovorum subsp. carotovorum" = "#088734"
-    ),
-    breaks = NULL,
-    na.value = "black"
-  ) +
-  ggnewscale::new_scale_color()
-
-ggsave(
-  plot = pt_upgma3, filename = file.path(outDir, "upgma_tree.png"),
-  width = 10, height = 10
-)
-
-#######################################
 ## function to add annotation to ggtree
 annotate_ggtree <- function(pt, offset){
   pt2 <- pt +
@@ -253,7 +227,7 @@ annotate_ggtree <- function(pt, offset){
     ) +
     ggstar::scale_starshape_manual(
       values = c("type strain" = 1)
-    ) + 
+    ) +
     ggnewscale::new_scale_color() +
     ggtreeExtra::geom_fruit(
       mapping = aes(y = id, x = "source", color = source),
@@ -284,48 +258,54 @@ annotate_ggtree <- function(pt, offset){
     ) +
     scale_color_manual(
       values = c("Netherlands" = "#ff6600")
-    ) +
-    ggnewscale::new_scale_color() +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
-      geom = "geom_point",
-      pwidth = 0.01, offset = 0.05
-    ) +
-    scale_color_manual(
-      values = c("positive" = "red", "negative" = "green"),
-      na.value = alpha("white", 0)
-    ) +
-    ggnewscale::new_scale_color() +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "virulence", color = virulence),
-      geom = "geom_point", shape = 17, size = 2,
-      pwidth = 0.01, offset = 0.01
-    ) +
-    scale_color_manual(
-      values = c("virulent" = "red", "avirulent" = "green"),
-      na.value = alpha("white", 0)
     )
 }
-#######################################
 
-pt_upgma4 <- annotate_ggtree(pt = pt_upgma3, offset = 0.2) 
+################################################################################
 
-# source done
-# type_material done
-# taxonomy_check_status done
-# virulence
-# virulence_pcr
+## Genome, AssemblyAccession, AssemblyName, SpeciesName, , type_material,
+## taxonomy_check_status, strain, virulence, virulence_pcr,
+## geo_loc_country, host, isolation_source, collected_by, env_broad_scale
+pt_upgma1 <- ggtree::ggtree(tr = treeUpgma) +
+  labs(title = "UPGMA tree")
 
+pt_upgma2 <- pt_upgma1 %<+% sampleInfo + 
+  geom_point(
+    mapping = aes(shape = sampleName, color = sampleName),
+    size = 4
+  ) +
+  scale_shape_manual(name = "outgroup", values = c("104326-106-074" = 16)) +
+  scale_color_manual(name = "outgroup", values = c("104326-106-074" = "red")) +
+  ggnewscale::new_scale_color() 
+
+pt_upgma3 <- pt_upgma2 +
+  ggtree::geom_tiplab(
+    mapping = aes(color = SpeciesName, label = nodeLabs),
+    size = 3
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  scale_color_manual(
+    values = c(
+      "P. cacticida" = "red", "P. brasiliense" = "#E57A44",
+      "P. carotovorum" = "#088734", "P. c. subsp. carotovorum" = "#088734"
+    ),
+    breaks = NULL,
+    na.value = "black"
+  ) +
+  ggnewscale::new_scale_color()
+
+
+pt_upgma4 <- annotate_ggtree(pt = pt_upgma3, offset = 0.2)
 
 ggsave(
   plot = pt_upgma4, filename = file.path(outDir, "upgma_tree.pdf"),
-  width = 14, height = 20, scale = 2
+  width = 10, height = 20, scale = 2
 )
 
-ggsave(
-  plot = pt_upgma4, filename = file.path(outDir, "upgma_tree.png"),
-  width = 14, height = 20, scale = 2
-)
+# ggsave(
+#   plot = pt_upgma4, filename = file.path(outDir, "upgma_tree.png"),
+#   width = 14, height = 20, scale = 2
+# )
 
 
 ################################################################################
@@ -334,18 +314,17 @@ outGroup <- "104326-106-074"
 
 pt_aniDistr <- dplyr::bind_rows(
   dplyr::slice_sample(.data = aniDf, prop = 0.05),
-  dplyr::filter(aniDf, g1 == outGroup)
+  dplyr::filter(aniDf, id1 == outGroup)
 ) %>% 
+  dplyr::filter(id2 != outGroup) %>% 
   dplyr::distinct() %>% 
   ggplot2::ggplot(
-    mapping = aes(x = "g1", y = ani, color = g1)
+    mapping = aes(x = "g1", y = ani, color = id1)
   ) +
-  ggbeeswarm::geom_quasirandom(alpha = 0.8) +
+  ggbeeswarm::geom_quasirandom(alpha = 0.8, shape = 19) +
   scale_color_manual(
-    values = c("104326-106-074" = "blue"),
-    labels = c(
-      "104326-106-074" = sampleInfoList[["104326-106-074"]]$nodeLabs
-    )
+    values = setNames("red", outGroup),
+    labels = setNames(sampleInfoList[[outGroup]]$nodeLabs, outGroup)
   ) +
   labs(
     title = "highlight outgroup ANI values on ANI score distribution",
@@ -377,8 +356,8 @@ pt_genomeLenDistr <- ggplot(
     arrow = arrow(length = unit(0.015, "npc")), nudge_x = 0.25
   ) +
   scale_color_manual(
-    values = c("104326-106-074" = "blue"),
-    labels = NULL, breaks = NULL
+    values = setNames("red", outGroup),
+    labels = NULL, breaks = NULL, na.value = "black"
   ) +
   scale_y_continuous(labels = scales::comma) +
   labs(
@@ -405,43 +384,49 @@ ggsave(
 ## negative length edges => 0
 treeNj$edge.length[treeNj$edge.length < 0] <- 0
 
-# treedtNj <- as_tibble(treeNj) %>%
-#   dplyr::full_join(y = sampleInfo, by = c("label" = "id")) %>%
-#   treeio::as.treedata()
+ape::write.tree(
+  phy = treeNj, tree.names = "ANI_NJ",
+  file = file.path(outDir, "ANI_NJ.newick")
+)
 
-treeNjRooted <- root(phy = treeNj, outgroup = outGroup, edgelabel = TRUE)
+treeNjRooted <- ape::root(
+  phy = treeNj, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = T
+)
 
 pt_nj1 <- ggtree::ggtree(tr = treeNjRooted) +
   labs(title = "NJ tree")
 
-
 pt_nj2 <- pt_nj1 %<+% sampleInfo + 
   geom_point(
-    mapping = aes(shape = SpeciesName, color = SpeciesName),
+    mapping = aes(shape = sampleName, color = sampleName),
     size = 4
   ) +
-  scale_shape_manual(name = "outgroup", values = c("P. fontis" = 16)) +
-  scale_color_manual(name = "outgroup", values = c("P. fontis" = "red")) +
+  scale_shape_manual(name = "outgroup", values = setNames(16, outGroup)) +
+  scale_color_manual(name = "outgroup", values = setNames("red", outGroup)) +
   ggnewscale::new_scale_color() 
 
 
 pt_nj3 <- pt_nj2 +
   ggtree::geom_tiplab(
     mapping = aes(color = SpeciesName, label = nodeLabs),
-    size = 3, align = TRUE
+    size = 3, align = TRUE, linesize = 0.5
   ) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   scale_color_manual(
-    values = c("P. fontis" = "red", "P. brasiliense" = "#E57A44"), breaks = NULL,
+    values = setNames(
+      c("red", "#E57A44", "#088734", "#088734"),
+      c(sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
+        "P. carotovorum", "P. c. subsp. carotovorum")
+    ),
+    breaks = NULL,
     na.value = "black"
   ) +
   ggnewscale::new_scale_color()
 
-
-pt_nj4 <- annotate_ggtree(pt = pt_nj3, offset = 0.25)
-
+pt_nj4 <- annotate_ggtree(pt = pt_nj3, offset = 0.2)
 
 ggsave(
-  plot = pt_nj4, filename = file.path(outDir, "nj_tree.pdf"),
+  plot = pt_nj4, filename = file.path(outDir, "nj_rooted_tree.pdf"),
   width = 10, height = 20, scale = 2
 )
 
@@ -453,17 +438,7 @@ ggsave(
 # root()
 # ladderize()
 
-
-## draw tree 
-
 ################################################################################
-
-
-
-
-
-
-
 
 
 
