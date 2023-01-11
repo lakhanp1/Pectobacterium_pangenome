@@ -1,0 +1,115 @@
+---
+title: "Pectobacterium pangenome"
+data:
+  dir: "data"
+  reference_data:
+    dir: "reference_data"
+    files:
+      inhouse_metadata: "inhouse_samples_metadata.txt"
+      assembly_xml: "assembly_docsum.xml"
+      biosample_xml: "biosample_docsum.xml"
+      local_ass_ids: "local_assembly_ids.txt"
+      ncbi_ass_ids: "ncbi_assembly_ids.txt"
+      assembly_ids: "assembly_ids.txt"
+      local_metadata: "inhouse_samples_metadata.txt"
+      sample_metadata: "sample_metadata.tsv"
+  other:
+    dir: "other"
+    files:
+        ani_report: "ANI_report_prokaryotes.txt"
+        assay_probes: "pecto_assay/pectobacterium_assay_probes.fasta"
+        probe_info: "pecto_assay/probe_info.txt"
+  pangenomes:
+    dir: "pangenomes"
+    pectobacterium.10g:
+      name: "pectobacterium.10g"
+      dir: "pectobacterium.10g"
+      db:
+        dir: "pectobacterium.10g.DB"
+      files:
+        genomes: "genomes_fa.list"
+        gff: "genomes_gff3.list"
+        annotations: "functional_annotations.txt"
+        metadata: "genomes_metadata.csv"
+    pectobacterium.v2:
+      dir: "pectobacterium.v2"
+      name: "pectobacterium.v2"
+      files:
+        genomes: "genomes_fa.list"
+        gff: "genomes_gff3.list"
+        annotations: "functional_annotations.txt"
+        metadata: "genomes_metadata.csv"
+        combined_fa: "blastdb/genomes_combined.fa"
+        blastdb: "blastdb/genomes_combined.fa"
+        genome_chrs: "blastdb/genome_chr_map.tab"
+      db:
+        dir: "pectobacterium.v2.DB"
+        gene_classification:
+          GC.100.0:
+            dir: "gene_classification.100.0"
+            files:
+              tree: gene_distance.tree
+          GC.95.5:
+            dir: "gene_classification.95.5"
+            files:
+              tree: gene_distance.tree
+        kmer_classification:
+          KC.100.0:
+            dir: "kmer_classification.100.0"
+            files:
+              tree: "genome_kmer_distance.tree"
+          KC.95.5:
+            dir: "kmer_classification.95.5"
+            files:
+              tree: "genome_kmer_distance.tree"
+        core_phylogeny:
+          default:
+            dir: "core_snp_tree.hg"
+            files:
+              tree_ml: ""
+              tree_nj: ""
+          hg_set1:
+            dir: "core_snp_tree.hg_set1"
+            files:
+              tree_ml: ""
+              tree_nj: ""
+        mlsa:
+          mlsa_default:
+            dir: "mlsa"
+            files:
+              fasta: "output/mlsa.fasta"
+              alignment: "output/mlsa.afa"
+              tree: "output/mlsa.fasta.treefile"
+          mlsa_set1:
+            dir: "mlsa_set1"
+            files:
+              fasta: "output/mlsa.fasta"
+              alignment: "output/mlsa.afa"
+              tree: "output/mlsa.fasta.treefile"
+analysis:
+  dir: "analysis"
+  qc:
+    dir: "01_multiqc"
+    files:
+      busco_genome: "busco_geno_multiqc_data/multiqc_busco.txt"
+      busco_protein: "busco_prot_multiqc_data/multiqc_busco.txt"
+      quast: "quast_multiqc_data/multiqc_quast.txt"
+      genome_chr_size: "assembly_chr_size.txt"
+      duplicates: "duplicate_genomes.tab"
+  ANI:
+    dir: "02_fastANI"
+    files:
+      fastani_out: "ANI_results"
+      ani_upgma: "ANI_UPGMA.newick"
+      ani_nj: "ANI_NJ.newick"
+      ani_rooted_nj: "ANI_NJ_rooted.newick"
+  gouping_optimization:
+    name: "grouping"
+    dir: "04_pangenome_pecto_v2/subset_optimal_group"
+  phylogeny:
+    name: "phylogeny"
+    outgroup: "104326-106-074"
+    dir: "04_pangenome_pecto_v2/phylogeny"
+  insilico_assay:
+    dir: "04_pangenome_pecto_v2/insilico_assay"
+...
