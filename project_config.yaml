@@ -13,6 +13,7 @@ data:
       ncbi_ass_ids: "ncbi_assembly_ids.txt"
       assembly_ids: "assembly_ids.txt"
       local_metadata: "inhouse_samples_metadata.txt"
+      prebuild_metadata : "prebuild_metadata.tsv"
       sample_metadata: "sample_metadata.tsv"
   other:
     dir: "other"
@@ -20,6 +21,7 @@ data:
         ani_report: "ANI_report_prokaryotes.txt"
         assay_probes: "pecto_assay/pectobacterium_assay_probes.fasta"
         probe_info: "pecto_assay/probe_info.txt"
+        pecto1_metadata: "pecto1_data/WUR_assemblies_metadata.txt"
   pangenomes:
     dir: "pangenomes"
     pectobacterium.10g:

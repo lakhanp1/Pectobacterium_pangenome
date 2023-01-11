@@ -1,4 +1,5 @@
 suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(configr))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(xml2))
@@ -16,31 +17,33 @@ suppressPackageStartupMessages(library(spData))
 rm(list = ls())
 
 data(world, package = "spData")
-
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
 #####################################################################
 analysisName <- "raw_data_summary"
 outDir <- here::here("analysis", "02_raw_data_summary")
 
-file_assembly <- here::here("data/reference_data", "assembly_docsum.xml")
-file_biosample <- here::here("data/reference_data", "biosample_docsum.xml")
-file_missingMetadata <- here::here("data/pecto1_data", "WUR_assemblies_metadata.txt")
-file_inhouseMetadata <- here::here("data/reference_data", "inhouse_samples_metadata.txt")
-file_buscopMqc <- here::here("analysis/01_multiqc", "busco_prot_multiqc_data/multiqc_busco.txt")
-file_buscogMqc <- here::here("analysis/01_multiqc", "busco_geno_multiqc_data/multiqc_busco.txt")
-file_quastMqc <- here::here("analysis/01_multiqc", "quast_multiqc_data/multiqc_quast.txt")
-file_ncbiAni <- here::here("data/other", "ANI_report_prokaryotes.txt")
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
 
 #####################################################################
 ## inhouse genomes and QC data
-inhouseGenomes <- suppressMessages(readr::read_tsv(file = file_inhouseMetadata)) %>% 
+inhouseGenomes <- suppressMessages(
+  readr::read_tsv(file = confs$data$reference_data$files$inhouse_metadata)
+) %>% 
   dplyr::mutate(
     SubmissionDate = "2023",
     collection_date = as.character(collection_date)
   )
 
-missingMetadata <- suppressMessages(readr::read_tsv(file = file_missingMetadata, na = "-"))
+missingMetadata <- suppressMessages(
+  readr::read_tsv(file = confs$data$other$files$pecto1_metadata, na = "-")
+)
 
-buscopMqc <- suppressMessages(readr::read_tsv(file = file_buscopMqc)) %>% 
+buscopMqc <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$qc$files$busco_protein)
+) %>% 
   dplyr::mutate(
     sampleId = stringr::str_replace(
       string = Sample, pattern = "short_summary.specific.enterobacterales_odb10.",
@@ -59,7 +62,9 @@ buscopMqc <- suppressMessages(readr::read_tsv(file = file_buscopMqc)) %>%
     .cols = !sampleId
   )
 
-buscogMqc <- suppressMessages(readr::read_tsv(file = file_buscogMqc)) %>% 
+buscogMqc <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$qc$files$busco_genome)
+) %>% 
   dplyr::mutate(
     sampleId = stringr::str_replace(
       string = Sample, pattern = "short_summary.specific.enterobacterales_odb10.",
@@ -103,15 +108,19 @@ quastCols <- c(
   largest_contig = "Largest contig"
 )
 
-quastMqc <- suppressMessages(readr::read_tsv(file = file_quastMqc)) %>% 
+quastMqc <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$qc$files$quast)
+) %>% 
   dplyr::select(sampleId = Sample, !!!quastCols)
 
-ncbiAni <- suppressMessages(readr::read_tsv(file = file_ncbiAni))
+ncbiAni <- suppressMessages(
+  readr::read_tsv(file = confs$data$other$files$ani_report)
+  )
 
 #####################################################################
 ## extract assembly information
-asmDoc <- XML::xmlParse(file = file_assembly)
-## asmDoc <- XML::xmlTreeParse(file = file_assembly)
+asmDoc <- XML::xmlParse(file = confs$data$reference_data$files$assembly_xml)
+## asmDoc <- XML::xmlTreeParse(file = confs$data$reference_data$files$assembly_xml)
 asmNodes <- XML::getNodeSet(doc = asmDoc, path = "//DocumentSummary")
 asmDf <- XML::xmlToDataFrame(nodes = asmNodes)
 
@@ -183,7 +192,7 @@ asmMetadata <- purrr::map_dfr(
 
 #####################################################################
 ## extract BioSample information
-bsDoc <- XML::xmlParse(file = file_biosample)
+bsDoc <- XML::xmlParse(file = confs$data$reference_data$files$biosample_xml)
 bsNodes <- XML::getNodeSet(doc = bsDoc, path = "//DocumentSummary")
 
 colInfo <- NULL
@@ -387,7 +396,7 @@ taxCheckFail <- dplyr::select(
 #####################################################################
 readr::write_tsv(
   x = genomeMetadata,
-  file = here::here("data/reference_data", "sample_metadata.tsv")
+  file = confs$data$reference_data$files$prebuild_metadata
 )
 
 readr::write_tsv(
@@ -433,7 +442,7 @@ openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstAct
 
 # openxlsx::openXL(wb)
 saveWorkbook(
-  wb = wb, file = here::here("data/reference_data", "sample_metadata.xlsx"), overwrite = TRUE
+  wb = wb, file = here::here("data/reference_data", "prebuild_metadata.xlsx"), overwrite = TRUE
 )
 
 #####################################################################
