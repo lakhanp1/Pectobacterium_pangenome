@@ -1,5 +1,6 @@
 ---
 title: "Pectobacterium pangenome"
+genus: "Pectobacterium"
 data:
   dir: "data"
   reference_data:
