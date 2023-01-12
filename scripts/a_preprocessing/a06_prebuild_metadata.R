@@ -18,16 +18,17 @@ rm(list = ls())
 
 data(world, package = "spData")
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
-#####################################################################
+################################################################################
 analysisName <- "raw_data_summary"
-outDir <- here::here("analysis", "02_raw_data_summary")
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
 
-#####################################################################
+outDir <- confs$analysis$qc$dir
+
+################################################################################
 ## inhouse genomes and QC data
 inhouseGenomes <- suppressMessages(
   readr::read_tsv(file = confs$data$reference_data$files$inhouse_metadata)
@@ -117,7 +118,7 @@ ncbiAni <- suppressMessages(
   readr::read_tsv(file = confs$data$other$files$ani_report)
   )
 
-#####################################################################
+################################################################################
 ## extract assembly information
 asmDoc <- XML::xmlParse(file = confs$data$reference_data$files$assembly_xml)
 ## asmDoc <- XML::xmlTreeParse(file = confs$data$reference_data$files$assembly_xml)
@@ -190,7 +191,7 @@ asmMetadata <- purrr::map_dfr(
   )
 
 
-#####################################################################
+################################################################################
 ## extract BioSample information
 bsDoc <- XML::xmlParse(file = confs$data$reference_data$files$biosample_xml)
 bsNodes <- XML::getNodeSet(doc = bsDoc, path = "//DocumentSummary")
@@ -264,7 +265,7 @@ bsMetadata <- dplyr::select(
   bsMetadata, BioSampleAccn, colStats$harmonized_name
 )
 
-#####################################################################
+################################################################################
 
 assemblyCols <- c(
   "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism", 
@@ -319,7 +320,7 @@ genomeMetadata <- dplyr::select(
 )
 
 
-#####################################################################
+################################################################################
 ## add missing metadata for NCBI genomes: this metadata is collected
 ## from the people who submitted the genomes but did not include the metadata
 missingMetadata <- dplyr::left_join(
@@ -373,40 +374,11 @@ if(!all(is.element(na.omit(unique(genomeMetadata$geo_loc_country)), world$name_l
   stop("Unmatched country name")
 }
 
-#####################################################################
-## taxonomy check failed/inconclusive information
-taxCheckFail <- dplyr::select(
-  ncbiData, sampleId, AssemblyAccession, synonym_GB, taxonomy_check_status
-) %>% 
-  dplyr::filter(
-    taxonomy_check_status != "OK"
-  ) %>% 
-  dplyr::left_join(
-    y = dplyr::select(
-      ncbiAni, genbank_accession, species_name, organism_name,
-      declared_type_organism_name, declared_type_ANI,
-      declared_type_qcoverage, declared_type_scoverage, best_match_species_name,
-      best_match_type_ANI, best_match_type_qcoverage, best_match_type_scoverage,
-      best_match_status, comment
-    ),
-    by = c("synonym_GB" = "genbank_accession")
-  ) %>% 
-  dplyr::arrange(desc(taxonomy_check_status), species_name)
 
 #####################################################################
 readr::write_tsv(
   x = genomeMetadata,
-  file = confs$data$reference_data$files$prebuild_metadata
-)
-
-readr::write_tsv(
-  x = taxCheckFail,
-  file = file.path(outDir, "ncbi_taxanomy_qc_failed.tsv")
-)
-
-readr::write_tsv(
-  x = colStats,
-  file = file.path(outDir, "metadata_fields_stats.tsv")
+  file = confs$analysis$qc$files$prebuild_metadata
 )
 
 wb <- openxlsx::createWorkbook()
@@ -427,25 +399,13 @@ openxlsx::writeDataTable(
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
 
-currentSheet <- "taxonomy_failed"
-openxlsx::addWorksheet(wb, sheetName = currentSheet)
-openxlsx::writeData(
-  wb = wb, sheet = currentSheet,
-  x = stringr::str_c("#details for genomes where taxonomy check by NCBI failed")
-)
-openxlsx::writeDataTable(
-  wb = wb, sheet = currentSheet, x = taxCheckFail, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA", startRow = 2
-)
-openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
-
-
 # openxlsx::openXL(wb)
 saveWorkbook(
-  wb = wb, file = here::here("data/reference_data", "prebuild_metadata.xlsx"), overwrite = TRUE
+  wb = wb,
+  file = confs$analysis$qc$files$prebuild_metadata_xls, overwrite = TRUE
 )
 
-#####################################################################
+################################################################################
 
 
 

@@ -13,7 +13,6 @@ data:
       ncbi_ass_ids: "ncbi_assembly_ids.txt"
       assembly_ids: "assembly_ids.txt"
       local_metadata: "inhouse_samples_metadata.txt"
-      prebuild_metadata : "prebuild_metadata.tsv"
       sample_metadata: "sample_metadata.tsv"
   other:
     dir: "other"
@@ -92,13 +91,16 @@ data:
 analysis:
   dir: "analysis"
   qc:
-    dir: "01_multiqc"
+    dir: "01_QC"
     files:
       busco_genome: "busco_geno_multiqc_data/multiqc_busco.txt"
       busco_protein: "busco_prot_multiqc_data/multiqc_busco.txt"
       quast: "quast_multiqc_data/multiqc_quast.txt"
       genome_chr_size: "assembly_chr_size.txt"
       duplicates: "duplicate_genomes.tab"
+      prebuild_metadata : "prebuild_metadata.tsv"
+      prebuild_metadata_xls: "prebuild_metadata.xlsx"
+      tax_check: "taxonomy_check.tab"
   ANI:
     dir: "02_fastANI"
     files:
