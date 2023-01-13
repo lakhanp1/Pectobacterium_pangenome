@@ -46,9 +46,9 @@ correctMeta <- dplyr::left_join(
   tidyr::replace_na(
     replace = list(taxonomy_corrected = FALSE, taxonomy_check_method = "NCBI_ANI")
   ) %>% 
+  dplyr::select(-taxonomy_check_status_inhouse, -new_species_name) %>% 
   dplyr::relocate(taxonomy_check_method, .after = taxonomy_check_status) %>% 
   dplyr::relocate(taxonomy_corrected, .after = SpeciesName)
-
 
 #####################################################################
 readr::write_tsv(

@@ -148,6 +148,9 @@ freqData <- dplyr::filter(
     )
   ) %>% 
   dplyr::mutate(
+    taxonomy_check_status = forcats::fct_relevel(
+      taxonomy_check_status, "OK", "Corrected", "Inconclusive", "Failed"
+    ),
     dplyr::across(
       .cols = where(is.character),
       .fns = ~ stringr::str_replace_all(
@@ -259,18 +262,18 @@ sb3
 ### NCBI assembly taxonomy check status {data-width=2}
 
 ```{r, txQc, fig.width=3}
-pt_txQcBar <- dplyr::filter(metadata, source == "NCBI") %>% 
-  dplyr::select(taxonomy_check_status) %>% 
+pt_txQcBar <- dplyr::select(metadata, taxonomy_check_status) %>% 
   ggplot2::ggplot(
     mapping = aes(x = "status", fill = taxonomy_check_status)
   ) +
   ggplot2::geom_bar() +
   ggplot2::scale_fill_manual(
     name = NULL,
-    values = c("Failed" = col_fail, "Inconclusive" = "blue", "OK" = col_pass, "NA" = col_na)
+    values = c("Failed" = col_fail, "Inconclusive" = "blue", "OK" = col_pass,
+               "Corrected" = alpha(col_pass, 0.5), "NA" = col_na)
   ) +
   ggplot2::scale_y_continuous(
-    expand = expansion(add = 0)
+    expand = expansion(add = c(0, 10))
   ) +
   pt_theme +
   theme(
