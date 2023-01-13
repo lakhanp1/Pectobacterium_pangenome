@@ -39,18 +39,13 @@ pt_theme <- theme_bw(base_size = 14) +
   )
 
 ################################################################################
-metadata <- suppressMessages(
-  readr::read_tsv(file = confs$data$reference_data$files$sample_metadata)
-) %>% 
-  dplyr::select(sampleId, length, GC_per, n_contigs, N50, L50)
-
 genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
 
 sampleInfo <- suppressMessages(
-  readr::read_csv(file = confs$data$pangenomes$pectobacterium.v2$files$metadata)
+  readr::read_tsv(file = confs$analysis$qc$files$prebuild_metadata)
 ) %>% 
+  dplyr::filter(buscog.complete >= 99) %>% 
   dplyr::mutate(
-    Genome = as.character(Genome),
     SpeciesName = stringi::stri_replace(
       str = SpeciesName, regex = genusPattern, replacement = "P. "
     ),
@@ -59,17 +54,13 @@ sampleInfo <- suppressMessages(
       replacement = "$2. $4. $5"
     ),
     nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
-  ) %>% 
-  dplyr::select(Genome, id, everything()) %>% 
-  dplyr::left_join(y = metadata, by = c("id" = "sampleId"))
-
-genomeIds <- dplyr::pull(sampleInfo, Genome, name = id)
+  )
 
 sampleInfoList <- dplyr::select(
-  sampleInfo, id, sampleName, SpeciesName, strain, nodeLabs, Genome
+  sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs
 ) %>% 
   purrr::transpose() %>% 
-  purrr::set_names(nm = purrr::map(., "id"))
+  purrr::set_names(nm = purrr::map(., "sampleId"))
 
 aniDf <- suppressMessages(readr::read_tsv(
   file = confs$analysis$ANI$files$fastani_out,
@@ -83,30 +74,26 @@ aniDf %<>% dplyr::mutate(
   ),
   dist = 1 - (ani/100)
 ) %>% 
-  dplyr::mutate(
-    g1 = genomeIds[id1],
-    g2 = genomeIds[id2]
-  ) %>% 
-  dplyr::arrange(g1, g2)
+  dplyr::arrange(id1, id2)
 
 
 distMat <- tidyr::pivot_wider(
   data = aniDf,
-  id_cols = "g1",
-  names_from = "g2",
+  id_cols = "id1",
+  names_from = "id2",
   values_from = "dist"
 ) %>% 
-  tibble::column_to_rownames(var = "g1") %>% 
+  tibble::column_to_rownames(var = "id1") %>% 
   as.matrix() %>% 
   as.dist()
 
 aniMat <- tidyr::pivot_wider(
   data = aniDf,
-  id_cols = "g1",
-  names_from = "g2",
+  id_cols = "id1",
+  names_from = "id2",
   values_from = "ani"
 ) %>% 
-  tibble::column_to_rownames(var = "g1") %>% 
+  tibble::column_to_rownames(var = "id1") %>% 
   as.matrix()
 
 if(!all(rownames(as.matrix(distMat)) == rownames(aniMat))){
@@ -120,7 +107,7 @@ treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>%
 
 ape::write.tree(
   phy = treeUpgma, tree.names = "ANI_UPGMA",
-  file = file.path(outDir, "ANI_UPGMA.newick")
+  file = confs$analysis$ANI$files$ani_upgma
 )
 
 treeNj <- ape::nj(distMat) %>% 
@@ -161,14 +148,14 @@ ggsave(
 ## ANI heatmap
 
 speciesMat <- tibble::tibble(
-  Genome = rownames(aniMat)
+  sampleId = rownames(aniMat)
 ) %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, Genome, SpeciesName), by = "Genome") %>% 
+  dplyr::left_join(y = dplyr::select(sampleInfo, sampleId, SpeciesName), by = "sampleId") %>% 
   dplyr::mutate(sp = 1) %>% 
   tidyr::pivot_wider(
-    id_cols = Genome, names_from = SpeciesName, values_from = sp, values_fill = 0
+    id_cols = sampleId, names_from = SpeciesName, values_from = sp, values_fill = 0
   ) %>% 
-  tibble::column_to_rownames(var = "Genome") %>% 
+  tibble::column_to_rownames(var = "sampleId") %>% 
   as.matrix()
 
 ht_ani <- ComplexHeatmap::Heatmap(
@@ -245,7 +232,8 @@ annotate_ggtree <- function(pt, offset){
       pwidth = 0.01
     ) +
     scale_fill_manual(
-      values = c("Failed" = "red", "Inconclusive" = "blue", "OK" = alpha("white", 0))
+      values = c("Failed" = "red", "Inconclusive" = "blue",
+                 "OK" = alpha("white", 0), "Corrected" = alpha("white", 0))
     ) +
     ggtreeExtra::geom_fruit(
       mapping = aes(y = id, label = collection_year),
@@ -303,11 +291,6 @@ ggsave(
   width = 10, height = 20, scale = 2
 )
 
-# ggsave(
-#   plot = pt_upgma4, filename = file.path(outDir, "upgma_tree.png"),
-#   width = 14, height = 20, scale = 2
-# )
-
 
 ################################################################################
 ## highlight outgroup ANI values on ANI score distribution
@@ -349,9 +332,9 @@ pt_genomeLenDistr <- ggplot(
   mapping = aes(x = "length", y = length)
 ) +
   geom_boxplot(outlier.alpha = 0) +
-  ggbeeswarm::geom_quasirandom(mapping = aes(color = id), size = 3) +
+  ggbeeswarm::geom_quasirandom(mapping = aes(color = sampleId), size = 3) +
   ggrepel::geom_text_repel(
-    data = dplyr::filter(sampleInfo, length %in% range(length) | id == outGroup),
+    data = dplyr::filter(sampleInfo, length %in% range(length) | sampleId == outGroup),
     mapping = aes(label = nodeLabs),
     min.segment.length = 0, segment.size = 1, direction = "y", force = 0.5, 
     arrow = arrow(length = unit(0.015, "npc")), nudge_x = 0.25
@@ -387,11 +370,11 @@ treeNj$edge.length[treeNj$edge.length < 0] <- 0
 
 ape::write.tree(
   phy = treeNj, tree.names = "ANI_NJ",
-  file = file.path(outDir, "ANI_NJ.newick")
+  file = confs$analysis$ANI$files$ani_nj
 )
 
 treeNjRooted <- ape::root(
-  phy = treeNj, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = T
+  phy = treeNj, outgroup = sampleInfoList[[outGroup]]$sampleId, edgelabel = T
 )
 
 pt_nj1 <- ggtree::ggtree(tr = treeNjRooted) +
