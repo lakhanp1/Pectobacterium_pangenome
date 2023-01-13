@@ -6,20 +6,27 @@ suppressPackageStartupMessages(library(tidyverse))
 ## prepare input data for pangenome construction using PanTools
 
 rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+################################################################################
 set.seed(124)
-#####################################################################
 
-file_metadata <- here::here("data/reference_data", "sample_metadata.tsv")
-file_duplicateGenomes <- here::here("analysis", "01_multiqc", "duplicate_genomes.tab")
-file_excludeGenomes <- here::here("analysis", "01_multiqc", "exclude_genomes.txt")
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
 
-pangenomeName <- "pectobacterium.v2"
-testPangenome <- "pectobacterium.10g"
-path_genomes <- "./data/prokka_annotation"
-path_out <- here::here("data", "pangenomes", pangenomeName)
-test_out <- here::here("data", "pangenomes", testPangenome)
+# 
+# file_metadata <- here::here("data/reference_data", "sample_metadata.tsv")
+# file_duplicateGenomes <- here::here("analysis", "01_QC", "duplicate_genomes.tab")
+# file_excludeGenomes <- here::here("analysis", "01_QC", "exclude_genomes.txt")
 
-cutoff_buscog <- 99
+pangenomeName <- confs$data$pangenomes$pectobacterium.v2$name
+testPangenome <- confs$data$pangenomes$pectobacterium.10g$name
+path_out <- confs$data$pangenomes[[pangenomeName]]$dir
+test_out <- confs$data$pangenomes[[testPangenome]]$dir
+
+cutoff_buscog <- confs$parameters$cutoff_busco
 
 cols_metadata <- c(
   "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
@@ -36,11 +43,15 @@ if(! dir.exists(path_out)){
   dir.create(path = path_out, recursive = TRUE)
 }
 
-metadata <- suppressMessages(readr::read_tsv(file = file_metadata))
-duplicateGenomes <- suppressMessages(readr::read_tsv(file = file_duplicateGenomes)) %>% 
+metadata <- suppressMessages(
+  readr::read_tsv(file = confs$data$reference_data$files$metadata)
+)
+duplicateGenomes <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$qc$files$duplicate_genomes)
+) %>% 
   dplyr::filter(identical == TRUE)
 excludeGenomes <- suppressMessages(
-  readr::read_tsv(file = file_excludeGenomes, col_names = "sampleId")
+  readr::read_tsv(file = confs$analysis$qc$files$exclude_genomes, col_names = "sampleId")
 )
 
 
@@ -64,10 +75,14 @@ metadata %<>%
 filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>% 
   dplyr::mutate(
     genomeId = 1:n(),
-    fasta = paste(path_genomes, "/", sampleId, "/", sampleId, ".fna", sep = ""),
-    gff3 = paste(path_genomes, "/", sampleId, "/", sampleId, ".gff", sep = ""),
+    fasta = paste(
+      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""
+    ),
+    gff3 = paste(
+      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".gff", sep = ""
+    ),
     interpro = paste(
-      "./data/interproscan/", sampleId, ".interProScan.gff3", sep = ""
+      confs$data$interproscan$dir, "/", sampleId, ".interProScan.gff3", sep = ""
     ),
     ## replace "," with ";"
     dplyr::across(
@@ -82,21 +97,21 @@ filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>%
 ## FASTA file paths
 dplyr::select(filteredMeta, fasta) %>% 
   readr::write_tsv(
-    file = file.path(path_out, "genomes_fa.list"),
+    file = confs$data$pangenomes[[pangenomeName]]$files$genomes,
     col_names = FALSE
   )
 
 ## GFF3 file paths
 dplyr::select(filteredMeta, genomeId, gff3) %>% 
   readr::write_tsv(
-    file = file.path(path_out, "genomes_gff3.list"),
+    file = confs$data$pangenomes[[pangenomeName]]$files$gff,
     col_names = FALSE
   )
 
 ## functional annotation file paths
 dplyr::select(filteredMeta, genomeId, interpro) %>% 
   readr::write_delim(
-    file = file.path(path_out, "functional_annotations.txt"),
+    file = confs$data$pangenomes[[pangenomeName]]$files$annotations,
     col_names = FALSE
   )
 
@@ -105,41 +120,40 @@ dplyr::select(
   filteredMeta, Genome=genomeId, id=sampleId, !!!cols_metadata
 ) %>% 
   readr::write_csv(
-    file = file.path(path_out, "genomes_metadata.csv"),
+    file = confs$data$pangenomes[[pangenomeName]]$files$metadata,
     col_names = TRUE
   )
 
 ## input genome lock file: this file should never change
 readr::write_tsv(
   x = dplyr::select(filteredMeta, Genome = genomeId, id = sampleId),
-  file = file.path(path_out, "input_genomes.tab")
+  file = confs$data$pangenomes[[pangenomeName]]$files$input_lock
 )
 
 #####################################################################
 ## write small subset for testing pangenome pipeline
-testSet <- dplyr::filter(filteredMeta, SpeciesName == "Pectobacterium brasiliense") %>% 
-  dplyr::slice_sample(n = 10) %>% 
+testSet <- dplyr::filter(filteredMeta, !is.na(type_material)) %>% 
   dplyr::arrange(sampleId) %>% 
   dplyr::mutate(genomeId = 1:n())
 
 ## FASTA file paths
 dplyr::select(testSet, fasta) %>% 
   readr::write_tsv(
-    file = file.path(test_out, "genomes_fa.list"),
+    file = confs$data$pangenomes[[testPangenome]]$files$genomes,
     col_names = FALSE
   )
 
 ## GFF3 file paths
 dplyr::select(testSet, genomeId, gff3) %>% 
   readr::write_tsv(
-    file = file.path(test_out, "genomes_gff3.list"),
+    file = confs$data$pangenomes[[testPangenome]]$files$gff,
     col_names = FALSE
   )
 
 ## functional annotation file paths
 dplyr::select(testSet, genomeId, interpro) %>% 
   readr::write_delim(
-    file = file.path(test_out, "functional_annotations.txt"),
+    file = confs$data$pangenomes[[testPangenome]]$files$annotations,
     col_names = FALSE
   )
 
@@ -148,7 +162,7 @@ dplyr::select(
   testSet, Genome=genomeId, id=sampleId, !!!cols_metadata
 ) %>% 
   readr::write_csv(
-    file = file.path(test_out, "genomes_metadata.csv"),
+    file = confs$data$pangenomes[[testPangenome]]$files$metadata,
     col_names = TRUE
   )
 

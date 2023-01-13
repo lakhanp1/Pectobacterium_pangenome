@@ -1,53 +1,53 @@
 Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collection_year,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
 1,GCF_024506455.1_ASM2450645v1,GCF_024506455.1,GCF_024506455.1,ASM2450645v1,Pectobacterium carotovorum,OK,21TX0081,NA,NA,United States,NA,Onion,2021,Manzeal Khanal,NA,NA,NCBI,NA,NA
-2,GCF_024498875.1_ASM2449887v1,GCF_024498875.1,GCF_024498875.1,ASM2449887v1,Pectobacterium aroidearum,Inconclusive,QJ002,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
-3,GCF_024498855.1_ASM2449885v1,GCF_024498855.1,GCF_024498855.1,ASM2449885v1,Pectobacterium aroidearum,Inconclusive,QJ003,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
-4,GCF_024498835.1_ASM2449883v1,GCF_024498835.1,GCF_024498835.1,ASM2449883v1,Pectobacterium aroidearum,Inconclusive,QJ011,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
-5,GCF_024498815.1_ASM2449881v1,GCF_024498815.1,GCF_024498815.1,ASM2449881v1,Pectobacterium aroidearum,Inconclusive,QJ034,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
-6,GCF_024498775.1_ASM2449877v1,GCF_024498775.1,GCF_024498775.1,ASM2449877v1,Pectobacterium aroidearum,Inconclusive,QJ311,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
-7,GCF_024498755.1_ASM2449875v1,GCF_024498755.1,GCF_024498755.1,ASM2449875v1,Pectobacterium aroidearum,Inconclusive,QJ313,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
-8,GCF_024498735.1_ASM2449873v1,GCF_024498735.1,GCF_024498735.1,ASM2449873v1,Pectobacterium aroidearum,Inconclusive,QJ315,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
-9,GCF_024498715.1_ASM2449871v1,GCF_024498715.1,GCF_024498715.1,ASM2449871v1,Pectobacterium aroidearum,Inconclusive,AK042,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
-10,GCF_024498675.1_ASM2449867v1,GCF_024498675.1,GCF_024498675.1,ASM2449867v1,Pectobacterium aroidearum,Inconclusive,AK049,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
+2,GCF_024498875.1_ASM2449887v1,GCF_024498875.1,GCF_024498875.1,ASM2449887v1,Pectobacterium aroidearum,OK,QJ002,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
+3,GCF_024498855.1_ASM2449885v1,GCF_024498855.1,GCF_024498855.1,ASM2449885v1,Pectobacterium aroidearum,OK,QJ003,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
+4,GCF_024498835.1_ASM2449883v1,GCF_024498835.1,GCF_024498835.1,ASM2449883v1,Pectobacterium aroidearum,OK,QJ011,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
+5,GCF_024498815.1_ASM2449881v1,GCF_024498815.1,GCF_024498815.1,ASM2449881v1,Pectobacterium aroidearum,OK,QJ034,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
+6,GCF_024498775.1_ASM2449877v1,GCF_024498775.1,GCF_024498775.1,ASM2449877v1,Pectobacterium aroidearum,OK,QJ311,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
+7,GCF_024498755.1_ASM2449875v1,GCF_024498755.1,GCF_024498755.1,ASM2449875v1,Pectobacterium aroidearum,OK,QJ313,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
+8,GCF_024498735.1_ASM2449873v1,GCF_024498735.1,GCF_024498735.1,ASM2449873v1,Pectobacterium aroidearum,OK,QJ315,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
+9,GCF_024498715.1_ASM2449871v1,GCF_024498715.1,GCF_024498715.1,ASM2449871v1,Pectobacterium aroidearum,OK,AK042,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
+10,GCF_024498675.1_ASM2449867v1,GCF_024498675.1,GCF_024498675.1,ASM2449867v1,Pectobacterium aroidearum,OK,AK049,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,pure culture
 11,GCA_024343715.1_ASM2434371v1,GCA_024343715.1,GCA_024343715.1,ASM2434371v1,Pectobacterium carotovorum,OK,MAFF 301875,NA,NA,Japan,Brassica rapa subsp. oleifera,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
-12,GCA_024343685.1_ASM2434368v1,GCA_024343685.1,GCA_024343685.1,ASM2434368v1,Pectobacterium carotovorum,Failed,MAFF 730217,NA,NA,Japan,Brassica oleracea,NA,1979,NA,cropland biome,NA,NCBI,NA,NA
-13,GCA_024343655.1_ASM2434365v1,GCA_024343655.1,GCA_024343655.1,ASM2434365v1,Pectobacterium carotovorum,Failed,MAFF 331060,NA,NA,Japan,Capsicum annuum,NA,2012,NA,cropland biome,NA,NCBI,NA,NA
-14,GCA_024343625.1_ASM2434362v1,GCA_024343625.1,GCA_024343625.1,ASM2434362v1,Pectobacterium carotovorum,Failed,MAFF 311524,NA,NA,Japan,Solanum tuberosum,NA,2004,NA,cropland biome,NA,NCBI,NA,NA
+12,GCA_024343685.1_ASM2434368v1,GCA_024343685.1,GCA_024343685.1,ASM2434368v1,Pectobacterium versatile,Corrected,MAFF 730217,NA,NA,Japan,Brassica oleracea,NA,1979,NA,cropland biome,NA,NCBI,NA,NA
+13,GCA_024343655.1_ASM2434365v1,GCA_024343655.1,GCA_024343655.1,ASM2434365v1,Pectobacterium brasiliense,Corrected,MAFF 331060,NA,NA,Japan,Capsicum annuum,NA,2012,NA,cropland biome,NA,NCBI,NA,NA
+14,GCA_024343625.1_ASM2434362v1,GCA_024343625.1,GCA_024343625.1,ASM2434362v1,Pectobacterium polonicum,Corrected,MAFF 311524,NA,NA,Japan,Solanum tuberosum,NA,2004,NA,cropland biome,NA,NCBI,NA,NA
 15,GCA_024343595.1_ASM2434359v1,GCA_024343595.1,GCA_024343595.1,ASM2434359v1,Pectobacterium carotovorum,Inconclusive,MAFF 302107,NA,NA,Japan,Aralia elata,NA,1988,NA,cropland biome,NA,NCBI,NA,NA
 16,GCA_024343495.1_ASM2434349v1,GCA_024343495.1,GCA_024343495.1,ASM2434349v1,Pectobacterium carotovorum,OK,NBRC12380,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,culture collection
-17,GCA_024343475.1_ASM2434347v1,GCA_024343475.1,GCA_024343475.1,ASM2434347v1,Pectobacterium carotovorum,Failed,NBRC3830,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,culture collection
-18,GCA_024343445.1_ASM2434344v1,GCA_024343445.1,GCA_024343445.1,ASM2434344v1,Pectobacterium carotovorum,Failed,NBRC3380,NA,NA,NA,NA,soft rot of carrot,NA,NA,NA,NA,NCBI,NA,culture collection
-19,GCA_024343355.1_ASM2434335v1,GCA_024343355.1,GCA_024343355.1,ASM2434335v1,Pectobacterium carotovorum,Failed,MAFF 301879,NA,NA,Japan,Brassica rapa subsp. oleifera,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
-20,GCA_024343335.1_ASM2434333v1,GCA_024343335.1,GCA_024343335.1,ASM2434333v1,Pectobacterium carotovorum,Failed,MAFF 301937,NA,NA,Japan,Morus bombycis,NA,1974,NA,cropland biome,NA,NCBI,NA,NA
-21,GCA_024343295.1_ASM2434329v1,GCA_024343295.1,GCA_024343295.1,ASM2434329v1,Pectobacterium carotovorum,Failed,MAFF 301899,NA,NA,Japan,Lactuca sativa,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
+17,GCA_024343475.1_ASM2434347v1,GCA_024343475.1,GCA_024343475.1,ASM2434347v1,Pectobacterium odoriferum,Corrected,NBRC3830,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,culture collection
+18,GCA_024343445.1_ASM2434344v1,GCA_024343445.1,GCA_024343445.1,ASM2434344v1,Pectobacterium versatile,Corrected,NBRC3380,NA,NA,NA,NA,soft rot of carrot,NA,NA,NA,NA,NCBI,NA,culture collection
+19,GCA_024343355.1_ASM2434335v1,GCA_024343355.1,GCA_024343355.1,ASM2434335v1,Pectobacterium parvum,Corrected,MAFF 301879,NA,NA,Japan,Brassica rapa subsp. oleifera,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
+20,GCA_024343335.1_ASM2434333v1,GCA_024343335.1,GCA_024343335.1,ASM2434333v1,Pectobacterium actinidiae,Corrected,MAFF 301937,NA,NA,Japan,Morus bombycis,NA,1974,NA,cropland biome,NA,NCBI,NA,NA
+21,GCA_024343295.1_ASM2434329v1,GCA_024343295.1,GCA_024343295.1,ASM2434329v1,Pectobacterium punjabense,Corrected,MAFF 301899,NA,NA,Japan,Lactuca sativa,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
 22,GCA_024343235.1_ASM2434323v1,GCA_024343235.1,GCA_024343235.1,ASM2434323v1,Pectobacterium carotovorum,OK,MAFF 301889,NA,NA,Japan,Raphanus sativus,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
-23,GCA_024343135.1_ASM2434313v1,GCA_024343135.1,GCA_024343135.1,ASM2434313v1,Pectobacterium carotovorum,Failed,MAFF 301877,NA,NA,Japan,Brassica rapa subsp. oleifera,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
-24,GCA_024343095.1_ASM2434309v1,GCA_024343095.1,GCA_024343095.1,ASM2434309v1,Pectobacterium carotovorum,Failed,MAFF 301653,NA,NA,Japan,Solanum melongena,NA,1979,NA,cropland biome,NA,NCBI,NA,NA
-25,GCA_024343035.1_ASM2434303v1,GCA_024343035.1,GCA_024343035.1,ASM2434303v1,Pectobacterium carotovorum,Inconclusive,MAFF 301645,NA,NA,Japan,Amorphophallus konjac,NA,1979,NA,cropland biome,NA,NCBI,NA,NA
+23,GCA_024343135.1_ASM2434313v1,GCA_024343135.1,GCA_024343135.1,ASM2434313v1,Pectobacterium odoriferum,Corrected,MAFF 301877,NA,NA,Japan,Brassica rapa subsp. oleifera,NA,1971,NA,cropland biome,NA,NCBI,NA,NA
+24,GCA_024343095.1_ASM2434309v1,GCA_024343095.1,GCA_024343095.1,ASM2434309v1,Pectobacterium brasiliense,Corrected,MAFF 301653,NA,NA,Japan,Solanum melongena,NA,1979,NA,cropland biome,NA,NCBI,NA,NA
+25,GCA_024343035.1_ASM2434303v1,GCA_024343035.1,GCA_024343035.1,ASM2434303v1,Pectobacterium aroidearum,Corrected,MAFF 301645,NA,NA,Japan,Amorphophallus konjac,NA,1979,NA,cropland biome,NA,NCBI,NA,NA
 26,GCA_024342945.1_ASM2434294v1,GCA_024342945.1,GCA_024342945.1,ASM2434294v1,Pectobacterium carotovorum,OK,MAFF 301619,NA,NA,Japan,Solanum tuberosum,NA,NA,NA,cropland biome,NA,NCBI,NA,NA
-27,GCA_024342865.1_ASM2434286v1,GCA_024342865.1,GCA_024342865.1,ASM2434286v1,Pectobacterium carotovorum,Failed,MAFF 301296,NA,NA,Japan,Solanum tuberosum,NA,NA,NA,cropland biome,NA,NCBI,NA,NA
-28,GCA_024342805.1_ASM2434280v1,GCA_024342805.1,GCA_024342805.1,ASM2434280v1,Pectobacterium carotovorum,Failed,MAFF 106664,NA,NA,Japan,Brassica rapa,NA,2000,NA,cropland biome,NA,NCBI,NA,NA
-29,GCA_024342785.1_ASM2434278v1,GCA_024342785.1,GCA_024342785.1,ASM2434278v1,Pectobacterium carotovorum,Failed,MAFF 106568,NA,NA,Japan,Cucumis sativus,NA,1985,NA,cropland biome,NA,NCBI,NA,NA
+27,GCA_024342865.1_ASM2434286v1,GCA_024342865.1,GCA_024342865.1,ASM2434286v1,Pectobacterium atrosepticum,Corrected,MAFF 301296,NA,NA,Japan,Solanum tuberosum,NA,NA,NA,cropland biome,NA,NCBI,NA,NA
+28,GCA_024342805.1_ASM2434280v1,GCA_024342805.1,GCA_024342805.1,ASM2434280v1,Pectobacterium versatile,Corrected,MAFF 106664,NA,NA,Japan,Brassica rapa,NA,2000,NA,cropland biome,NA,NCBI,NA,NA
+29,GCA_024342785.1_ASM2434278v1,GCA_024342785.1,GCA_024342785.1,ASM2434278v1,Pectobacterium brasiliense,Corrected,MAFF 106568,NA,NA,Japan,Cucumis sativus,NA,1985,NA,cropland biome,NA,NCBI,NA,NA
 30,GCF_023914135.1_ASM2391413v1,GCF_023914135.1,GCF_023914135.1,ASM2391413v1,Pectobacterium versatile,OK,22TC1,NA,NA,China,Nicotiana tabacum,NA,2022,NA,plateau,NA,NCBI,NA,NA
 31,GCF_014946825.2_ASM1494682v2,GCF_014946825.2,GCF_014946825.2,ASM1494682v2,Pectobacterium quasiaquaticum,OK,A398-S21-F17,NA,NA,France,NA,fresh water,2017,NA,ENVO:00000873,NA,NCBI,NA,NA
 32,GCF_014946775.2_ASM1494677v2,GCF_014946775.2,GCF_014946775.2,ASM1494677v2,Pectobacterium quasiaquaticum,OK,A477-S1-J17,NA,NA,France,NA,fresh water,2017,NA,ENVO:00000873,type strain,NCBI,NA,NA
-33,GCF_023508155.1_ASM2350815v1,GCF_023508155.1,GCF_023508155.1,ASM2350815v1,Pectobacterium carotovorum,Failed,Ec-007,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-34,GCF_023508145.1_ASM2350814v1,GCF_023508145.1,GCF_023508145.1,ASM2350814v1,Pectobacterium carotovorum,Failed,Ec-006,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+33,GCF_023508155.1_ASM2350815v1,GCF_023508155.1,GCF_023508155.1,ASM2350815v1,Pectobacterium versatile,Corrected,Ec-007,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+34,GCF_023508145.1_ASM2350814v1,GCF_023508145.1,GCF_023508145.1,ASM2350814v1,Pectobacterium versatile,Corrected,Ec-006,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 35,GCF_023508125.1_ASM2350812v1,GCF_023508125.1,GCF_023508125.1,ASM2350812v1,Pectobacterium parmentieri,OK,Ec-009,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-36,GCF_023508105.1_ASM2350810v1,GCF_023508105.1,GCF_023508105.1,ASM2350810v1,Pectobacterium carotovorum,Failed,Ec-008,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-37,GCF_023508055.1_ASM2350805v1,GCF_023508055.1,GCF_023508055.1,ASM2350805v1,Pectobacterium atrosepticum,Failed,Ec-110,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+36,GCF_023508105.1_ASM2350810v1,GCF_023508105.1,GCF_023508105.1,ASM2350810v1,Pectobacterium versatile,Corrected,Ec-008,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+37,GCF_023508055.1_ASM2350805v1,GCF_023508055.1,GCF_023508055.1,ASM2350805v1,Pectobacterium versatile,Corrected,Ec-110,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 38,GCF_023508065.1_ASM2350806v1,GCF_023508065.1,GCF_023508065.1,ASM2350806v1,Pectobacterium parmentieri,OK,Ec-010,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-39,GCF_023508045.1_ASM2350804v1,GCF_023508045.1,GCF_023508045.1,ASM2350804v1,Pectobacterium carotovorum,Failed,Ec-093,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+39,GCF_023508045.1_ASM2350804v1,GCF_023508045.1,GCF_023508045.1,ASM2350804v1,Pectobacterium versatile,Corrected,Ec-093,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 40,GCF_023508025.1_ASM2350802v1,GCF_023508025.1,GCF_023508025.1,ASM2350802v1,Pectobacterium polaris,OK,Ec-137,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 41,GCF_023508005.1_ASM2350800v1,GCF_023508005.1,GCF_023508005.1,ASM2350800v1,Pectobacterium polaris,OK,Ec-140,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 42,GCF_023507985.1_ASM2350798v1,GCF_023507985.1,GCF_023507985.1,ASM2350798v1,Pectobacterium brasiliense,OK,Ec-153,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-43,GCF_023507945.1_ASM2350794v1,GCF_023507945.1,GCF_023507945.1,ASM2350794v1,Pectobacterium carotovorum,Failed,Ec-155,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+43,GCF_023507945.1_ASM2350794v1,GCF_023507945.1,GCF_023507945.1,ASM2350794v1,Pectobacterium brasiliense,Corrected,Ec-155,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 44,GCF_023507955.1_ASM2350795v1,GCF_023507955.1,GCF_023507955.1,ASM2350795v1,Pectobacterium polaris,OK,Ec-143,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-45,GCF_023507925.1_ASM2350792v1,GCF_023507925.1,GCF_023507925.1,ASM2350792v1,Pectobacterium carotovorum,Failed,Ec-168,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+45,GCF_023507925.1_ASM2350792v1,GCF_023507925.1,GCF_023507925.1,ASM2350792v1,Pectobacterium versatile,Corrected,Ec-168,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 46,GCF_023507905.1_ASM2350790v1,GCF_023507905.1,GCF_023507905.1,ASM2350790v1,Pectobacterium polaris,OK,Ec-173,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-47,GCF_023507885.1_ASM2350788v1,GCF_023507885.1,GCF_023507885.1,ASM2350788v1,Pectobacterium carotovorum,Failed,Ec-177,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-48,GCF_023507845.1_ASM2350784v1,GCF_023507845.1,GCF_023507845.1,ASM2350784v1,Pectobacterium carotovorum,Failed,Ec-180,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
-49,GCF_023507825.1_ASM2350782v1,GCF_023507825.1,GCF_023507825.1,ASM2350782v1,Pectobacterium carotovorum,Failed,Ec-179,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+47,GCF_023507885.1_ASM2350788v1,GCF_023507885.1,GCF_023507885.1,ASM2350788v1,Pectobacterium versatile,Corrected,Ec-177,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+48,GCF_023507845.1_ASM2350784v1,GCF_023507845.1,GCF_023507845.1,ASM2350784v1,Pectobacterium versatile,Corrected,Ec-180,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
+49,GCF_023507825.1_ASM2350782v1,GCF_023507825.1,GCF_023507825.1,ASM2350782v1,Pectobacterium versatile,Corrected,Ec-179,NA,NA,New Zealand,Solanum tuberosum,NA,2005,NA,agricultural field,NA,NCBI,NA,NA
 50,GCF_023507805.1_ASM2350780v1,GCF_023507805.1,GCF_023507805.1,ASM2350780v1,Pectobacterium atrosepticum,OK,SCRI1043 DHAI2Dcas,NA,NA,NA,Solanum tuberosum,NA,2018,NA,laboratory strain,NA,NCBI,NA,NA
 51,GCF_023507725.1_ASM2350772v1,GCF_023507725.1,GCF_023507725.1,ASM2350772v1,Pectobacterium atrosepticum,OK,SCRI1043 DHAI2,NA,NA,NA,Solanum tuberosum,NA,2018,NA,laboratory strain,NA,NCBI,NA,NA
 52,GCF_023272715.1_ASM2327271v1,GCF_023272715.1,GCF_023272715.1,ASM2327271v1,Pectobacterium sp. 21LCBS03,OK,21LCBS03,NA,NA,China,Nicotiana tabacum,NA,2021,NA,plateau,NA,NCBI,NA,NA
@@ -60,7 +60,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 59,GCF_022507255.1_ASM2250725v1,GCF_022507255.1,GCF_022507255.1,ASM2250725v1,Pectobacterium versatile,OK,A165-S18-M16,NA,NA,France,NA,river,2016,NA,ENVO:00000873,NA,NCBI,NA,NA
 60,GCF_022507225.1_ASM2250722v1,GCF_022507225.1,GCF_022507225.1,ASM2250722v1,Pectobacterium brasiliense,OK,A79-S20-O15,NA,NA,France,NA,irrigation canal,2015,NA,ENVO:00000873,NA,NCBI,NA,NA
 61,GCF_022392805.1_ASM2239280v1,GCF_022392805.1,GCF_022392805.1,ASM2239280v1,Pectobacterium carotovorum,OK,ZM1,NA,NA,Ukraine,NA,Ukraine,2002,NA,NA,NA,NCBI,NA,bacterium
-62,GCF_022392325.1_ASM2239232v1,GCF_022392325.1,GCF_022392325.1,ASM2239232v1,Pectobacterium carotovorum,Failed,RC5297,NA,NA,Ukraine,NA,NA,2002,NA,NA,NA,NCBI,NA,bacterium
+62,GCF_022392325.1_ASM2239232v1,GCF_022392325.1,GCF_022392325.1,ASM2239232v1,Pectobacterium versatile,Corrected,RC5297,NA,NA,Ukraine,NA,NA,2002,NA,NA,NA,NCBI,NA,bacterium
 63,GCF_022220705.1_ASM2222070v1,GCF_022220705.1,GCF_022220705.1,ASM2222070v1,Pectobacterium brasiliense,OK,130,NA,NA,Belarus,NA,stem of potato with blackleg symptoms,2020,Shao Chengyue; Anatoli Evtushenkov,NA,NA,NCBI,NA,cell culture
 64,GCF_022172285.1_ASM2217228v1,GCF_022172285.1,GCF_022172285.1,ASM2217228v1,Pectobacterium brasiliense,OK,BD163,NA,NA,South Africa,Solanum tuberosum,Potatoes,1999,NA,Potato pathogen,NA,NCBI,NA,NA
 65,GCF_021432585.1_ASM2143258v1,GCF_021432585.1,GCF_021432585.1,ASM2143258v1,Pectobacterium sp. IFB5596,OK,IFB5596,NA,NA,Poland,NA,potato stem during vegetation period,1996,NA,NA,NA,NCBI,NA,single cell
@@ -115,7 +115,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 114,GCF_020295505.1_ASM2029550v1,GCF_020295505.1,GCF_020295505.1,ASM2029550v1,Pectobacterium brasiliense,OK,SR8,NA,NA,United States,NA,squash,2019,Chloe Wasendorf,NA,NA,NCBI,NA,Whole organism
 115,GCF_020295425.1_ASM2029542v1,GCF_020295425.1,GCF_020295425.1,ASM2029542v1,Pectobacterium brasiliense,OK,SR11,NA,NA,United States,NA,Pumpkin,2019,Chloe Wasendorf,NA,NA,NCBI,NA,Whole organism
 116,GCF_020181655.1_ASM2018165v1,GCF_020181655.1,GCF_020181655.1,ASM2018165v1,Pectobacterium colocasium,OK,LJ1,NA,NA,China,potato,NA,2019,NA,NA,type strain,NCBI,NA,cell culture
-117,GCF_020181375.1_ASM2018137v1,GCF_020181375.1,GCF_020181375.1,ASM2018137v1,Pectobacterium aroidearum,Inconclusive,LJ2,NA,NA,China,potato,NA,2019,NA,NA,NA,NCBI,NA,cell culture
+117,GCF_020181375.1_ASM2018137v1,GCF_020181375.1,GCF_020181375.1,ASM2018137v1,Pectobacterium aroidearum,OK,LJ2,NA,NA,China,potato,NA,2019,NA,NA,NA,NCBI,NA,cell culture
 118,GCF_020166465.1_ASM2016646v1,GCF_020166465.1,GCF_020166465.1,ASM2016646v1,Pectobacterium versatile,Inconclusive,KC02,NA,NA,China,Chinese cabbage,NA,2015,NA,NA,NA,NCBI,NA,tissue sample
 119,GCF_020166455.1_ASM2016645v1,GCF_020166455.1,GCF_020166455.1,ASM2016645v1,Pectobacterium versatile,Inconclusive,KC03,NA,NA,China,Chinese cabbage,NA,2015,NA,NA,NA,NCBI,NA,tissue sample
 120,GCF_020166435.1_ASM2016643v1,GCF_020166435.1,GCF_020166435.1,ASM2016643v1,Pectobacterium versatile,Inconclusive,KC01,NA,NA,China,Chinese cabbage,NA,2015,NA,NA,NA,NCBI,NA,tissue sample
@@ -133,7 +133,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 132,GCF_018094685.1_ASM1809468v1,GCF_018094685.1,GCF_018094685.1,ASM1809468v1,Pectobacterium versatile,OK,NY1765A,NA,NA,United States,potato,NA,2017,NA,NA,NA,NCBI,NA,Tissue
 133,GCF_018094665.1_ASM1809466v1,GCF_018094665.1,GCF_018094665.1,ASM1809466v1,Pectobacterium versatile,OK,NY1788A,NA,NA,United States,potato,NA,2017,NA,NA,NA,NCBI,NA,Tissue
 134,GCF_017255075.1_ASM1725507v1,GCF_017255075.1,GCF_017255075.1,ASM1725507v1,Pectobacterium brasiliense,OK,BL-2,NA,NA,China,potato,NA,2018,NA,cool,NA,NCBI,NA,NA
-135,GCF_015689195.1_ASM1568919v1,GCF_015689195.1,GCF_015689195.1,ASM1568919v1,Pectobacterium aroidearum,Inconclusive,L6,NA,NA,China,Syngonium podophyllum,leaf,2019,Peidong Xu; Huanwei Wang; Chunxiu Qin; Zengping Li; Chunhua Lin; Wenbo Liu,NA,NA,NCBI,representative genome,NA
+135,GCF_015689195.1_ASM1568919v1,GCF_015689195.1,GCF_015689195.1,ASM1568919v1,Pectobacterium aroidearum,OK,L6,NA,NA,China,Syngonium podophyllum,leaf,2019,Peidong Xu; Huanwei Wang; Chunxiu Qin; Zengping Li; Chunhua Lin; Wenbo Liu,NA,NA,NCBI,representative genome,NA
 136,GCF_016988595.1_ASM1698859v1,GCF_016988595.1,GCF_016988595.1,ASM1698859v1,Pectobacterium brasiliense,OK,IPO:3649 NAK:55,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato plant,2013,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 137,GCF_016950315.1_ASM1695031v1,GCF_016950315.1,GCF_016950315.1,ASM1695031v1,Pectobacterium brasiliense,Inconclusive,IPO:0590,NA,NA,Peru,Solanum tuberosum,NA,1979,NA,NA,NA,NCBI,NA,cell culture
 138,GCF_016950285.1_ASM1695028v1,GCF_016950285.1,GCF_016950285.1,ASM1695028v1,Pectobacterium brasiliense,OK,IPO:0821 SCRI:133,NA,NA,Israel,Solanum tuberosum,NA,1986,NA,NA,NA,NCBI,NA,cell culture
@@ -158,7 +158,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 157,GCF_016949795.1_ASM1694979v1,GCF_016949795.1,GCF_016949795.1,ASM1694979v1,Pectobacterium brasiliense,OK,IPO:4073 NAK:248,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 158,GCF_016949775.1_ASM1694977v1,GCF_016949775.1,GCF_016949775.1,ASM1694977v1,Pectobacterium brasiliense,OK,NAK:250,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato plant,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 159,GCF_016949735.1_ASM1694973v1,GCF_016949735.1,GCF_016949735.1,ASM1694973v1,Pectobacterium brasiliense,OK,NAK:252,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
-160,GCF_016949695.1_ASM1694969v1,GCF_016949695.1,GCF_016949695.1,ASM1694969v1,Pectobacterium polaris,Inconclusive,IPO:4059 NAK:253,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+160,GCF_016949695.1_ASM1694969v1,GCF_016949695.1,GCF_016949695.1,ASM1694969v1,Pectobacterium polaris,OK,IPO:4059 NAK:253,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 161,GCF_016949705.1_ASM1694970v1,GCF_016949705.1,GCF_016949705.1,ASM1694970v1,Pectobacterium brasiliense,OK,NAK:254,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 162,GCF_016949655.1_ASM1694965v1,GCF_016949655.1,GCF_016949655.1,ASM1694965v1,Pectobacterium brasiliense,OK,IPO:4066 NAK:259,avirulent,NA,Netherlands,Solanum tuberosum,Asymptomatic potato tuber,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 163,GCF_016949595.1_ASM1694959v1,GCF_016949595.1,GCF_016949595.1,ASM1694959v1,Pectobacterium brasiliense,OK,IPO:3707 NAK:377 77a,NA,NA,Netherlands,Solanum tuberosum cv Primura,Stem parts; potato,2013,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
@@ -181,7 +181,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 180,GCF_016949145.1_ASM1694914v1,GCF_016949145.1,GCF_016949145.1,ASM1694914v1,Pectobacterium brasiliense,OK,NAK:432,avirulent,NA,Netherlands,Insect,Bulk of insects caught with suction trap,2018,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 181,GCF_016949135.1_ASM1694913v1,GCF_016949135.1,GCF_016949135.1,ASM1694913v1,Pectobacterium brasiliense,OK,NAK:434,avirulent,NA,Netherlands,Insect,Collection solution with of insect suction trap; insectes filtered out,2018,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 182,GCF_016949095.1_ASM1694909v1,GCF_016949095.1,GCF_016949095.1,ASM1694909v1,Pectobacterium brasiliense,Inconclusive,NAK:470,NA,NA,Netherlands,NA,water,2017,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
-183,GCF_016949085.1_ASM1694908v1,GCF_016949085.1,GCF_016949085.1,ASM1694908v1,Pectobacterium aquaticum,Failed,NAK:467,avirulent,NA,Netherlands,NA,water,2017,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
+183,GCF_016949085.1_ASM1694908v1,GCF_016949085.1,GCF_016949085.1,ASM1694908v1,Pectobacterium quasiaquaticum,Corrected,NAK:467,avirulent,NA,Netherlands,NA,water,2017,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 184,GCF_016949075.1_ASM1694907v1,GCF_016949075.1,GCF_016949075.1,ASM1694907v1,Pectobacterium versatile,OK,IPO:0139 NAK:93 PCC:139,NA,NA,NA,Solanum tuberosum,NA,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 185,GCF_016949055.1_ASM1694905v1,GCF_016949055.1,GCF_016949055.1,ASM1694905v1,Pectobacterium brasiliense,Inconclusive,NAK:468,avirulent,NA,Netherlands,NA,water,2017,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
 186,GCF_016949035.1_ASM1694903v1,GCF_016949035.1,GCF_016949035.1,ASM1694903v1,Pectobacterium versatile,OK,NAK:94 PCC:163,NA,NA,NA,Solanum tuberosum,NA,NA,Robert Vreeburg,NA,NA,NCBI,NA,cell culture
@@ -199,7 +199,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 198,GCF_016742935.1_ASM1674293v1,GCF_016742935.1,GCF_016742935.1,ASM1674293v1,Pectobacterium carotovorum,OK,NY1767A,NA,NA,United States,potato,NA,2017,NA,NA,NA,NCBI,NA,Cell culture
 199,GCF_016742895.1_ASM1674289v1,GCF_016742895.1,GCF_016742895.1,ASM1674289v1,Pectobacterium carotovorum,OK,NY1786A,NA,NA,United States,potato,NA,2017,NA,NA,NA,NCBI,NA,Cell culture
 200,GCF_016742905.1_ASM1674290v1,GCF_016742905.1,GCF_016742905.1,ASM1674290v1,Pectobacterium atrosepticum,OK,NY1720A,NA,NA,United States,potato,NA,2017,NA,NA,NA,NCBI,NA,Cell culture
-201,GCA_016642095.1_ASM1664209v1,GCA_016642095.1,GCA_016642095.1,ASM1664209v1,Pectobacterium carotovorum,Failed,15,NA,NA,Republic of Korea,Drosophila,NA,2017,NA,NA,NA,NCBI,NA,whole organism
+201,GCA_016642095.1_ASM1664209v1,GCA_016642095.1,GCA_016642095.1,ASM1664209v1,Pectobacterium versatile,Corrected,15,NA,NA,Republic of Korea,Drosophila,NA,2017,NA,NA,NA,NCBI,NA,whole organism
 202,GCF_016415585.1_ASM1641558v1,GCF_016415585.1,GCF_016415585.1,ASM1641558v1,Pectobacterium carotovorum,Inconclusive,2A,NA,NA,Russian Federation,NA,Solanum tuberosum,1974,A.N. Evtushenkov,NA,NA,NCBI,NA,cell culture
 203,GCF_016126895.1_ASM1612689v1,GCF_016126895.1,GCF_016126895.1,ASM1612689v1,Pectobacterium parmentieri,OK,WC19161,NA,NA,China,Solanum tuberosum,potato plants,2019,NA,village biome[ENVO:01000246],NA,NCBI,NA,NA
 204,GCF_016107195.1_ASM1610719v1,GCF_016107195.1,GCF_016107195.1,ASM1610719v1,Pectobacterium parmentieri,OK,NY1533B,NA,NA,United States,potato,NA,2016,NA,NA,NA,NCBI,NA,Tissue
@@ -215,25 +215,25 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 214,GCF_003990515.2_ASM399051v2,GCF_003990515.2,GCF_003990515.2,ASM399051v2,Pectobacterium brasiliense,OK,F126,NA,NA,Russian Federation,Solanum tuberosum,NA,2012,NA,NA,NA,NCBI,NA,cell culture
 215,GCF_002920045.2_ASM292004v2,GCF_002920045.2,GCF_002920045.2,ASM292004v2,Pectobacterium parmentieri,OK,PB20,NA,NA,Russian Federation,NA,sewage water at the washing station of potato storage facility,2014,Phytoengineering Ltd,NA,NA,NCBI,NA,cell culture
 216,GCF_002921235.2_ASM292123v2,GCF_002921235.2,GCF_002921235.2,ASM292123v2,Pectobacterium versatile,OK,F131,NA,NA,Russian Federation,NA,Potato with the soft rot symptoms,1993,Alexander N. Ignatov,NA,NA,NCBI,NA,NA
-217,GCF_015709085.1_ASM1570908v1,GCF_015709085.1,GCF_015709085.1,ASM1570908v1,Pectobacterium carotovorum,Inconclusive,PCCS1,NA,NA,China,Zantedeschia sp. (colored calla lily),NA,NA,NA,NA,NA,NCBI,NA,NA
-218,GCF_015277635.1_ASM1527763v1,GCF_015277635.1,GCF_015277635.1,ASM1527763v1,Pectobacterium carotovorum,Inconclusive,PCCS1,NA,NA,China,NA,calla lily,2015,Nanjing Agricultural University,NA,NA,NCBI,NA,NA
+217,GCF_015709085.1_ASM1570908v1,GCF_015709085.1,GCF_015709085.1,ASM1570908v1,Pectobacterium aroidearum,Corrected,PCCS1,NA,NA,China,Zantedeschia sp. (colored calla lily),NA,NA,NA,NA,NA,NCBI,NA,NA
+218,GCF_015277635.1_ASM1527763v1,GCF_015277635.1,GCF_015277635.1,ASM1527763v1,Pectobacterium aroidearum,Corrected,PCCS1,NA,NA,China,NA,calla lily,2015,Nanjing Agricultural University,NA,NA,NCBI,NA,NA
 219,GCF_014946905.1_ASM1494690v1,GCF_014946905.1,GCF_014946905.1,ASM1494690v1,Pectobacterium quasiaquaticum,OK,FL63-S17,NA,NA,France,NA,fresh water,2017,NA,ENVO:00000873,NA,NCBI,NA,NA
 220,GCF_014946865.1_ASM1494686v1,GCF_014946865.1,GCF_014946865.1,ASM1494686v1,Pectobacterium quasiaquaticum,OK,FL60-S17,NA,NA,France,NA,fresh water,2017,NA,ENVO:00000873,NA,NCBI,NA,NA
 221,GCF_014946835.1_ASM1494683v1,GCF_014946835.1,GCF_014946835.1,ASM1494683v1,Pectobacterium quasiaquaticum,OK,A535-S3-A17,NA,NA,France,NA,fresh water,2017,NA,ENVO:00000873,NA,NCBI,NA,NA
 222,GCF_014946845.1_ASM1494684v1,GCF_014946845.1,GCF_014946845.1,ASM1494684v1,Pectobacterium quasiaquaticum,OK,A411-S4-F17,NA,NA,France,NA,fresh water,2017,NA,ENVO:00000873,NA,NCBI,representative genome,NA
 223,GCF_014946805.1_ASM1494680v1,GCF_014946805.1,GCF_014946805.1,ASM1494680v1,Pectobacterium quasiaquaticum,OK,A113-S21-F16,NA,NA,France,NA,fresh water,2016,NA,ENVO:00000873,NA,NCBI,NA,NA
-224,GCF_014604455.1_ASM1460445v1,GCF_014604455.1,GCF_014604455.1,ASM1460445v1,Pectobacterium carotovorum,Failed,Ecc15,NA,NA,France,NA,infected potato plant,1978,NA,NA,NA,NCBI,NA,Bacterial strain
+224,GCF_014604455.1_ASM1460445v1,GCF_014604455.1,GCF_014604455.1,ASM1460445v1,Pectobacterium versatile,Corrected,Ecc15,NA,NA,France,NA,infected potato plant,1978,NA,NA,NA,NCBI,NA,Bacterial strain
 225,GCF_014164815.1_ASM1416481v1,GCF_014164815.1,GCF_014164815.1,ASM1416481v1,Pectobacterium carotovorum,OK,BL-4,NA,NA,China,potato,NA,2018,NA,cold area,NA,NCBI,NA,NA
-226,GCF_014050115.1_ASM1405011v1,GCF_014050115.1,GCF_014050115.1,ASM1405011v1,Pectobacterium aroidearum,Inconclusive,MY19,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
-227,GCF_014042225.1_ASM1404222v1,GCF_014042225.1,GCF_014042225.1,ASM1404222v1,Pectobacterium aroidearum,Inconclusive,KC20,NA,NA,China,Brassica rapa,NA,2016,NA,NA,NA,NCBI,NA,tissue sample
-228,GCF_013913645.1_ASM1391364v1,GCF_013913645.1,GCF_013913645.1,ASM1391364v1,Pectobacterium aroidearum,Inconclusive,MY18,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
-229,GCF_013913595.1_ASM1391359v1,GCF_013913595.1,GCF_013913595.1,ASM1391359v1,Pectobacterium aroidearum,Inconclusive,MY10,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
-230,GCF_013913605.1_ASM1391360v1,GCF_013913605.1,GCF_013913605.1,ASM1391360v1,Pectobacterium aroidearum,Inconclusive,MY7,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
-231,GCF_013913585.1_ASM1391358v1,GCF_013913585.1,GCF_013913585.1,ASM1391358v1,Pectobacterium aroidearum,Inconclusive,MY11,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
-232,GCF_013913555.1_ASM1391355v1,GCF_013913555.1,GCF_013913555.1,ASM1391355v1,Pectobacterium aroidearum,Inconclusive,MY2,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
+226,GCF_014050115.1_ASM1405011v1,GCF_014050115.1,GCF_014050115.1,ASM1405011v1,Pectobacterium aroidearum,OK,MY19,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
+227,GCF_014042225.1_ASM1404222v1,GCF_014042225.1,GCF_014042225.1,ASM1404222v1,Pectobacterium aroidearum,OK,KC20,NA,NA,China,Brassica rapa,NA,2016,NA,NA,NA,NCBI,NA,tissue sample
+228,GCF_013913645.1_ASM1391364v1,GCF_013913645.1,GCF_013913645.1,ASM1391364v1,Pectobacterium aroidearum,OK,MY18,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
+229,GCF_013913595.1_ASM1391359v1,GCF_013913595.1,GCF_013913595.1,ASM1391359v1,Pectobacterium aroidearum,OK,MY10,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
+230,GCF_013913605.1_ASM1391360v1,GCF_013913605.1,GCF_013913605.1,ASM1391360v1,Pectobacterium aroidearum,OK,MY7,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
+231,GCF_013913585.1_ASM1391358v1,GCF_013913585.1,GCF_013913585.1,ASM1391358v1,Pectobacterium aroidearum,OK,MY11,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
+232,GCF_013913555.1_ASM1391355v1,GCF_013913555.1,GCF_013913555.1,ASM1391355v1,Pectobacterium aroidearum,OK,MY2,NA,NA,China,Amorphophallus konjac,NA,2019,NA,NA,NA,NCBI,NA,tissue sample
 233,GCF_013488025.1_ASM1348802v1,GCF_013488025.1,GCF_013488025.1,ASM1348802v1,Pectobacterium carotovorum,OK,WPP14,NA,NA,United States,potato,NA,2015,NA,NA,NA,NCBI,representative genome,cell culture
 234,GCF_013450045.1_ASM1345004v1,GCF_013450045.1,GCF_013450045.1,ASM1345004v1,Pectobacterium odoriferum,OK,CFBP8735,NA,NA,France,NA,NA,2016,NA,fresh river water,NA,NCBI,NA,NA
-235,GCF_013449715.1_ASM1344971v1,GCF_013449715.1,GCF_013449715.1,ASM1344971v1,Pectobacterium aroidearum,Inconclusive,CFBP8737,NA,NA,France,NA,NA,2015,NA,CFBP8737,NA,NCBI,NA,NA
+235,GCF_013449715.1_ASM1344971v1,GCF_013449715.1,GCF_013449715.1,ASM1344971v1,Pectobacterium aroidearum,OK,CFBP8737,NA,NA,France,NA,NA,2015,NA,CFBP8737,NA,NCBI,NA,NA
 236,GCF_013449685.1_ASM1344968v1,GCF_013449685.1,GCF_013449685.1,ASM1344968v1,Pectobacterium brasiliense,Inconclusive,CFBP8736,NA,NA,France,NA,NA,2016,NA,fresh river water,NA,NCBI,NA,NA
 237,GCF_013449675.1_ASM1344967v1,GCF_013449675.1,GCF_013449675.1,ASM1344967v1,Pectobacterium versatile,OK,CFBP5378,NA,NA,United Kingdom,Solanum tuberosum,NA,1995,NA,infected host plant,NA,NCBI,NA,NA
 238,GCF_013449655.1_ASM1344965v1,GCF_013449655.1,GCF_013449655.1,ASM1344965v1,Pectobacterium versatile,OK,CFBP5669,NA,NA,France,Primula obconica,NA,1978,NA,infected host plant,NA,NCBI,NA,NA
@@ -295,18 +295,18 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 294,GCF_003628015.1_ASM362801v1,GCF_003628015.1,GCF_003628015.1,ASM362801v1,Pectobacterium parmentieri,OK,IFB5626,NA,NA,Poland,Solanum tuberosum,tuber,2014,Sabina Zoledowska,NA,NA,NCBI,NA,cell culture
 295,GCF_003595135.1_ASM359513v1,GCF_003595135.1,GCF_003595135.1,ASM359513v1,Pectobacterium versatile,OK,S4.16.03.3K,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
 296,GCF_003595125.1_ASM359512v1,GCF_003595125.1,GCF_003595125.1,ASM359512v1,Pectobacterium carotovorum,OK,S1-A16,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2017,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
-297,GCF_003595115.1_ASM359511v1,GCF_003595115.1,GCF_003595115.1,ASM359511v1,Pectobacterium carotovorum,Failed,S1.16.01.3K,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
+297,GCF_003595115.1_ASM359511v1,GCF_003595115.1,GCF_003595115.1,ASM359511v1,Pectobacterium brasiliense,Corrected,S1.16.01.3K,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
 298,GCF_003595065.1_ASM359506v1,GCF_003595065.1,GCF_003595065.1,ASM359506v1,Pectobacterium versatile,OK,S4.16.03.3I,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
-299,GCF_003595055.1_ASM359505v1,GCF_003595055.1,GCF_003595055.1,ASM359505v1,Pectobacterium carotovorum,Inconclusive,S1.15.11.2D,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2015,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
+299,GCF_003595055.1_ASM359505v1,GCF_003595055.1,GCF_003595055.1,ASM359505v1,Pectobacterium brasiliense,Corrected,S1.15.11.2D,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2015,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
 300,GCF_003595035.1_ASM359503v1,GCF_003595035.1,GCF_003595035.1,ASM359503v1,Pectobacterium polaris,OK,S4.16.03.2B,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
 301,GCF_003594995.1_ASM359499v1,GCF_003594995.1,GCF_003594995.1,ASM359499v1,Pectobacterium versatile,OK,S4.16.03.3F,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
-302,GCF_003594975.1_ASM359497v1,GCF_003594975.1,GCF_003594975.1,ASM359497v1,Pectobacterium carotovorum,Failed,S4.16.03.1C,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
+302,GCF_003594975.1_ASM359497v1,GCF_003594975.1,GCF_003594975.1,ASM359497v1,Pectobacterium brasiliense,Corrected,S4.16.03.1C,NA,NA,Morocco,Solanum tuberosum,Potato with blackleg symptoms,2016,Said Oulghazi,NA,NA,NCBI,NA,Tissue sample
 303,GCF_003571485.1_ASM357148v1,GCF_003571485.1,GCF_003571485.1,ASM357148v1,Pectobacterium versatile,OK,SCC1,NA,NA,Finland,Solanum tuberosum,NA,1982,NA,NA,NA,NCBI,representative genome,whole organism
 304,GCF_003402555.1_Sfl_assembly01,GCF_003402555.1,GCF_003402555.1,Sfl_assembly01,Pectobacterium versatile,OK,RMIT1,NA,NA,NA,Allium triquetrum,NA,NA,NA,NA,NA,NCBI,NA,NA
 305,GCF_003312345.1_ASM331234v1,GCF_003312345.1,GCF_003312345.1,ASM331234v1,Pectobacterium peruviense,OK,A97-S13-F16,NA,NA,France,NA,fresh water from alpine river,2016,Marie Anne Barny,fresh water; alpine river,NA,NCBI,NA,bacterial culture
 306,GCF_003312355.1_ASM331235v1,GCF_003312355.1,GCF_003312355.1,ASM331235v1,Pectobacterium peruviense,OK,A350-S18-N16,NA,NA,France,NA,fresh water from alpine river,2016,Marie Anne Barny,fresh water; alpine river,NA,NCBI,NA,bacterial culture
 307,GCF_001429565.2_ASM142956v2,GCF_001429565.2,GCF_001429565.2,ASM142956v2,Pectobacterium brasiliense,OK,PcbHPI01,NA,NA,South Africa,Cucumis sativus,NA,2012,NA,Semi-arid (temperate),NA,NCBI,NA,Cell culture
-308,GCF_003186045.1_ASM318604v1,GCF_003186045.1,GCF_003186045.1,ASM318604v1,Pectobacterium carotovorum,Inconclusive,ATCC 39048,NA,NA,United States,NA,NA,1981,NA,NA,NA,NCBI,NA,Cell culture
+308,GCF_003186045.1_ASM318604v1,GCF_003186045.1,GCF_003186045.1,ASM318604v1,Pectobacterium brasiliense,Corrected,ATCC 39048,NA,NA,United States,NA,NA,1981,NA,NA,NA,NCBI,NA,Cell culture
 309,GCF_003121785.1_ASM312178v1,GCF_003121785.1,GCF_003121785.1,ASM312178v1,Pectobacterium parmentieri,OK,SS90,NA,NA,Pakistan,Potato,Plant stem,2017,Soahib Sarfraz,Crops field,NA,NCBI,NA,Tissue sample
 310,GCF_003121765.1_ASM312176v1,GCF_003121765.1,GCF_003121765.1,ASM312176v1,Pectobacterium versatile,OK,SS96,NA,NA,Pakistan,Potato,Plant stem,2017,Soahib Sarfraz,Crops field,NA,NCBI,NA,Tissue sample
 311,GCF_003121725.1_ASM312172v1,GCF_003121725.1,GCF_003121725.1,ASM312172v1,Pectobacterium atrosepticum,OK,SS26,NA,NA,Pakistan,Potato,Plant stem,2016,Soahib Sarfraz,Crops field,NA,NCBI,NA,Tissue sample
@@ -338,8 +338,8 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 337,GCF_002764035.1_ASM276403v1,GCF_002764035.1,GCF_002764035.1,ASM276403v1,Pectobacterium brasiliense,OK,BZA12,NA,NA,China,cucumber,NA,2015,NA,NA,NA,NCBI,NA,cell culture
 338,GCF_002307355.1_ASM230735v1,GCF_002307355.1,GCF_002307355.1,ASM230735v1,Pectobacterium polaris,OK,NIBIO1006,NA,NA,Norway,Solanum tuberosum,NA,2010,NA,NA,type strain,NCBI,NA,tissue sample
 339,GCF_002288545.1_ASM228854v1,GCF_002288545.1,GCF_002288545.1,ASM228854v1,Pectobacterium polaris,OK,NIBIO1392,NA,NA,Norway,Solanum tuberosum,NA,2013,NA,NA,NA,NCBI,representative genome,tissue sample
-340,GCF_002250255.1_Bf45_V1,GCF_002250255.1,GCF_002250255.1,Bf45_V1,Pectobacterium carotovorum,Failed,BF45,NA,NA,Mexico,Nicotiana sp.,NA,1997,Lourdes Rodriguez,Tobacco plantation,NA,NCBI,NA,Cell culture
-341,GCF_002250215.1_101_V1,GCF_002250215.1,GCF_002250215.1,101_V1,Pectobacterium carotovorum,Failed,BF20,NA,NA,Mexico,Opuntia ficus-indica,NA,1997,Hilda Silva,Semi-desertic,NA,NCBI,NA,Cell culture
+340,GCF_002250255.1_Bf45_V1,GCF_002250255.1,GCF_002250255.1,Bf45_V1,Pectobacterium brasiliense,Corrected,BF45,NA,NA,Mexico,Nicotiana sp.,NA,1997,Lourdes Rodriguez,Tobacco plantation,NA,NCBI,NA,Cell culture
+341,GCF_002250215.1_101_V1,GCF_002250215.1,GCF_002250215.1,101_V1,Pectobacterium brasiliense,Corrected,BF20,NA,NA,Mexico,Opuntia ficus-indica,NA,1997,Hilda Silva,Semi-desertic,NA,NCBI,NA,Cell culture
 342,GCF_002068115.1_ASM206811v1,GCF_002068115.1,GCF_002068115.1,ASM206811v1,Pectobacterium brasiliense,OK,SX309,NA,NA,China,cucumber,NA,2015,NA,NA,NA,NCBI,NA,Cell culture
 343,GCF_001984535.1_ASM198453v1,GCF_001984535.1,GCF_001984535.1,ASM198453v1,Pectobacterium actinidiae,OK,ICMP 19971,NA,NA,Republic of Korea,Actinidia,NA,2016,NA,NA,NA,NCBI,NA,bacteria
 344,GCF_001984525.1_ASM198452v1,GCF_001984525.1,GCF_001984525.1,ASM198452v1,Pectobacterium actinidiae,OK,ICMP 9972,NA,NA,Republic of Korea,Actinidia,NA,2016,NA,NA,NA,NCBI,NA,bacteria
@@ -351,7 +351,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 350,GCF_000260925.1_ASM26092v1,GCF_000260925.1,GCF_000260925.1,ASM26092v1,Pectobacterium parmentieri,OK,SCC3193,NA,NA,Finland,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
 351,GCF_000291725.1_PecWas1.0,GCF_000291725.1,GCF_000291725.1,PecWas1.0,Pectobacterium wasabiae,OK,CFBP 3304,NA,NA,Finland,Eutrema japonicum,root,NA,NA,NA,type strain,NCBI,NA,NA
 352,GCF_001238575.1_ASM123857v1,GCF_001238575.1,GCF_001238575.1,ASM123857v1,Pectobacterium brasiliense,OK,BD255,NA,NA,South Africa,Potato,NA,2011,NA,NA,NA,NCBI,NA,cell culture
-353,GCF_000294535.1_ASM29453v1,GCF_000294535.1,GCF_000294535.1,ASM29453v1,Pectobacterium carotovorum,Failed,PCC21,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
+353,GCF_000294535.1_ASM29453v1,GCF_000294535.1,GCF_000294535.1,ASM29453v1,Pectobacterium brasiliense,Corrected,PCC21,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
 354,GCF_001039055.1_ASM103905v1,GCF_001039055.1,GCF_001039055.1,ASM103905v1,Pectobacterium carotovorum,OK,ICMP 5702,NA,NA,Denmark,potato,NA,NA,NA,NA,type strain,NCBI,NA,DNA
 355,GCF_001039065.1_ASM103906v1,GCF_001039065.1,GCF_001039065.1,ASM103906v1,Pectobacterium peruviense,OK,UGC32,NA,NA,Peru,potato,NA,NA,NA,NA,NA,NCBI,representative genome,DNA
 356,GCF_001038675.1_ASM103867v1,GCF_001038675.1,GCF_001038675.1,ASM103867v1,Pectobacterium brasiliense,OK,ICMP 19477,NA,NA,New Zealand,NA,potato,2004,NA,NA,NA,NCBI,NA,NA
@@ -393,63 +393,63 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 392,GCF_000696465.1_ASM69646v1,GCF_000696465.1,GCF_000696465.1,ASM69646v1,Pectobacterium atrosepticum,OK,JG10-08,NA,NA,China,Solanum tuberosum,black leg symptoms of Solanum tuberosum,2010,NA,NA,NA,NCBI,NA,NA
 393,GCF_000632375.1_Pectobacterium_wasabiae_CFIA1002,GCF_000632375.1,GCF_000632375.1,Pectobacterium_wasabiae_CFIA1002,Pectobacterium parmentieri,OK,CFIA1002,NA,NA,Canada,potato,NONE,2007,NA,NA,NA,NCBI,NA,NA
 394,GCF_000024645.1_ASM2464v1,GCF_000024645.1,GCF_000024645.1,ASM2464v1,Pectobacterium parmentieri,OK,WPP163,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
-395,GCF_000023605.1_ASM2360v1,GCF_000023605.1,GCF_000023605.1,ASM2360v1,Pectobacterium carotovorum,Inconclusive,PC1,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
+395,GCF_000023605.1_ASM2360v1,GCF_000023605.1,GCF_000023605.1,ASM2360v1,Pectobacterium aroidearum,Corrected,PC1,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
 396,GCF_000011605.1_ASM1160v1,GCF_000011605.1,GCF_000011605.1,ASM1160v1,Pectobacterium atrosepticum,OK,NA,NA,NA,NA,NA,NA,1985,NA,NA,NA,NCBI,NA,NA
-397,JGAR-030718-1,JGAR-030718-1,NA,NA,Pectobacterium brasiliense,NA,JGAR-030718-1,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2018,NA,NA,NA,WUR,NA,NA
-398,JGAR-080719-2,JGAR-080719-2,NA,NA,Pectobacterium brasiliense,NA,JGAR-080719-2,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-399,JGAR-100719-1,JGAR-100719-1,NA,NA,Pectobacterium brasiliense,NA,JGAR-100719-1,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-400,JGAR-120719-4,JGAR-120719-4,NA,NA,Pectobacterium brasiliense,NA,JGAR-120719-4,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-401,NAK238,NAK238,NA,NA,Pectobacterium brasiliense,NA,NAK238,avirulent,positive,Netherlands,Solanum tuberosum,potato tuber,2016,NA,NA,NA,WUR,NA,NA
-402,NAK246,NAK246,NA,NA,Pectobacterium brasiliense,NA,NAK246,avirulent,positive,Netherlands,Solanum tuberosum,potato tuber,2016,NA,NA,NA,WUR,NA,NA
-403,NAK616,NAK616,NA,NA,Pectobacterium brasiliense,NA,NAK616,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-404,NAK617,NAK617,NA,NA,Pectobacterium brasiliense,NA,NAK617,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-405,NAK638,NAK638,NA,NA,Pectobacterium brasiliense,NA,NAK638,NA,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-406,NAK641,NAK641,NA,NA,Pectobacterium brasiliense,NA,NAK641,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-407,NAK644,NAK644,NA,NA,Pectobacterium brasiliense,NA,NAK644,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-408,NAK650,NAK650,NA,NA,Pectobacterium brasiliense,NA,NAK650,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
-409,NAK673,NAK673,NA,NA,Pectobacterium brasiliense,NA,NAK673,NA,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-410,NAK679,NAK679,NA,NA,Pectobacterium brasiliense,NA,NAK679,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-411,NAK682,NAK682,NA,NA,Pectobacterium brasiliense,NA,NAK682,virulent,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-412,NAK683,NAK683,NA,NA,Pectobacterium brasiliense,NA,NAK683,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-413,NAK698,NAK698,NA,NA,Pectobacterium brasiliense,NA,NAK698,NA,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-414,NAK700,NAK700,NA,NA,Pectobacterium brasiliense,NA,NAK700,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-415,NAK701,NAK701,NA,NA,Pectobacterium brasiliense,NA,NAK701,virulent,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-416,NAK709,NAK709,NA,NA,Pectobacterium brasiliense,NA,NAK709,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-417,NAK716,NAK716,NA,NA,Pectobacterium brasiliense,NA,NAK716,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-418,NAK719,NAK719,NA,NA,Pectobacterium brasiliense,NA,NAK719,NA,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-419,NAK727,NAK727,NA,NA,Pectobacterium brasiliense,NA,NAK727,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
-420,104326-106-001,104326-106-001,NA,NA,Pectobacterium carotovorum,NA,K 3536,NA,NA,Netherlands,Kalanchoe,NA,1997,NA,NA,NA,NVWA,NA,NA
-421,104326-106-002,104326-106-002,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,K 3539,NA,NA,Netherlands,Spathiphyllum,NA,2003,NA,NA,NA,NVWA,NA,NA
-422,104326-106-003,104326-106-003,NA,NA,Pectobacterium odoriferum,NA,K 3542,NA,NA,Netherlands,Delphinium,NA,2003,NA,NA,NA,NVWA,NA,NA
-423,104326-106-004,104326-106-004,NA,NA,Pectobacterium polonicum,NA,K 3545,NA,NA,Netherlands,Calathea,NA,2004,NA,NA,NA,NVWA,NA,NA
-424,104326-106-005,104326-106-005,NA,NA,Pectobacterium versatile,NA,K 3549,NA,NA,Netherlands,Cyclamen,NA,2004,NA,NA,NA,NVWA,NA,NA
-425,104326-106-006,104326-106-006,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,K 3550,NA,NA,NA,Lactuca,NA,2004,NA,NA,NA,NVWA,NA,NA
-426,104326-106-007,104326-106-007,NA,NA,Pectobacterium brasiliense,NA,K 3552,NA,NA,Netherlands,Lycopersicon esculentum,NA,2004,NA,NA,NA,NVWA,NA,NA
-427,104326-106-008,104326-106-008,NA,NA,Pectobacterium brasiliense,NA,K 3554,NA,NA,Netherlands,Osteospermum,NA,2004,NA,NA,NA,NVWA,NA,NA
-428,104326-106-023,104326-106-023,NA,NA,Pectobacterium punjabense,NA,PD 5156,NA,NA,Netherlands,Anubias barteri,NA,2005,NA,NA,NA,NVWA,NA,NA
-429,104326-106-025,104326-106-025,NA,NA,Pectobacterium brasiliense,NA,PD 5190,NA,NA,Netherlands,Ornithogalum,NA,2005,NA,NA,NA,NVWA,NA,NA
-430,104326-106-028,104326-106-028,NA,NA,Pectobacterium parmentieri,NA,PD 5801,NA,NA,Netherlands,Solanum tuberosum,NA,2009,NA,NA,NA,NVWA,NA,NA
-431,104326-106-043,104326-106-043,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 6523,NA,NA,Guatemala,Yucca gigantea,NA,2013,NA,NA,NA,NVWA,NA,NA
-432,104326-106-045,104326-106-045,NA,NA,Pectobacterium odoriferum,NA,PD 6860,NA,NA,Netherlands,Daucus carota,NA,2014,NA,NA,NA,NVWA,NA,NA
-433,104326-106-047,104326-106-047,NA,NA,Pectobacterium brasiliense,NA,PD 6952,NA,NA,Netherlands,Cucumis sativus,NA,2014,NA,NA,NA,NVWA,NA,NA
-434,104326-106-048,104326-106-048,NA,NA,Pectobacterium odoriferum,NA,PD 6958,NA,NA,Netherlands,Hyacinthus,NA,2014,NA,NA,NA,NVWA,NA,NA
-435,104326-106-049,104326-106-049,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 6993,NA,NA,Suriname,Solanum melongena,NA,2014,NA,NA,NA,NVWA,NA,NA
-436,104326-106-050,104326-106-050,NA,NA,Pectobacterium versatile,NA,PD 6994,NA,NA,Netherlands,Brassica oleracea,NA,2014,NA,NA,NA,NVWA,NA,NA
-437,104326-106-051,104326-106-051,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 6997,NA,NA,Netherlands,Zantedeschia albomaculata,NA,2014,NA,NA,NA,NVWA,NA,NA
-438,104326-106-052,104326-106-052,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7079,NA,NA,South Africa,Cucurbita pepo,NA,2014,NA,NA,NA,NVWA,NA,NA
-439,104326-106-053,104326-106-053,NA,NA,Pectobacterium brasiliense,NA,PD 7081,NA,NA,Netherlands,Solanum torvum,NA,2015,NA,NA,NA,NVWA,NA,NA
-440,104326-106-054,104326-106-054,NA,NA,Pectobacterium zantedeschiae,NA,PD 7096,NA,NA,Netherlands,Zantedeschia,NA,2015,NA,NA,NA,NVWA,NA,NA
-441,104326-106-055,104326-106-055,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7231,NA,NA,Netherlands,Euphorbia neomontana,NA,2016,NA,NA,NA,NVWA,NA,NA
-442,104326-106-056,104326-106-056,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7232,NA,NA,Netherlands,Dracaena,NA,2015,NA,NA,NA,NVWA,NA,NA
-443,104326-106-057,104326-106-057,NA,NA,Pectobacterium polaris,NA,PD 7233,NA,NA,Netherlands,Brassica oleracea,NA,2015,NA,NA,NA,NVWA,NA,NA
-444,104326-106-058,104326-106-058,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7236,NA,NA,China,Sansevieria trifasciata,NA,2016,NA,NA,NA,NVWA,NA,NA
-445,104326-106-059,104326-106-059,NA,NA,Pectobacterium carotovorum subsp. carotovorum,NA,PD 7271,NA,NA,Netherlands,Zantedeschia,NA,2016,NA,NA,NA,NVWA,NA,NA
-446,104326-106-061,104326-106-061,NA,NA,Pectobacterium polaris,NA,PD 7434,NA,NA,Netherlands,Cucurbita pepo,NA,2018,NA,NA,NA,NVWA,NA,NA
-447,104326-106-064,104326-106-064,NA,NA,Pectobacterium versatile,NA,PD 7537,NA,NA,Netherlands,Hyacinthus,NA,2019,NA,NA,NA,NVWA,NA,NA
-448,104326-106-069,104326-106-069,NA,NA,Pectobacterium versatile,NA,PD 7836,NA,NA,Netherlands,Allium stipitatum,NA,2020,NA,NA,NA,NVWA,NA,NA
-449,104326-106-072,104326-106-072,NA,NA,Pectobacterium actinidiae,NA,PD 7900,NA,NA,India,Dolichos,NA,2020,NA,NA,NA,NVWA,NA,NA
-450,104326-106-073,104326-106-073,NA,NA,Pectobacterium aroidearum,NA,PD 8061,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-451,104326-106-074,104326-106-074,NA,NA,Pectobacterium cacticida,NA,PD 8066,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-452,104326-106-075,104326-106-075,NA,NA,Pectobacterium parmentieri,NA,PD 8070,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-453,104326-106-076,104326-106-076,NA,NA,Pectobacterium parvum,NA,PD 8074,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-454,104326-106-079,104326-106-079,NA,NA,Pectobacterium polaris,NA,PD 8141,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+397,JGAR-030718-1,JGAR-030718-1,NA,NA,Pectobacterium brasiliense,OK,JGAR-030718-1,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2018,NA,NA,NA,WUR,NA,NA
+398,JGAR-080719-2,JGAR-080719-2,NA,NA,Pectobacterium brasiliense,OK,JGAR-080719-2,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+399,JGAR-100719-1,JGAR-100719-1,NA,NA,Pectobacterium brasiliense,OK,JGAR-100719-1,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+400,JGAR-120719-4,JGAR-120719-4,NA,NA,Pectobacterium brasiliense,OK,JGAR-120719-4,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+401,NAK238,NAK238,NA,NA,Pectobacterium brasiliense,OK,NAK238,avirulent,positive,Netherlands,Solanum tuberosum,potato tuber,2016,NA,NA,NA,WUR,NA,NA
+402,NAK246,NAK246,NA,NA,Pectobacterium brasiliense,OK,NAK246,avirulent,positive,Netherlands,Solanum tuberosum,potato tuber,2016,NA,NA,NA,WUR,NA,NA
+403,NAK616,NAK616,NA,NA,Pectobacterium brasiliense,OK,NAK616,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+404,NAK617,NAK617,NA,NA,Pectobacterium brasiliense,OK,NAK617,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+405,NAK638,NAK638,NA,NA,Pectobacterium brasiliense,OK,NAK638,NA,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+406,NAK641,NAK641,NA,NA,Pectobacterium brasiliense,OK,NAK641,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+407,NAK644,NAK644,NA,NA,Pectobacterium brasiliense,OK,NAK644,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+408,NAK650,NAK650,NA,NA,Pectobacterium brasiliense,OK,NAK650,virulent,negative,Netherlands,Solanum tuberosum,potato stem,2019,NA,NA,NA,WUR,NA,NA
+409,NAK673,NAK673,NA,NA,Pectobacterium brasiliense,OK,NAK673,NA,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+410,NAK679,NAK679,NA,NA,Pectobacterium brasiliense,OK,NAK679,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+411,NAK682,NAK682,NA,NA,Pectobacterium brasiliense,OK,NAK682,virulent,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+412,NAK683,NAK683,NA,NA,Pectobacterium brasiliense,OK,NAK683,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+413,NAK698,NAK698,NA,NA,Pectobacterium brasiliense,OK,NAK698,NA,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+414,NAK700,NAK700,NA,NA,Pectobacterium brasiliense,OK,NAK700,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+415,NAK701,NAK701,NA,NA,Pectobacterium brasiliense,OK,NAK701,virulent,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+416,NAK709,NAK709,NA,NA,Pectobacterium brasiliense,OK,NAK709,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+417,NAK716,NAK716,NA,NA,Pectobacterium brasiliense,OK,NAK716,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+418,NAK719,NAK719,NA,NA,Pectobacterium brasiliense,OK,NAK719,NA,positive,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+419,NAK727,NAK727,NA,NA,Pectobacterium brasiliense,OK,NAK727,virulent,negative,Netherlands,Solanum tuberosum,potato tuber,2020,NA,NA,NA,WUR,NA,NA
+420,104326-106-001,104326-106-001,NA,NA,Pectobacterium carotovorum,OK,K 3536,NA,NA,Netherlands,Kalanchoe,NA,1997,NA,NA,NA,NVWA,NA,NA
+421,104326-106-002,104326-106-002,NA,NA,Pectobacterium carotovorum subsp. carotovorum,Inconclusive,K 3539,NA,NA,Netherlands,Spathiphyllum,NA,2003,NA,NA,NA,NVWA,NA,NA
+422,104326-106-003,104326-106-003,NA,NA,Pectobacterium odoriferum,OK,K 3542,NA,NA,Netherlands,Delphinium,NA,2003,NA,NA,NA,NVWA,NA,NA
+423,104326-106-004,104326-106-004,NA,NA,Pectobacterium polonicum,OK,K 3545,NA,NA,Netherlands,Calathea,NA,2004,NA,NA,NA,NVWA,NA,NA
+424,104326-106-005,104326-106-005,NA,NA,Pectobacterium versatile,OK,K 3549,NA,NA,Netherlands,Cyclamen,NA,2004,NA,NA,NA,NVWA,NA,NA
+425,104326-106-006,104326-106-006,NA,NA,Pectobacterium aroidearum,Corrected,K 3550,NA,NA,NA,Lactuca,NA,2004,NA,NA,NA,NVWA,NA,NA
+426,104326-106-007,104326-106-007,NA,NA,Pectobacterium brasiliense,OK,K 3552,NA,NA,Netherlands,Lycopersicon esculentum,NA,2004,NA,NA,NA,NVWA,NA,NA
+427,104326-106-008,104326-106-008,NA,NA,Pectobacterium brasiliense,OK,K 3554,NA,NA,Netherlands,Osteospermum,NA,2004,NA,NA,NA,NVWA,NA,NA
+428,104326-106-023,104326-106-023,NA,NA,Pectobacterium punjabense,OK,PD 5156,NA,NA,Netherlands,Anubias barteri,NA,2005,NA,NA,NA,NVWA,NA,NA
+429,104326-106-025,104326-106-025,NA,NA,Pectobacterium brasiliense,OK,PD 5190,NA,NA,Netherlands,Ornithogalum,NA,2005,NA,NA,NA,NVWA,NA,NA
+430,104326-106-028,104326-106-028,NA,NA,Pectobacterium parmentieri,OK,PD 5801,NA,NA,Netherlands,Solanum tuberosum,NA,2009,NA,NA,NA,NVWA,NA,NA
+431,104326-106-043,104326-106-043,NA,NA,Pectobacterium carotovorum subsp. carotovorum,Inconclusive,PD 6523,NA,NA,Guatemala,Yucca gigantea,NA,2013,NA,NA,NA,NVWA,NA,NA
+432,104326-106-045,104326-106-045,NA,NA,Pectobacterium odoriferum,OK,PD 6860,NA,NA,Netherlands,Daucus carota,NA,2014,NA,NA,NA,NVWA,NA,NA
+433,104326-106-047,104326-106-047,NA,NA,Pectobacterium brasiliense,OK,PD 6952,NA,NA,Netherlands,Cucumis sativus,NA,2014,NA,NA,NA,NVWA,NA,NA
+434,104326-106-048,104326-106-048,NA,NA,Pectobacterium odoriferum,OK,PD 6958,NA,NA,Netherlands,Hyacinthus,NA,2014,NA,NA,NA,NVWA,NA,NA
+435,104326-106-049,104326-106-049,NA,NA,Pectobacterium aroidearum,Corrected,PD 6993,NA,NA,Suriname,Solanum melongena,NA,2014,NA,NA,NA,NVWA,NA,NA
+436,104326-106-050,104326-106-050,NA,NA,Pectobacterium versatile,OK,PD 6994,NA,NA,Netherlands,Brassica oleracea,NA,2014,NA,NA,NA,NVWA,NA,NA
+437,104326-106-051,104326-106-051,NA,NA,Pectobacterium aroidearum,Corrected,PD 6997,NA,NA,Netherlands,Zantedeschia albomaculata,NA,2014,NA,NA,NA,NVWA,NA,NA
+438,104326-106-052,104326-106-052,NA,NA,Pectobacterium brasiliense,Corrected,PD 7079,NA,NA,South Africa,Cucurbita pepo,NA,2014,NA,NA,NA,NVWA,NA,NA
+439,104326-106-053,104326-106-053,NA,NA,Pectobacterium brasiliense,OK,PD 7081,NA,NA,Netherlands,Solanum torvum,NA,2015,NA,NA,NA,NVWA,NA,NA
+440,104326-106-054,104326-106-054,NA,NA,Pectobacterium zantedeschiae,OK,PD 7096,NA,NA,Netherlands,Zantedeschia,NA,2015,NA,NA,NA,NVWA,NA,NA
+441,104326-106-055,104326-106-055,NA,NA,Pectobacterium aroidearum,Corrected,PD 7231,NA,NA,Netherlands,Euphorbia neomontana,NA,2016,NA,NA,NA,NVWA,NA,NA
+442,104326-106-056,104326-106-056,NA,NA,Pectobacterium carotovorum subsp. carotovorum,Inconclusive,PD 7232,NA,NA,Netherlands,Dracaena,NA,2015,NA,NA,NA,NVWA,NA,NA
+443,104326-106-057,104326-106-057,NA,NA,Pectobacterium polaris,OK,PD 7233,NA,NA,Netherlands,Brassica oleracea,NA,2015,NA,NA,NA,NVWA,NA,NA
+444,104326-106-058,104326-106-058,NA,NA,Pectobacterium carotovorum subsp. carotovorum,Inconclusive,PD 7236,NA,NA,China,Sansevieria trifasciata,NA,2016,NA,NA,NA,NVWA,NA,NA
+445,104326-106-059,104326-106-059,NA,NA,Pectobacterium aroidearum,Corrected,PD 7271,NA,NA,Netherlands,Zantedeschia,NA,2016,NA,NA,NA,NVWA,NA,NA
+446,104326-106-061,104326-106-061,NA,NA,Pectobacterium polaris,OK,PD 7434,NA,NA,Netherlands,Cucurbita pepo,NA,2018,NA,NA,NA,NVWA,NA,NA
+447,104326-106-064,104326-106-064,NA,NA,Pectobacterium versatile,OK,PD 7537,NA,NA,Netherlands,Hyacinthus,NA,2019,NA,NA,NA,NVWA,NA,NA
+448,104326-106-069,104326-106-069,NA,NA,Pectobacterium versatile,OK,PD 7836,NA,NA,Netherlands,Allium stipitatum,NA,2020,NA,NA,NA,NVWA,NA,NA
+449,104326-106-072,104326-106-072,NA,NA,Pectobacterium actinidiae,OK,PD 7900,NA,NA,India,Dolichos,NA,2020,NA,NA,NA,NVWA,NA,NA
+450,104326-106-073,104326-106-073,NA,NA,Pectobacterium aroidearum,OK,PD 8061,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+451,104326-106-074,104326-106-074,NA,NA,Pectobacterium cacticida,OK,PD 8066,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+452,104326-106-075,104326-106-075,NA,NA,Pectobacterium parmentieri,OK,PD 8070,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+453,104326-106-076,104326-106-076,NA,NA,Pectobacterium parvum,OK,PD 8074,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+454,104326-106-079,104326-106-079,NA,NA,Pectobacterium polaris,OK,PD 8141,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA

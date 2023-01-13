@@ -25,6 +25,16 @@ data:
         assay_probes: "pecto_assay/pectobacterium_assay_probes.fasta"
         probe_info: "pecto_assay/probe_info.txt"
         pecto1_metadata: "pecto1_data/WUR_assemblies_metadata.txt"
+  prokka:
+    dir: "prokka_annotation"
+  interproscan:
+    dir: "interproscan"
+  busco_db:
+    dir: "busco_downloads"
+  busco_genome:
+    dir: "busco.geno"
+  busco_protein:
+    dir: "busco.prot"
   pangenomes:
     dir: "pangenomes"
     pectobacterium.10g:
