@@ -381,9 +381,16 @@ readr::write_tsv(
   file = confs$analysis$qc$files$prebuild_metadata
 )
 
+## if exists the open the excel, else create new
 wb <- openxlsx::createWorkbook()
+if(file.exists(confs$analysis$qc$files$prebuild_metadata_xls)){
+  wb <- openxlsx::loadWorkbook(file = confs$analysis$qc$files$prebuild_metadata_xls)
+}
 
 currentSheet <- "metadata"
+if(currentSheet %in% names(wb)){
+  openxlsx::removeWorksheet(wb, currentSheet)
+}
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeDataTable(
   wb = wb, sheet = currentSheet, x = genomeMetadata, withFilter = TRUE,
@@ -392,6 +399,9 @@ openxlsx::writeDataTable(
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
 
 currentSheet <- "column_info"
+if(currentSheet %in% names(wb)){
+  openxlsx::removeWorksheet(wb, currentSheet)
+}
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeDataTable(
   wb = wb, sheet = currentSheet, x = colStats, withFilter = TRUE,

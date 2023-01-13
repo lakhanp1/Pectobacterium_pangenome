@@ -66,29 +66,39 @@ ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
     ),
     by = c("synonym_GB" = "genbank_accession")
   ) %>%
-  dplyr::arrange(desc(taxonomy_check_status), species_name)
+  dplyr::mutate(
+    declared_type_organism_name = na_if(declared_type_organism_name, ""),
+    taxonomy_check_method = "NCBI_ANI"
+  ) %>% 
+  dplyr::arrange(desc(taxonomy_check_status), species_name) %>% 
+  dplyr::select(-synonym_GB, -organism_name)
 
+# all(ncbiTaxCheck$sampleId %in% genomeMetadata$sampleId)
 
-
-## inhouse data: get ANI for declared species type strain
-inhouseDf <- dplyr::filter(genomeMetadata, source != "NCBI") %>% 
-  dplyr::select(sampleId, source, SpeciesName) %>% 
+## use inhouse data to perform taxonomy checking: because of additional type strains available
+inhouseDf <- dplyr::filter(
+  genomeMetadata, taxonomy_check_status != "OK" | 
+    (source != "NCBI" & is.na(taxonomy_check_status))) %>% 
+  dplyr::select(sampleId, source, AssemblyAccession, SpeciesName) %>% 
   dplyr::left_join(
     y = typeStrains, by = c("SpeciesName" = "type_organism_name")
   ) %>% 
   dplyr::left_join(
     y = typeStrainAni, by = c("sampleId" = "id1", "typeStrainId")
   ) %>% 
-  dplyr::filter(!is.na(ani) | is.na(typeStrainId)) %>% 
+  # dplyr::filter(!is.na(ani) | is.na(typeStrainId)) %>%
   dplyr::group_by(sampleId) %>% 
   dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>% 
   dplyr::slice(1L) %>% 
   dplyr::ungroup() %>% 
   dplyr::select(
-    sampleId, source, SpeciesName, declared_type_id = typeStrainId, 
+    sampleId, source, AssemblyAccession, SpeciesName, declared_type_id = typeStrainId, 
     declared_type_ANI = ani, declared_type_organism_name = type_organism_name
   )
 
+if(!all(ncbiTaxCheck$sampleId %in% inhouseDf$sampleId)){
+  stop(setdiff(ncbiTaxCheck$sampleId, inhouseDf$sampleId))
+}
 
 ## get best ANI with its respective type species name
 inhouseTaxCheck <- dplyr::left_join(
@@ -113,42 +123,41 @@ inhouseTaxCheck <- dplyr::left_join(
       is.na(declared_type_id) ~ "Inconclusive",
       TRUE ~ "Failed"
     ),
-    best_match_status = dplyr::if_else(
-      declared_type_organism_name == best_match_species_name, "match", "mismatch"
+    best_match_status = dplyr::case_when(
+      declared_type_organism_name == best_match_species_name & 
+        best_match_type_ANI < 96 ~ "below-threshold-match",
+      declared_type_organism_name == best_match_species_name & 
+        best_match_type_ANI >= 96 ~ "match",
+      TRUE ~ "mismatch"
     ),
     comment = dplyr::case_when(
       is.na(declared_type_organism_name) ~ "no type strain to match",
       declared_type_ANI == 100 ~ "this is a type strain"
-    )
+    ),
+    taxonomy_check_method = "inhouse_fastANI",
+    source = forcats::fct_relevel(source, "NCBI")
   ) %>% 
-  dplyr::select(-mapped, -total, -best_match_type_id, -declared_type_id) %>% 
-  dplyr::filter(taxonomy_check_status != "OK")
+  dplyr::select(-mapped, -total, -best_match_type_id, -declared_type_id)
 
 
-taxCheckDf <- dplyr::bind_rows(ncbiTaxCheck, inhouseTaxCheck)
-  
+
+taxCheckDf <- dplyr::bind_rows(ncbiTaxCheck, inhouseTaxCheck) %>% 
+  dplyr::group_by(sampleId) %>%
+  dplyr::arrange(dplyr::desc(best_match_type_ANI), .by_group = TRUE) %>%
+  dplyr::slice(1L) %>%
+  dplyr::ungroup() %>%
+  dplyr::rename(taxonomy_check_status_inhouse = taxonomy_check_status) %>% 
+  dplyr::arrange(source, sampleId) %>% 
+  dplyr::mutate(
+    taxonomy_corrected = NA,
+    new_species_name = NA
+  ) %>% 
+  dplyr::relocate(
+    sampleId, taxonomy_check_status_inhouse,taxonomy_check_method,
+    .before = taxonomy_corrected
+  )
+
 readr::write_tsv(x = taxCheckDf, file = confs$analysis$qc$files$tax_check)
-
-wb <- openxlsx::loadWorkbook(file = confs$analysis$qc$files$prebuild_metadata_xls)
-
-currentSheet <- "taxonomy_failed"
-openxlsx::addWorksheet(wb, sheetName = currentSheet)
-openxlsx::writeData(
-  wb = wb, sheet = currentSheet,
-  x = stringr::str_c("#details for genomes where taxonomy check")
-)
-openxlsx::writeDataTable(
-  wb = wb, sheet = currentSheet, x = taxCheckDf, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA", startRow = 2
-)
-openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
-
-# openxlsx::openXL(wb)
-saveWorkbook(
-  wb = wb,
-  file = confs$analysis$qc$files$prebuild_metadata_xls, overwrite = TRUE
-)
-
 
 ################################################################################
 

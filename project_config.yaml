@@ -1,6 +1,8 @@
 ---
 title: "Pectobacterium pangenome"
 genus: "Pectobacterium"
+parameters:
+  cutoff_busco: 99
 data:
   dir: "data"
   reference_data:
@@ -13,7 +15,9 @@ data:
       ncbi_ass_ids: "ncbi_assembly_ids.txt"
       assembly_ids: "assembly_ids.txt"
       local_metadata: "inhouse_samples_metadata.txt"
-      sample_metadata: "sample_metadata.tsv"
+      metadata: "sample_metadata.tsv"
+      metadata_xls: "sample_metadata.xlsx"
+      taxo_correction: "taxonomy_manual_correction.tab"
   other:
     dir: "other"
     files:
@@ -29,6 +33,7 @@ data:
       db:
         dir: "pectobacterium.10g.DB"
       files:
+        input_lock: "input_genomes.tab"
         genomes: "genomes_fa.list"
         gff: "genomes_gff3.list"
         annotations: "functional_annotations.txt"
@@ -37,6 +42,7 @@ data:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
       files:
+        input_lock: "input_genomes.tab"
         genomes: "genomes_fa.list"
         gff: "genomes_gff3.list"
         annotations: "functional_annotations.txt"
@@ -97,7 +103,8 @@ analysis:
       busco_protein: "busco_prot_multiqc_data/multiqc_busco.txt"
       quast: "quast_multiqc_data/multiqc_quast.txt"
       genome_chr_size: "assembly_chr_size.txt"
-      duplicates: "duplicate_genomes.tab"
+      duplicate_genomes: "duplicate_genomes.tab"
+      exclude_genomes: "exclude_genomes.txt"
       prebuild_metadata : "prebuild_metadata.tsv"
       prebuild_metadata_xls: "prebuild_metadata.xlsx"
       tax_check: "taxonomy_check.tab"
