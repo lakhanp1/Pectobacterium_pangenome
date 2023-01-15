@@ -132,6 +132,9 @@ analysis:
     name: "phylogeny"
     outgroup: "104326-106-074"
     dir: "04_pangenome_pecto_v2/phylogeny"
+    files:
+      tree_ani_upgma: "pangenome_ANI_UPGMA.newick"
+      tree_ani_nj: "pangenome_ANI_NJ.newick"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
 ...
