@@ -347,7 +347,7 @@ Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_s
 346,GCF_900129615.1_IMG-taxon_2695420962_annotated_assembly,GCF_900129615.1,GCF_900129615.1,IMG-taxon_2695420962_annotated_assembly,Pectobacterium carotovorum,OK,DSM 30168,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NCBI,NA,NA
 347,GCF_001742145.1_ASM174214v1,GCF_001742145.1,GCF_001742145.1,ASM174214v1,Pectobacterium parmentieri,OK,RNS 08-42-1A,NA,NA,France,NA,potato,2008,NA,temperate broadleaf forest,type strain,NCBI,NA,NA
 348,GCF_000389755.1_Pa6276v1.0,GCF_000389755.1,GCF_000389755.1,Pa6276v1.0,Pectobacterium atrosepticum,OK,CFBP 6276,NA,NA,France,Solanum tuberosum var. Felsina,stem,1999,NA,NA,NA,NCBI,NA,NA
-349,GCA_900005045.1_Polaris_6,GCA_900005045.1,GCA_900005045.1,Polaris_6,Pectobacterium carotovorum,NA,Polaris 6,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
+349,GCA_900005045.1_Polaris_6,GCA_900005045.1,GCA_900005045.1,Polaris_6,Pectobacterium polaris,Corrected,Polaris 6,NA,NA,NA,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
 350,GCF_000260925.1_ASM26092v1,GCF_000260925.1,GCF_000260925.1,ASM26092v1,Pectobacterium parmentieri,OK,SCC3193,NA,NA,Finland,NA,NA,NA,NA,NA,NA,NCBI,NA,NA
 351,GCF_000291725.1_PecWas1.0,GCF_000291725.1,GCF_000291725.1,PecWas1.0,Pectobacterium wasabiae,OK,CFBP 3304,NA,NA,Finland,Eutrema japonicum,root,NA,NA,NA,type strain,NCBI,NA,NA
 352,GCF_001238575.1_ASM123857v1,GCF_001238575.1,GCF_001238575.1,ASM123857v1,Pectobacterium brasiliense,OK,BD255,NA,NA,South Africa,Potato,NA,2011,NA,NA,NA,NCBI,NA,cell culture

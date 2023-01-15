@@ -49,6 +49,7 @@ opts <- optparse::parse_args(parser)
 ################################################################################
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = opts$config)),
+  # conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
 
@@ -129,7 +130,8 @@ annotate_ggtree <- function(pt, offset){
       pwidth = 0.01
     ) +
     scale_fill_manual(
-      values = c("Failed" = "red", "Inconclusive" = "blue", "OK" = alpha("white", 0))
+      values = c("Failed" = "red", "Inconclusive" = "blue",
+                 "OK" = alpha("white", 0), "Corrected" = alpha("white", 0))
     ) +
     ## collection year
     ggtreeExtra::geom_fruit(

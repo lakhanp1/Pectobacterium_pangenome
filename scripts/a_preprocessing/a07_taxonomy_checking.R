@@ -50,11 +50,12 @@ typeStrainAni <- dplyr::left_join(
 
 ## NCBI data
 ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
+  dplyr::filter(
+    taxonomy_check_status != "OK" |
+      (is.na(taxonomy_check_status) & is.na(replaced))
+  ) %>%
   dplyr::select(
     sampleId, source, AssemblyAccession, synonym_GB, taxonomy_check_status
-  ) %>%
-  dplyr::filter(
-    taxonomy_check_status != "OK"
   ) %>%
   dplyr::left_join(
     y = dplyr::select(
@@ -77,8 +78,9 @@ ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
 
 ## use inhouse data to perform taxonomy checking: because of additional type strains available
 inhouseDf <- dplyr::filter(
-  genomeMetadata, taxonomy_check_status != "OK" | 
-    (source != "NCBI" & is.na(taxonomy_check_status))) %>% 
+  genomeMetadata, taxonomy_check_status != "OK" | source != "NCBI" | 
+    (source == "NCBI" & is.na(replaced) & is.na(taxonomy_check_status))
+) %>% 
   dplyr::select(sampleId, source, AssemblyAccession, SpeciesName) %>% 
   dplyr::left_join(
     y = typeStrains, by = c("SpeciesName" = "type_organism_name")

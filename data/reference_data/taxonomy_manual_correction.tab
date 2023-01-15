@@ -16,6 +16,7 @@ GCA_024343595.1_ASM2434359v1	Inconclusive	NCBI_ANI	FALSE	NA
 GCA_024343625.1_ASM2434362v1	Failed	NCBI_ANI	TRUE	Pectobacterium polonicum
 GCA_024343655.1_ASM2434365v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
 GCA_024343685.1_ASM2434368v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
+GCA_900005045.1_Polaris_6	Failed	inhouse_fastANI	TRUE	Pectobacterium polaris
 GCF_000023605.1_ASM2360v1	Failed	inhouse_fastANI	TRUE	Pectobacterium aroidearum
 GCF_000294535.1_ASM29453v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
 GCF_000738125.1_ASM73812v1	Inconclusive	NCBI_ANI	FALSE	NA
