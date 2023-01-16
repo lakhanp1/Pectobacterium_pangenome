@@ -39,10 +39,23 @@ def merge_fasta(file_genomes, output):
     
     fa_writer = open(output, mode='w')
     key_writer = open(file_chr_key, mode='w')
+    
+    chrset = 0
 
     with open(file_genomes) as genomes:
         for genome_id, genome_fa in enumerate(genomes, start=1):
             logging.info(f'{genome_id} + {genome_fa.strip()}')
+            
+            # store chromosome IDs for 100 geneme batches into separate file for
+            # 'blastn -seqidlist' option search
+            if(genome_id % 100 == 1):
+                if(chrset != 0):
+                    chrset_writer.close()
+                    
+                chrset += 1
+                file_chrset = os.path.join(os.path.dirname(output), f'chrset_{chrset}.acc')
+                chrset_writer = open(file_chrset, mode='w')
+
             
             with open(genome_fa.strip()) as fasta:
                 for line in fasta:
@@ -53,12 +66,15 @@ def merge_fasta(file_genomes, output):
                         fa_writer.write(f'>{new_header}\n')
                         key_writer.write(f'{genome_id}\t{new_header}\n')
                         
+                        chrset_writer.write(f'{new_header}\n')
+                        
                     else:
                         fa_writer.write(line)
                     
             
     fa_writer.close()
     key_writer.close()
+    chrset_writer.close()
     
 
 def main():
