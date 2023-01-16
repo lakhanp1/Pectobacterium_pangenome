@@ -1,4 +1,4 @@
-Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collection_year,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
+Genome,sampleId,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collection_year,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
 1,104326-106-073,104326-106-073,NA,NA,Pectobacterium aroidearum,OK,PD 8061,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
 2,104326-106-074,104326-106-074,NA,NA,Pectobacterium cacticida,OK,PD 8066,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
 3,104326-106-075,104326-106-075,NA,NA,Pectobacterium parmentieri,OK,PD 8070,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA

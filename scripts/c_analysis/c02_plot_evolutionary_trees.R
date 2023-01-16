@@ -77,14 +77,14 @@ sampleInfo <- suppressMessages(
     ),
     nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
   ) %>% 
-  dplyr::select(id, everything())
+  dplyr::select(sampleId, everything())
 
 
 sampleInfoList <- dplyr::select(
-  sampleInfo, id, sampleName, SpeciesName, strain, nodeLabs, Genome
+  sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 ) %>% 
   purrr::transpose() %>% 
-  purrr::set_names(nm = purrr::map(., "id"))
+  purrr::set_names(nm = purrr::map(., "sampleId"))
 
 
 ## read tree

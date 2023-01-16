@@ -1,4 +1,4 @@
-Genome,id,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collection_year,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
+Genome,sampleId,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collection_year,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
 1,GCF_024506455.1_ASM2450645v1,GCF_024506455.1,GCF_024506455.1,ASM2450645v1,Pectobacterium carotovorum,OK,21TX0081,NA,NA,United States,NA,Onion,2021,Manzeal Khanal,NA,NA,NCBI,NA,NA
 2,GCF_024498875.1_ASM2449887v1,GCF_024498875.1,GCF_024498875.1,ASM2449887v1,Pectobacterium aroidearum,OK,QJ002,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture
 3,GCF_024498855.1_ASM2449885v1,GCF_024498855.1,GCF_024498855.1,ASM2449885v1,Pectobacterium aroidearum,OK,QJ003,NA,NA,China,Amorphophallus konjac,NA,2020,NA,NA,NA,NCBI,NA,pure culture

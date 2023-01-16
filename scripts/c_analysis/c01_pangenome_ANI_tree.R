@@ -47,12 +47,12 @@ sampleInfo <- suppressMessages(
   )
 
 sampleInfoList <- dplyr::select(
-  sampleInfo, id, sampleName, SpeciesName, strain, nodeLabs, Genome
+  sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 ) %>% 
   purrr::transpose() %>% 
-  purrr::set_names(nm = purrr::map(., "id"))
+  purrr::set_names(nm = purrr::map(., "sampleId"))
 
-genomeIds <- dplyr::pull(sampleInfo, Genome, name = id)
+genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
 
 aniDf <- suppressMessages(readr::read_tsv(
   file = confs$analysis$ANI$files$fastani_out,

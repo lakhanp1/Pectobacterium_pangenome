@@ -117,7 +117,7 @@ dplyr::select(filteredMeta, genomeId, interpro) %>%
 
 ## metadata file
 dplyr::select(
-  filteredMeta, Genome=genomeId, id=sampleId, !!!cols_metadata
+  filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata
 ) %>% 
   readr::write_csv(
     file = confs$data$pangenomes[[pangenomeName]]$files$metadata,
@@ -126,7 +126,7 @@ dplyr::select(
 
 ## input genome lock file: this file should never change
 readr::write_tsv(
-  x = dplyr::select(filteredMeta, Genome = genomeId, id = sampleId),
+  x = dplyr::select(filteredMeta, Genome = genomeId, sampleId),
   file = confs$data$pangenomes[[pangenomeName]]$files$input_lock
 )
 
@@ -159,7 +159,7 @@ dplyr::select(testSet, genomeId, interpro) %>%
 
 ## metadata file
 dplyr::select(
-  testSet, Genome=genomeId, id=sampleId, !!!cols_metadata
+  testSet, Genome=genomeId, sampleId, !!!cols_metadata
 ) %>% 
   readr::write_csv(
     file = confs$data$pangenomes[[testPangenome]]$files$metadata,
