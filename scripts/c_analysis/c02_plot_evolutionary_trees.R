@@ -18,6 +18,7 @@ suppressPackageStartupMessages(library(viridisLite))
 rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
 
@@ -54,38 +55,18 @@ confs <- prefix_config_paths(
 )
 
 # listviewer::jsonedit(confs)
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+outGroup <- confs$analysis$phylogeny$outgroup
 
 outDir <- confs$analysis$phylogeny$dir
-genus <- confs$genus
 
-outGroup <- confs$analysis$phylogeny$outgroup
 ################################################################################
 
-genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
+sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
 
-sampleInfo <- suppressMessages(
-  readr::read_csv(file = confs$data$pangenomes$pectobacterium.v2$files$metadata)
-) %>% 
-  dplyr::mutate(
-    Genome = as.character(Genome),
-    SpeciesName = stringi::stri_replace(
-      str = SpeciesName, regex = genusPattern, replacement = "P. "
-    ),
-    SpeciesName = stringi::stri_replace(
-      str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
-      replacement = "$2. $4. $5"
-    ),
-    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
-  ) %>% 
-  dplyr::select(sampleId, everything())
-
-
-sampleInfoList <- dplyr::select(
-  sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
-) %>% 
-  purrr::transpose() %>% 
-  purrr::set_names(nm = purrr::map(., "sampleId"))
-
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+)
 
 ## read tree
 rawTree <- ape::read.tree(file = opts$tree)

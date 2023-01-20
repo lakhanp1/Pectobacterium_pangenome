@@ -51,6 +51,7 @@ data:
     pectobacterium.v2:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
+      homology_group_setting: 4
       files:
         input_lock: "input_genomes.tab"
         genomes: "genomes_fa.list"
@@ -137,4 +138,6 @@ analysis:
       tree_ani_nj: "pangenome_ANI_NJ.newick"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
+    files:
+      blastn: "probe_blastn.out"
 ...

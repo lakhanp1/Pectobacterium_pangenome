@@ -10,6 +10,7 @@ rm(list = ls())
 
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
 
@@ -19,8 +20,6 @@ confs <- prefix_config_paths(
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
-outDir <- confs$analysis$phylogeny$dir
-genus <- confs$genus
 outGroup <- confs$analysis$phylogeny$outgroup
 
 analysisName <- "bioassay_probe_match"
@@ -37,34 +36,18 @@ genomeChrs <- suppressMessages(
   )
 )
 
-genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
-
-sampleInfo <- suppressMessages(
-  readr::read_csv(file = confs$data$pangenomes[[pangenome]]$files$metadata)
-) %>% 
+sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata) %>% 
   dplyr::mutate(
-    Genome = as.character(Genome),
-    SpeciesName = stringi::stri_replace(
-      str = SpeciesName, regex = genusPattern, replacement = "P. "
-    ),
-    SpeciesName = stringi::stri_replace(
-      str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
-      replacement = "$2. $4. $5"
-    ),
     virulence_pcr = dplyr::case_when(
       virulence_pcr == "positive" ~ "+",
       virulence_pcr == "negative" ~ "-",
       TRUE ~ virulence_pcr
-    ),
-    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
-  ) %>% 
-  dplyr::select(sampleId, everything())
+    )
+  )
 
-sampleInfoList <- dplyr::select(
-  sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
-) %>% 
-  purrr::transpose() %>% 
-  purrr::set_names(nm = purrr::map(., "sampleId"))
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+)
 
 probeInfo <- suppressMessages(readr::read_tsv(confs$data$other$files$probe_info)) %>% 
   dplyr::mutate(
@@ -100,14 +83,6 @@ treeTbl <- as_tibble(subTree) %>%
 pt_treeMain <- ggtree::ggtree(
   tr = treeTbl
 )
-# scale_x_continuous(
-#   expand = expansion(add = c(0.01, 0.06))
-# ) 
-# ggtree::geom_tiplab(
-#   mapping = aes(color = SpeciesName, label = nodeLabs),
-#   align = TRUE
-# ) +
-# ggtree::geom_treescale(x = 0, y = length(treeTbl@phylo$tip.label)-2) 
 
 leafOrder <- dplyr::arrange(.data = pt_treeMain$data, y) %>% 
   dplyr::filter(isTip) %>% 
@@ -246,6 +221,7 @@ genomeAssaySummary <- dplyr::group_by(
 
 pt_tree <- pt_treeMain
 
+## assay blastn visualization
 pt_pcrBlast <- ggplot2::ggplot(
   data = genomeAssayDetails,
   mapping = aes(x = type, y = Genome)
@@ -258,11 +234,6 @@ pt_pcrBlast <- ggplot2::ggplot(
   ) +
   facet_grid(cols = vars(assay), scales = "free_y") +
   viridis::scale_fill_viridis(name = "% identity", option = "plasma") +
-  # scale_size_manual(
-  ### @size = primerCov,
-  #   name = "Primer coverage",
-  #   values = c("complete" = 1, "incomplete" = 0.25)
-  # ) +
   scale_x_discrete(
     labels = c("forward" = "F", "probe" = "P", "reverse" = "R")
   ) +
@@ -305,7 +276,7 @@ pt_source <- dplyr::select(sampleInfo, Genome, source) %>%
   theme(
     axis.ticks = element_blank()
   )
-  
+
 pt_region <- dplyr::select(sampleInfo, Genome, geo_loc_country) %>% 
   ggplot2::ggplot(
     mapping = aes(x = "country", y = Genome, color = geo_loc_country)

@@ -10,6 +10,7 @@ suppressPackageStartupMessages(library(ggtree))
 rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
 
@@ -18,9 +19,10 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- confs$analysis$phylogeny$dir
-genus <- confs$genus
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
+
+outDir <- confs$analysis$phylogeny$dir
 
 pt_theme <- theme_bw(base_size = 14) +
   theme(
@@ -31,28 +33,11 @@ pt_theme <- theme_bw(base_size = 14) +
   )
 
 ################################################################################
-genusPattern <- paste("(", genus, " )", sep = "")
+sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
 
-sampleInfo <- suppressMessages(
-  readr::read_csv(file = confs$data$pangenomes$pectobacterium.v2$files$metadata)
-) %>% 
-  dplyr::mutate(
-    Genome = as.character(Genome),
-    SpeciesName = stringi::stri_replace(
-      str = SpeciesName, regex = genusPattern, replacement = "P. "
-    ),
-    SpeciesName = stringi::stri_replace(
-      str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
-      replacement = "$2. $4. $5"
-    ),
-    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
-  )
-
-sampleInfoList <- dplyr::select(
-  sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
-) %>% 
-  purrr::transpose() %>% 
-  purrr::set_names(nm = purrr::map(., "sampleId"))
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+)
 
 genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
 
@@ -158,7 +143,7 @@ sampleInfo %<>%  dplyr::mutate(
 #' @param metadata metadata for genomes. Must have SpeciesName and Genome column
 #' @param width Vector of length 2 for heatmap widths
 #'
-#' @return
+#' @return ComplexHeatmap with layout: species key heatmap | ANI heatmap
 #' @export
 #'
 #' @examples
