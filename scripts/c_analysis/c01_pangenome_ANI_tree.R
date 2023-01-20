@@ -41,6 +41,8 @@ sampleInfoList <- as.list_metadata(
 
 genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
 
+################################################################################
+## process ANI data for pangenome and store ANI and ANI-distance matrices
 aniDf <- suppressMessages(readr::read_tsv(
   file = confs$analysis$ANI$files$fastani_out,
   col_names = c("id1", "id2", "ani", "mapped", "total")
@@ -60,14 +62,18 @@ aniDf %<>% dplyr::mutate(
   dplyr::filter(!is.na(g1) | !is.na(g2)) %>% 
   dplyr::arrange(g1, g2)
 
-
-distMat <- tidyr::pivot_wider(
+aniDist <- tidyr::pivot_wider(
   data = aniDf,
   id_cols = "g1",
   names_from = "g2",
   values_from = "dist"
-) %>% 
-  tibble::column_to_rownames(var = "g1") %>% 
+)
+
+readr::write_tsv(
+  x = aniDist, file = confs$analysis$ANI$files$ani_distance
+)
+
+distMat <- tibble::column_to_rownames(aniDist, var = "g1") %>% 
   as.matrix() %>% 
   as.dist()
 
@@ -76,15 +82,20 @@ aniMat <- tidyr::pivot_wider(
   id_cols = "g1",
   names_from = "g2",
   values_from = "ani"
-) %>% 
-  tibble::column_to_rownames(var = "g1") %>% 
+)
+
+readr::write_tsv(
+  x = aniMat, file = confs$analysis$ANI$files$ani_matrix
+)
+
+aniMat <- tibble::column_to_rownames(aniMat, var = "g1") %>% 
   as.matrix()
 
 if(!all(rownames(as.matrix(distMat)) == rownames(aniMat))){
   stop("rownames did not match")
 }
 ################################################################################
-## store trees
+## store UPGMA and NJ trees
 
 # plot(hclust(distMat))
 treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>% 

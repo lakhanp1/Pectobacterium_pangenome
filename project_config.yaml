@@ -123,6 +123,8 @@ analysis:
     dir: "02_fastANI"
     files:
       fastani_out: "ANI_results"
+      ani_distance: "ANI_distance_pangenome.tab"
+      ani_matrix: "ANI_matrix_pangenome.tab"
       ani_upgma: "ANI_UPGMA.newick"
       ani_nj: "ANI_NJ.newick"
       ani_rooted_nj: "ANI_NJ_rooted.newick"
@@ -134,6 +136,7 @@ analysis:
     outgroup: "104326-106-074"
     dir: "04_pangenome_pecto_v2/phylogeny"
     files:
+      default_tree: "pangenome_ANI_UPGMA.newick"
       tree_ani_upgma: "pangenome_ANI_UPGMA.newick"
       tree_ani_nj: "pangenome_ANI_NJ.newick"
   insilico_assay:

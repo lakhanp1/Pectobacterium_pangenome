@@ -35,35 +35,35 @@ genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
 
 speciesOrd <- names(sort(table(sampleInfo$SpeciesName), decreasing = T))
 
-aniDf <- suppressMessages(readr::read_tsv(
-  file = confs$analysis$ANI$files$fastani_out,
-  col_names = c("id1", "id2", "ani", "mapped", "total")
-))
-
-aniDf %<>% dplyr::mutate(
-  dplyr::across(
-    .cols = c(id1, id2),
-    .fns = ~stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
-  ),
-  dist = 1 - (ani/100)
-) %>% 
-  dplyr::mutate(
-    g1 = genomeIds[id1],
-    g2 = genomeIds[id2]
-  ) %>% 
-  dplyr::filter(!is.na(g1) | !is.na(g2)) %>% 
-  dplyr::arrange(g1, g2)
-
-
-aniMat <- tidyr::pivot_wider(
-  data = aniDf,
-  id_cols = "g1",
-  names_from = "g2",
-  values_from = "ani"
+aniMat <- suppressMessages(
+  readr::read_tsv(confs$analysis$ANI$files$ani_matrix)
 ) %>% 
   tibble::column_to_rownames(var = "g1") %>% 
   as.matrix()
 
+## inter-species ANI data with type_strains only
+typeStrainAni <- as.data.frame(aniMat) %>% 
+  tibble::rownames_to_column(var = "g1") %>% 
+  tidyr::pivot_longer(
+    cols = -g1,
+    names_to = "g2",
+    values_to = "ani"
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(sampleInfo, Genome, sp1 = SpeciesName, type1 = type_material),
+    by = c("g1" = "Genome")
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(sampleInfo, Genome, sp2 = SpeciesName, type2 = type_material),
+    by = c("g2" = "Genome")
+  ) %>% 
+  dplyr::filter(g1 != g2, sp1 != sp2, !is.na(type2)) %>% 
+  dplyr::mutate(
+    aniType = "inter-species",
+    species = sp1
+  )
+
+## intra-species ANI 
 aniMat[upper.tri(aniMat)] <- NA
 
 intraSpAni <- as.data.frame(aniMat) %>% 
@@ -85,21 +85,6 @@ intraSpAni <- as.data.frame(aniMat) %>%
   dplyr::filter(sp1 == sp2) %>% 
   dplyr::mutate(
     aniType = "intra-species",
-    species = sp1
-  )
-
-typeStrainAni <- dplyr::select(aniDf, g1, g2, ani) %>% 
-  dplyr::left_join(
-    y = dplyr::select(sampleInfo, Genome, sp1 = SpeciesName, type1 = type_material),
-    by = c("g1" = "Genome")
-  ) %>% 
-  dplyr::left_join(
-    y = dplyr::select(sampleInfo, Genome, sp2 = SpeciesName, type2 = type_material),
-    by = c("g2" = "Genome")
-  ) %>% 
-  dplyr::filter(g1 != g2, sp1 != sp2, !is.na(type2)) %>% 
-  dplyr::mutate(
-    aniType = "inter-species",
     species = sp1
   )
 
