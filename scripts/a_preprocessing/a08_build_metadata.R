@@ -1,5 +1,6 @@
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(openxlsx))
 
 ## prepare final metadata file by correcting taxonomy
 
@@ -13,6 +14,8 @@ confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
+
+cutoff_buscog <- confs$parameters$cutoff_busco
 
 ################################################################################
 
@@ -30,6 +33,15 @@ correctTaxo <- suppressMessages(
     )
   )
 
+duplicateGenomes <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$qc$files$duplicate_genomes)
+) %>%
+  dplyr::filter(identical == TRUE)
+excludeGenomes <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$qc$files$exclude_genomes, col_names = "sampleId")
+)
+
+################################################################################
 correctMeta <- dplyr::left_join(
   x = genomeMetadata, y = correctTaxo, by = "sampleId"
 ) %>% 
@@ -49,6 +61,25 @@ correctMeta <- dplyr::left_join(
   dplyr::select(-taxonomy_check_status_inhouse, -new_species_name) %>% 
   dplyr::relocate(taxonomy_check_method, .after = taxonomy_check_status) %>% 
   dplyr::relocate(taxonomy_corrected, .after = SpeciesName)
+
+
+
+correctMeta %<>% 
+  dplyr::mutate(
+    filtered = dplyr::case_when(
+      !is.na(ExclFromRefSeq) ~ "ExclFromRefSeq",
+      !is.na(Anomalous) ~ "Anomalous",
+      !is.na(replaced) ~ "replaced",
+      sampleId %in% c(duplicateGenomes$genome2, excludeGenomes$sampleId) ~ "duplicate",
+      buscog.complete < cutoff_buscog ~ paste("BUSCO.geno <", cutoff_buscog),
+      TRUE ~ "PASS"
+    ),
+    type_material = stringr::str_replace(
+      string = tolower(type_material), pattern = "(type (strain|material)).*", 
+      replacement = "type strain"
+    )
+  ) %>% 
+  dplyr::relocate(filtered, .after = AssemblyName)
 
 #####################################################################
 readr::write_tsv(
@@ -79,7 +110,7 @@ openxlsx::writeDataTable(
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
 
 # openxlsx::openXL(wb)
-saveWorkbook(
+openxlsx::saveWorkbook(
   wb = wb,
   file = confs$data$reference_data$files$metadata_xls, overwrite = TRUE
 )

@@ -16,17 +16,10 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-# 
-# file_metadata <- here::here("data/reference_data", "sample_metadata.tsv")
-# file_duplicateGenomes <- here::here("analysis", "01_QC", "duplicate_genomes.tab")
-# file_excludeGenomes <- here::here("analysis", "01_QC", "exclude_genomes.txt")
-
 pangenomeName <- confs$data$pangenomes$pectobacterium.v2$name
 testPangenome <- confs$data$pangenomes$pectobacterium.10g$name
 path_out <- confs$data$pangenomes[[pangenomeName]]$dir
 test_out <- confs$data$pangenomes[[testPangenome]]$dir
-
-cutoff_buscog <- confs$parameters$cutoff_busco
 
 cols_metadata <- c(
   "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
@@ -46,31 +39,6 @@ if(! dir.exists(path_out)){
 metadata <- suppressMessages(
   readr::read_tsv(file = confs$data$reference_data$files$metadata)
 )
-duplicateGenomes <- suppressMessages(
-  readr::read_tsv(file = confs$analysis$qc$files$duplicate_genomes)
-) %>% 
-  dplyr::filter(identical == TRUE)
-excludeGenomes <- suppressMessages(
-  readr::read_tsv(file = confs$analysis$qc$files$exclude_genomes, col_names = "sampleId")
-)
-
-
-metadata %<>% 
-  dplyr::mutate(
-    filtered = dplyr::case_when(
-      !is.na(ExclFromRefSeq) ~ "ExclFromRefSeq",
-      !is.na(Anomalous) ~ "Anomalous",
-      !is.na(replaced) ~ "replaced",
-      sampleId %in% c(duplicateGenomes$genome2, excludeGenomes$sampleId) ~ "duplicate",
-      buscog.complete < cutoff_buscog ~ paste("BUSCO <", cutoff_buscog),
-      TRUE ~ "PASS"
-    ),
-    type_material = stringr::str_replace(
-      string = tolower(type_material), pattern = "(type (strain|material)).*", 
-      replacement = "type strain"
-    )
-  ) %>% 
-  dplyr::relocate(filtered, .after = AssemblyName)
 
 filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>% 
   dplyr::mutate(
