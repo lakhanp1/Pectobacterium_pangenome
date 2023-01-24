@@ -91,6 +91,9 @@ readr::write_tsv(
 pbwb <- openxlsx::loadWorkbook(file = confs$analysis$qc$files$prebuild_metadata_xls)
 colStats <- openxlsx::readWorkbook(pbwb, sheet = "column_info")
 
+negStyle <- createStyle(fontColour = "#9C0006", bgFill = "#FFC7CE")
+posStyle <- createStyle(fontColour = "#006100", bgFill = "#C6EFCE")
+
 wb <- openxlsx::createWorkbook()
 
 currentSheet <- "metadata"
@@ -98,6 +101,16 @@ openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeDataTable(
   wb = wb, sheet = currentSheet, x = correctMeta, withFilter = TRUE,
   keepNA = TRUE, na.string = "NA"
+)
+openxlsx::conditionalFormatting(
+  wb = wb, sheet = currentSheet,
+  cols = which(colnames(correctMeta) == "filtered"), rows = 2:nrow(correctMeta),
+  type = "contains", rule = "PASS", style = posStyle
+)
+openxlsx::conditionalFormatting(
+  wb = wb, sheet = currentSheet,
+  cols = which(colnames(correctMeta) == "filtered"), rows = 2:nrow(correctMeta),
+  type = "notContains", rule = "PASS", style = negStyle
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
 
