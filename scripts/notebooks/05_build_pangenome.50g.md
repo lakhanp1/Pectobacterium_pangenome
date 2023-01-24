@@ -10,13 +10,20 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-conda activate pantools
+source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
+conda activate pantools_master
 
 export PANTOOLS="$PANTOOLS_MASTER"
 
 ## Setup
 PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
 ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_50g"
+analysis_prefix='pectobacterium.50g'
+pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
+
+## Setup
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
+ANALYSIS_DIR="$PROJECT_DIR/analysis/03_pangenome_pecto_50g"
 analysis_prefix='pectobacterium.50g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
 
@@ -229,5 +236,15 @@ $PANTOOLS create_tree_template -dp ${pan_db} -ph id
 ## go_enrichment for virulent enriched homology groups
 process_start "go_enrichment for virulent enriched homology groups"
 $PANTOOLS go_enrichment -dp ${pan_db} -hm ${ANALYSIS_DIR}/virulent_enriched_hm.txt
+error_exit $?
+```
+
+### MSA for Sander's PanVA integration
+
+``` bash
+## MSA to generate PanVA files
+process_start "msa for homology groups
+# $PANTOOLS msa ${pan_db} -t 12 --method per-group --mode nucleotide
+$PANTOOLS_OPT -dp ${pan_db} -tn 12 --method per_group --mode nucleotide
 error_exit $?
 ```

@@ -54,6 +54,12 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
+# ## for test
+# confs <- prefix_config_paths(
+#   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+# )
+# opts$tree <- confs$data$pangenomes$pectobacterium.v2$db$kmer_classification$KC.100.0
+
 # listviewer::jsonedit(confs)
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup

@@ -67,11 +67,11 @@ data:
           GC.100.0:
             dir: "gene_classification.100.0"
             files:
-              tree: gene_distance.tree
+              tree: "gene_distance.tree"
           GC.95.5:
             dir: "gene_classification.95.5"
             files:
-              tree: gene_distance.tree
+              tree: "gene_distance.tree"
         kmer_classification:
           KC.100.0:
             dir: "kmer_classification.100.0"
@@ -136,9 +136,11 @@ analysis:
     outgroup: "104326-106-074"
     dir: "04_pangenome_pecto_v2/phylogeny"
     files:
-      default_tree: "pangenome_ANI_UPGMA.newick"
+      default_tree: "genome_kmer_distance.tree"
       tree_ani_upgma: "pangenome_ANI_UPGMA.newick"
       tree_ani_nj: "pangenome_ANI_NJ.newick"
+      tree_kmer: "genome_kmer_distance.tree"
+      tree_gene: "gene_distance.tree"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:

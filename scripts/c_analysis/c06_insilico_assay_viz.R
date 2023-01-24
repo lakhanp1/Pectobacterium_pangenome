@@ -88,6 +88,8 @@ leafOrder <- dplyr::arrange(.data = pt_treeMain$data, y) %>%
   dplyr::filter(isTip) %>% 
   dplyr::pull(label)
 
+# leafOrder <- rev(ggtree::get_taxa_name(pt_treeMain))
+
 sampleInfo %<>% 
   dplyr::mutate(
     Genome = forcats::fct_relevel(Genome, !!!leafOrder)
