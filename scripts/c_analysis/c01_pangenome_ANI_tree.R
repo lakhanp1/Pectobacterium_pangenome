@@ -168,6 +168,8 @@ plot_species_ANI_heatmap <- function(mat, phy, metadata, width){
   ## necessary checks
   stopifnot(
     setequal(rownames(mat), phy$tip.label),
+    ## ensure the row order is same: this is because of a bug in ComplexHeatmap
+    all(rownames(mat) == phy$tip.label),
     setequal(rownames(mat), colnames(mat)),
     all(rownames(mat) %in% metadata$Genome),
     any(class(phy) == "phylo"),
@@ -208,6 +210,9 @@ plot_species_ANI_heatmap <- function(mat, phy, metadata, width){
     ) %>% 
     tibble::column_to_rownames(var = "Genome") %>% 
     as.matrix()
+  
+  ## ensure the row order is same: this is because of a bug in ComplexHeatmap
+  stopifnot(all(rownames(speciesMat) == phy$tip.label))
   
   ht_species <- ComplexHeatmap::Heatmap(
     matrix = speciesMat,
