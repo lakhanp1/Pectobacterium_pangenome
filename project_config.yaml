@@ -18,6 +18,10 @@ data:
       metadata: "sample_metadata.tsv"
       metadata_xls: "sample_metadata.xlsx"
       taxo_correction: "taxonomy_manual_correction.tab"
+  analysis_confs:
+    dir: "analysis_configs"
+    files:
+      phenotype_association: "pheno_association_config.tab"
   other:
     dir: "other"
     files:
@@ -68,10 +72,31 @@ data:
             dir: "gene_classification.100.0"
             files:
               tree: "gene_distance.tree"
+              groups: "classified_groups.csv"
+              core: "core_groups.csv"
+              accessory: "accessory_groups.csv"
+              unique: "unique_groups.csv"
           GC.95.5:
             dir: "gene_classification.95.5"
             files:
               tree: "gene_distance.tree"
+          phenotypes:
+            dir: "gene_classification.pheno"
+            assay_FN:
+              dir: "assay_FN"
+              files:
+                overview: "gene_classification_phenotype_overview.txt"
+                association: "phenotype_association.csv"
+            virulent_Pbrasiliense:
+              dir: "virulent_Pbrasiliense"
+              files:
+                overview: "gene_classification_phenotype_overview.txt"
+                association: "phenotype_association.csv"
+            Pbrasiliense_clade:
+              dir: "Pbrasiliense_clade"
+              files:
+                overview: "gene_classification_phenotype_overview.txt"
+                association: "phenotype_association.csv"
         kmer_classification:
           KC.100.0:
             dir: "kmer_classification.100.0"
@@ -141,8 +166,20 @@ analysis:
       tree_ani_nj: "pangenome_ANI_NJ.newick"
       tree_kmer: "genome_kmer_distance.tree"
       tree_gene: "gene_distance.tree"
+      species_order_upgma: "ANI_UPGMA_species_order.txt"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:
       blastn: "probe_blastn.out"
+  homology_groups:
+    dir: "04_pangenome_pecto_v2/homology_groups"
+    files:
+      groups: "genome_to_groups.tab"
+      groups_meta: "homology_groups_meta.tab"
+  association:
+    dir: "04_pangenome_pecto_v2/pheno_association"
+    files:
+      config: "clade_comarison_config.tab"
+      phenotypes: "clade_comarison_phenotypes.csv"
+      pheno_specific_groups: "phenotype_specific_groups.txt"
 ...

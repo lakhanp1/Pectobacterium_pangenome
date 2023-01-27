@@ -19,6 +19,7 @@ rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
 source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
 ################################################################################
 set.seed(124)
 
@@ -87,93 +88,13 @@ treeTbl <- as_tibble(rawTree) %>%
   treeio::root(outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE)
 
 ################################################################################
-
-## function to add annotation to ggtree
-annotate_ggtree <- function(pt, offset){
-  pt2 <- pt +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(starshape = type_material),
-      geom = "geom_star", fill = "#62BFED", size = 2, starstroke=0.1,
-      offset = offset, pwidth = 0.01
-    ) +
-    ggstar::scale_starshape_manual(
-      values = c("type strain" = 1)
-    ) + 
-    ggnewscale::new_scale_color() +
-    ## genome source
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "source", color = source),
-      geom = "geom_point", shape = 15,
-      pwidth = 0.01
-    ) +
-    scale_color_manual(
-      values = c("NCBI" = "#406495", "WUR" = "#468e30", "NVWA" = "#ff6600")
-    ) +
-    ggnewscale::new_scale_fill() +
-    ## taxonomy check status
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, fill = taxonomy_check_status),
-      geom = "geom_star", starshape = 12, size = 2, color = alpha("white", 0),
-      pwidth = 0.01
-    ) +
-    scale_fill_manual(
-      values = c("Failed" = "red", "Inconclusive" = "blue",
-                 "OK" = alpha("white", 0), "Corrected" = alpha("white", 0))
-    ) +
-    ## collection year
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, label = collection_year),
-      geom = "geom_text", size = 3
-    ) +
-    ggnewscale::new_scale_color() +
-    ## country
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, label = geo_loc_country, color = geo_loc_country),
-      geom = "geom_text", size = 3, hjust = "left",
-      pwidth = 0.03
-    ) +
-    scale_color_manual(
-      values = c("Netherlands" = "#ff6600")
-    ) +
-    ggnewscale::new_scale_color() +
-    ## virulence PCR result
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
-      geom = "geom_point",
-      pwidth = 0.01, offset = 0.05
-    ) +
-    scale_color_manual(
-      values = c("positive" = "red", "negative" = "green"),
-      na.value = alpha("white", 0)
-    ) +
-    ggnewscale::new_scale_color() +
-    ## virulence phenotype
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "virulence", color = virulence),
-      geom = "geom_point", shape = 17, size = 2,
-      pwidth = 0.01, offset = 0.01
-    ) +
-    scale_color_manual(
-      values = c("virulent" = "red", "avirulent" = "green"),
-      na.value = alpha("white", 0)
-    )
-}
-
-################################################################################
 ## plotting
 
 pt_tree <- ggtree::ggtree(tr = treeTbl) +
-  labs(title = "NJ tree")
+  labs(title = opts$name)
 
 ## mark outgroup
-pt_tree2 <- pt_tree + 
-  geom_point(
-    mapping = aes(shape = sampleName, color = sampleName),
-    size = 4
-  ) +
-  scale_shape_manual(name = "outgroup", values = setNames(16, outGroup)) +
-  scale_color_manual(name = "outgroup", values = setNames("red", outGroup)) +
-  ggnewscale::new_scale_color() 
+pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleName")
 
 ## mark species of interest
 pt_tree3 <- pt_tree2 +

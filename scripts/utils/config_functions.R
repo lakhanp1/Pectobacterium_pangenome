@@ -35,7 +35,7 @@ get_metadata <- function(file){
         str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
         replacement = "$2. $4. $5"
       ),
-      nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
+      nodeLabs = stringr::str_c("(", Genome, ") ", sampleName, " (", SpeciesName,")", sep = "")
     ) %>% 
     dplyr::select(sampleId, everything())
   

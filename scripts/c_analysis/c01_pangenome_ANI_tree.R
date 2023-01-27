@@ -145,6 +145,11 @@ sampleInfo %<>%  dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder)
 )
 
+readr::write_tsv(
+  x = tibble::tibble(SpeciesName = speciesOrder),
+  file = confs$analysis$phylogeny$files$species_order_upgma
+)
+
 ################################################################################
 ## visualize ANI data: all tree
 #' Plot ANI heatmap with provided clustering
