@@ -206,19 +206,6 @@ $PANTOOLS grouping_overview ${pan_db}
 process_start extract_pangenome_metrics
 $PANTOOLS metrics ${pan_db}
 error_exit $?
-
-## Gene classification for each phenotype
-phenotypes=("species" "virulence" "pcr" "vir_pcr")
-for phn in ${phenotypes[@]}
-do
-    process_start "gene_classification for phenotype $phn"
-    [ -d ${pan_db}/gene_classification/${phn} ] && rm -r ${pan_db}/gene_classification/${phn}
-    mkdir ${pan_db}/gene_classification/${phn}
-    $PANTOOLS gene_classification --core-threshold 95 --phenotype ${phn} ${pan_db}
-    error_exit $?
-    mv ${pan_db}/gene_classification/{phenotype_*,gene_classification_phenotype_overview.txt} ${pan_db}/gene_classification/${phn}/
-done
-
 ```
 
 ### gene classification
@@ -258,6 +245,15 @@ error_exit $?
 ## Gene distance tree
 Rscript ${pan_db}/gene_classification/gene_distance_tree.R
 mv ${pan_db}/gene_classification ${pan_db}/gene_classification.95.5
+```
+
+### Extract information for all homology groups
+
+```bash
+## homology group information 
+process_start "extracting homology group information"
+$PANTOOLS group_info ${pan_db} ${pan_db}/gene_classification.100.0/all_homology_groups.csv
+error_exit $?
 ```
 
 ### k-mer classification
@@ -358,4 +354,95 @@ error_exit $?
 rm ${pan_db}//core_snp_tree/informative.fasta.*
 iqtree -nt 20 -s ${pan_db}/core_snp_tree/informative.fasta -redo -bb 1000
 ######################################################################
+```
+
+### Phenotype association
+
+```bash
+## add the updated phenotypes for association analysis
+process_start add_phenotypes
+$PANTOOLS remove_phenotype ${pan_db}
+$PANTOOLS add_phenotypes ${pan_db} analysis/04_pangenome_pecto_v2/phylogeny/clade_comarison_phenotypes.csv
+error_exit $?
+
+
+[ -d ${pan_db}/gene_classification ] && rm -r ${pan_db}/gene_classification
+mkdir ${pan_db}/gene_classification.pheno
+
+## Gene classification for each phenotype
+phenotypes=("Pbrasiliense_clade" "assay_FN" "virulent_Pbrasiliense")
+for phn in ${phenotypes[@]}
+do
+    process_start "gene_classification for phenotype $phn"
+    pheno_arg=`grep "${phn}" data/analysis_configs/pheno_association_config.tab | cut -f2`
+    $PANTOOLS gene_classification ${pheno_arg} ${pan_db}
+    error_exit $?
+
+    ## move results to a folder
+    pheno_dir=${pan_db}/gene_classification.pheno/${phn}
+    [ -d ${pheno_dir} ] && rm -r ${pheno_dir}
+    mkdir ${pheno_dir}
+    mv ${pan_db}/gene_classification/{phenotype_*,gene_classification_phenotype_overview.txt} ${pheno_dir}/
+done
+
+rm -r ${pan_db}/gene_classification
+
+######################################################################
+```
+
+## Specific analysis
+
+### GO enrichment for homology groups of interest
+
+```bash
+## go_enrichment for assay_FN enriched homology groups
+process_start "go_enrichment for assay_FN enriched homology groups"
+$PANTOOLS go_enrichment -H analysis/04_pangenome_pecto_v2/pheno_association/specific_hgs.assay_FN.txt \
+--include=429,439,369,149,29,97,155,366,373,178,181,159,345,371,180,316,414,360,166,243,147,152,173,170,416,433,157,417,191,390,136,419,142,410,146,317,145,194,426,240,340,367,357,364,359,372,358,342,370,196,24,353,52,134,179,187,188,195,192,401,402,413,154,214,153,144,165,176,140,168,156,13,148,163,164,162,418,172,297,302,63,190,415,169,171,167,174,189,193,411,397,398,405,409,412,403,408,399,404,407,175,400,406,158,161,138,60,337,242,368,74,427,308,438,299,391,182,185,236,177,42,43,263,307,379,356,380,141,341,64,352,111,115,114,108,109,99,137 ${pan_db} 
+error_exit $?
+######################################################################
+```
+
+```bash
+## MSA for specific groups
+process_start "msa for homology groups"
+$PANTOOLS msa -t 12 --method per-group --mode nucleotide \
+-H analysis/04_pangenome_pecto_v2/pheno_association/homology_groups.txt ${pan_db}
+error_exit $?
+```
+
+### Extract specific information from pangenome
+
+```bash
+
+conda activate omics_py37
+while IFS=$'\t' read -r phn groups ; do
+    # printf "%b\n" "column1<${phn}>"
+    # printf "%b\n" "column2<${groups}>"
+    process_start "extracting mRNA sequence for homology group specific to phenotype: ${phn}"
+    printf "Homology groups: ${groups}\n"
+
+    genome=`grep "${phn}" data/analysis_configs/pheno_association_config.tab | cut -f3 | sed 's/,.*//'`
+
+    file_info="analysis/04_pangenome_pecto_v2/pheno_association/phenotype_${phn}.seq_info.txt"
+    file_fasta="analysis/04_pangenome_pecto_v2/pheno_association/phenotype_${phn}.specific_mRNA.fasta"
+
+    printf "homology_group_id, genome, mRNA name, mRNA identifier, node identifier, address, strand\n"  > ${file_info}
+    printf "" > ${file_fasta}
+
+    ## read groups into array
+    IFS=',' read -ra hg_array <<< "${groups}"
+    for hg in "${hg_array[@]}"
+    do
+        # printf "${hg} "
+        seq_info=`grep "^${genome}" ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info`
+        mrna_id=`echo ${seq_info} | cut -d"," -f3`
+        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta
+
+        printf "${hg}, ${seq_info}\n" >> ${file_info}
+        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta ${mrna_id} >> ${file_fasta}
+    done
+done < analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
+conda activate pantools_master
+
 ```
