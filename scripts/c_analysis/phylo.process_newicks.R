@@ -33,12 +33,7 @@ parser <- optparse::add_option(
 
 parser <- optparse::add_option(
   parser, opt_str = c("-n", "--name"), type = "character", action = "store",
-  help = "name of the tree"
-)
-
-parser <- optparse::add_option(
-  parser, opt_str = c("-o", "--out"), type = "character", action = "store",
-  help = "output file prefix"
+  help = "name of the tree from YAML phylogeny tags"
 )
 
 parser <- optparse::add_option(
@@ -48,18 +43,28 @@ parser <- optparse::add_option(
 
 opts <- optparse::parse_args(parser)
 
+if(any(is.null(opts$name), is.null(opts$config), is.null(opts$tree)))
+  stop(optparse::print_help(parser), call. = TRUE)
+
+# ## for test
+# opts$config <- "project_config.yaml"
+# opts$tree <- "./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/genome_kmer_distance.tree"
+# opts$name <- "kmer_nj"
+# #######
+
 ################################################################################
+
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = opts$config)),
-  # conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
 
-# ## for test
-# confs <- prefix_config_paths(
-#   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-# )
-# opts$tree <- confs$data$pangenomes$pectobacterium.v2$db$kmer_classification$KC.100.0
+stopifnot(
+  file.exists(opts$tree),
+  !is.null(opts$name),
+  has_name(confs$analysis$phylogeny, opts$name),
+  !is.null(confs$analysis$phylogeny[[opts$name]]$files$tree)
+)
 
 # listviewer::jsonedit(confs)
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
@@ -81,11 +86,29 @@ rawTree <- ape::read.tree(file = opts$tree)
 ## set negative length edges => 0
 rawTree$edge.length[rawTree$edge.length < 0] <- 0
 
+rawTree <- ape::ladderize(rawTree) %>% 
+  ape::makeNodeLabel(method = "number", prefix = "n")
+
+ape::write.tree(
+  phy = rawTree, tree.names = opts$name,
+  file = confs$analysis$phylogeny[[opts$name]]$files$tree
+)
+
+
+rootedTr <- ape::root(
+  phy = rawTree, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE
+) %>% 
+  ape::ladderize()
+
+ape::write.tree(
+  phy = rootedTr, tree.names = opts$name,
+  file = confs$analysis$phylogeny[[opts$name]]$files$tree_rooted
+)
+
 ## add data to tree
-treeTbl <- as_tibble(rawTree) %>%
+treeTbl <- as_tibble(rootedTr) %>%
   dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
-  treeio::as.treedata() %>% 
-  treeio::root(outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE)
+  treeio::as.treedata()
 
 ################################################################################
 ## plotting
@@ -98,6 +121,10 @@ pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleName")
 
 ## mark species of interest
 pt_tree3 <- pt_tree2 +
+  ggtree::geom_nodelab(
+    mapping = aes(label = label),
+    node = "internal", size = 3, hjust = 1.3
+  ) +
   ggtree::geom_tiplab(
     mapping = aes(color = SpeciesName, label = nodeLabs),
     size = 3, align = TRUE, linesize = 0.5
@@ -121,5 +148,5 @@ pt_tree4 <- annotate_ggtree(pt = pt_tree3, offset = 0.25)
 
 ggsave(
   plot = pt_tree4, width = 10, height = 20, scale = 2,
-  filename = paste(outDir, "/", opts$out, "_tree.pdf", sep = "")
+  filename = paste(outDir, "/", opts$name, ".rooted_tree.pdf", sep = "")
 )

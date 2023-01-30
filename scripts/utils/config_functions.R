@@ -27,16 +27,17 @@ get_metadata <- function(file){
   }
   
   sampleInfo %<>% dplyr::mutate(
-      Genome = as.character(Genome),
-      SpeciesName = stringi::stri_replace(
-        str = SpeciesName, regex = genusPattern, replacement = "P. "
-      ),
-      SpeciesName = stringi::stri_replace(
-        str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
-        replacement = "$2. $4. $5"
-      ),
-      nodeLabs = stringr::str_c("(", Genome, ") ", sampleName, " (", SpeciesName,")", sep = "")
-    ) %>% 
+    ## very IMP for converting Genome to a char. Int Genome will create many problems in downstream steps
+    Genome = as.character(Genome),
+    SpeciesName = stringi::stri_replace(
+      str = SpeciesName, regex = genusPattern, replacement = "P. "
+    ),
+    SpeciesName = stringi::stri_replace(
+      str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
+      replacement = "$2. $4. $5"
+    ),
+    nodeLabs = stringr::str_c("(", Genome, ") ", sampleName, " (", SpeciesName,")", sep = "")
+  ) %>% 
     dplyr::select(sampleId, everything())
   
   return(sampleInfo)

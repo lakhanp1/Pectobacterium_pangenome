@@ -31,24 +31,24 @@ PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 
 ```bash
 ## UPGMA tree
-./scripts/c_analysis/c02_plot_evolutionary_trees.R \
---tree ./analysis/04_pangenome_pecto_v2/phylogeny/pangenome_ANI_UPGMA.newick \
---name "ANI UPGMA" --out ANI_UPGMA_rooted --config project_config.yaml
+./scripts/c_analysis/phylo.process_newicks.R \
+--tree ./analysis/04_pangenome_pecto_v2/phylogeny/ANI_UPGMA.pangenome.newick \
+--name "ani_upgma" --config project_config.yaml
 
 ## Neighbor joining tree
-./scripts/c_analysis/c02_plot_evolutionary_trees.R \
---tree ./analysis/04_pangenome_pecto_v2/phylogeny/pangenome_ANI_NJ.newick \
---name "Neighbor Joining" --out ANI_NJ_rooted --config project_config.yaml
+./scripts/c_analysis/phylo.process_newicks.R \
+--tree ./analysis/04_pangenome_pecto_v2/phylogeny/ANI_NJ.pangenome.newick \
+--name "ani_nj" --config project_config.yaml
 
 ## gene distance NJ tree
-./scripts/c_analysis/c02_plot_evolutionary_trees.R \
+./scripts/c_analysis/phylo.process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree \
---name "gene distance NJ" --out gene_NJ_rooted --config project_config.yaml
+--name "gene_nj" --config project_config.yaml
 
 ## kmer distance NJ tree
-./scripts/c_analysis/c02_plot_evolutionary_trees.R \
+./scripts/c_analysis/phylo.process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/genome_kmer_distance.tree \
---name "kmer distance NJ" --out kmer_NJ_rooted --config project_config.yaml
+--name "kmer_nj" --config project_config.yaml
 
 
 ```

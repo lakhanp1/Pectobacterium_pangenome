@@ -99,23 +99,30 @@ if(!all(rownames(as.matrix(distMat)) == rownames(aniMat))){
 
 # plot(hclust(distMat))
 treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>% 
-  ape::ladderize()
+  ape::ladderize() %>% 
+  ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
-  phy = treeUpgma, tree.names = "ANI_UPGMA",
-  file = confs$analysis$phylogeny$files$tree_ani_upgma
+  phy = treeUpgma, tree.names = "ani_upgma",
+  file = confs$analysis$phylogeny$ani_upgma$files$tree
 )
+
+# plot(ape::root(phy = treeUpgma, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE))
+# nodelabels()
 
 treeNj <- ape::nj(distMat) %>%
-  ape::ladderize()
-
-ape::write.tree(
-  phy = treeNj, tree.names = "ANI_NJ",
-  file = confs$analysis$phylogeny$files$tree_ani_nj
-)
+  ape::ladderize() %>% 
+  ape::makeNodeLabel(method = "number", prefix = "n")
 
 ## set negative length edges => 0
 treeNj$edge.length[treeNj$edge.length < 0] <- 0
+
+ape::write.tree(
+  phy = treeNj, tree.names = "ANI_NJ",
+  file = confs$analysis$phylogeny$ani_nj$files$tree
+)
+
+
 
 ################################################################################
 ## add data to tree
@@ -147,7 +154,7 @@ sampleInfo %<>%  dplyr::mutate(
 
 readr::write_tsv(
   x = tibble::tibble(SpeciesName = speciesOrder),
-  file = confs$analysis$phylogeny$files$species_order_upgma
+  file = confs$analysis$phylogeny$ani_upgma$files$species_order
 )
 
 ################################################################################
@@ -259,6 +266,7 @@ nodeOfInterest <- dplyr::filter(leafOrder, SpeciesName == "P. brasiliense") %>%
 
 clade <- ape::getMRCA(phy = treeUpgma, tip = nodeOfInterest)
 subTree <- ape::extract.clade(phy = treeUpgma, node = clade)
+# nodelab(treeUpgma, clade)
 
 # subTree <- treeio::tree_subset(tree = treeTbl, node = clade, levels_back = 0)
 # ape::as.hclust.phylo(treeio::as.phylo(subTree))

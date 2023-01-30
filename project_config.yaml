@@ -3,6 +3,7 @@ title: "Pectobacterium pangenome"
 genus: "Pectobacterium"
 parameters:
   cutoff_busco: 99
+  seed: 124
 data:
   dir: "data"
   reference_data:
@@ -163,29 +164,31 @@ analysis:
     default: "kmer_nj"
     ani_upgma:
       files:
-        tree: "pangenome_ANI_UPGMA.newick"
+        tree: "ANI_UPGMA.pangenome.newick"
+        tree_rooted: "ANI_UPGMA.pangenome.rooted.newick"
+        species_order: "ANI_UPGMA.species_order.txt"
     ani_nj:
       files:
-        tree: "pangenome_ANI_NJ.newick"
+        tree: "ANI_NJ.pangenome.newick"
+        tree_rooted: "ANI_NJ.pangenome.rooted.newick"
     gene_nj:
       files:
-        tree: "gene_distance.tree"
+        tree: "gene_dist.newick"
+        tree_rooted: "gene_dist.rooted.newick"
     kmer_nj:
       files:
-        tree: "genome_kmer_distance.tree"
+        tree: "kmer_dist.newick"
+        tree_rooted: "kmer_dist.rooted.newick"
     core_snp_ml:
       files:
         tree: "core_snp_ml.newick"
+        tree_rooted: "core_snp_ml.rooted.newick"
     core_snp_nj:
       files:
         tree: "core_snp_nj.newick"
+        tree_rooted: "core_snp_nj.rooted.newick"
     files:
-      default_tree: "genome_kmer_distance.tree"
-      # tree_ani_upgma: "pangenome_ANI_UPGMA.newick"
-      tree_ani_nj: "pangenome_ANI_NJ.newick"
-      tree_kmer: "genome_kmer_distance.tree"
-      tree_gene: "gene_distance.tree"
-      species_order_upgma: "ANI_UPGMA_species_order.txt"
+      temp: "temp_file_holder"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:

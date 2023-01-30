@@ -1,9 +1,6 @@
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
 suppressPackageStartupMessages(library(here))
-suppressPackageStartupMessages(library(ape))
-suppressPackageStartupMessages(library(treeio))
-suppressPackageStartupMessages(library(ggtree))
 
 ## intra-species and inter-species ANI score distribution
 
@@ -22,7 +19,6 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
 outDir <- confs$analysis$ANI$dir
-
 
 ################################################################################
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
