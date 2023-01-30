@@ -11,7 +11,6 @@ suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
 
-
 ## plot PAV for the homology groups specific for a particular phenotype
 
 rm(list = ls())

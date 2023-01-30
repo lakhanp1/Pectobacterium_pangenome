@@ -108,9 +108,9 @@ data:
               tree: "genome_kmer_distance.tree"
         core_phylogeny:
           default:
-            dir: "core_snp_tree.hg"
+            dir: "core_snp_tree"
             files:
-              tree_ml: ""
+              tree_ml: "informative.fasta.treefile"
               tree_nj: ""
           hg_set1:
             dir: "core_snp_tree.hg_set1"
@@ -160,9 +160,28 @@ analysis:
     name: "phylogeny"
     outgroup: "104326-106-074"
     dir: "04_pangenome_pecto_v2/phylogeny"
+    default: "kmer_nj"
+    ani_upgma:
+      files:
+        tree: "pangenome_ANI_UPGMA.newick"
+    ani_nj:
+      files:
+        tree: "pangenome_ANI_NJ.newick"
+    gene_nj:
+      files:
+        tree: "gene_distance.tree"
+    kmer_nj:
+      files:
+        tree: "genome_kmer_distance.tree"
+    core_snp_ml:
+      files:
+        tree: "core_snp_ml.newick"
+    core_snp_nj:
+      files:
+        tree: "core_snp_nj.newick"
     files:
       default_tree: "genome_kmer_distance.tree"
-      tree_ani_upgma: "pangenome_ANI_UPGMA.newick"
+      # tree_ani_upgma: "pangenome_ANI_UPGMA.newick"
       tree_ani_nj: "pangenome_ANI_NJ.newick"
       tree_kmer: "genome_kmer_distance.tree"
       tree_gene: "gene_distance.tree"
