@@ -32,12 +32,12 @@ PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 ```bash
 ## UPGMA tree
 ./scripts/c_analysis/phylo.process_newicks.R \
---tree ./analysis/04_pangenome_pecto_v2/phylogeny/ANI_UPGMA.pangenome.newick \
+--tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick \
 --name "ani_upgma" --config project_config.yaml
 
 ## Neighbor joining tree
 ./scripts/c_analysis/phylo.process_newicks.R \
---tree ./analysis/04_pangenome_pecto_v2/phylogeny/ANI_NJ.pangenome.newick \
+--tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_NJ.pangenome.newick \
 --name "ani_nj" --config project_config.yaml
 
 ## gene distance NJ tree

@@ -146,11 +146,10 @@ analysis:
       prebuild_metadata_xls: "prebuild_metadata.xlsx"
       tax_check: "taxonomy_check.tab"
   ANI:
+    ## move this inside "qc" block in future
     dir: "02_fastANI"
     files:
       fastani_out: "ANI_results"
-      ani_distance: "ANI_distance_pangenome.tab"
-      ani_matrix: "ANI_matrix_pangenome.tab"
       ani_upgma: "ANI_UPGMA.newick"
       ani_nj: "ANI_NJ.newick"
       ani_rooted_nj: "ANI_NJ_rooted.newick"
@@ -162,33 +161,51 @@ analysis:
     outgroup: "104326-106-074"
     dir: "04_pangenome_pecto_v2/phylogeny"
     default: "kmer_nj"
+    files:
+      clade_copare: "clade_compare_contrasts.tab"
+      clade_phenotypes: "clade_compare_phenotypes.csv"
+    ani:
+      dir: "ani"
+      files:
+        ani_distance: "ANI_distance.pangenome.tab"
+        ani_matrix: "ANI_matrix.pangenome.tab"
     ani_upgma:
+      name: "ANI UPGMA"
+      dir: "ani"
       files:
         tree: "ANI_UPGMA.pangenome.newick"
         tree_rooted: "ANI_UPGMA.pangenome.rooted.newick"
         species_order: "ANI_UPGMA.species_order.txt"
     ani_nj:
+      name: "ANI NJ"
+      dir: "ani"
       files:
         tree: "ANI_NJ.pangenome.newick"
         tree_rooted: "ANI_NJ.pangenome.rooted.newick"
     gene_nj:
+      name: "gene distance NJ"
+      dir: "gene_dist"
       files:
         tree: "gene_dist.newick"
         tree_rooted: "gene_dist.rooted.newick"
     kmer_nj:
+      name: "kmer distance NJ"
+      dir: kmer_dist
       files:
         tree: "kmer_dist.newick"
         tree_rooted: "kmer_dist.rooted.newick"
     core_snp_ml:
+      dir: "core_snp"
+      name: "core genome SNP ML"
       files:
         tree: "core_snp_ml.newick"
         tree_rooted: "core_snp_ml.rooted.newick"
     core_snp_nj:
+      dir: "core_snp"
+      name: "core genome SNP NJ"
       files:
         tree: "core_snp_nj.newick"
         tree_rooted: "core_snp_nj.rooted.newick"
-    files:
-      temp: "temp_file_holder"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:

@@ -4,6 +4,8 @@ suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(ape))
 suppressPackageStartupMessages(library(treeio))
 suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(circlize))
 
 ## generate UPGMA and NJ tree using ANI for pangenome
 
@@ -22,7 +24,9 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
 
-outDir <- confs$analysis$phylogeny$dir
+outDir <- confs$analysis$phylogeny$ani$dir
+
+if(!dir.exists(outDir)) dir.create(outDir)
 
 pt_theme <- theme_bw(base_size = 14) +
   theme(
@@ -70,7 +74,7 @@ aniDist <- tidyr::pivot_wider(
 )
 
 readr::write_tsv(
-  x = aniDist, file = confs$analysis$ANI$files$ani_distance
+  x = aniDist, file = confs$analysis$phylogeny$ani$files$ani_distance
 )
 
 distMat <- tibble::column_to_rownames(aniDist, var = "g1") %>% 
@@ -85,7 +89,7 @@ aniMat <- tidyr::pivot_wider(
 )
 
 readr::write_tsv(
-  x = aniMat, file = confs$analysis$ANI$files$ani_matrix
+  x = aniMat, file = confs$analysis$phylogeny$ani$files$ani_matrix
 )
 
 aniMat <- tibble::column_to_rownames(aniMat, var = "g1") %>% 
@@ -104,7 +108,7 @@ treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>%
 
 ape::write.tree(
   phy = treeUpgma, tree.names = "ani_upgma",
-  file = confs$analysis$phylogeny$ani_upgma$files$tree
+  file = confs$analysis$phylogeny$ani$upgma$files$tree
 )
 
 # plot(ape::root(phy = treeUpgma, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE))
@@ -119,7 +123,7 @@ treeNj$edge.length[treeNj$edge.length < 0] <- 0
 
 ape::write.tree(
   phy = treeNj, tree.names = "ANI_NJ",
-  file = confs$analysis$phylogeny$ani_nj$files$tree
+  file = confs$analysis$phylogeny$ani$nj$files$tree
 )
 
 
@@ -154,7 +158,7 @@ sampleInfo %<>%  dplyr::mutate(
 
 readr::write_tsv(
   x = tibble::tibble(SpeciesName = speciesOrder),
-  file = confs$analysis$phylogeny$ani_upgma$files$species_order
+  file = confs$analysis$phylogeny$ani$upgma$files$species_order
 )
 
 ################################################################################

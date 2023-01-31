@@ -70,7 +70,10 @@ stopifnot(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
 
-outDir <- confs$analysis$phylogeny$dir
+outDir <- confs$analysis$phylogeny[[opts$name]]$dir
+
+if(!dir.exists(outDir))
+  dir.create(outDir)
 
 ################################################################################
 
@@ -123,7 +126,7 @@ pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleName")
 pt_tree3 <- pt_tree2 +
   ggtree::geom_nodelab(
     mapping = aes(label = label),
-    node = "internal", size = 3, hjust = 1.3
+    node = "internal", size = 3, hjust = 1.3, color = "red"
   ) +
   ggtree::geom_tiplab(
     mapping = aes(color = SpeciesName, label = nodeLabs),

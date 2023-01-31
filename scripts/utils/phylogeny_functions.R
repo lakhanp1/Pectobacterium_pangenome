@@ -178,27 +178,42 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
   
   return(pt2)
 }
+
 ################################################################################
 #' Prepare `pantools gene_classification` data for a clade in tree
 #'
-#' @param tr a ggtree object
+#' @param file a tree file path
 #' @param node node label for the clade of interest
-#' @param zoom optionally, a clade within which comparison to be restricted
+#' @param ancestorClade optionally, a node label for clade against which comparison
+#' will be made
 #' @param name name of the phenotype. Default: pheno1
 #' @param category value of the phenotype for one category. Default: Y
 #'
-#' @return a list with two elements: (pheno: dataframe for phenotype, include: genomes to include)
+#' @return a list with following elements
+#' \itemize{
+#' \item pheno: a `data.frame` with for phenotype information two columns: `Genome`, `name` 
+#' \item compare: a comma separated list of tip lables or genome IDs to compare
+#' \item against: a comma separated list of tip lables or genome IDs to compare against
+#' \item name: name of the phenotype
+#' }
 #' @export
 #'
 #' @examples
-prepare_comparison_data <- function(tr, node, zoom = NULL, name = "pheno1", category = "Y"){
+clade_comparison_confs <- function(file, node, ancestorClade = NA, name, category = "Y"){
+  
+  
+  tr <- ape::read.tree(file)
+  
   stopifnot(
-    is(object = tr, class2 = "treedata"),
-    is.numeric(node),
-    is.numeric(zoom) | is.null(zoom)
+    is.character(node) & is.element(node, tr$node.label),
+    is.na(ancestorClade) |
+      (is.character(ancestorClade) & is.element(ancestorClade, tr$node.label)),
+    category != "N"
   )
   
+  
   ## phenotype for genomes of interest
+  ## IMP: use tree as tibble for tip labels as output when providing node label
   phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = node, tiponly = TRUE) %>% 
     dplyr::select(Genome = label) %>% 
     dplyr::mutate(!!name := category)
@@ -207,9 +222,10 @@ prepare_comparison_data <- function(tr, node, zoom = NULL, name = "pheno1", cate
   
   includeGenomes <- NA
   
-  ## optionally negative phenotype
-  if(!is.null(zoom)){
-    parentSet <- tidytree::offspring(.data = as_tibble(tr), .node = zoom, tiponly = TRUE) %>% 
+  ## select the background against which comparison will be made
+  if(!is.na(ancestorClade)){
+    ## use another clade (either parent or independent clade) as background
+    parentSet <- tidytree::offspring(.data = as_tibble(tr), .node = ancestorClade, tiponly = TRUE) %>% 
       dplyr::pull(label)
     
     includeGenomes <- stringr::str_c(parentSet, collapse = ",")
@@ -217,13 +233,12 @@ prepare_comparison_data <- function(tr, node, zoom = NULL, name = "pheno1", cate
     negSet <- setdiff(parentSet, phenoDf$Genome)
     
   } else{
-    negSet <- setdiff(na.omit(as_tibble(tr)$label), phenoDf$Genome)
+    ## use all tips as background
+    negSet <- setdiff(tr$tip.label, phenoDf$Genome)
   }
   
   phenoDf %<>% 
-    dplyr::bind_rows(
-      tibble::tibble(Genome = negSet, !!name := "N")
-    )
+    dplyr::bind_rows(tibble::tibble(Genome = negSet, !!name := "N"))
   
   return(
     list(pheno = phenoDf, compare = nodeGenomes, 
