@@ -41,10 +41,10 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny$files$tree_ani_upgma)
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny$ani_upgma$files$tree)
 
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$files$species_order_upgma)
+  readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column

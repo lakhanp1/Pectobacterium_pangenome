@@ -38,15 +38,17 @@ cladeGrps <- suppressMessages(
   purrr::transpose() %>% 
   purrr::set_names(nm = purrr::map(., "name"))
 
-cmp <- cladeGrps$brasiliense_clade
-treeName <- cmp$tree
-clade_comparison_confs(
-  file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
-  node = cmp$node,
-  ancestorClade = cmp$clade,
-  name = cmp$name,
-  category = cmp$name
-)
+# ## test
+# cmp <- cladeGrps$NL_clade_vs_rest_Pbr
+# treeName <- cmp$tree
+# clade_comparison_confs(
+#   file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
+#   node = cmp$node,
+#   ancestorClade = cmp$clade,
+#   name = cmp$name,
+#   category = cmp$name
+# )
+# ######################
 
 ## get the genome IDs inside a clade being compared, its phenotype df
 ## and optionally genome ids for clade against the comparison will be made
@@ -88,17 +90,22 @@ readr::write_csv(
 purrr::map_dfr(
   cladeCmpList,
   .f = function(x){
-    return(list(name = x$name, compare = x$compare, against = x$against))
+    return(
+      list(
+        name = x$name, include = x$includeSet,
+        compare = x$compare, against = x$against
+      )
+    )
   }
 ) %>% 
   dplyr::mutate(
     phenotypeArg = dplyr::if_else(
-      condition = is.na(against) | against == "",
+      condition = is.na(include) | include == "",
       true = stringr::str_c("--phenotype=", name, sep = ""), 
-      false = stringr::str_c("--phenotype=", name, " --include=", against, sep = "")
+      false = stringr::str_c("--phenotype=", name, " --include=", include, sep = "")
     )
   ) %>% 
-  dplyr::select(name, phenotypeArg, compare, against) %>% 
+  dplyr::select(name, phenotypeArg, compare, against, include) %>% 
   readr::write_tsv(
     file = confs$data$analysis_confs$files$phenotype_association,
     col_names = FALSE, na = ""

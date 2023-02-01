@@ -228,9 +228,10 @@ clade_comparison_confs <- function(file, node, ancestorClade = NA, name, categor
     parentSet <- tidytree::offspring(.data = as_tibble(tr), .node = ancestorClade, tiponly = TRUE) %>% 
       dplyr::pull(label)
     
-    includeGenomes <- stringr::str_c(parentSet, collapse = ",")
-    
     negSet <- setdiff(parentSet, phenoDf$Genome)
+    
+    ## include only genomes from the groups being compared
+    includeGenomes <- stringr::str_c(c(nodeGenomes, negSet), collapse = ",")
     
   } else{
     ## use all tips as background
@@ -241,8 +242,11 @@ clade_comparison_confs <- function(file, node, ancestorClade = NA, name, categor
     dplyr::bind_rows(tibble::tibble(Genome = negSet, !!name := "N"))
   
   return(
-    list(pheno = phenoDf, compare = nodeGenomes, 
-         against = includeGenomes, name = name)
+    list(pheno = phenoDf,
+         compare = nodeGenomes, 
+         against = stringr::str_c(negSet, collapse = ","),
+         includeSet = includeGenomes,
+         name = name)
   )
 }
 
