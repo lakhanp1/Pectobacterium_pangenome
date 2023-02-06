@@ -27,10 +27,7 @@ correctTaxo <- suppressMessages(
   readr::read_tsv(confs$data$reference_data$files$taxo_correction)
 ) %>% 
   dplyr::mutate(
-    taxonomy_check_status_inhouse = dplyr::if_else(
-      condition = taxonomy_corrected == TRUE,
-      true = "Corrected", false = taxonomy_check_status_inhouse
-    )
+    taxonomy_check_status_inhouse = taxonomy_corrected
   )
 
 duplicateGenomes <- suppressMessages(
@@ -56,7 +53,7 @@ correctMeta <- dplyr::left_join(
     )
   ) %>% 
   tidyr::replace_na(
-    replace = list(taxonomy_corrected = FALSE, taxonomy_check_method = "NCBI_ANI")
+    replace = list(taxonomy_corrected = "NA", taxonomy_check_method = "NCBI_ANI")
   ) %>% 
   dplyr::select(-taxonomy_check_status_inhouse, -new_species_name) %>% 
   dplyr::relocate(taxonomy_check_method, .after = taxonomy_check_status) %>% 

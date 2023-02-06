@@ -40,7 +40,11 @@ metadata <- suppressMessages(
   readr::read_tsv(file = confs$data$reference_data$files$metadata)
 )
 
-filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>% 
+filteredMeta <- dplyr::filter(
+  metadata,
+  filtered == "PASS",
+  source %in% confs$data$pangenomes[[pangenomeName]]$include_source
+) %>% 
   dplyr::mutate(
     genomeId = 1:n(),
     fasta = paste(
@@ -56,7 +60,7 @@ filteredMeta <- dplyr::filter(metadata, filtered == "PASS") %>%
     dplyr::across(
       .cols = everything(),
       .fns = ~stringr::str_replace_all(
-        string = .x, pattern = ",", replacement = ";"
+        string = .x, pattern = "[,;]", replacement = " and"
       )
     )
   )

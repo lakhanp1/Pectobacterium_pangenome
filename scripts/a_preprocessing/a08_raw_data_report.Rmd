@@ -39,22 +39,27 @@ outDir <- here::here("analysis", "02_raw_data_summary")
 max_nContig <- 500
 file_summary <- here::here("data/reference_data", "sample_metadata.tsv")
 
-col_buscog = "#F9C80E"
-col_buscop = "#0676C6"
+col_buscog <- "#F9C80E"
+col_buscop <- "#0676C6"
 col_pass <- "#058C42"
 col_fail <- "#FF0022"
 col_na <- "#898F94"
+
 #####################################################################
 
 genusPattern <- paste("(", params$genus, " )(?!sp\\.)", sep = "")
 
 metadata <- suppressMessages(readr::read_tsv(file = file_summary)) %>% 
+  dplyr::filter(filtered == "PASS") %>% 
   dplyr::mutate(
     AssemblyStatus = forcats::fct_relevel(
       .f = tolower(AssemblyStatus), "complete genome", "scaffold", "contig"
     ),
     SpeciesName = stringi::stri_replace(
       str = SpeciesName, regex = genusPattern, replacement = "P. "
+    ),
+    taxonomy_check_status = forcats::fct_relevel(
+      taxonomy_check_status, "OK", "corrected", "renamed", "Inconclusive", "Failed"
     )
   )
 
@@ -143,14 +148,10 @@ freqData <- dplyr::filter(
     replace = list(
       ExclFromRefSeq = "No",
       Anomalous = "No",
-      taxonomy_check_status = "unknown",
       replaced = "No"
     )
   ) %>% 
   dplyr::mutate(
-    taxonomy_check_status = forcats::fct_relevel(
-      taxonomy_check_status, "OK", "Corrected", "Inconclusive", "Failed"
-    ),
     dplyr::across(
       .cols = where(is.character),
       .fns = ~ stringr::str_replace_all(
@@ -269,8 +270,11 @@ pt_txQcBar <- dplyr::select(metadata, taxonomy_check_status) %>%
   ggplot2::geom_bar() +
   ggplot2::scale_fill_manual(
     name = NULL,
-    values = c("Failed" = col_fail, "Inconclusive" = "blue", "OK" = col_pass,
-               "Corrected" = alpha(col_pass, 0.5), "NA" = col_na)
+    values = c(
+      "Failed" = col_fail, "Inconclusive" = "blue", "OK" = col_pass,
+      "corrected" = alpha(col_pass, 0.75), "renamed" = alpha(col_pass, 0.5),
+      "NA" = col_na
+    )
   ) +
   ggplot2::scale_y_continuous(
     expand = expansion(add = c(0, 10))
@@ -359,7 +363,7 @@ if(!setequal(typeStrains$SpeciesName, speciesStats$SpeciesName)){
       SpeciesName, genomes = n, type_material, AssemblyAccession, representative_status,
       length, n_contigs, L50, N50, everything()
     )
-
+  
   speciesDf <- dplyr::mutate(
     .data = speciesDf,
     dplyr::across(
@@ -373,7 +377,7 @@ if(!setequal(typeStrains$SpeciesName, speciesStats$SpeciesName)){
     ),
     L50_per = L50/n_contigs
   )
-
+  
 }
 
 speciesSummary <- dplyr::count(
@@ -404,7 +408,7 @@ reactable::reactable(
   onClick = "expand",
   details = function(index) {
     speciesSubDf = speciesDf[speciesDf$SpeciesName == speciesSummary$SpeciesName[index], ]
-
+    
     speciesSubDf %>%
       reactable::reactable(
         defaultSortOrder = "desc",
@@ -497,7 +501,7 @@ reactable::reactable(
           taxonomy_check_status = reactable::colDef(show = FALSE)
         )
       )
-
+    
   }
 )
 
