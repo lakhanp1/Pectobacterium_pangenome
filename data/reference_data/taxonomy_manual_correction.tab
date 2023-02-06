@@ -1,137 +1,135 @@
-sampleId	taxonomy_check_status_inhouse	taxonomy_check_method	taxonomy_corrected	new_species_name
-GCA_016642095.1_ASM1664209v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCA_021907015.1_ASM2190701v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCA_024342785.1_ASM2434278v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCA_024342805.1_ASM2434280v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCA_024342865.1_ASM2434286v1	Failed	NCBI_ANI	TRUE	Pectobacterium atrosepticum
-GCA_024343035.1_ASM2434303v1	Failed	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-GCA_024343095.1_ASM2434309v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCA_024343135.1_ASM2434313v1	Failed	NCBI_ANI	TRUE	Pectobacterium odoriferum
-GCA_024343295.1_ASM2434329v1	Failed	NCBI_ANI	TRUE	Pectobacterium punjabense
-GCA_024343335.1_ASM2434333v1	Failed	NCBI_ANI	TRUE	Pectobacterium actinidiae
-GCA_024343355.1_ASM2434335v1	Failed	inhouse_fastANI	TRUE	Pectobacterium parvum
-GCA_024343445.1_ASM2434344v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCA_024343475.1_ASM2434347v1	Failed	inhouse_fastANI	TRUE	Pectobacterium odoriferum
-GCA_024343595.1_ASM2434359v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCA_024343625.1_ASM2434362v1	Failed	NCBI_ANI	TRUE	Pectobacterium polonicum
-GCA_024343655.1_ASM2434365v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCA_024343685.1_ASM2434368v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCA_900005045.1_Polaris_6	Failed	inhouse_fastANI	TRUE	Pectobacterium polaris
-GCF_000023605.1_ASM2360v1	Failed	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-GCF_000294535.1_ASM29453v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_000738125.1_ASM73812v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_002250215.1_101_V1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_002250255.1_Bf45_V1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_002869945.1_ASM286994v1	Failed	NCBI_ANI	TRUE	Pectobacterium aquaticum
-GCF_003186045.1_ASM318604v1	Inconclusive	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_003594975.1_ASM359497v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_003595055.1_ASM359505v1	Inconclusive	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_003595115.1_ASM359511v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_007833835.1_ASM783383v1	Failed	NCBI_ANI	TRUE	Pectobacterium actinidiae
-GCF_013449375.1_ASM1344937v1	Inconclusive	inhouse_fastANI	FALSE	NA
-GCF_013449685.1_ASM1344968v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_013449715.1_ASM1344971v1	OK	inhouse_fastANI	FALSE	NA
-GCF_013913555.1_ASM1391355v1	OK	inhouse_fastANI	FALSE	NA
-GCF_013913585.1_ASM1391358v1	OK	inhouse_fastANI	FALSE	NA
-GCF_013913595.1_ASM1391359v1	OK	inhouse_fastANI	FALSE	NA
-GCF_013913605.1_ASM1391360v1	OK	inhouse_fastANI	FALSE	NA
-GCF_013913645.1_ASM1391364v1	OK	inhouse_fastANI	FALSE	NA
-GCF_014042225.1_ASM1404222v1	OK	inhouse_fastANI	FALSE	NA
-GCF_014050115.1_ASM1405011v1	OK	inhouse_fastANI	FALSE	NA
-GCF_014604455.1_ASM1460445v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_015277635.1_ASM1527763v1	Failed	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-GCF_015689195.1_ASM1568919v1	OK	inhouse_fastANI	FALSE	NA
-GCF_015709085.1_ASM1570908v1	Failed	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-GCF_016415585.1_ASM1641558v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_016949055.1_ASM1694905v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_016949085.1_ASM1694908v1	Failed	inhouse_fastANI	TRUE	Pectobacterium quasiaquaticum
-GCF_016949095.1_ASM1694909v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_016949215.1_ASM1694921v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_016949695.1_ASM1694969v1	OK	inhouse_fastANI	FALSE	NA
-GCF_016950315.1_ASM1695031v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_020166435.1_ASM2016643v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_020166455.1_ASM2016645v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_020166465.1_ASM2016646v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_020181375.1_ASM2018137v1	OK	inhouse_fastANI	FALSE	NA
-GCF_022392325.1_ASM2239232v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_022477975.1_ASM2247797v1	Inconclusive	NCBI_ANI	TRUE	Pectobacterium polaris
-GCF_023507825.1_ASM2350782v1	Failed	inhouse_fastANI	TRUE	Pectobacterium versatile
-GCF_023507845.1_ASM2350784v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023507885.1_ASM2350788v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023507925.1_ASM2350792v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023507945.1_ASM2350794v1	Failed	NCBI_ANI	TRUE	Pectobacterium brasiliense
-GCF_023508045.1_ASM2350804v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023508055.1_ASM2350805v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023508105.1_ASM2350810v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023508145.1_ASM2350814v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_023508155.1_ASM2350815v1	Failed	NCBI_ANI	TRUE	Pectobacterium versatile
-GCF_024498675.1_ASM2449867v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498695.1_ASM2449869v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_024498715.1_ASM2449871v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498735.1_ASM2449873v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498755.1_ASM2449875v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498775.1_ASM2449877v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498795.1_ASM2449879v1	Inconclusive	NCBI_ANI	FALSE	NA
-GCF_024498815.1_ASM2449881v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498835.1_ASM2449883v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498855.1_ASM2449885v1	OK	inhouse_fastANI	FALSE	NA
-GCF_024498875.1_ASM2449887v1	OK	inhouse_fastANI	FALSE	NA
-GCF_922014665.1_Pectobacterium_brasiliense_LMG2407	Inconclusive	NCBI_ANI	FALSE	NA
-104326-106-001	OK	inhouse_fastANI	FALSE	NA
-104326-106-002	Inconclusive	inhouse_fastANI	FALSE	NA
-104326-106-003	OK	inhouse_fastANI	FALSE	NA
-104326-106-004	OK	inhouse_fastANI	FALSE	NA
-104326-106-005	OK	inhouse_fastANI	FALSE	NA
-104326-106-006	Inconclusive	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-104326-106-007	OK	inhouse_fastANI	FALSE	NA
-104326-106-008	OK	inhouse_fastANI	FALSE	NA
-104326-106-023	OK	inhouse_fastANI	FALSE	NA
-104326-106-025	OK	inhouse_fastANI	FALSE	NA
-104326-106-028	OK	inhouse_fastANI	FALSE	NA
-104326-106-043	Inconclusive	inhouse_fastANI	FALSE	NA
-104326-106-045	OK	inhouse_fastANI	FALSE	NA
-104326-106-047	OK	inhouse_fastANI	FALSE	NA
-104326-106-048	OK	inhouse_fastANI	FALSE	NA
-104326-106-049	Inconclusive	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-104326-106-050	OK	inhouse_fastANI	FALSE	NA
-104326-106-051	Inconclusive	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-104326-106-052	Inconclusive	inhouse_fastANI	TRUE	Pectobacterium brasiliense
-104326-106-053	OK	inhouse_fastANI	FALSE	NA
-104326-106-054	OK	inhouse_fastANI	FALSE	NA
-104326-106-055	Inconclusive	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-104326-106-056	Inconclusive	inhouse_fastANI	FALSE	NA
-104326-106-057	OK	inhouse_fastANI	FALSE	NA
-104326-106-058	Inconclusive	inhouse_fastANI	FALSE	NA
-104326-106-059	Inconclusive	inhouse_fastANI	TRUE	Pectobacterium aroidearum
-104326-106-061	OK	inhouse_fastANI	FALSE	NA
-104326-106-064	OK	inhouse_fastANI	FALSE	NA
-104326-106-069	OK	inhouse_fastANI	FALSE	NA
-104326-106-072	OK	inhouse_fastANI	FALSE	NA
-104326-106-073	OK	inhouse_fastANI	FALSE	NA
-104326-106-074	OK	inhouse_fastANI	FALSE	NA
-104326-106-075	OK	inhouse_fastANI	FALSE	NA
-104326-106-076	OK	inhouse_fastANI	FALSE	NA
-104326-106-079	OK	inhouse_fastANI	FALSE	NA
-JGAR-030718-1	OK	inhouse_fastANI	FALSE	NA
-JGAR-080719-2	OK	inhouse_fastANI	FALSE	NA
-JGAR-100719-1	OK	inhouse_fastANI	FALSE	NA
-JGAR-120719-4	OK	inhouse_fastANI	FALSE	NA
-NAK238	OK	inhouse_fastANI	FALSE	NA
-NAK246	OK	inhouse_fastANI	FALSE	NA
-NAK616	OK	inhouse_fastANI	FALSE	NA
-NAK617	OK	inhouse_fastANI	FALSE	NA
-NAK638	OK	inhouse_fastANI	FALSE	NA
-NAK641	OK	inhouse_fastANI	FALSE	NA
-NAK644	OK	inhouse_fastANI	FALSE	NA
-NAK650	OK	inhouse_fastANI	FALSE	NA
-NAK673	OK	inhouse_fastANI	FALSE	NA
-NAK679	OK	inhouse_fastANI	FALSE	NA
-NAK682	OK	inhouse_fastANI	FALSE	NA
-NAK683	OK	inhouse_fastANI	FALSE	NA
-NAK698	OK	inhouse_fastANI	FALSE	NA
-NAK700	OK	inhouse_fastANI	FALSE	NA
-NAK701	OK	inhouse_fastANI	FALSE	NA
-NAK709	OK	inhouse_fastANI	FALSE	NA
-NAK716	OK	inhouse_fastANI	FALSE	NA
-NAK719	OK	inhouse_fastANI	FALSE	NA
-NAK727	OK	inhouse_fastANI	FALSE	NA
+sampleId	taxonomy_check_method	taxonomy_check_status_inhouse	taxonomy_corrected	new_species_name
+GCF_016949085.1_ASM1694908v1	inhouse_fastANI	Failed	renamed	Pectobacterium quasiaquaticum
+GCF_013449715.1_ASM1344971v1	inhouse_fastANI	OK	corrected	NA
+GCF_013913555.1_ASM1391355v1	inhouse_fastANI	OK	corrected	NA
+GCF_013913585.1_ASM1391358v1	inhouse_fastANI	OK	corrected	NA
+GCF_013913595.1_ASM1391359v1	inhouse_fastANI	OK	corrected	NA
+GCF_013913605.1_ASM1391360v1	inhouse_fastANI	OK	corrected	NA
+GCF_013913645.1_ASM1391364v1	inhouse_fastANI	OK	corrected	NA
+GCF_014042225.1_ASM1404222v1	inhouse_fastANI	OK	corrected	NA
+GCF_014050115.1_ASM1405011v1	inhouse_fastANI	OK	corrected	NA
+GCF_015689195.1_ASM1568919v1	inhouse_fastANI	OK	corrected	NA
+GCF_020181375.1_ASM2018137v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498675.1_ASM2449867v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498695.1_ASM2449869v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498715.1_ASM2449871v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498735.1_ASM2449873v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498755.1_ASM2449875v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498775.1_ASM2449877v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498795.1_ASM2449879v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498815.1_ASM2449881v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498835.1_ASM2449883v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498855.1_ASM2449885v1	inhouse_fastANI	OK	corrected	NA
+GCF_024498875.1_ASM2449887v1	inhouse_fastANI	OK	corrected	NA
+GCF_023508055.1_ASM2350805v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_000738125.1_ASM73812v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_013449685.1_ASM1344968v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_016949055.1_ASM1694905v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_016949095.1_ASM1694909v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_016949215.1_ASM1694921v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_016950315.1_ASM1695031v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_922014665.1_Pectobacterium_brasiliense_LMG2407	NCBI_ANI	Inconclusive	corrected	NA
+GCA_016642095.1_ASM1664209v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCA_024342785.1_ASM2434278v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCA_024342805.1_ASM2434280v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCA_024342865.1_ASM2434286v1	NCBI_ANI	Failed	renamed	Pectobacterium atrosepticum
+GCA_024343035.1_ASM2434303v1	inhouse_fastANI	Failed	renamed	Pectobacterium aroidearum
+GCA_024343095.1_ASM2434309v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCA_024343135.1_ASM2434313v1	NCBI_ANI	Failed	renamed	Pectobacterium odoriferum
+GCA_024343295.1_ASM2434329v1	NCBI_ANI	Failed	renamed	Pectobacterium punjabense
+GCA_024343335.1_ASM2434333v1	NCBI_ANI	Failed	renamed	Pectobacterium actinidiae
+GCA_024343355.1_ASM2434335v1	inhouse_fastANI	Failed	renamed	Pectobacterium parvum
+GCA_024343445.1_ASM2434344v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCA_024343475.1_ASM2434347v1	inhouse_fastANI	Failed	renamed	Pectobacterium odoriferum
+GCA_024343625.1_ASM2434362v1	NCBI_ANI	Failed	renamed	Pectobacterium polonicum
+GCA_024343655.1_ASM2434365v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCA_024343685.1_ASM2434368v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCA_900005045.1_Polaris_6	inhouse_fastANI	Failed	renamed	Pectobacterium polaris
+GCF_000023605.1_ASM2360v1	inhouse_fastANI	Failed	renamed	Pectobacterium aroidearum
+GCF_000294535.1_ASM29453v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCF_002250215.1_101_V1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCF_002250255.1_Bf45_V1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCF_003186045.1_ASM318604v1	NCBI_ANI	Inconclusive	renamed	Pectobacterium brasiliense
+GCF_003594975.1_ASM359497v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCF_003595055.1_ASM359505v1	NCBI_ANI	Inconclusive	renamed	Pectobacterium brasiliense
+GCF_003595115.1_ASM359511v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCF_007833835.1_ASM783383v1	NCBI_ANI	Failed	renamed	Pectobacterium actinidiae
+GCF_014604455.1_ASM1460445v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_015277635.1_ASM1527763v1	inhouse_fastANI	Failed	renamed	Pectobacterium aroidearum
+GCF_015709085.1_ASM1570908v1	inhouse_fastANI	Failed	renamed	Pectobacterium aroidearum
+GCF_016415585.1_ASM1641558v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_022392325.1_ASM2239232v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023507825.1_ASM2350782v1	inhouse_fastANI	Failed	renamed	Pectobacterium versatile
+GCF_023507845.1_ASM2350784v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023507885.1_ASM2350788v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023507925.1_ASM2350792v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023507945.1_ASM2350794v1	NCBI_ANI	Failed	renamed	Pectobacterium brasiliense
+GCF_023508045.1_ASM2350804v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023508105.1_ASM2350810v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023508145.1_ASM2350814v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_023508155.1_ASM2350815v1	NCBI_ANI	Failed	renamed	Pectobacterium versatile
+GCF_011378945.1_ASM1137894v1	inhouse_fastANI	Failed	renamed	Pectobacterium parvum
+GCF_011378965.1_ASM1137896v1	inhouse_fastANI	Failed	renamed	Pectobacterium parvum
+GCF_011378985.1_ASM1137898v1	inhouse_fastANI	Failed	renamed	Pectobacterium parvum
+GCF_011379045.1_ASM1137904v1	inhouse_fastANI	Failed	renamed	Pectobacterium parvum
+GCF_016949695.1_ASM1694969v1	inhouse_fastANI	OK	corrected	NA
+GCF_023272715.1_ASM2327271v1	NCBI_ANI	OK	renamed	Pectobacterium brasiliense
+GCF_021432585.1_ASM2143258v1	NCBI_ANI	OK	renamed	Pectobacterium punjabense
+GCF_022477975.1_ASM2247797v1	NCBI_ANI	Inconclusive	renamed	Pectobacterium polaris
+GCF_020166435.1_ASM2016643v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_020166455.1_ASM2016645v1	NCBI_ANI	Inconclusive	corrected	NA
+GCF_020166465.1_ASM2016646v1	NCBI_ANI	Inconclusive	corrected	NA
+104326-106-072	inhouse_fastANI	OK	OK	NA
+104326-106-073	inhouse_fastANI	OK	OK	NA
+104326-106-007	inhouse_fastANI	OK	OK	NA
+104326-106-008	inhouse_fastANI	OK	OK	NA
+104326-106-025	inhouse_fastANI	OK	OK	NA
+104326-106-047	inhouse_fastANI	OK	OK	NA
+104326-106-053	inhouse_fastANI	OK	OK	NA
+104326-106-074	inhouse_fastANI	OK	OK	NA
+104326-106-001	inhouse_fastANI	OK	OK	NA
+104326-106-006	inhouse_fastANI	Inconclusive	renamed	Pectobacterium aroidearum
+104326-106-049	inhouse_fastANI	Inconclusive	renamed	Pectobacterium aroidearum
+104326-106-051	inhouse_fastANI	Inconclusive	renamed	Pectobacterium aroidearum
+104326-106-052	inhouse_fastANI	Inconclusive	renamed	Pectobacterium brasiliense
+104326-106-055	inhouse_fastANI	Inconclusive	renamed	Pectobacterium aroidearum
+104326-106-059	inhouse_fastANI	Inconclusive	renamed	Pectobacterium aroidearum
+104326-106-003	inhouse_fastANI	OK	OK	NA
+104326-106-045	inhouse_fastANI	OK	OK	NA
+104326-106-048	inhouse_fastANI	OK	OK	NA
+104326-106-028	inhouse_fastANI	OK	OK	NA
+104326-106-075	inhouse_fastANI	OK	OK	NA
+104326-106-076	inhouse_fastANI	OK	OK	NA
+104326-106-057	inhouse_fastANI	OK	OK	NA
+104326-106-061	inhouse_fastANI	OK	OK	NA
+104326-106-079	inhouse_fastANI	OK	OK	NA
+104326-106-004	inhouse_fastANI	OK	OK	NA
+104326-106-023	inhouse_fastANI	OK	OK	NA
+104326-106-005	inhouse_fastANI	OK	OK	NA
+104326-106-050	inhouse_fastANI	OK	OK	NA
+104326-106-064	inhouse_fastANI	OK	OK	NA
+104326-106-069	inhouse_fastANI	OK	OK	NA
+104326-106-054	inhouse_fastANI	OK	OK	NA
+JGAR-030718-1	inhouse_fastANI	OK	OK	NA
+JGAR-080719-2	inhouse_fastANI	OK	OK	NA
+JGAR-100719-1	inhouse_fastANI	OK	OK	NA
+JGAR-120719-4	inhouse_fastANI	OK	OK	NA
+NAK238	inhouse_fastANI	OK	OK	NA
+NAK246	inhouse_fastANI	OK	OK	NA
+NAK616	inhouse_fastANI	OK	OK	NA
+NAK617	inhouse_fastANI	OK	OK	NA
+NAK638	inhouse_fastANI	OK	OK	NA
+NAK641	inhouse_fastANI	OK	OK	NA
+NAK644	inhouse_fastANI	OK	OK	NA
+NAK650	inhouse_fastANI	OK	OK	NA
+NAK673	inhouse_fastANI	OK	OK	NA
+NAK679	inhouse_fastANI	OK	OK	NA
+NAK682	inhouse_fastANI	OK	OK	NA
+NAK683	inhouse_fastANI	OK	OK	NA
+NAK698	inhouse_fastANI	OK	OK	NA
+NAK700	inhouse_fastANI	OK	OK	NA
+NAK701	inhouse_fastANI	OK	OK	NA
+NAK709	inhouse_fastANI	OK	OK	NA
+NAK716	inhouse_fastANI	OK	OK	NA
+NAK719	inhouse_fastANI	OK	OK	NA
+NAK727	inhouse_fastANI	OK	OK	NA

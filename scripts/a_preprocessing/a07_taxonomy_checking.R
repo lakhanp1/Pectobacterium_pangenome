@@ -1,5 +1,6 @@
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(openxlsx))
 
 ## check the taxonomy for bacterial genomes
 ## generate a table for manual inspection
@@ -17,11 +18,20 @@ confs <- prefix_config_paths(
 
 outDir <- confs$analysis$qc$dir
 
+cutoff_ani_species <- 95L
+cutoff_ani_ncbi <- 96L
 ################################################################################
 
 genomeMetadata <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$prebuild_metadata)
-)
+) %>% 
+  dplyr::filter(
+    ## no need to include assemblies that already have problem
+    dplyr::if_all(
+      .cols = c(ExclFromRefSeq, Anomalous, replaced),
+      .fns = ~ is.na(.x)
+    )
+  )
 
 ncbiAni <- suppressMessages(
   readr::read_tsv(file = confs$data$other$files$ani_report, na = "na")
@@ -50,38 +60,37 @@ typeStrainAni <- dplyr::left_join(
 
 ## NCBI data
 ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
-  dplyr::filter(
-    taxonomy_check_status != "OK" |
-      (is.na(taxonomy_check_status) & is.na(replaced))
-  ) %>%
   dplyr::select(
-    sampleId, source, AssemblyAccession, synonym_GB, taxonomy_check_status
+    sampleId, synonym_GB, ncbi_tax_status = taxonomy_check_status
   ) %>%
   dplyr::left_join(
     y = dplyr::select(
-      ncbiAni, genbank_accession, species_name, organism_name,
-      declared_type_organism_name, declared_type_ANI,
-      declared_type_qcoverage, declared_type_scoverage, best_match_species_name,
-      best_match_type_ANI, best_match_type_qcoverage, best_match_type_scoverage,
-      best_match_status, comment
+      ncbiAni, genbank_accession,
+      ncbi_declared_species = declared_type_organism_name,
+      ncbi_declared_ANI = declared_type_ANI,
+      ncbi_declared_qcov = declared_type_qcoverage,
+      ncbi_declared_scov = declared_type_scoverage,
+      ncbi_best_ts_species = best_match_species_name,
+      ncbi_best_ts_ANI = best_match_type_ANI,
+      ncbi_best_ts_qcov = best_match_type_qcoverage,
+      ncbi_best_ts_scov = best_match_type_scoverage,
+      ncbi_best_ts_status = best_match_status,
+      comment_ncbi = comment
     ),
     by = c("synonym_GB" = "genbank_accession")
   ) %>%
   dplyr::mutate(
-    declared_type_organism_name = na_if(declared_type_organism_name, ""),
-    taxonomy_check_method = "NCBI_ANI"
+    ncbi_declared_species = na_if(ncbi_declared_species, ""),
+    ncbi_taxonomy_check_method = "NCBI_ANI"
   ) %>% 
-  dplyr::arrange(desc(taxonomy_check_status), species_name) %>% 
-  dplyr::select(-synonym_GB, -organism_name)
+  dplyr::select(-synonym_GB)
 
+################################################################################
+## internal taxonomy checking
 # all(ncbiTaxCheck$sampleId %in% genomeMetadata$sampleId)
 
 ## use inhouse data to perform taxonomy checking: because of additional type strains available
-inhouseDf <- dplyr::filter(
-  genomeMetadata, taxonomy_check_status != "OK" | source != "NCBI" | 
-    (source == "NCBI" & is.na(replaced) & is.na(taxonomy_check_status))
-) %>% 
-  dplyr::select(sampleId, source, AssemblyAccession, SpeciesName) %>% 
+inhouseTypeAni <- dplyr::select(genomeMetadata, sampleId, AssemblyAccession, source, SpeciesName) %>% 
   dplyr::left_join(
     y = typeStrains, by = c("SpeciesName" = "type_organism_name")
   ) %>% 
@@ -94,72 +103,194 @@ inhouseDf <- dplyr::filter(
   dplyr::slice(1L) %>% 
   dplyr::ungroup() %>% 
   dplyr::select(
-    sampleId, source, AssemblyAccession, SpeciesName, declared_type_id = typeStrainId, 
-    declared_type_ANI = ani, declared_type_organism_name = type_organism_name
+    sampleId, source, AssemblyAccession, SpeciesName, inhouse_declared_id = typeStrainId, 
+    inhouse_declared_ANI = ani,
+    inhouse_declared_species = type_organism_name
   )
 
-if(!all(ncbiTaxCheck$sampleId %in% inhouseDf$sampleId)){
-  stop(setdiff(ncbiTaxCheck$sampleId, inhouseDf$sampleId))
+if(!all(ncbiTaxCheck$sampleId %in% inhouseTypeAni$sampleId)){
+  stop(setdiff(ncbiTaxCheck$sampleId, inhouseTypeAni$sampleId))
 }
 
 ## get best ANI with its respective type species name
 inhouseTaxCheck <- dplyr::left_join(
-  inhouseDf, y = typeStrainAni, by = c("sampleId" = "id1")
+  inhouseTypeAni, y = typeStrainAni, by = c("sampleId" = "id1")
 ) %>% 
   dplyr::group_by(sampleId) %>% 
   dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>% 
   dplyr::slice(1L) %>% 
   dplyr::ungroup() %>% 
   dplyr::rename(
-    species_name = SpeciesName,
-    best_match_species_name = type_organism_name,
-    best_match_type_id = typeStrainId,
-    best_match_type_ANI = ani
+    inhouse_best_ts_species = type_organism_name,
+    inhouse_best_ts_id = typeStrainId,
+    inhouse_best_ts_ANI = ani
   ) %>% 
   dplyr::mutate(
-    taxonomy_check_status = dplyr::case_when(
-      declared_type_organism_name == best_match_species_name & 
-        best_match_type_ANI >= 95 ~ "OK",
-      declared_type_organism_name == best_match_species_name & 
-        best_match_type_ANI < 95 ~ "Inconclusive",
-      is.na(declared_type_id) ~ "Inconclusive",
+    inhouse_tax_status = dplyr::case_when(
+      inhouse_declared_species == inhouse_best_ts_species & 
+        inhouse_best_ts_ANI >= cutoff_ani_species ~ "OK",
+      inhouse_declared_species == inhouse_best_ts_species & 
+        inhouse_best_ts_ANI < cutoff_ani_species ~ "Inconclusive",
+      is.na(inhouse_declared_id) ~ "Inconclusive",
       TRUE ~ "Failed"
     ),
-    best_match_status = dplyr::case_when(
-      declared_type_organism_name == best_match_species_name & 
-        best_match_type_ANI < 96 ~ "below-threshold-match",
-      declared_type_organism_name == best_match_species_name & 
-        best_match_type_ANI >= 96 ~ "match",
+    inhouse_match_status = dplyr::case_when(
+      inhouse_declared_species == inhouse_best_ts_species & 
+        inhouse_best_ts_ANI >= cutoff_ani_species ~ "match",
+      inhouse_declared_species == inhouse_best_ts_species & 
+        inhouse_best_ts_ANI < cutoff_ani_species ~ "below-threshold-match",
       TRUE ~ "mismatch"
     ),
-    comment = dplyr::case_when(
-      is.na(declared_type_organism_name) ~ "no type strain to match",
-      declared_type_ANI == 100 ~ "this is a type strain"
+    comment_inhouse = dplyr::case_when(
+      is.na(inhouse_declared_species) ~ "no type strain to match",
+      inhouse_declared_ANI == 100 ~ "this is a type strain"
     ),
-    taxonomy_check_method = "inhouse_fastANI",
-    source = forcats::fct_relevel(source, "NCBI")
+    inhouse_taxonomy_check_method = "inhouse_fastANI"
   ) %>% 
-  dplyr::select(-mapped, -total, -best_match_type_id, -declared_type_id)
+  dplyr::select(-mapped, -total, -inhouse_best_ts_id, -inhouse_declared_id)
 
+taxCheckDf <- dplyr::left_join(
+  inhouseTaxCheck, ncbiTaxCheck, by = "sampleId"
+) %>% 
+  dplyr::filter(
+    inhouse_tax_status != "OK" | ncbi_tax_status != "OK" | source != "NCBI"
+  ) %>% 
+  tidyr::unite(col = "comment", comment_inhouse, comment_ncbi) %>% 
+  dplyr::mutate(
+    ncbi_eq_inhouse = if_else(
+      ncbi_best_ts_species == inhouse_best_ts_species, true = "TRUE", false = "FALSE"
+    )
+  )
 
+bestAni <- dplyr::select(taxCheckDf, c(sampleId, ends_with("_ANI"))) %>% 
+  tidyr::pivot_longer(
+    cols = -sampleId,
+    names_to = "best_ANI_from",
+    values_to = "best_ANI",
+    values_drop_na = TRUE
+  ) %>% 
+  dplyr::group_by(sampleId) %>% 
+  dplyr::arrange(dplyr::desc(best_ANI), .by_group = TRUE) %>% 
+  dplyr::slice(1L) %>% 
+  dplyr::ungroup()
 
-taxCheckDf <- dplyr::bind_rows(ncbiTaxCheck, inhouseTaxCheck) %>% 
-  dplyr::group_by(sampleId) %>%
-  dplyr::arrange(dplyr::desc(best_match_type_ANI), .by_group = TRUE) %>%
-  dplyr::slice(1L) %>%
-  dplyr::ungroup() %>%
-  dplyr::rename(taxonomy_check_status_inhouse = taxonomy_check_status) %>% 
-  dplyr::arrange(source, sampleId) %>% 
+taxCheckDf <- dplyr::left_join(
+  taxCheckDf, bestAni, by = "sampleId"
+) %>% 
+  dplyr::arrange(source, SpeciesName) %>% 
+  dplyr::mutate(
+    best_ani_species = dplyr::case_when(
+      best_ANI_from == "inhouse_declared_ANI" ~ inhouse_declared_species,
+      best_ANI_from == "inhouse_best_ts_ANI" ~ inhouse_best_ts_species,
+      best_ANI_from == "ncbi_declared_ANI" ~ ncbi_declared_species,
+      best_ANI_from == "ncbi_best_ts_ANI" ~ ncbi_best_ts_species,
+      TRUE ~ "NA"
+    ),
+    ani_matches = dplyr::if_else(
+      SpeciesName == best_ani_species, true = TRUE, false = FALSE
+    ),
+    taxonomy_check_method = dplyr::case_when(
+      best_ANI >= cutoff_ani_species &
+        (best_ANI_from %in% c("inhouse_declared_ANI", "inhouse_best_ts_ANI")) ~ 
+        inhouse_taxonomy_check_method,
+      best_ANI >= cutoff_ani_species &
+        (best_ANI_from %in% c("ncbi_declared_ANI", "ncbi_best_ts_ANI")) ~ 
+        ncbi_taxonomy_check_method,
+      TRUE ~ ""
+    ),
+    taxonomy_check_status_inhouse = dplyr::case_when(
+      best_ANI_from %in% c("inhouse_declared_ANI", "inhouse_best_ts_ANI") ~
+        inhouse_tax_status,
+      best_ANI_from %in% c("ncbi_declared_ANI", "ncbi_best_ts_ANI") ~
+        ncbi_tax_status
+    )
+  ) %>% 
   dplyr::mutate(
     taxonomy_corrected = NA,
     new_species_name = NA
-  ) %>% 
-  dplyr::relocate(
-    sampleId, taxonomy_check_status_inhouse,taxonomy_check_method,
-    .before = taxonomy_corrected
   )
 
+glimpse(taxCheckDf)
+
+
+################################################################################
 readr::write_tsv(x = taxCheckDf, file = confs$analysis$qc$files$tax_check)
+
+file_xls <- paste(
+  tools::file_path_sans_ext(confs$analysis$qc$files$tax_check), ".xlsx", sep = ""
+)
+
+negStyle <- openxlsx::createStyle(fontColour = "#9C0006", bgFill = "#FFC7CE")
+posStyle <- openxlsx::createStyle(fontColour = "#006100", bgFill = "#C6EFCE")
+neutralStyle <- openxlsx::createStyle(fontColour = "#0000ff", bgFill = "#ccccff")
+naStyle <- openxlsx::createStyle(fontColour = "black", bgFill = "#e6e6e6")
+
+currentSheet <- "tax_check"
+
+if (file.exists(file_xls)) {
+  wb <- openxlsx::loadWorkbook(file = file_xls)
+  removeWorksheet(wb, sheet = currentSheet)
+} else{
+  wb <- openxlsx::createWorkbook()
+}
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+
+## tax_status column formating
+
+openxlsx::writeDataTable(
+  wb = wb, sheet = currentSheet, x = taxCheckDf, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+
+for (col in which(colnames(taxCheckDf) %in% c("inhouse_tax_status", "ncbi_tax_status"))) {
+
+  openxlsx::conditionalFormatting(
+    wb = wb, sheet = currentSheet,
+    cols = col, rows = 1:nrow(taxCheckDf) + 1,
+    type = "contains", rule = "OK", style = posStyle
+  )
+  openxlsx::conditionalFormatting(
+    wb = wb, sheet = currentSheet,
+    cols = col, rows = 1:nrow(taxCheckDf) + 1,
+    type = "contains", rule = "Failed", style = negStyle
+  )
+  openxlsx::conditionalFormatting(
+    wb = wb, sheet = currentSheet,
+    cols = col, rows = 1:nrow(taxCheckDf) + 1,
+    type = "contains", rule = "Inconclusive", style = neutralStyle
+  )
+}
+
+for (col in which(
+  colnames(taxCheckDf) %in%
+  c("inhouse_declared_ANI", "inhouse_best_ts_ANI", "ncbi_declared_ANI",
+    "ncbi_best_ts_ANI", "best_ANI"))) {
+  ## ANI column formatting
+  openxlsx::conditionalFormatting(
+    wb = wb, sheet = currentSheet,
+    cols = col, rows = 1:nrow(taxCheckDf) + 1,
+    type = "expression", rule = ">=95", style = posStyle
+  )
+  openxlsx::conditionalFormatting(
+    wb = wb, sheet = currentSheet,
+    cols = col, rows = 1:nrow(taxCheckDf) + 1,
+    type = "expression", rule = "<95", style = negStyle
+  )
+  openxlsx::conditionalFormatting(
+    wb = wb, sheet = currentSheet,
+    cols = col, rows = 1:nrow(taxCheckDf) + 1,
+    type = "contains", rule = "NA", style = naStyle
+  )
+}
+
+
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 4)
+
+# openxlsx::openXL(wb)
+openxlsx::saveWorkbook(
+  wb = wb,
+  file = file_xls, overwrite = TRUE
+)
 
 ################################################################################
 

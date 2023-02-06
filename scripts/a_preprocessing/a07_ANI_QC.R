@@ -43,8 +43,14 @@ genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
 
 sampleInfo <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$prebuild_metadata)
-) %>% 
-  dplyr::filter(buscog.complete >= 99) %>% 
+)  %>% 
+  dplyr::filter(
+    ## no need to include assemblies that already have problem
+    dplyr::if_all(
+      .cols = c(ExclFromRefSeq, Anomalous, replaced),
+      .fns = ~ is.na(.x)
+    )
+  ) %>% 
   dplyr::mutate(
     SpeciesName = stringi::stri_replace(
       str = SpeciesName, regex = genusPattern, replacement = "P. "
@@ -53,7 +59,10 @@ sampleInfo <- suppressMessages(
       str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
       replacement = "$2. $4. $5"
     ),
-    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
+    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = ""),
+    type_material = dplyr::if_else(
+      !is.na(type_material), true = "type strain", type_material
+    )
   )
 
 sampleInfoList <- dplyr::select(
