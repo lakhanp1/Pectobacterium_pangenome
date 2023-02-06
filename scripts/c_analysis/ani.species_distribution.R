@@ -18,7 +18,7 @@ confs <- prefix_config_paths(
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
-outDir <- confs$analysis$ANI$dir
+outDir <- confs$analysis$phylogeny$ani$dir
 
 ################################################################################
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
@@ -32,7 +32,7 @@ genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
 speciesOrd <- names(sort(table(sampleInfo$SpeciesName), decreasing = T))
 
 aniMat <- suppressMessages(
-  readr::read_tsv(confs$analysis$ANI$files$ani_matrix)
+  readr::read_tsv(confs$analysis$phylogeny$ani$files$ani_matrix)
 ) %>% 
   tibble::column_to_rownames(var = "g1") %>% 
   as.matrix()

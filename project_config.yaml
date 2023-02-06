@@ -57,6 +57,7 @@ data:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
       homology_group_setting: 4
+      include_source: ['NCBI', 'WUR', 'NVWA']
       files:
         input_lock: "input_genomes.tab"
         genomes: "genomes_fa.list"
@@ -169,6 +170,8 @@ analysis:
       files:
         ani_distance: "ANI_distance.pangenome.tab"
         ani_matrix: "ANI_matrix.pangenome.tab"
+    # cannot move ani_upgma and ani_nj blocks under ani because tree plotting
+    # script depends on phylogeny/[ani_upgma, ani_nj, gene_nj, kmer_nj] structure
     ani_upgma:
       name: "ANI UPGMA"
       dir: "ani"

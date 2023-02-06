@@ -99,16 +99,17 @@ done
 
 ``` bash
 printf '' > analysis/01_multiqc/assembly_chr_size.txt
-
+printf '' > data/reference_data/pre_filtered_genomes_fa.list
 conda activate omics_py37
 
 for i in `cat data/reference_data/assembly_ids.txt`
 do
-samtools faidx data/prokka_annotation/${i}/${i}.fna
-sort -r -n -k 2,2 data/prokka_annotation/${i}/${i}.fna.fai | \
-awk  -v i=${i} '{print i, "\t", $1, "\t", $2}' >> analysis/01_multiqc/assembly_chr_size.txt
+    samtools faidx data/prokka_annotation/${i}/${i}.fna
+    sort -r -n -k 2,2 data/prokka_annotation/${i}/${i}.fna.fai | \
+    awk  -v i=${i} '{print i, "\t", $1, "\t", $2}' >> analysis/01_multiqc/assembly_chr_size.txt
+    ls data/prokka_annotation/${i}/${i}.fna >> data/reference_data/pre_filtered_genomes_fa.list
 
-faToTwoBit data/prokka_annotation/${i}/${i}.fna data/prokka_annotation/${i}/${i}.2bit
+    faToTwoBit data/prokka_annotation/${i}/${i}.fna data/prokka_annotation/${i}/${i}.2bit
 
 done
 
@@ -193,8 +194,9 @@ multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
 ## fastANI
 
 ``` bash
+process_start "ANI on all genomes"
 nohup bash scripts/a_preprocessing/a05_fastANI.sh \
-data/pangenomes/pectobacterium.v2/genomes_fa.list \
+data/reference_data/pre_filtered_genomes_fa.list \
 analysis/02_fastANI/ANI_results >logs/fastANI.log 2>&1 &
-
+error_exit $?
 ```

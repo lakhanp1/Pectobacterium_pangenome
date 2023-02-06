@@ -37,8 +37,8 @@ annotate_ggtree <- function(pt, offset){
       pwidth = 0.01
     ) +
     scale_fill_manual(
-      values = c("Failed" = "red", "Inconclusive" = "blue",
-                 "OK" = alpha("white", 0), "Corrected" = alpha("white", 0))
+      values = c("Failed" = "red", "Inconclusive" = "blue", "OK" = alpha("white", 0),
+                 "corrected" = "#9DFBC1", "renamed" = "#046228")
     ) +
     ## collection year
     ggtreeExtra::geom_fruit(
@@ -199,25 +199,34 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 #' @export
 #'
 #' @examples
-clade_comparison_confs <- function(file, node, ancestorClade = NA, name, category = "Y"){
+clade_comparison_confs <- function(file, node, type, ancestorClade = NA, name, category = "Y"){
   
   
   tr <- ape::read.tree(file)
   
   stopifnot(
-    is.character(node) & is.element(node, tr$node.label),
+    is.character(node),
+    (is.element(node, tr$node.label) | is.element(node, tr$tip.label)),
     is.na(ancestorClade) |
       (is.character(ancestorClade) & is.element(ancestorClade, tr$node.label)),
-    category != "N"
+    category != "N",
+    is.element(type, c("node", "tip"))
   )
   
-  
-  ## phenotype for genomes of interest
-  ## IMP: use tree as tibble for tip labels as output when providing node label
-  phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = node, tiponly = TRUE) %>% 
-    dplyr::select(Genome = label) %>% 
-    dplyr::mutate(!!name := category)
-  
+  if(type == "node"){
+    ## phenotype for genomes of interest
+    ## IMP: use tree as tibble for tip labels as output when providing node label
+    phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = node, tiponly = TRUE) %>% 
+      dplyr::select(Genome = label) %>% 
+      dplyr::mutate(!!name := category)
+    
+  } else{
+    ## when only a leaf (one genome) is being compared
+    phenoDf <- tibble::tibble(
+      Genome = node, !!name := category
+    )
+  }
+
   nodeGenomes <- stringr::str_c(phenoDf$Genome, collapse = ",")
   
   includeGenomes <- NA

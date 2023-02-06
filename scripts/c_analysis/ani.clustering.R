@@ -63,7 +63,7 @@ aniDf %<>% dplyr::mutate(
     g1 = genomeIds[id1],
     g2 = genomeIds[id2]
   ) %>% 
-  dplyr::filter(!is.na(g1) | !is.na(g2)) %>% 
+  dplyr::filter(!is.na(g1) & !is.na(g2)) %>% 
   dplyr::arrange(g1, g2)
 
 aniDist <- tidyr::pivot_wider(
@@ -108,7 +108,7 @@ treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>%
 
 ape::write.tree(
   phy = treeUpgma, tree.names = "ani_upgma",
-  file = confs$analysis$phylogeny$ani$upgma$files$tree
+  file = confs$analysis$phylogeny$ani_upgma$files$tree
 )
 
 # plot(ape::root(phy = treeUpgma, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE))
@@ -123,7 +123,7 @@ treeNj$edge.length[treeNj$edge.length < 0] <- 0
 
 ape::write.tree(
   phy = treeNj, tree.names = "ANI_NJ",
-  file = confs$analysis$phylogeny$ani$nj$files$tree
+  file = confs$analysis$phylogeny$ani_nj$files$tree
 )
 
 
@@ -158,7 +158,7 @@ sampleInfo %<>%  dplyr::mutate(
 
 readr::write_tsv(
   x = tibble::tibble(SpeciesName = speciesOrder),
-  file = confs$analysis$phylogeny$ani$upgma$files$species_order
+  file = confs$analysis$phylogeny$ani_upgma$files$species_order
 )
 
 ################################################################################

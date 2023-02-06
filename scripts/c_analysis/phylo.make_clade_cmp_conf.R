@@ -39,12 +39,13 @@ cladeGrps <- suppressMessages(
   purrr::set_names(nm = purrr::map(., "name"))
 
 # ## test
-# cmp <- cladeGrps$NL_clade_vs_rest_Pbr
+# cmp <- cladeGrps$carotovorum_outlier_cmp
 # treeName <- cmp$tree
 # clade_comparison_confs(
 #   file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
-#   node = cmp$node,
-#   ancestorClade = cmp$clade,
+#   node = cmp$compare,
+#   type = cmp$compareType,
+#   ancestorClade = cmp$background,
 #   name = cmp$name,
 #   category = cmp$name
 # )
@@ -59,8 +60,9 @@ cladeCmpList <- purrr::map(
     
     clade_comparison_confs(
       file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
-      node = cmp$node,
-      ancestorClade = cmp$clade,
+      node = cmp$compare,
+      type = cmp$compareType,
+      ancestorClade = cmp$background,
       name = cmp$name,
       category = cmp$name
     )

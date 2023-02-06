@@ -26,6 +26,8 @@ get_metadata <- function(file){
     sampleInfo <- suppressMessages(readr::read_csv(file))
   }
   
+  genomeFormat <- paste("%0", stringr::str_length(max(sampleInfo$Genome)), "d", sep = "")
+  
   sampleInfo %<>% dplyr::mutate(
     ## very IMP for converting Genome to a char. Int Genome will create many problems in downstream steps
     Genome = as.character(Genome),
@@ -36,7 +38,11 @@ get_metadata <- function(file){
       str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
       replacement = "$2. $4. $5"
     ),
-    nodeLabs = stringr::str_c("(", Genome, ") ", sampleName, " (", SpeciesName,")", sep = "")
+    nodeLabs = stringr::str_c(
+      "(", stringi::stri_sprintf(format = genomeFormat, Genome), ") ",
+      "(", SpeciesName,") ", sampleName,
+      sep = ""
+    )
   ) %>% 
     dplyr::select(sampleId, everything())
   
