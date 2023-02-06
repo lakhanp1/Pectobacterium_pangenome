@@ -62,13 +62,6 @@ hgMeta <- suppressMessages(
   readr::read_tsv(confs$analysis$homology_groups$files$groups_meta)
 )
 
-associationConf <- suppressMessages(
-  readr::read_tsv(
-    file = confs$data$analysis_confs$files$phenotype_association,
-    col_names = c("phenotype", "args")
-  )
-)
-
 phenoMeta <- suppressMessages(
   readr::read_csv(file = confs$analysis$association$files$phenotypes)
 ) %>% 
