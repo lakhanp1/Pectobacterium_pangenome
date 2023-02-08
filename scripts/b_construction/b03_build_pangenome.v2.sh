@@ -48,9 +48,9 @@ PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
 PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 
 ## setup for local disk processing on handelsman
-LOCAL_DIR_PATH="/local_scratch/$USER/"
-# LOCAL_DIR_PATH="/local/$USER/"
-# LOCAL_DIR_PATH="/dev/shm/$USER/"
+LOCAL_DIR_PATH="/local_scratch/$USER"
+# LOCAL_DIR_PATH="/local/$USER"
+# LOCAL_DIR_PATH="/dev/shm/$USER"
 
 PAN_BUILD_DIR="$LOCAL_DIR_PATH/03_Pectobacterium"
 pan_db="$PAN_BUILD_DIR/${PANGENOME_NAME}.DB${DB_SUFFIX}"
@@ -105,10 +105,11 @@ fi
 #cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.backup_ann
 
 ## add phenotypes
-process_start add_phenotypes
-$PANTOOLS remove_phenotype ${pan_db}
-$PANTOOLS add_phenotypes ${pan_db} $PANGENOME_DIR/genomes_metadata.csv
-error_exit $?
+#process_start add_phenotypes
+#printf "y\n" | $PANTOOLS remove_phenotypes ${pan_db}
+#$PANTOOLS remove_phenotypes ${pan_db}
+#$PANTOOLS add_phenotypes ${pan_db} $PANGENOME_DIR/genomes_metadata.csv
+#error_exit $?
 
 #cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.backup_meta
 
@@ -247,6 +248,12 @@ error_exit $?
 
 #Rscript ${pan_db}/cog_per_class.R
 
+
+### MSA for homology groups
+#process_start "msa for homology groups"
+#$PANTOOLS msa -t 12 --method per-group --mode nucleotide ${pan_db}
+#error_exit $?
+
 #######################################################################
 
 ### SNP tree using core gene SNPs
@@ -260,5 +267,69 @@ error_exit $?
 
 ######################################################################
 
+## add the updated phenotypes for association analysis
+process_start add_phenotypes
+$PANTOOLS remove_phenotype ${pan_db}
+$PANTOOLS add_phenotypes ${pan_db} analysis/04_pangenome_pecto_v2/phylogeny/clade_compare_phenotypes.csv
+error_exit $?
 
 
+[ -d ${pan_db}/gene_classification ] && rm -r ${pan_db}/gene_classification
+mkdir ${pan_db}/gene_classification.pheno
+
+## Gene classification for each phenotype
+phenotypes=(`awk -F "\t" '{ print $1 }' data/analysis_configs/pheno_association_config.tab`)
+for phn in ${phenotypes[@]}
+do
+    process_start "gene_classification for phenotype $phn"
+    pheno_arg=`grep "^${phn}\b" data/analysis_configs/pheno_association_config.tab | cut -f2`
+    $PANTOOLS gene_classification ${pheno_arg} ${pan_db}
+    error_exit $?
+
+    ## move results to a folder
+    pheno_dir=${pan_db}/gene_classification.pheno/${phn}
+    [ -d ${pheno_dir} ] && rm -r ${pheno_dir}
+    mkdir ${pheno_dir}
+    mv ${pan_db}/gene_classification/{phenotype_*,gene_classification_phenotype_overview.txt} ${pheno_dir}/
+done
+
+rm -r ${pan_db}/gene_classification
+
+######################################################################
+
+### homology group information 
+#process_start "extracting homology group information"
+#$PANTOOLS group_info ${pan_db} ${pan_db}/gene_classification.100.0/all_homology_groups.csv
+#error_exit $?
+
+#conda activate omics_py37
+#while IFS=$'\t' read -r phn groups ; do
+#    # printf "%b\n" "column1<${phn}>"
+#    # printf "%b\n" "column2<${groups}>"
+#    process_start "extracting mRNA sequence for homology group specific to phenotype: ${phn}"
+#    printf "Homology groups: ${groups}\n"
+
+#    genome=`grep "${phn}" data/analysis_configs/pheno_association_config.tab | cut -f3 | sed 's/,.*//'`
+
+#    file_info="analysis/04_pangenome_pecto_v2/pheno_association/phenotype_${phn}.seq_info.txt"
+#    file_fasta="analysis/04_pangenome_pecto_v2/pheno_association/phenotype_${phn}.specific_mRNA.fasta"
+
+#    printf "homology_group_id, genome, mRNA name, mRNA identifier, node identifier, address, strand\n"  > ${file_info}
+#    printf "" > ${file_fasta}
+
+#    ## read groups into array
+#    IFS=',' read -ra hg_array <<< "${groups}"
+#    for hg in "${hg_array[@]}"
+#    do
+#        # printf "${hg} "
+#        seq_info=`grep "^${genome}" ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info`
+#        mrna_id=`echo ${seq_info} | cut -d"," -f3`
+#        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta
+
+#        printf "${hg}, ${seq_info}\n" >> ${file_info}
+#        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta ${mrna_id} >> ${file_fasta}
+#    done
+#done < analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
+#conda activate pantools_master
+
+######################################################################
