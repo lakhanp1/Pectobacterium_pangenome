@@ -39,7 +39,10 @@ inhouseGenomes <- suppressMessages(
   )
 
 missingMetadata <- suppressMessages(
-  readr::read_tsv(file = confs$data$other$files$pecto1_metadata, na = "-")
+  readr::read_tsv(
+    file = confs$data$other$files$pecto1_metadata, na = c("-", ""),
+    col_types = cols(collection_date = col_character())
+  )
 )
 
 buscopMqc <- suppressMessages(
@@ -116,7 +119,7 @@ quastMqc <- suppressMessages(
 
 ncbiAni <- suppressMessages(
   readr::read_tsv(file = confs$data$other$files$ani_report)
-  )
+)
 
 ################################################################################
 ## extract assembly information

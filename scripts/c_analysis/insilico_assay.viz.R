@@ -56,7 +56,7 @@ probeInfo <- suppressMessages(readr::read_tsv(confs$data$other$files$probe_info)
 
 ################################################################################
 ## extract the ANI tree information for the node order
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny$files$tree_ani_upgma)
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny$ani_upgma$files$tree_rooted)
 
 ## set negative length edges => 0
 rawTree$edge.length[rawTree$edge.length < 0] <- 0
@@ -230,7 +230,7 @@ pt_pcrBlast <- ggplot2::ggplot(
 ) +
   geom_tile(
     mapping = aes(fill = pident, width = qcovs/100, height = qcovs/100),
-    color = "black", size = 0.5) +
+    color = "black", linewidth = 0.5) +
   labs(
     title = "blastn results for forward (F), probe (P) and reverse (R) PCR primers"
   ) +
@@ -271,7 +271,7 @@ pt_source <- dplyr::select(sampleInfo, Genome, source) %>%
   ) +
   geom_point(shape = 15, size = 1) +
   scale_color_manual(
-    values = c("NCBI" = alpha("#406495",0), "WUR" = "#468e30", "NVWA" = alpha("#ff6600",0)),
+    values = c("NCBI" = alpha("#406495",0), "NAK" = "#468e30", "NVWA" = alpha("#ff6600",0)),
     breaks = NULL
   ) +
   pt_theme +
@@ -333,7 +333,7 @@ pt_sampleYear <- dplyr::select(sampleInfo, Genome, collection_year, source) %>%
   ) +
   geom_point(size = 1) +
   scale_color_manual(
-    values = c("NCBI" = "black", "WUR" = "#468e30", "NVWA" = "black"),
+    values = c("NCBI" = "black", "NAK" = "#468e30", "NVWA" = "black"),
     breaks = NULL
   ) +
   scale_x_continuous(expand = expansion(add = 0.5)) +

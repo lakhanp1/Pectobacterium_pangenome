@@ -43,7 +43,7 @@ metadata <- suppressMessages(
 filteredMeta <- dplyr::filter(
   metadata,
   filtered == "PASS",
-  source %in% confs$data$pangenomes[[pangenomeName]]$include_source
+  source %in% confs$data$include_source
 ) %>% 
   dplyr::mutate(
     genomeId = 1:n(),

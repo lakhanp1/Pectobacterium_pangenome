@@ -6,6 +6,7 @@ parameters:
   seed: 124
 data:
   dir: "data"
+  include_source: ['NCBI', 'NAK', 'NVWA']
   reference_data:
     dir: "reference_data"
     files:
@@ -57,7 +58,6 @@ data:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
       homology_group_setting: 4
-      include_source: ['NCBI', 'WUR', 'NVWA']
       files:
         input_lock: "input_genomes.tab"
         genomes: "genomes_fa.list"

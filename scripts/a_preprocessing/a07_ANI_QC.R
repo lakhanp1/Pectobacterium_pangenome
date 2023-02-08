@@ -43,7 +43,7 @@ genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
 
 sampleInfo <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$prebuild_metadata)
-)  %>% 
+) %>% 
   dplyr::filter(
     ## no need to include assemblies that already have problem
     dplyr::if_all(
@@ -59,7 +59,7 @@ sampleInfo <- suppressMessages(
       str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
       replacement = "$2. $4. $5"
     ),
-    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = ""),
+    nodeLabs = stringr::str_c("(", SpeciesName,")", sampleName, sep = ""),
     type_material = dplyr::if_else(
       !is.na(type_material), true = "type strain", type_material
     )
@@ -231,9 +231,7 @@ annotate_ggtree <- function(pt, offset){
       geom = "geom_point", shape = 15,
       pwidth = 0.01
     ) +
-    scale_color_manual(
-      values = c("NCBI" = "#406495", "WUR" = "#468e30", "NVWA" = "#ff6600")
-    ) +
+    scale_colour_viridis_d() +
     ggnewscale::new_scale_fill() +
     ggtreeExtra::geom_fruit(
       mapping = aes(y = id, fill = taxonomy_check_status),
@@ -297,7 +295,7 @@ pt_upgma4 <- annotate_ggtree(pt = pt_upgma3, offset = 0.2)
 
 ggsave(
   plot = pt_upgma4, filename = file.path(outDir, "upgma_tree.pdf"),
-  width = 10, height = 20, scale = 2
+  width = 12, height = 24, scale = 2
 )
 
 
@@ -420,7 +418,7 @@ pt_nj4 <- annotate_ggtree(pt = pt_nj3, offset = 0.2)
 
 ggsave(
   plot = pt_nj4, filename = file.path(outDir, "nj_rooted_tree.pdf"),
-  width = 10, height = 20, scale = 2
+  width = 12, height = 24, scale = 2
 )
 
 

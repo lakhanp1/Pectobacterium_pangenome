@@ -1,9 +1,9 @@
 Genome,sampleId,sampleName,AssemblyAccession,AssemblyName,SpeciesName,taxonomy_check_status,strain,virulence,virulence_pcr,geo_loc_country,host,isolation_source,collection_year,collected_by,env_broad_scale,type_material,source,representative_status,sample_type
-1,104326-106-073,104326-106-073,NA,NA,Pectobacterium aroidearum,OK,PD 8061,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-2,104326-106-074,104326-106-074,NA,NA,Pectobacterium cacticida,OK,PD 8066,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-3,104326-106-075,104326-106-075,NA,NA,Pectobacterium parmentieri,OK,PD 8070,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-4,104326-106-076,104326-106-076,NA,NA,Pectobacterium parvum,OK,PD 8074,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
-5,104326-106-079,104326-106-079,NA,NA,Pectobacterium polaris,OK,PD 8141,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+1,104326-106-073,104326-106-073,NA,NA,Pectobacterium aroidearum,OK,PD8061,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+2,104326-106-074,104326-106-074,NA,NA,Pectobacterium cacticida,OK,PD8066,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+3,104326-106-075,104326-106-075,NA,NA,Pectobacterium parmentieri,OK,PD8070,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+4,104326-106-076,104326-106-076,NA,NA,Pectobacterium parvum,OK,PD8074,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
+5,104326-106-079,104326-106-079,NA,NA,Pectobacterium polaris,OK,PD8141,NA,NA,NA,NA,NA,NA,NA,NA,type strain,NVWA,NA,NA
 6,GCF_000291725.1_PecWas1.0,GCF_000291725.1,GCF_000291725.1,PecWas1.0,Pectobacterium wasabiae,OK,CFBP 3304,NA,NA,Finland,Eutrema japonicum,root,NA,NA,NA,type strain,NCBI,NA,NA
 7,GCF_000749845.1_ASM74984v1,GCF_000749845.1,GCF_000749845.1,ASM74984v1,Pectobacterium betavasculorum,OK,NCPPB 2795,NA,NA,United States,Beta vulgaris,NA,1972,NA,NA,type strain,NCBI,representative genome,NA
 8,GCF_000749855.1_ASM74985v1,GCF_000749855.1,GCF_000749855.1,ASM74985v1,Pectobacterium carotovorum,OK,NCPPB 312,NA,NA,Denmark,Solanum tuberosum,NA,1952,NA,NA,type strain,NCBI,NA,NA

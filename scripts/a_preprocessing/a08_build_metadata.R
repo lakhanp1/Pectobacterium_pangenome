@@ -69,6 +69,7 @@ correctMeta %<>%
       !is.na(replaced) ~ "replaced",
       sampleId %in% c(duplicateGenomes$genome2, excludeGenomes$sampleId) ~ "duplicate",
       buscog.complete < cutoff_buscog ~ paste("BUSCO.geno <", cutoff_buscog),
+      !source %in% confs$data$include_source ~ "ignore",
       TRUE ~ "PASS"
     ),
     type_material = stringr::str_replace(
@@ -126,6 +127,4 @@ openxlsx::saveWorkbook(
 )
 
 ################################################################################
-
-
 
