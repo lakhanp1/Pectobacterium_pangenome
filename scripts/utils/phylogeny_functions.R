@@ -231,6 +231,9 @@ clade_comparison_confs <- function(
         dplyr::bind_rows(phenoDf)
     }
     
+    ## add phenotype
+    phenoDf[[name]] <- category
+    
   } else{
     ## when only a leaf (one genome) is being compared
     phenoDf <- tibble::tibble(

@@ -50,6 +50,10 @@ PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/genome_kmer_distance.tree \
 --name "kmer_nj" --config project_config.yaml
 
+## core-SNP ML tree
+./scripts/c_analysis/phylo.process_newicks.R \
+--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile \
+--name "core_snp_ml" --config project_config.yaml
 
 ```
 

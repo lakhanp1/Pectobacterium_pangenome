@@ -23,7 +23,7 @@ data:
   analysis_confs:
     dir: "analysis_configs"
     files:
-      phenotype_association: "pheno_association_config.tab"
+      temp: "temp.txt"
   other:
     dir: "other"
     files:
@@ -67,6 +67,11 @@ data:
         combined_fa: "blastdb/genomes_combined.fa"
         blastdb: "blastdb/genomes_combined.fa"
         genome_chrs: "blastdb/genome_chr_map.tab"
+      analysis_confs:
+        dir: "analysis_configs"
+        files:
+          phenotype_association: "pheno_association_config.tab"
+          clade_phenotypes: "clade_association_phenotypes.csv"
       db:
         dir: "pectobacterium.v2.DB"
         gene_classification:

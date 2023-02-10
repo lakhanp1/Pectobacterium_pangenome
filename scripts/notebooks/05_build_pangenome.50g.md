@@ -13,7 +13,7 @@ set -o pipefail
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 
-export PANTOOLS="$PANTOOLS_MASTER"
+export PANTOOLS="$PANTOOLS_3_4"
 
 ## Setup
 PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium'
@@ -21,11 +21,6 @@ ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_50g"
 analysis_prefix='pectobacterium.50g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
 
-## Setup
-PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
-ANALYSIS_DIR="$PROJECT_DIR/analysis/03_pangenome_pecto_50g"
-analysis_prefix='pectobacterium.50g'
-pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
 
 
 count=1
@@ -247,4 +242,7 @@ process_start "msa for homology groups
 # $PANTOOLS msa ${pan_db} -t 12 --method per-group --mode nucleotide
 $PANTOOLS_OPT -dp ${pan_db} -tn 12 --method per_group --mode nucleotide
 error_exit $?
+
+$PANTOOLS group_info ${pan_db} /lustre/BIF/nobackup/vlugt012/pecto50_homologid.csv
+
 ```

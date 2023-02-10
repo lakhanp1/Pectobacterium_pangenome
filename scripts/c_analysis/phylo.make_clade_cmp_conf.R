@@ -24,10 +24,10 @@ confs <- prefix_config_paths(
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
-
+pangenomeConf <- confs$data$pangenomes[[pangenome]]
 ################################################################################
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
+sampleInfo <- get_metadata(file = pangenomeConf$files$metadata)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -84,7 +84,7 @@ cladeCmpList <- purrr::map(
 
 ################################################################################
 ## write updated phenotype file with clade of interest as phenotypes
-cladePhenotypes <- dplyr::select(sampleInfo, Genome, everything(), -nodeLabs)
+cladePhenotypes <- dplyr::select(sampleInfo, Genome)
 
 for (cmp in cladeCmpList) {
   # print(cmp$name)
@@ -95,7 +95,7 @@ for (cmp in cladeCmpList) {
 
 readr::write_csv(
   cladePhenotypes,
-  file = confs$analysis$phylogeny$files$clade_phenotypes
+  file = pangenomeConf$analysis_confs$files$clade_phenotypes
 )
 
 
@@ -121,7 +121,7 @@ purrr::map_dfr(
   ) %>% 
   dplyr::select(name, phenotypeArg, compare, against, include) %>% 
   readr::write_tsv(
-    file = confs$data$analysis_confs$files$phenotype_association,
+    file = pangenomeConf$analysis_confs$files$phenotype_association,
     col_names = FALSE, na = ""
   )
 
