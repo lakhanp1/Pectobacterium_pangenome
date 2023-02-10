@@ -270,10 +270,7 @@ pt_source <- dplyr::select(sampleInfo, Genome, source) %>%
     mapping = aes(x = "source", y = Genome, color = source)
   ) +
   geom_point(shape = 15, size = 1) +
-  scale_color_manual(
-    values = c("NCBI" = alpha("#406495",0), "NAK" = "#468e30", "NVWA" = alpha("#ff6600",0)),
-    breaks = NULL
-  ) +
+  scale_color_viridis_d() +
   pt_theme +
   theme(
     axis.ticks = element_blank()

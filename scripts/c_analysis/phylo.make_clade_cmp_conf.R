@@ -17,6 +17,7 @@ source("scripts/utils/phylogeny_functions.R")
 ################################################################################
 set.seed(124)
 
+
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
@@ -33,21 +34,30 @@ sampleInfoList <- as.list_metadata(
 )
 
 cladeGrps <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$files$clade_copare)
+  readr::read_tsv(confs$analysis$phylogeny$files$clade_copare, comment = "#")
 ) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(compare, background, bgExcludeNode, bgExcludeTip),
+      .fns = ~stringr::str_split(string = .x, pattern = ",")
+    )
+  ) %>% 
   purrr::transpose() %>% 
   purrr::set_names(nm = purrr::map(., "name"))
 
 # ## test
-# cmp <- cladeGrps$carotovorum_outlier_cmp
+# cmp <- cladeGrps$versatile_clade2
 # treeName <- cmp$tree
+# 
 # clade_comparison_confs(
 #   file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
 #   node = cmp$compare,
 #   type = cmp$compareType,
-#   ancestorClade = cmp$background,
+#   against = cmp$background,
 #   name = cmp$name,
-#   category = cmp$name
+#   category = cmp$name,
+#   excludeNode = cmp$bgExcludeNode,
+#   excludeTips = cmp$bgExcludeTip
 # )
 # ######################
 
@@ -62,9 +72,11 @@ cladeCmpList <- purrr::map(
       file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
       node = cmp$compare,
       type = cmp$compareType,
-      ancestorClade = cmp$background,
+      against = cmp$background,
       name = cmp$name,
-      category = cmp$name
+      category = cmp$name,
+      excludeNode = cmp$bgExcludeNode,
+      excludeTips = cmp$bgExcludeTip
     )
     
   }

@@ -50,6 +50,8 @@ if(any(is.null(opts$name), is.null(opts$config), is.null(opts$tree)))
 # opts$config <- "project_config.yaml"
 # opts$tree <- "./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/genome_kmer_distance.tree"
 # opts$name <- "kmer_nj"
+# opts$tree <- "./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile"
+# opts$name <- "core_snp_ml"
 # #######
 
 ################################################################################

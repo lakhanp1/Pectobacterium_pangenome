@@ -26,9 +26,7 @@ annotate_ggtree <- function(pt, offset){
       geom = "geom_point", shape = 15,
       pwidth = 0.01
     ) +
-    scale_color_manual(
-      values = c("NCBI" = "#406495", "WUR" = "#468e30", "NVWA" = "#ff6600")
-    ) +
+    scale_color_viridis_d() +
     ggnewscale::new_scale_fill() +
     ## taxonomy check status
     ggtreeExtra::geom_fruit(
@@ -56,25 +54,25 @@ annotate_ggtree <- function(pt, offset){
       values = c("Netherlands" = "#ff6600")
     ) +
     ggnewscale::new_scale_color() +
-    ## virulence PCR result
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
-      geom = "geom_point",
-      pwidth = 0.01, offset = 0.05
-    ) +
-    scale_color_manual(
-      values = c("positive" = "red", "negative" = "green"),
-      na.value = alpha("white", 0)
-    ) +
-    ggnewscale::new_scale_color() +
     ## virulence phenotype
     ggtreeExtra::geom_fruit(
       mapping = aes(y = id, x = "virulence", color = virulence),
       geom = "geom_point", shape = 17, size = 2,
-      pwidth = 0.01, offset = 0.01
+      pwidth = 0.01, offset = 0.05
     ) +
     scale_color_manual(
       values = c("virulent" = "red", "avirulent" = "green"),
+      na.value = alpha("white", 0)
+    ) +
+    ggnewscale::new_scale_color() +
+    ## virulence PCR result
+    ggtreeExtra::geom_fruit(
+      mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
+      geom = "geom_point",
+      pwidth = 0.01, offset = 0.01
+    ) +
+    scale_color_manual(
+      values = c("positive" = "red", "negative" = "green"),
       na.value = alpha("white", 0)
     )
 }
@@ -180,14 +178,18 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 }
 
 ################################################################################
-#' Prepare `pantools gene_classification` data for a clade in tree
+#' Prepare `pantools gene_classification` data based on clades in phylogenetic tree
 #'
 #' @param file a tree file path
-#' @param node node label for the clade of interest
-#' @param ancestorClade optionally, a node label for clade against which comparison
+#' @param node node labels for the clade of interest
+#' @param against optionally, a vector of node labels for clade against which comparison
 #' will be made
 #' @param name name of the phenotype. Default: pheno1
 #' @param category value of the phenotype for one category. Default: Y
+#' @param type type of genomeset id: node or tip
+#' @param excludeNode a vector of node identifiers to exclude additional genomes 
+#' from `against` 
+#' @param excludeTips a vector of tip labels to exclude additional genomes from `against`
 #'
 #' @return a list with following elements
 #' \itemize{
@@ -199,26 +201,35 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 #' @export
 #'
 #' @examples
-clade_comparison_confs <- function(file, node, type, ancestorClade = NA, name, category = "Y"){
+clade_comparison_confs <- function(
+    file, node, type, against = NA, name, category = "Y",
+    excludeNode = NA, excludeTips = NA
+){
   
   
   tr <- ape::read.tree(file)
   
   stopifnot(
     is.character(node),
-    (is.element(node, tr$node.label) | is.element(node, tr$tip.label)),
-    is.na(ancestorClade) |
-      (is.character(ancestorClade) & is.element(ancestorClade, tr$node.label)),
+    (all(is.element(node, tr$node.label)) | all(is.element(node, tr$tip.label))),
+    is.na(against) |
+      (is.character(against) & all(is.element(against, tr$node.label))),
     category != "N",
-    is.element(type, c("node", "tip"))
+    is.element(type, c("node", "tip")),
+    (is.na(excludeNode) | all(is.element(excludeNode, tr$node.label))),
+    (is.na(excludeTips) | all(is.element(excludeTips, tr$tip.label)))
   )
   
   if(type == "node"){
     ## phenotype for genomes of interest
     ## IMP: use tree as tibble for tip labels as output when providing node label
-    phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = node, tiponly = TRUE) %>% 
-      dplyr::select(Genome = label) %>% 
-      dplyr::mutate(!!name := category)
+    phenoDf <- tibble::tibble(Genome = character())
+    
+    for (nd in node) {
+      phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>% 
+        dplyr::select(Genome = label) %>% 
+        dplyr::bind_rows(phenoDf)
+    }
     
   } else{
     ## when only a leaf (one genome) is being compared
@@ -226,16 +237,23 @@ clade_comparison_confs <- function(file, node, type, ancestorClade = NA, name, c
       Genome = node, !!name := category
     )
   }
-
+  
   nodeGenomes <- stringr::str_c(phenoDf$Genome, collapse = ",")
   
   includeGenomes <- NA
   
   ## select the background against which comparison will be made
-  if(!is.na(ancestorClade)){
+  if(all(!is.na(against))){
     ## use another clade (either parent or independent clade) as background
-    parentSet <- tidytree::offspring(.data = as_tibble(tr), .node = ancestorClade, tiponly = TRUE) %>% 
-      dplyr::pull(label)
+    parentSet <- character()
+    
+    for (nd in against) {
+      parentSet <- append(
+        parentSet,
+        tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>% 
+          dplyr::pull(label)
+      )
+    }
     
     negSet <- setdiff(parentSet, phenoDf$Genome)
     
@@ -246,6 +264,31 @@ clade_comparison_confs <- function(file, node, type, ancestorClade = NA, name, c
     ## use all tips as background
     negSet <- setdiff(tr$tip.label, phenoDf$Genome)
   }
+
+  ## additional exclusion of nodes and/or tips
+  filterNeg <- character()
+  
+  if(all(!is.na(excludeNode))){
+    for (nd in excludeNode) {
+      filterNeg <- append(
+        filterNeg,
+        tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>%
+          dplyr::pull(label)
+      )
+    }
+  }
+
+  if(all(!is.na(excludeTips))){
+    filterNeg <- append(filterNeg, excludeTips)
+  }
+
+  if (length(filterNeg) > 0) {
+    negSet <- setdiff(negSet, filterNeg)
+
+    ## update includeGenomes
+    includeGenomes <- stringr::str_c(c(nodeGenomes, negSet), collapse = ",")
+  }
+  
   
   phenoDf %<>% 
     dplyr::bind_rows(tibble::tibble(Genome = negSet, !!name := "N"))
