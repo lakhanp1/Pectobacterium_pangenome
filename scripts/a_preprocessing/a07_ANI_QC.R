@@ -19,6 +19,7 @@ suppressPackageStartupMessages(library(viridisLite))
 rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("scripts/utils/phylogeny_functions.R")
 ################################################################################
 set.seed(124)
 
@@ -213,66 +214,15 @@ ComplexHeatmap::draw(
 dev.off()
 
 ################################################################################
-
-## function to add annotation to ggtree
-annotate_ggtree <- function(pt, offset){
-  pt2 <- pt +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(starshape = type_material),
-      geom = "geom_star", fill = "#62BFED", size = 2, starstroke=0.1,
-      offset = offset, pwidth = 0.01
-    ) +
-    ggstar::scale_starshape_manual(
-      values = c("type strain" = 1)
-    ) +
-    ggnewscale::new_scale_color() +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, x = "source", color = source),
-      geom = "geom_point", shape = 15,
-      pwidth = 0.01
-    ) +
-    scale_colour_viridis_d() +
-    ggnewscale::new_scale_fill() +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, fill = taxonomy_check_status),
-      geom = "geom_star", starshape = 12, size = 2, color = alpha("white", 0),
-      pwidth = 0.01
-    ) +
-    scale_fill_manual(
-      values = c("Failed" = "red", "Inconclusive" = "blue",
-                 "OK" = alpha("white", 0), "Corrected" = alpha("white", 0))
-    ) +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, label = collection_year),
-      geom = "geom_text", size = 3
-    ) +
-    ggnewscale::new_scale_color() +
-    ggtreeExtra::geom_fruit(
-      mapping = aes(y = id, label = geo_loc_country, color = geo_loc_country),
-      geom = "geom_text", size = 3, hjust = "left",
-      pwidth = 0.03
-    ) +
-    scale_color_manual(
-      values = c("Netherlands" = "#ff6600")
-    )
-}
-
-################################################################################
-
-## Genome, AssemblyAccession, AssemblyName, SpeciesName, , type_material,
-## taxonomy_check_status, strain, virulence, virulence_pcr,
-## geo_loc_country, host, isolation_source, collected_by, env_broad_scale
-pt_upgma1 <- ggtree::ggtree(tr = treeUpgma) +
+## UPGMA tree
+pt_upgma1 <- as_tibble(treeUpgma) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "sampleId")) %>%
+  treeio::as.treedata() %>% 
+  ggtree::ggtree() +
   labs(title = "UPGMA tree")
 
-pt_upgma2 <- pt_upgma1 %<+% sampleInfo + 
-  geom_point(
-    mapping = aes(shape = sampleName, color = sampleName),
-    size = 4
-  ) +
-  scale_shape_manual(name = "outgroup", values = c("104326-106-074" = 16)) +
-  scale_color_manual(name = "outgroup", values = c("104326-106-074" = "red")) +
-  ggnewscale::new_scale_color() 
+## mark outgroup
+pt_upgma2 <- mark_outgroup(pt = pt_upgma1, otg = "104326-106-074", column = "sampleName")
 
 pt_upgma3 <- pt_upgma2 +
   ggtree::geom_tiplab(
@@ -282,7 +232,7 @@ pt_upgma3 <- pt_upgma2 +
   scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   scale_color_manual(
     values = c(
-      "P. cacticida" = "red", "P. brasiliense" = "#E57A44",
+      "P. brasiliense" = "#E57A44",
       "P. carotovorum" = "#088734", "P. c. subsp. carotovorum" = "#088734"
     ),
     breaks = NULL,
@@ -295,7 +245,7 @@ pt_upgma4 <- annotate_ggtree(pt = pt_upgma3, offset = 0.2)
 
 ggsave(
   plot = pt_upgma4, filename = file.path(outDir, "upgma_tree.pdf"),
-  width = 12, height = 24, scale = 2
+  width = 12, height = 25, scale = 2, limitsize = FALSE
 )
 
 
@@ -384,17 +334,14 @@ treeNjRooted <- ape::root(
   phy = treeNj, outgroup = sampleInfoList[[outGroup]]$sampleId, edgelabel = T
 )
 
-pt_nj1 <- ggtree::ggtree(tr = treeNjRooted) +
+pt_nj1 <- as_tibble(treeNjRooted) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "sampleId")) %>%
+  treeio::as.treedata() %>% 
+  ggtree::ggtree() +
   labs(title = "NJ tree")
 
-pt_nj2 <- pt_nj1 %<+% sampleInfo + 
-  geom_point(
-    mapping = aes(shape = sampleName, color = sampleName),
-    size = 4
-  ) +
-  scale_shape_manual(name = "outgroup", values = setNames(16, outGroup)) +
-  scale_color_manual(name = "outgroup", values = setNames("red", outGroup)) +
-  ggnewscale::new_scale_color() 
+## mark outgroup
+pt_nj2 <- mark_outgroup(pt = pt_nj1, otg = outGroup, column = "sampleName")
 
 
 pt_nj3 <- pt_nj2 +
@@ -418,7 +365,7 @@ pt_nj4 <- annotate_ggtree(pt = pt_nj3, offset = 0.2)
 
 ggsave(
   plot = pt_nj4, filename = file.path(outDir, "nj_rooted_tree.pdf"),
-  width = 12, height = 24, scale = 2
+  width = 12, height = 25, scale = 2, limitsize = FALSE
 )
 
 
