@@ -29,6 +29,7 @@ confs <- prefix_config_paths(
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
 
 analysisName <- "homology_groups"
 outDir <- confs$analysis$association$dir
@@ -36,7 +37,7 @@ outPrefix <- file.path(outDir, analysisName)
 
 ################################################################################
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -44,18 +45,20 @@ sampleInfoList <- as.list_metadata(
 
 hgs <- suppressMessages(
   readr::read_csv(
-    file = confs$data$pangenomes[[pangenome]]$db$gene_classification$GC.100.0$files$groups
+    file = panConf$db$gene_classification$GC.100.0$files$groups
   )
 ) %>% 
   dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "( |-)", "_")) %>% 
   dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "Genome_", "")) %>% 
   dplyr::rename_with(.fn = ~tolower(.x))
 
-g2hg <- dplyr::select(hgs, hg = homology_group_id, !!!sampleInfo$Genome) %>% 
+hgTable <- dplyr::select(hgs, hg = homology_group_id, !!!sampleInfo$Genome) %>% 
   tidyr::pivot_longer(
     cols = -hg, names_to = "Genome", values_to = "nGenes"
-  ) %>% 
-  tidyr::pivot_wider(
+  )
+
+g2hg <- tidyr::pivot_wider(
+    hgTable,
     id_cols = Genome, names_from = hg, values_from = nGenes
   )
 

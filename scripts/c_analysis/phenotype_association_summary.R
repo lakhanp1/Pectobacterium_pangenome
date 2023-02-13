@@ -26,14 +26,18 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 phenotype <- "assay_FN"
+treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 
-analysisName <- "pheno_association"
-outDir <- confs$analysis$association$dir
-outPrefix <- file.path(outDir, analysisName)
+outDir <- file.path(confs$analysis$association$dir, phenotype)
+outPrefix <- file.path(outDir, phenotype)
 
 ################################################################################
+
+if(!dir.exists(outDir)){
+  dir.create(outDir)
+}
 
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
 
@@ -41,7 +45,7 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny$ani_upgma$files$tree)
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
@@ -68,7 +72,6 @@ phenoMeta <- suppressMessages(
   dplyr::select(Genome, all_of(phenotype)) %>% 
   dplyr::filter(!is.na(!!sym(phenotype))) %>% 
   dplyr::group_by(!!sym(phenotype))
-
 
 ## process phenotype association results
 res <- suppressMessages(
@@ -212,7 +215,7 @@ htList <- homology_group_heatmap(
   mat = hgMat, phy = rawTree, metadata = sampleInfo, width = c(10,12)
 )
 
-png(filename = file.path(outDir, "ANI_heatmap.png"), width = 5000, height = 2800, res = 350)
+png(filename = paste(outPrefix, ".pheno_hg_association.png", sep = ""), width = 5000, height = 2800, res = 350)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "hg",

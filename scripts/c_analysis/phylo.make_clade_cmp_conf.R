@@ -122,7 +122,7 @@ purrr::map_dfr(
   dplyr::select(name, phenotypeArg, compare, against, include) %>% 
   readr::write_tsv(
     file = pangenomeConf$analysis_confs$files$phenotype_association,
-    col_names = FALSE, na = ""
+    na = ""
   )
 
 
