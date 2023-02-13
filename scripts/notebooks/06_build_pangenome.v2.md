@@ -46,16 +46,16 @@ PANGENOME_NAME=$1
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 
-export PANTOOLS="$PANTOOLS_MASTER"
+export PANTOOLS="$PANTOOLS_3_4"
 
 ## Setup
 PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
 PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 
 ## setup for local disk processing on handelsman
-LOCAL_DIR_PATH="/local_scratch/$USER/"
-# LOCAL_DIR_PATH="/local/$USER/"
-# LOCAL_DIR_PATH="/dev/shm/$USER/"
+LOCAL_DIR_PATH="/local_scratch/$USER"
+# LOCAL_DIR_PATH="/local/$USER"
+# LOCAL_DIR_PATH="/dev/shm/$USER"
 
 PAN_BUILD_DIR="$LOCAL_DIR_PATH/03_Pectobacterium"
 pan_db="$PAN_BUILD_DIR/${PANGENOME_NAME}.DB${DB_SUFFIX}"
@@ -372,7 +372,8 @@ iqtree -nt 20 -s ${pan_db}/core_snp_tree/informative.fasta -redo -bb 1000
 ## add the updated phenotypes for association analysis
 process_start add_phenotypes
 $PANTOOLS remove_phenotype ${pan_db}
-$PANTOOLS add_phenotypes ${pan_db} analysis/04_pangenome_pecto_v2/phylogeny/clade_compare_phenotypes.csv
+$PANTOOLS add_phenotypes ${pan_db} $PANGENOME_DIR/genomes_metadata.csv
+$PANTOOLS add_phenotypes ${pan_db} $PANGENOME_DIR/analysis_configs/clade_association_phenotypes.csv
 error_exit $?
 
 
@@ -380,11 +381,11 @@ error_exit $?
 mkdir ${pan_db}/gene_classification.pheno
 
 ## Gene classification for each phenotype
-phenotypes=(`awk -F "\t" '{ print $1 }' data/analysis_configs/pheno_association_config.tab`)
+phenotypes=(`awk -F "\t" '{ if (NR!=1) {print $1} }' $PANGENOME_DIR/analysis_configs/pheno_association_config.tab`)
 for phn in ${phenotypes[@]}
 do
     process_start "gene_classification for phenotype $phn"
-    pheno_arg=`grep "^${phn}\b" data/analysis_configs/pheno_association_config.tab | cut -f2`
+    pheno_arg=`grep "^${phn}\b" $PANGENOME_DIR/analysis_configs/pheno_association_config.tab | cut -f2`
     $PANTOOLS gene_classification ${pheno_arg} ${pan_db}
     error_exit $?
 
@@ -416,7 +417,7 @@ error_exit $?
 ### Extract specific information from pangenome
 
 ```bash
-
+## Extract specific information from pangenome
 conda activate omics_py37
 while IFS=$'\t' read -r phn groups ; do
     # printf "%b\n" "column1<${phn}>"
@@ -424,12 +425,15 @@ while IFS=$'\t' read -r phn groups ; do
     process_start "extracting mRNA sequence for homology group specific to phenotype: ${phn}"
     printf "Homology groups: ${groups}\n"
 
-    genome=`grep "${phn}" data/analysis_configs/pheno_association_config.tab | cut -f3 | sed 's/,.*//'`
+    genome=`grep "^${phn}\b" $PANGENOME_DIR/analysis_configs/pheno_association_config.tab | cut -f3 | sed 's/,.*//'`
+    pheno_dir="analysis/04_pangenome_pecto_v2/pheno_association/${phn}"
 
-    file_info="analysis/04_pangenome_pecto_v2/pheno_association/phenotype_${phn}.seq_info.txt"
-    file_fasta="analysis/04_pangenome_pecto_v2/pheno_association/phenotype_${phn}.specific_mRNA.fasta"
+    file_info="${pheno_dir}/${phn}.pheno_specific.seq_info.txt"
+    file_info_g1="${pheno_dir}/${phn}.pheno_specific.${genome}g.seq_info.txt"
+    file_fasta="${pheno_dir}/${phn}.pheno_specific.${genome}g.mRNA.fasta"
 
-    printf "homology_group_id, genome, mRNA name, mRNA identifier, node identifier, address, strand\n"  > ${file_info}
+    printf "homology_group_id\tgenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome\tchr\tstart\tend\tstrand\n"  > ${file_info}
+    printf "homology_group_id\tgenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome\tchr\tstart\tend\tstrand\n"  > ${file_info_g1}
     printf "" > ${file_fasta}
 
     ## read groups into array
@@ -441,10 +445,16 @@ while IFS=$'\t' read -r phn groups ; do
         mrna_id=`echo ${seq_info} | cut -d"," -f3`
         samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta
 
-        printf "${hg}, ${seq_info}\n" >> ${file_info}
+        printf "${hg}, ${seq_info}\n" | sed -r 's/(, | )/\t/g' >> ${file_info_g1}
+
+        cat ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info |
+        sed -n "1,/^#genome/! s/^\(.\)/${hg}, \1/p" |
+        sed -r 's/(, | )/\t/g' >> ${file_info}
+
         samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta ${mrna_id} >> ${file_fasta}
     done
 done < analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
 conda activate pantools_master
+######################################################################
 
 ```
