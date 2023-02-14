@@ -226,7 +226,5 @@ analysis:
   association:
     dir: "04_pangenome_pecto_v2/pheno_association"
     files:
-      config: "clade_comarison_config.tab"
-      phenotypes: "clade_comarison_phenotypes.csv"
       pheno_specific_groups: "phenotype_specific_groups.txt"
 ...

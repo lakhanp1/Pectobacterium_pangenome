@@ -432,8 +432,8 @@ while IFS=$'\t' read -r phn groups ; do
     file_info_g1="${pheno_dir}/${phn}.pheno_specific.${genome}g.seq_info.txt"
     file_fasta="${pheno_dir}/${phn}.pheno_specific.${genome}g.mRNA.fasta"
 
-    printf "homology_group_id\tgenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome\tchr\tstart\tend\tstrand\n"  > ${file_info}
-    printf "homology_group_id\tgenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome\tchr\tstart\tend\tstrand\n"  > ${file_info_g1}
+    printf "homology_group_id\tGenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome_id\tchr\tstart\tend\tstrand\n"  > ${file_info}
+    printf "homology_group_id\tGenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome_id\tchr\tstart\tend\tstrand\n"  > ${file_info_g1}
     printf "" > ${file_fasta}
 
     ## read groups into array
@@ -453,7 +453,7 @@ while IFS=$'\t' read -r phn groups ; do
 
         samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta ${mrna_id} >> ${file_fasta}
     done
-done < analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
+done < <(grep '^assay_FN\b' analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt)
 conda activate pantools_master
 ######################################################################
 
