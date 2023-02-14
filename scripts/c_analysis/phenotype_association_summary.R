@@ -29,21 +29,30 @@ confs <- prefix_config_paths(
 phenotype <- "assay_FN"
 treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
 
 outDir <- file.path(confs$analysis$association$dir, phenotype)
 outPrefix <- file.path(outDir, phenotype)
 
+## sequence info file for mRNAs across all genomes belonging to homology groups 
+## specific to a phenotype of interest
+file_associatedSeqInfo <- paste(outPrefix, ".pheno_specific.seq_info.txt", sep = "")
 ################################################################################
 
 if(!dir.exists(outDir)){
   dir.create(outDir)
 }
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
+
+assoConf <- suppressMessages(
+  readr::read_tsv(panConf$analysis_confs$files$phenotype_association, col_types = "ccccc")
+) %>% 
+  dplyr::filter(name == !!phenotype)
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
@@ -62,58 +71,34 @@ g2hg <- suppressMessages(
 ) %>% 
   dplyr::mutate(Genome = as.character(Genome))
 
-hgMeta <- suppressMessages(
-  readr::read_tsv(confs$analysis$homology_groups$files$groups_meta)
+
+## get the best genome
+hgSeqInfo <- suppressMessages(readr::read_tsv(file_associatedSeqInfo)) %>% 
+  dplyr::mutate(
+    dplyr::across(.cols = c(Genome, homology_group_id), .fns = ~as.character(.x))
+  )
+
+genomeSummary <- dplyr::add_count(hgSeqInfo, Genome, name = "nHg") %>% 
+  dplyr::group_by(Genome, nHg) %>% 
+  dplyr::summarise(nChr = length(unique(chr)), .groups = "drop") %>% 
+  dplyr::left_join(
+    dplyr::select(sampleInfo, Genome, SpeciesName, geo_loc_country, host, isolation_source,
+                  env_broad_scale, collection_year),
+    by = "Genome") %>% 
+  dplyr::arrange(desc(nHg), nChr)
+
+readr::write_tsv(
+  x = genomeSummary,
+  file = paste(outPrefix, ".specific_hgs.pangenome_summary.tab", sep = "")
 )
 
-phenoMeta <- suppressMessages(
-  readr::read_csv(file = confs$analysis$association$files$phenotypes)
-) %>% 
-  dplyr::select(Genome, all_of(phenotype)) %>% 
-  dplyr::filter(!is.na(!!sym(phenotype))) %>% 
-  dplyr::group_by(!!sym(phenotype))
+bestGenome <- genomeSummary$Genome[1]
 
-## process phenotype association results
-res <- suppressMessages(
-  readr::read_csv(
-    file = confs$data$pangenomes[[pangenome]]$db$gene_classification$phenotypes[[phenotype]]$files$association,
-    comment = "#"
-  )
-) %>% 
-  dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "( |-)", "_")) %>% 
-  dplyr::rename_with(.fn = ~tolower(.x)) %>% 
-  dplyr::filter(phenotype == phenotype, fisher_exact_p_value != "No test")
-
-
-################################################################################
-## homology groups specific for a phenotype
-phenoSpecific <- dplyr::filter(
-  res, 
-  phenotype_members_absent == 0,
-  other_phenotype_members_present == 0
-)
-
-dplyr::select(phenoSpecific, phenotype, homology_group_id) %>% 
-  dplyr::group_by(phenotype) %>% 
-  dplyr::summarize(
-    homology_group_id = stringr::str_c(homology_group_id, collapse = ",")
-  ) %>% 
-  readr::write_tsv(
-    file = confs$analysis$association$files$pheno_specific_groups,
-    append = TRUE
-  )
-
-## remove duplicates and rewrite the data
-suppressMessages(
-  readr::read_tsv(
-    confs$analysis$association$files$pheno_specific_groups, col_names = FALSE,
-    col_types = "cc"
-  )
-) %>% 
-  dplyr::distinct() %>% 
-  readr::write_tsv(
-    file = confs$analysis$association$files$pheno_specific_groups,
-    col_names = FALSE
+hgAnnotation <- dplyr::filter(hgSeqInfo, Genome == !!bestGenome) %>% 
+  dplyr::arrange(chr, start) %>% 
+  dplyr::mutate(
+    mRNA_identifier = stringr::str_replace(mRNA_identifier, "-mRNA", ""),
+    label = paste(mRNA_identifier, "| ", chr, ":", start, sep = "")
   )
 
 ################################################################################
@@ -128,7 +113,7 @@ suppressMessages(
 #' @export
 #'
 #' @examples
-homology_group_heatmap <- function(mat, phy, metadata, width){
+homology_group_heatmap <- function(mat, phy, metadata, hgAn, width, markGenomes){
   
   ## necessary checks
   stopifnot(
@@ -137,9 +122,11 @@ homology_group_heatmap <- function(mat, phy, metadata, width){
     # https://github.com/jokergoo/ComplexHeatmap/issues/949
     all(rownames(mat) == phy$tip.label),
     all(rownames(mat) %in% metadata$Genome),
+    all(colnames(mat) == hgAn$homology_group_id),
     any(class(phy) == "phylo"),
     length(width) == 2,
-    all(is.numeric(width))
+    all(is.numeric(width)),
+    all(markGenomes %in% rownames(mat))
   )
   
   ## homology group heatmap
@@ -152,9 +139,15 @@ homology_group_heatmap <- function(mat, phy, metadata, width){
     ),
     # heatmap_legend_param = list(legend_height = unit(3, "cm")),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
+    column_split = hgAn$chr,
+    cluster_columns = FALSE, cluster_column_slices = FALSE,
+    column_order = hgAn$homology_group_id,
+    column_labels = dplyr::pull(hgAn, label, name = homology_group_id),
+    show_column_names = TRUE, column_names_side = "bottom",
+    column_names_gp = gpar(fontsize = 10),
     show_row_dend = TRUE, show_column_dend = FALSE,
     row_dend_width = unit(3, "cm"),
-    show_row_names = FALSE, show_column_names = FALSE,
+    show_row_names = FALSE,
     column_title = "Homology groups",
     width = unit(width[2], "cm")
   )
@@ -163,14 +156,15 @@ homology_group_heatmap <- function(mat, phy, metadata, width){
   # draw(ht_hg)
   
   ## species name key heatmap
-  speciesMat <- tibble::tibble(
-    Genome = rownames(mat)
-  ) %>% 
+  speciesMat <- tibble::tibble(Genome = rownames(mat)) %>% 
+    dplyr::left_join(
+      y = as.data.frame(table(c(rownames(mat), markGenomes))),
+      by = c("Genome" = "Var1")
+    ) %>% 
     dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>% 
-    dplyr::mutate(sp = 1) %>% 
     tidyr::pivot_wider(
       id_cols = Genome, names_from = SpeciesName,
-      values_from = sp, values_fill = 0, names_sort = TRUE
+      values_from = Freq, values_fill = 0, names_sort = TRUE
     ) %>% 
     tibble::column_to_rownames(var = "Genome") %>% 
     as.matrix()
@@ -181,7 +175,7 @@ homology_group_heatmap <- function(mat, phy, metadata, width){
   ht_species <- ComplexHeatmap::Heatmap(
     matrix = speciesMat,
     name = "species_key",
-    col = c("1" = "black", "0" = "white"),
+    col = c("1" = "black", "0" = "white", "2" = "red"),
     # cluster_rows = as.hclust.phylo(phy), row_dend_reorder = FALSE,
     cluster_columns = FALSE,
     # column_order = speciesOrder,
@@ -203,31 +197,26 @@ homology_group_heatmap <- function(mat, phy, metadata, width){
 }
 
 ################################################################################
-hgMat <- dplyr::select(g2hg, Genome, as.character(phenoSpecific$homology_group_id)) %>% 
-  # dplyr::left_join(y = phenoMeta, by = "Genome") %>% 
-  # dplyr::relocate(!!phenotype, .after = Genome)
+hgMat <- dplyr::select(g2hg, Genome, !!!hgAnnotation$homology_group_id) %>% 
   tibble::column_to_rownames(var = "Genome") %>% 
   as.matrix()
 
 hgMat <- hgMat[rawTree$tip.label, ]
 
 htList <- homology_group_heatmap(
-  mat = hgMat, phy = rawTree, metadata = sampleInfo, width = c(10,12)
+  mat = hgMat, phy = rawTree, metadata = sampleInfo,
+  hgAn = hgAnnotation, width = c(10,24),
+  markGenomes = stringr::str_split_1(assoConf$compare, ",")
 )
 
-png(filename = paste(outPrefix, ".pheno_hg_association.png", sep = ""), width = 5000, height = 2800, res = 350)
+png(filename = paste(outPrefix, ".pheno_hg_association.png", sep = ""), width = 6000, height = 3000, res = 350)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "hg",
   row_dend_side = "left",
-  
 )
 dev.off()
 
+################################################################################
 
-# nodeOfInterest <- dplyr::filter(sampleInfo, SpeciesName == "P. brasiliense") %>% 
-#   dplyr::pull(Genome)
-# 
-# clade <- ape::getMRCA(phy = rawTree, tip = nodeOfInterest)
-# subTree <- ape::extract.clade(phy = rawTree, node = clade)
 
