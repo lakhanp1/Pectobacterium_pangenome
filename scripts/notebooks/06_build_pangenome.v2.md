@@ -297,6 +297,7 @@ Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
 Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
 Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
 
+mv ${pan_db}/pangenome_size/gene ${pan_db}/pangenome_size/gene.pangenome
 
 ## Pangenome structure: kmer
 process_start pangenome_structure_kmer
@@ -305,6 +306,26 @@ error_exit $?
 
 Rscript ${pan_db}/pangenome_size/kmer/pangenome_growth.R
 
+```
+
+#### Use subset of genomes to determine pangenome structure
+
+```bash
+## Pangenome structure for subset of genomes
+genomeSets=(`awk -F "\t" '{ print $1 }' $PANGENOME_DIR/genome_sets.tab`)
+
+for gs in ${genomeSets[@]}
+do
+    process_start "gene_classification for genome subset $gs"
+    str_arg=`grep "^${phn}\b" $PANGENOME_DIR/genome_sets.tab | cut -f2`
+    $PANTOOLS pangenome_structure -t 20 ${str_arg} ${pan_db}
+    error_exit $?
+
+    ## move results to a folder
+    gs_dir=${pan_db}/pangenome_size/gene.${gs}
+    [ -d ${gs_dir} ] && rm -r ${gs_dir}
+    mv ${pan_db}/pangenome_size/gene ${gs_dir}
+done
 ```
 
 ### Functional classification
@@ -399,62 +420,4 @@ done
 rm -r ${pan_db}/gene_classification
 
 ######################################################################
-```
-
-## Specific analysis
-
-### GO enrichment for homology groups of interest
-
-```bash
-## go_enrichment for assay_FN enriched homology groups
-process_start "go_enrichment for assay_FN enriched homology groups"
-$PANTOOLS go_enrichment -H analysis/04_pangenome_pecto_v2/pheno_association/specific_hgs.assay_FN.txt \
---include=429,439,369,149,29,97,155,366,373,178,181,159,345,371,180,316,414,360,166,243,147,152,173,170,416,433,157,417,191,390,136,419,142,410,146,317,145,194,426,240,340,367,357,364,359,372,358,342,370,196,24,353,52,134,179,187,188,195,192,401,402,413,154,214,153,144,165,176,140,168,156,13,148,163,164,162,418,172,297,302,63,190,415,169,171,167,174,189,193,411,397,398,405,409,412,403,408,399,404,407,175,400,406,158,161,138,60,337,242,368,74,427,308,438,299,391,182,185,236,177,42,43,263,307,379,356,380,141,341,64,352,111,115,114,108,109,99,137 ${pan_db} 
-error_exit $?
-######################################################################
-```
-
-### Extract specific information from pangenome
-
-```bash
-## Extract specific information from pangenome
-conda activate omics_py37
-while IFS=$'\t' read -r phn groups ; do
-    # printf "%b\n" "column1<${phn}>"
-    # printf "%b\n" "column2<${groups}>"
-    process_start "extracting mRNA sequence for homology group specific to phenotype: ${phn}"
-    printf "Homology groups: ${groups}\n"
-
-    genome=`grep "^${phn}\b" $PANGENOME_DIR/analysis_configs/pheno_association_config.tab | cut -f3 | sed 's/,.*//'`
-    pheno_dir="analysis/04_pangenome_pecto_v2/pheno_association/${phn}"
-
-    file_info="${pheno_dir}/${phn}.pheno_specific.seq_info.txt"
-    file_info_g1="${pheno_dir}/${phn}.pheno_specific.${genome}g.seq_info.txt"
-    file_fasta="${pheno_dir}/${phn}.pheno_specific.${genome}g.mRNA.fasta"
-
-    printf "homology_group_id\tGenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome_id\tchr\tstart\tend\tstrand\n"  > ${file_info}
-    printf "homology_group_id\tGenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome_id\tchr\tstart\tend\tstrand\n"  > ${file_info_g1}
-    printf "" > ${file_fasta}
-
-    ## read groups into array
-    IFS=',' read -ra hg_array <<< "${groups}"
-    for hg in "${hg_array[@]}"
-    do
-        # printf "${hg} "
-        seq_info=`grep "^${genome}" ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info`
-        mrna_id=`echo ${seq_info} | cut -d"," -f3`
-        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta
-
-        printf "${hg}, ${seq_info}\n" | sed -r 's/(, | )/\t/g' >> ${file_info_g1}
-
-        cat ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info |
-        sed -n "1,/^#genome/! s/^\(.\)/${hg}, \1/p" |
-        sed -r 's/(, | )/\t/g' >> ${file_info}
-
-        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta ${mrna_id} >> ${file_fasta}
-    done
-done < <(grep '^assay_FN\b' analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt)
-conda activate pantools_master
-######################################################################
-
 ```

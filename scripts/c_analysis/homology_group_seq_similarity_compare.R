@@ -5,10 +5,13 @@ suppressPackageStartupMessages(library(configr))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(optparse))
 
-## plot pairwise sequence similarity comparison of two genomes for two sets of 
+## get pairwise sequence similarity comparison of two genomes for two sets of 
 ## homology groups:
 ## 1) group specific for a phenotype
 ## 2) other homology groups
+
+## This script will be replaced once I develop API to access information from pangenome
+## and store it in efficient data structure for local analysis
 
 rm(list = ls())
 
@@ -27,7 +30,12 @@ parser <- optparse::add_option(
 
 parser <- optparse::add_option(
   parser, opt_str = c("-2", "--g2"), type = "character", action = "store",
-  help = "genome 1 ID"
+  help = "comma separated list of genome IDs to be compared against genome 1"
+)
+
+parser <- optparse::add_option(
+  parser, opt_str = c("--phenotype"), type = "character", action = "store",
+  help = "phenotype"
 )
 
 parser <- optparse::add_option(
@@ -43,7 +51,8 @@ if(any(is.null(opts$g1), is.null(opts$g2), is.null(opts$config)))
 # ## for test
 # opts$config <- "project_config.yaml"
 # opts$g1 <- "399"
-# opts$g2 <- "18"
+# opts$g2 <- "404,405,406,18,26,323,334,93,422,10,9,211,304,285,437,445,33,201,224,276,312"
+# opts$phenotype <- "assay_FN"
 # #######
 
 ################################################################################
@@ -53,25 +62,28 @@ confs <- prefix_config_paths(
 )
 
 g1 <- opts$g1
-g2 <- opts$g2
-phenotype <- "assay_FN"
+g2 <- unlist(stringr::str_split(string = opts$g2, pattern = ","))
+
+phenotype <- opts$phenotype
+
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 
 outDir <- file.path(confs$analysis$association$dir, phenotype)
-outPrefix <- paste(outDir, "/", phenotype, ".hg_seq_identity.", g1, "_", g2, sep = "")
+outPrefix <- paste(outDir, "/", phenotype, ".hg_seq_identity.", g1, sep = "")
 
 ## sequence info file for mRNAs across all genomes belonging to homology groups 
 ## specific to a phenotype of interest
-file_seqInfo <- paste(outPrefix, ".pheno_specific.seq_info.txt", sep = "")
 # file_phenoSpecificHg <- confs$analysis$association$files$pheno_specific_groups
 
 ################################################################################
-
+#####*********** 
+#####*in future, remove this file dependency
+#####**********
 phenoSpecificGrp <- suppressMessages(
   readr::read_tsv(
-    confs$analysis$association$files$pheno_specific_groups,
+    file = confs$analysis$association$files$pheno_specific_groups,
     col_types = "cc", col_names = c("phenotype", "group_id"))
 ) %>% 
   dplyr::filter(phenotype == !!phenotype) %>% 
@@ -80,7 +92,7 @@ phenoSpecificGrp <- suppressMessages(
 
 
 ## import homology group data
-g2hg <- suppressMessages(
+hgData <- suppressMessages(
   readr::read_csv(
     file = panConf$db$gene_classification$GC.100.0$files$groups
   )
@@ -93,8 +105,9 @@ g2hg <- suppressMessages(
 
 ## get homology groups shared by the two genomes
 filteredHgs <- dplyr::filter(
-  g2hg,
-  !!sym(g1) != 0, !!sym(g2) != 0
+  hgData,
+  !!sym(g1) != 0,
+  dplyr::if_any(.cols = !!g2, .fns = ~ . != 0)
 ) %>% 
   dplyr::left_join(phenoSpecificGrp, by = "group_id") %>% 
   dplyr::mutate(
@@ -102,19 +115,27 @@ filteredHgs <- dplyr::filter(
     class = stringr::str_replace(class, "single copy orthologous", "SCO")
   )
 
-sharedHgs <- dplyr::bind_rows(
-  dplyr::filter(filteredHgs, type == "other") %>% 
-    dplyr::slice_sample(n = 250),
-  dplyr::filter(filteredHgs, type != "other")
-)
+# sharedHgs <- dplyr::bind_rows(
+#   dplyr::filter(filteredHgs, type == "other") %>% 
+#     dplyr::slice_sample(n = 500),
+#   dplyr::filter(filteredHgs, type != "other")
+# )
 
 
 ## pairwise genome similarity
-groupSeqSimilarity <- tibble::tibble()
+groupSeqSimilarity <- tibble::tibble(
+  group_id = character(), g1 = character(), g2 = character(),
+  g1mRNA = character(), g2mRNA = character(), identity = double(),
+  class = character(), type = character()
+)
 
-# hg <- "22579048"
+readr::write_tsv(
+  groupSeqSimilarity, file = paste(outPrefix, ".data.tab", sep = "")
+)
+
+# hg <- "22573071"
 ## get mRNA-id
-for (hg in sharedHgs$group_id) {
+for (hg in filteredHgs$group_id) {
   
   cat(hg, " ")
   
@@ -134,7 +155,7 @@ for (hg in sharedHgs$group_id) {
     dplyr::pull(mRNA_id, name = "Genome")
   
   # safety
-  if(length(mRNAs) != 2){
+  if(length(mRNAs) < 2){
     next
   }
   
@@ -148,42 +169,80 @@ for (hg in sharedHgs$group_id) {
     next
   }
   
-  perIdentity <- suppressMessages(readr::read_csv(file_similarity)) %>% 
-    dplyr::select(Sequences, !!unname(mRNAs)) %>% 
-    dplyr::filter(Sequences %in% !!mRNAs) %>% 
-    tibble::column_to_rownames(var = "Sequences") %>% 
-    as.matrix()
+  g1mRNA = unname(mRNAs[g1])
   
-  groupSeqSimilarity <- tibble::tibble(
+  perIdentity <- suppressMessages(readr::read_csv(file_similarity)) %>% 
+    dplyr::select(Sequences, !!unname(mRNAs[g1])) %>% 
+    dplyr::rename(g2mRNA = Sequences, identity = !!unname(mRNAs[g1]))
+  
+  hgSimilarity <- tibble::tibble(
     group_id = hg,
-    g1 = g1, g2 = g2, g1mRNA = unname(mRNAs[g1]), g2mRNA = unname(mRNAs[g2]),
-    identity = perIdentity[unname(mRNAs[g1]), g2mRNA = unname(mRNAs[g2])]
+    g1 = g1, g2 = g2, g1mRNA = unname(mRNAs[g1]), g2mRNA = unname(mRNAs[g2])
   ) %>% 
-    dplyr::bind_rows(groupSeqSimilarity)
+    dplyr::left_join(y = perIdentity, by = "g2mRNA") %>% 
+    dplyr::bind_rows(groupSeqSimilarity) %>% 
+    dplyr::left_join(
+      y = dplyr::select(filteredHgs, group_id, class, type), by = "group_id"
+    )
+  
+  readr::write_tsv(
+    hgSimilarity, file = paste(outPrefix, ".data.tab", sep = ""),
+    col_names = FALSE, append = TRUE
+  )
   
 }
 
+################################################################################
+# plotting the data
+sampleInfo <- get_metadata(file = panConf$files$metadata)
 
-sharedHgs %<>% dplyr::left_join(groupSeqSimilarity, by = "group_id") %>% 
-  dplyr::filter(!is.na(identity))
+tileOrder <- dplyr::filter(filteredHgs, type == !!phenotype) %>% 
+  dplyr::select(all_of(g2)) %>% 
+  dplyr::summarise(dplyr::across(.fns = ~sum(.x))) %>% 
+  unlist() %>% 
+  sort(decreasing = TRUE) %>% 
+  names()
 
-readr::write_tsv(sharedHgs, file = paste(outPrefix, ".data.tab", sep = ""))
+hgSimilarity <- suppressMessages(
+  readr::read_tsv(file = paste(outPrefix, ".data.tab", sep = ""), col_types = "ccc")
+) %>%
+  dplyr::left_join(
+    y = dplyr::select(sampleInfo, Genome, g2Species = SpeciesName),
+    by = c("g2" = "Genome")
+  ) %>% 
+  dplyr::mutate(
+    class = forcats::fct_relevel(class, "accessory", "core & SCO", "core"),
+    g2 = forcats::fct_relevel(g2, !!!tileOrder)
+  )
 
 pt_identity <- ggplot(
-  sharedHgs,
-  mapping = aes(x = type, y = identity, color = class)
+  hgSimilarity,
+  mapping = aes(x = type, y = identity)
 ) +
-  ggbeeswarm::geom_quasirandom() +
-  # geom_jitter() +
+  ggbeeswarm::geom_quasirandom(alpha = 0.7, color = "black") +
+  coord_cartesian(ylim = c(50,100)) +
   labs(
     title = "homology group pairwise similarity",
+    subtitle = paste(
+      "pairwise similarity of homology groups common between",
+      "genome", g1, "(", sampleInfo$SpeciesName[which(sampleInfo$Genome == g1)],
+      ") and other genomes"
+    ),
     y = "%identity"
   ) +
-  scale_color_viridis_d() +
-  theme_bw(base_size = 16) 
+  # scale_color_viridis_d() +
+  facet_wrap(
+    facets = ~g2 + g2Species,
+    labeller = label_wrap_gen(multi_line=FALSE)
+  ) +
+  theme_bw(base_size = 12) +
+  theme(
+    # legend.position = "bottom",
+    panel.grid.major.x = element_blank()
+  )
 
 ggsave(
-  filename = paste(outPrefix, ".png", sep = ""), plot = pt_identity, width = 6, height = 6
+  filename = paste(outPrefix, ".png", sep = ""), plot = pt_identity, width = 10, height = 8
 )
 
 
