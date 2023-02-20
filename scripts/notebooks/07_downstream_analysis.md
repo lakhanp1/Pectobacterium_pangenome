@@ -205,7 +205,7 @@ process_start "blastn phenotype specific sequences against pangenome"
 blastn -db $PANGENOME_DIR/blastdb/genomes_combined.fa \
 -query analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/assay_FN.pheno_specific.399g.mRNA.fasta \
 -num_threads 12 -max_target_seqs 5000 \
--outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen pident length mismatch qcovs gapopen evalue bitscore" \
+-outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen pident length mismatch qcovs qcovus gapopen evalue bitscore" \
 -out analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/pheno_specific.399g.pangenome.blastn.out
 
 error_exit $?

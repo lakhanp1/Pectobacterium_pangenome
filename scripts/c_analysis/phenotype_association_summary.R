@@ -18,6 +18,7 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/association_analysis.R")
 ################################################################################
 set.seed(124)
 
@@ -49,10 +50,11 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-assoConf <- suppressMessages(
-  readr::read_tsv(panConf$analysis_confs$files$phenotype_association, col_types = "ccccc")
-) %>% 
-  dplyr::filter(name == !!phenotype)
+## genomes that are used for phenotype association analysis
+associatedGenomes <- get_phenotype_association_genomes(
+  phenotype = phenotype,
+  confFile = panConf$analysis_confs$files$phenotype_association
+)
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
@@ -126,7 +128,8 @@ homology_group_heatmap <- function(mat, phy, metadata, hgAn, width, markGenomes)
     any(class(phy) == "phylo"),
     length(width) == 2,
     all(is.numeric(width)),
-    all(markGenomes %in% rownames(mat))
+    is.list(markGenomes),
+    all(unlist(markGenomes) %in% rownames(mat))
   )
   
   ## homology group heatmap
@@ -158,13 +161,14 @@ homology_group_heatmap <- function(mat, phy, metadata, hgAn, width, markGenomes)
   ## species name key heatmap
   speciesMat <- tibble::tibble(Genome = rownames(mat)) %>% 
     dplyr::left_join(
-      y = as.data.frame(table(c(rownames(mat), markGenomes))),
-      by = c("Genome" = "Var1")
-    ) %>% 
+      y = tibble::enframe(markGenomes) %>% tidyr::unnest(cols = value),
+      by = c("Genome" = "value")
+    ) %>%
+    tidyr::replace_na(replace = list(name = "1")) %>% 
     dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>% 
     tidyr::pivot_wider(
       id_cols = Genome, names_from = SpeciesName,
-      values_from = Freq, values_fill = 0, names_sort = TRUE
+      values_from = name, values_fill = "0", names_sort = TRUE
     ) %>% 
     tibble::column_to_rownames(var = "Genome") %>% 
     as.matrix()
@@ -175,7 +179,7 @@ homology_group_heatmap <- function(mat, phy, metadata, hgAn, width, markGenomes)
   ht_species <- ComplexHeatmap::Heatmap(
     matrix = speciesMat,
     name = "species_key",
-    col = c("1" = "black", "0" = "white", "2" = "red"),
+    col = c("1" = "black", "0" = "white", "compare" = "red", "against" = "green"),
     # cluster_rows = as.hclust.phylo(phy), row_dend_reorder = FALSE,
     cluster_columns = FALSE,
     # column_order = speciesOrder,
@@ -206,7 +210,7 @@ hgMat <- hgMat[rawTree$tip.label, ]
 htList <- homology_group_heatmap(
   mat = hgMat, phy = rawTree, metadata = sampleInfo,
   hgAn = hgAnnotation, width = c(10,24),
-  markGenomes = stringr::str_split_1(assoConf$compare, ",")
+  markGenomes = associatedGenomes
 )
 
 png(filename = paste(outPrefix, ".pheno_hg_association.png", sep = ""), width = 6000, height = 3000, res = 350)

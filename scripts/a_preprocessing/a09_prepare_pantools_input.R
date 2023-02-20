@@ -102,6 +102,25 @@ readr::write_tsv(
   file = confs$data$pangenomes[[pangenomeName]]$files$input_lock
 )
 
+## write metadata to excel
+wb <- openxlsx::createWorkbook()
+currentSheet <- "metadata"
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+openxlsx::writeDataTable(
+  wb = wb, sheet = currentSheet, withFilter = TRUE, keepNA = TRUE, na.string = "NA",
+  x = dplyr::select(
+    filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata
+  )
+)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
+
+# openxlsx::openXL(wb)
+openxlsx::saveWorkbook(
+  wb = wb,
+  file = file.path(path_out, "pangenome_metadata.xlsx"), overwrite = TRUE
+)
+
+
 #####################################################################
 ## write small subset for testing pangenome pipeline
 testSet <- dplyr::filter(filteredMeta, !is.na(type_material)) %>% 
