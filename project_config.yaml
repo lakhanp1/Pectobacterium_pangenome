@@ -43,20 +43,42 @@ data:
     dir: "busco.prot"
   pangenomes:
     dir: "pangenomes"
-    pectobacterium.10g:
-      name: "pectobacterium.10g"
-      dir: "pectobacterium.10g"
+    pectobacterium.ts:
+      name: "pectobacterium.ts"
+      dir: "pectobacterium.ts"
       db:
-        dir: "pectobacterium.10g.DB"
+        dir: "pectobacterium.ts.DB"
       files:
         input_lock: "input_genomes.tab"
         genomes: "genomes_fa.list"
         gff: "genomes_gff3.list"
         annotations: "functional_annotations.txt"
         metadata: "genomes_metadata.csv"
+    pectobacterium.v3:
+      dir: "pectobacterium.v3"
+      name: "pectobacterium.v3"
+      include_source: ['NCBI', 'NAK', 'NAK2', 'NVWA']
+      homology_group_setting: 4
+      files:
+        input_lock: "input_genomes.tab"
+        genomes: "genomes_fa.list"
+        gff: "genomes_gff3.list"
+        annotations: "functional_annotations.txt"
+        metadata: "genomes_metadata.csv"
+        combined_fa: "blastdb/genomes_combined.fa"
+        blastdb: "blastdb/genomes_combined.fa"
+        genome_chrs: "blastdb/genome_chr_map.tab"
+      analysis_confs:
+        dir: "analysis_configs"
+        files:
+          phenotype_association: "pheno_association_config.tab"
+          clade_phenotypes: "clade_association_phenotypes.csv"
+      db:
+        dir: "pectobacterium.v2.DB"     
     pectobacterium.v2:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
+      include_source: ['NCBI', 'NAK', 'NVWA']
       homology_group_setting: 4
       files:
         input_lock: "input_genomes.tab"

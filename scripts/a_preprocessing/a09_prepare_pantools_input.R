@@ -16,10 +16,8 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-pangenomeName <- confs$data$pangenomes$pectobacterium.v2$name
-testPangenome <- confs$data$pangenomes$pectobacterium.10g$name
-path_out <- confs$data$pangenomes[[pangenomeName]]$dir
-test_out <- confs$data$pangenomes[[testPangenome]]$dir
+pangenomeConf <- confs$data$pangenomes$pectobacterium.v2
+testPanConf <- confs$data$pangenomes$pectobacterium.ts
 
 cols_metadata <- c(
   "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
@@ -29,11 +27,11 @@ cols_metadata <- c(
   "source", "type_material", "representative_status", "sample_type")
 
 #####################################################################
-! dir.exists(path_out) && dir.create(path = path_out, recursive = TRUE)
-! dir.exists(test_out) && dir.create(path = test_out, recursive = TRUE)
+! dir.exists(pangenomeConf$dir) && dir.create(path = pangenomeConf$dir, recursive = TRUE)
+! dir.exists(testPanConf$dir) && dir.create(path = testPanConf$dir, recursive = TRUE)
 
-if(! dir.exists(path_out)){
-  dir.create(path = path_out, recursive = TRUE)
+if(! dir.exists(pangenomeConf$dir)){
+  dir.create(path = pangenomeConf$dir, recursive = TRUE)
 }
 
 metadata <- suppressMessages(
@@ -43,7 +41,7 @@ metadata <- suppressMessages(
 filteredMeta <- dplyr::filter(
   metadata,
   filtered == "PASS",
-  source %in% confs$data$include_source
+  source %in% pangenomeConf$include_source
 ) %>% 
   dplyr::mutate(
     genomeId = 1:n(),
@@ -69,37 +67,26 @@ filteredMeta <- dplyr::filter(
 ## FASTA file paths
 dplyr::select(filteredMeta, fasta) %>% 
   readr::write_tsv(
-    file = confs$data$pangenomes[[pangenomeName]]$files$genomes,
+    file = pangenomeConf$files$genomes,
     col_names = FALSE
   )
 
 ## GFF3 file paths
 dplyr::select(filteredMeta, genomeId, gff3) %>% 
-  readr::write_tsv(
-    file = confs$data$pangenomes[[pangenomeName]]$files$gff,
-    col_names = FALSE
-  )
+  readr::write_tsv(file = pangenomeConf$files$gff, col_names = FALSE)
 
 ## functional annotation file paths
 dplyr::select(filteredMeta, genomeId, interpro) %>% 
-  readr::write_delim(
-    file = confs$data$pangenomes[[pangenomeName]]$files$annotations,
-    col_names = FALSE
-  )
+  readr::write_delim(file = pangenomeConf$files$annotations, col_names = FALSE)
 
 ## metadata file
-dplyr::select(
-  filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata
-) %>% 
-  readr::write_csv(
-    file = confs$data$pangenomes[[pangenomeName]]$files$metadata,
-    col_names = TRUE
-  )
+dplyr::select(filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata) %>% 
+  readr::write_csv(file = pangenomeConf$files$metadata, col_names = TRUE)
 
 ## input genome lock file: this file should never change
 readr::write_tsv(
   x = dplyr::select(filteredMeta, Genome = genomeId, sampleId),
-  file = confs$data$pangenomes[[pangenomeName]]$files$input_lock
+  file = pangenomeConf$files$input_lock
 )
 
 ## write metadata to excel
@@ -117,7 +104,7 @@ openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstAct
 # openxlsx::openXL(wb)
 openxlsx::saveWorkbook(
   wb = wb,
-  file = file.path(path_out, "pangenome_metadata.xlsx"), overwrite = TRUE
+  file = file.path(pangenomeConf$dir, "pangenome_metadata.xlsx"), overwrite = TRUE
 )
 
 
@@ -129,31 +116,21 @@ testSet <- dplyr::filter(filteredMeta, !is.na(type_material)) %>%
 
 ## FASTA file paths
 dplyr::select(testSet, fasta) %>% 
-  readr::write_tsv(
-    file = confs$data$pangenomes[[testPangenome]]$files$genomes,
-    col_names = FALSE
-  )
+  readr::write_tsv(file = testPanConf$files$genomes, col_names = FALSE)
 
 ## GFF3 file paths
 dplyr::select(testSet, genomeId, gff3) %>% 
-  readr::write_tsv(
-    file = confs$data$pangenomes[[testPangenome]]$files$gff,
-    col_names = FALSE
-  )
+  readr::write_tsv(file = testPanConf$files$gff, col_names = FALSE)
 
 ## functional annotation file paths
 dplyr::select(testSet, genomeId, interpro) %>% 
-  readr::write_delim(
-    file = confs$data$pangenomes[[testPangenome]]$files$annotations,
-    col_names = FALSE
-  )
+  readr::write_delim(file = testPanConf$files$annotations, col_names = FALSE)
 
 ## metadata file
-dplyr::select(
-  testSet, Genome=genomeId, sampleId, !!!cols_metadata
-) %>% 
-  readr::write_csv(
-    file = confs$data$pangenomes[[testPangenome]]$files$metadata,
-    col_names = TRUE
-  )
+dplyr::select(testSet, Genome=genomeId, sampleId, !!!cols_metadata) %>% 
+  readr::write_csv(file = testPanConf$files$metadata, col_names = TRUE)
+
+
+
+
 
