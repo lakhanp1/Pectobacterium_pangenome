@@ -75,30 +75,30 @@ fi
 
 ######################################################################
 
-TMPDIR="/local/$USER/tmp"
-[ ! -d ${TMPDIR} ] && mkdir -p ${TMPDIR}
-[ -d ${TMPDIR}/pantools ] && rm -rd ${TMPDIR}/pantools
-[ ! -d ${TMPDIR}/pantools ] && mkdir -p ${TMPDIR}/pantools
-[ -d ${TMPDIR}/spark ] && rm -rd ${TMPDIR}/spark
-[ ! -d ${TMPDIR}/spark ] && mkdir -p ${TMPDIR}/spark
+#TMPDIR="/local/$USER/tmp"
+#[ ! -d ${TMPDIR} ] && mkdir -p ${TMPDIR}
+#[ -d ${TMPDIR}/pantools ] && rm -rd ${TMPDIR}/pantools
+#[ ! -d ${TMPDIR}/pantools ] && mkdir -p ${TMPDIR}/pantools
+#[ -d ${TMPDIR}/spark ] && rm -rd ${TMPDIR}/spark
+#[ ! -d ${TMPDIR}/spark ] && mkdir -p ${TMPDIR}/spark
 
-cache=25000000
-PANTOOLS_LOCALIZATION_OUTPUT=${TMPDIR}/pantools
-SPARK_LOCAL_DIRS=${TMPDIR}/spark
-PANTOOLS_ADDRESS_CACHE_SIZE=${cache}
-PANTOOLS_NUM_DB_WRITER_THREADS=10
+#cache=25000000
+#PANTOOLS_LOCALIZATION_OUTPUT=${TMPDIR}/pantools
+#SPARK_LOCAL_DIRS=${TMPDIR}/spark
+#PANTOOLS_ADDRESS_CACHE_SIZE=${cache}
+#PANTOOLS_NUM_DB_WRITER_THREADS=10
 
-## Construct pangenome using build_pangenome_parallel
-process_start build_pangenome_parallel
-$PANTOOLS_OPT build_pangenome_parallel --database-path ${pan_db} \
---genomes-file $PANGENOME_DIR/genomes_fa.list -tn 40
-error_exit $?
+### Construct pangenome using build_pangenome_parallel
+#process_start build_pangenome_parallel
+#$PANTOOLS_OPT build_pangenome_parallel --database-path ${pan_db} \
+#--genomes-file $PANGENOME_DIR/genomes_fa.list -tn 40
+#error_exit $?
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
+#cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
 
-######################################################################
+#######################################################################
 ## switch back to main version
-export PANTOOLS="$PANTOOLS_4_1"
+export PANTOOLS="$PANTOOLS_DEV"
 ## add annotations
 process_start add_annotations
 $PANTOOLS add_annotations --connect ${pan_db} $PANGENOME_DIR/genomes_gff3.list
@@ -115,12 +115,13 @@ error_exit $?
 
 cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.meta
 
-### add_functions
-#process_start add_InterProScan_annotations
-#$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
-#error_exit $?
+## add_functions
+process_start add_InterProScan_annotations
+$PANTOOLS remove_functions ${pan_db}
+$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
+error_exit $?
 
-#cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
+cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
 
 ## BUSCO
 #process_start busco_protein
@@ -298,3 +299,5 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.meta
 #rm -r ${pan_db}/gene_classification
 
 ######################################################################
+
+
