@@ -49,7 +49,7 @@ filteredMeta <- dplyr::filter(
       confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""
     ),
     gff3 = paste(
-      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".gff", sep = ""
+      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".gff3", sep = ""
     ),
     interpro = paste(
       confs$data$interproscan$dir, "/", sampleId, ".interProScan.gff3", sep = ""

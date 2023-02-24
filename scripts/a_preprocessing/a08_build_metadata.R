@@ -83,7 +83,7 @@ correctMeta %<>%
 
 dplyr::filter(correctMeta, filtered == "PASS") %>% 
   dplyr::select(sampleId) %>% 
-  readr::write_tsv(file = confs$data$reference_data$files$assembly_ids)
+  readr::write_tsv(file = confs$data$reference_data$files$assembly_ids, col_names = F)
 
 readr::write_tsv(
   x = correctMeta,
