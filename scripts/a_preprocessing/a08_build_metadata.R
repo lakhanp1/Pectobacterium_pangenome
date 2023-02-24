@@ -80,6 +80,11 @@ correctMeta %<>%
   dplyr::relocate(filtered, .after = AssemblyName)
 
 #####################################################################
+
+dplyr::filter(correctMeta, filtered == "PASS") %>% 
+  dplyr::select(sampleId) %>% 
+  readr::write_tsv(file = confs$data$reference_data$files$assembly_ids)
+
 readr::write_tsv(
   x = correctMeta,
   file = confs$data$reference_data$files$metadata

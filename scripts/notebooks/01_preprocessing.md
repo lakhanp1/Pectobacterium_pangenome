@@ -36,10 +36,10 @@ wget --timestamping https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/ANI_re
 
 
 cat data/reference_data/local_assembly_ids.txt data/reference_data/ncbi_assembly_ids.txt \
-> data/reference_data/assembly_ids.txt
+> data/reference_data/pre_qc_assembly_ids.txt
 
 mkdir data/reference_data/batches
-split -a 2 -d -n r/8 data/reference_data/assembly_ids.txt data/reference_data/batches/temp_ids_batch.
+split -a 2 -d -n r/8 data/reference_data/pre_qc_assembly_ids.txt data/reference_data/batches/temp_ids_batch.
 
 ```
 
@@ -47,7 +47,7 @@ split -a 2 -d -n r/8 data/reference_data/assembly_ids.txt data/reference_data/ba
 
 ``` bash
 ## check and extract new assembly IDs
-for sampleId in `cat data/reference_data/assembly_ids.txt`
+for sampleId in `cat data/reference_data/pre_qc_assembly_ids.txt`
 do
     if ! find data/genomes/ -name ${sampleId}* | grep -q "."
     then
@@ -99,15 +99,15 @@ done
 
 ``` bash
 printf '' > analysis/01_multiqc/assembly_chr_size.txt
-printf '' > data/reference_data/pre_filtered_genomes_fa.list
+printf '' > data/reference_data/pre_qc_genomes_fa.list
 conda activate omics_py37
 
-for i in `cat data/reference_data/assembly_ids.txt`
+for i in `cat data/reference_data/pre_qc_assembly_ids.txt`
 do
     samtools faidx data/prokka_annotation/${i}/${i}.fna
     sort -r -n -k 2,2 data/prokka_annotation/${i}/${i}.fna.fai | \
     awk  -v i=${i} '{print i, "\t", $1, "\t", $2}' >> analysis/01_multiqc/assembly_chr_size.txt
-    ls data/prokka_annotation/${i}/${i}.fna >> data/reference_data/pre_filtered_genomes_fa.list
+    ls data/prokka_annotation/${i}/${i}.fna >> data/reference_data/pre_qc_genomes_fa.list
 
     faToTwoBit data/prokka_annotation/${i}/${i}.fna data/prokka_annotation/${i}/${i}.2bit
 
@@ -196,7 +196,7 @@ multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
 ``` bash
 process_start "ANI on all genomes"
 nohup bash scripts/a_preprocessing/a05_fastANI.sh \
-data/reference_data/pre_filtered_genomes_fa.list \
+data/reference_data/pre_qc_genomes_fa.list \
 analysis/02_fastANI/ANI_results >logs/fastANI.log 2>&1 &
 error_exit $?
 ```
