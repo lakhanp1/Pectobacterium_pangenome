@@ -87,7 +87,7 @@ with `--jobs 1` setting in serial mode.
 ### Remove the FASTA sequence at the end of prokka gff files
 
 ``` bash
-for i in `cat data/reference_data/temp_assembly_ids.txt`
+for i in `cat data/reference_data/pre_qc_assembly_ids.txt`
 do
 sed -n '1,/##FASTA/ {/##FASTA/!p}' data/prokka_annotation/${i}/${i}.gff > \
 data/prokka_annotation/${i}/${i}.gff3
@@ -124,7 +124,7 @@ cat data/reference_data/temp_assembly_ids.txt | \
 parallel --jobs 1 --workdir $PWD --halt now,fail=1 --keep-order \
 --results logs/busco/{} --joblog logs/busco/parallel.log \
 $PWD/scripts/a_preprocessing/a03_busco_eval.sh {} \
->>logs/busco/nohup02.out 2>&1 &
+>logs/busco/nohup03.out 2>&1 &
 
 ```
 
@@ -154,7 +154,7 @@ parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/interproscan/{} \
 --joblog logs/interproscan/parallel_batch06.log \
 ./scripts/a_preprocessing/a02_interproscan.sh {} \
->>logs/interproscan/nohup_batch06.out 2>&1 &
+>>logs/interproscan/nohup_batch07.out 2>&1 &
 
 
 ## GNU parallel: submit jobs to another server
