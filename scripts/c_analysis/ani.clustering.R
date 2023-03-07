@@ -13,6 +13,8 @@ rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
 source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+
 ################################################################################
 set.seed(124)
 
@@ -197,7 +199,7 @@ plot_species_ANI_heatmap <- function(mat, phy, metadata, width){
       # breaks = c(80, 85, 90, 91, 91.5, 92, 92.5, 93, 93.5, 94, 96, 97, 99),
       colors = viridisLite::viridis(n = 13, option = "B")
     ),
-    heatmap_legend_param = list(legend_height = unit(3, "cm")),
+    heatmap_legend_param = list(direction = "horizontal", legend_width = unit(3, "cm")),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
     cluster_columns = ape::as.hclust.phylo(phy), column_dend_reorder = FALSE,
     show_row_dend = TRUE, show_column_dend = FALSE,
@@ -208,19 +210,8 @@ plot_species_ANI_heatmap <- function(mat, phy, metadata, width){
   )
   
   # draw(ht_ani)
-  
   ## species name key heatmap
-  speciesMat <- tibble::tibble(
-    Genome = rownames(mat)
-  ) %>% 
-    dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>% 
-    dplyr::mutate(sp = 1) %>% 
-    tidyr::pivot_wider(
-      id_cols = Genome, names_from = SpeciesName,
-      values_from = sp, values_fill = 0, names_sort = TRUE
-    ) %>% 
-    tibble::column_to_rownames(var = "Genome") %>% 
-    as.matrix()
+  speciesMat <- get_species_key_data(genomes = rownames(mat), metadata = metadata, type = "wide")
   
   ## ensure the row order is same: this is because of a bug in ComplexHeatmap
   stopifnot(all(rownames(speciesMat) == phy$tip.label))
@@ -229,9 +220,7 @@ plot_species_ANI_heatmap <- function(mat, phy, metadata, width){
     matrix = speciesMat,
     name = "species_key",
     col = c("1" = "black", "0" = "white"),
-    # cluster_rows = as.hclust.phylo(phy), row_dend_reorder = FALSE,
     cluster_columns = FALSE,
-    # column_order = speciesOrder,
     column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
     border = TRUE, column_gap = unit(0, "mm"),
     show_row_names = FALSE, show_column_names = TRUE,
@@ -290,6 +279,109 @@ ComplexHeatmap::draw(
   row_dend_side = "left"
 )
 dev.off()
+
+################################################################################
+## ANI heatmap for inhouse strains
+inhouseNodes <- dplyr::filter(sampleInfo, source %in% c("NAK", "NVWA"))
+
+subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$Genome)
+subAni2 <- aniMat[subTree2$tip.label, subTree2$tip.label] %>% 
+  tibble::as_tibble(rownames = "g1") %>% 
+  tidyr::pivot_longer(
+    cols = -g1,
+    names_to = "g2", values_to = "ANI"
+  )
+
+inhouseTreeTbl <- as_tibble(subTree2) %>%
+  dplyr::full_join(y = inhouseNodes, by = c("label" = "Genome")) %>%
+  treeio::as.treedata()
+
+pt_inhouseTree <- ggtree::ggtree(
+  tr = inhouseTreeTbl
+) +
+  ggtree::geom_tippoint(
+    mapping = aes(subset = c(SpeciesName == "P. brasiliense")),
+    color = "blue"
+  ) +
+  # ggtree::geom_tiplab(
+  #   mapping = aes(label = label),
+  #   size = 3, align = TRUE, linesize = 0.5
+  # ) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  ggnewscale::new_scale_color() +
+  ## virulence phenotype
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = "virulence", color = virulence),
+    geom = "geom_point", shape = 17, size = 2,
+    pwidth = 0.01, offset = 0.1
+  ) +
+  scale_color_manual(
+    values = c("virulent" = "red", "avirulent" = "green"),
+    na.value = alpha("white", 0)
+  ) +
+  ggnewscale::new_scale_color() +
+  ## virulence PCR result
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
+    geom = "geom_point",
+    pwidth = 0.01, offset = 0.1
+  ) +
+  scale_color_manual(
+    values = c("positive" = "red", "negative" = "green"),
+    na.value = alpha("white", 0)
+  )
+
+speciesKyeDf <- get_species_key_data(
+  genomes = inhouseNodes$Genome, metadata = sampleInfo, type = "long"
+)
+
+pt_spKey <- ggplot2::ggplot(
+  data = speciesKyeDf,
+  mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
+) +
+  geom_tile() +
+  theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, vjust = 0)
+  )
+
+pt_ani <- dplyr::mutate(
+  subAni2,
+  g1 = forcats::fct_relevel(g1, ggtree::get_taxa_name(pt_inhouseTree)),
+  g2 = forcats::fct_relevel(g2, ggtree::get_taxa_name(pt_inhouseTree))
+) %>% 
+  ggplot2::ggplot(mapping = aes(x = g1, y = g2)) +
+  geom_tile(mapping = aes(fill = ANI)) +
+  # scale_fill_viridis_c(name = "% identity", option = "B") +
+  scale_fill_stepsn(
+      breaks = c(80, 85, 90, 91, 92, 92.5, 93, 93.5, 94, 95, 96, 97, 99),
+      colors = viridisLite::viridis(n = 13, option = "B")
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    plot.title = element_text(hjust = 0.5, vjust = 0)
+  )
+
+## arrange plots one by one
+pt_all <- pt_spKey %>% aplot::insert_left(pt_inhouseTree, width = 0.5) %>%
+  aplot::insert_right(pt_ani, width = 2)
+  
+
+ggsave(
+  plot = pt_all, width = 14, height = 8,
+  filename = file.path(outDir, "ANI_inhouse.heatmap.pdf")
+)
+
+
 
 ################################################################################
 

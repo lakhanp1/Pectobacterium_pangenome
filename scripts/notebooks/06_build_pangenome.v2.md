@@ -98,7 +98,7 @@ $PANTOOLS build_pangenome --threads 40 --scratch-directory ${TMPDIR}/pantools \
 ${pan_db} $PANGENOME_DIR/genomes_fa.list
 error_exit $?
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
+cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
 
 export PANTOOLS="$PANTOOLS_MASTER"
 
@@ -123,7 +123,7 @@ process_start add_InterProScan_annotations
 $PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
 error_exit $?
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
+cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
 ######################################################################
 ```
 
@@ -170,7 +170,7 @@ process_start group_v4
 nice $PANTOOLS group -t 30 --relaxation 4 ${pan_db}
 error_exit $?
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
+cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 
 ## optimized grouping
 process_start optimal_grouping
@@ -185,7 +185,7 @@ $PANTOOLS grouping_overview ${pan_db}
 $PANTOOLS change_grouping -v 4 ${pan_db}
 $PANTOOLS grouping_overview ${pan_db}
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.opt_grp
+cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.opt_grp
 ######################################################################
 ```
 
@@ -342,7 +342,7 @@ process_start "msa for homology groups"
 $PANTOOLS msa -t 12 --method per-group --mode nucleotide ${pan_db}
 error_exit $?
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
+cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
 ```
 
 ## Phylogeny analysis

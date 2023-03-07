@@ -307,6 +307,44 @@ clade_comparison_confs <- function(
 
 ################################################################################
 
+#' Generate species key data for plotting
+#'
+#' @param genomes genomes to select
+#' @param metadata a dataframe with two columns: `Genome` and `SpeciesName`
+#' @param type Return type: `wide`: a matrix of dimension n(Genome) x n(Species),
+#'  `long`: data.frame in long format
+#'
+#' @return Either a matrix or data.frame
+#' @export
+#'
+#' @examples NA
+get_species_key_data <- function(genomes, metadata, type = "wide"){
+  
+  stopifnot(
+    type %in% c("wide", "long"),
+    all(genomes %in% metadata$Genome),
+    tibble::has_name(metadata, "SpeciesName")
+  )
+  
+  ## species name key heatmap
+  speciesKey <- tibble::tibble(Genome = genomes) %>% 
+    dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>% 
+    dplyr::mutate(sp = 1)
+  
+  if(type == "wide"){
+    speciesKey %<>% 
+      tidyr::pivot_wider(
+        id_cols = Genome, names_from = SpeciesName,
+        values_from = sp, values_fill = 0, names_sort = TRUE
+      ) %>% 
+      tibble::column_to_rownames(var = "Genome") %>% 
+      as.matrix()
+  }
+  
+  return(speciesKey)
+}
+################################################################################
+
 
 
 
