@@ -4,6 +4,12 @@ genus: "Pectobacterium"
 parameters:
   cutoff_busco: 99
   seed: 124
+colors:
+   core: "#249629"
+   accessory: "#DB701F"
+   unique: "#3070C8"
+   presence: ""
+   absence: "black"
 data:
   dir: "data"
   include_source: ['NCBI', 'NAK', 'NVWA']
@@ -96,6 +102,12 @@ data:
           clade_phenotypes: "clade_association_phenotypes.csv"
       db:
         dir: "pectobacterium.v2.DB"
+        metrics:
+          dir: "metrics"
+          files:
+            per_genome: "metrics_per_genome.csv"
+            per_seq: "metrics_per_sequence.csv"
+            metrics: "metrics.txt"
         gene_classification:
           GC.100.0:
             dir: "gene_classification.100.0"
@@ -181,6 +193,11 @@ analysis:
       ani_upgma: "ANI_UPGMA.newick"
       ani_nj: "ANI_NJ.newick"
       ani_rooted_nj: "ANI_NJ_rooted.newick"
+  summary:
+    dir: "04_pangenome_pecto_v2/summary"
+    files:
+      data: ""
+      pangenome: ""
   gouping_optimization:
     name: "grouping"
     dir: "04_pangenome_pecto_v2/subset_optimal_group"

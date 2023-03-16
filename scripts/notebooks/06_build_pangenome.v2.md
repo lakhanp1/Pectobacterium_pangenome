@@ -46,7 +46,7 @@ PANGENOME_NAME=$1
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 
-export PANTOOLS="$PANTOOLS_DEV"
+export PANTOOLS="$PANTOOLS_4_1"
 
 ## Setup
 PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
@@ -89,23 +89,21 @@ TMPDIR="$LOCAL_DIR_PATH/tmp"
 [ -d ${TMPDIR}/pantools ] && rm -rd ${TMPDIR}/pantools
 [ ! -d ${TMPDIR}/pantools ] && mkdir -p ${TMPDIR}/pantools
 
-## Construct pangenome using build_pangenome_parallel
-export PANTOOLS="$PANTOOLS_OPT"
-
 process_start build_pangenome_parallel
 $PANTOOLS build_pangenome --threads 40 --scratch-directory ${TMPDIR}/pantools \
 --num-db-writer-threads 10 --cache-size 25000000 \
 ${pan_db} $PANGENOME_DIR/genomes_fa.list
 error_exit $?
 
-cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
+cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
 
-export PANTOOLS="$PANTOOLS_MASTER"
 
 ## add annotations
+export PANTOOLS="$PANTOOLS_DEV"
 process_start add_annotations
 $PANTOOLS add_annotations --connect ${pan_db} $PANGENOME_DIR/genomes_gff3.list
 error_exit $?
+export PANTOOLS="$PANTOOLS_4_1"
 
 ## add phenotypes
 process_start add_phenotypes
@@ -123,14 +121,14 @@ process_start add_InterProScan_annotations
 $PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
 error_exit $?
 
-cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
+cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
 ######################################################################
 ```
 
 ## Grouping
 
 ``` bash
-cp -r $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.backup_fn ${pan_db}
+cp -rp $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.backup_fn ${pan_db}
 ## BUSCO
 process_start busco_protein
 $PANTOOLS busco_protein -t 20 --busco10 enterobacterales_odb10 ${pan_db}
@@ -170,7 +168,7 @@ process_start group_v4
 nice $PANTOOLS group -t 30 --relaxation 4 ${pan_db}
 error_exit $?
 
-cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
+cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 
 ## optimized grouping
 process_start optimal_grouping
@@ -185,7 +183,7 @@ $PANTOOLS grouping_overview ${pan_db}
 $PANTOOLS change_grouping -v 4 ${pan_db}
 $PANTOOLS grouping_overview ${pan_db}
 
-cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.opt_grp
+cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.opt_grp
 ######################################################################
 ```
 
@@ -342,7 +340,7 @@ process_start "msa for homology groups"
 $PANTOOLS msa -t 12 --method per-group --mode nucleotide ${pan_db}
 error_exit $?
 
-cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
+cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
 ```
 
 ## Phylogeny analysis
@@ -351,9 +349,10 @@ cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
 
 ## SNP tree using core gene SNPs
 process_start core_phylogeny
-cp -r ${pan_db}/gene_classification.100.0 ${pan_db}/gene_classification
+cp -rp ${pan_db}/gene_classification.100.0 ${pan_db}/gene_classification
 $PANTOOLS core_phylogeny -t 20  --clustering-mode ML ${pan_db}
 error_exit $?
+rm -r ${pan_db}/gene_classification
 
 rm ${pan_db}//core_snp_tree/informative.fasta.*
 iqtree -nt 20 -s ${pan_db}/core_snp_tree/informative.fasta -redo -bb 1000

@@ -63,6 +63,10 @@ metadata <- suppressMessages(readr::read_tsv(file = file_summary)) %>%
     )
   )
 
+# metadata %<>% 
+#     dplyr::filter(source %in% c("NAK", "NVWA"), SpeciesName == "P. brasiliense",
+#                   geo_loc_country == "Netherlands")
+
 pt_theme <- theme_bw() +
   theme(
     panel.grid = element_blank(),
