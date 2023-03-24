@@ -85,8 +85,8 @@ treeTbl <- as_tibble(rawTree) %>%
 # ggtree::viewClade(tree_view = pt_tree4, node = 626)
 # ggtree::scaleClade(tree_view = pt_tree4, node = 626, scale = 8)
 
-subTree2 <- ape::extract.clade(phy = rawTree, node = "n371")
-plot(ladderize(subTree2))
+subTree2 <- ape::extract.clade(phy = rawTree, node = "n172")
+plot.phylo(ladderize(subTree2), show.node.label = T, align.tip.label = T)
 
 ggtree::ggtree(tr = subTree2) +
   ggtree::geom_nodelab(

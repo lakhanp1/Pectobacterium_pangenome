@@ -180,7 +180,7 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 ################################################################################
 #' Prepare `pantools gene_classification` data based on clades in phylogenetic tree
 #'
-#' @param file a tree file path
+#' @param tree a newick tree file path
 #' @param node node labels for the clade of interest
 #' @param against optionally, a vector of node labels for clade against which comparison
 #' will be made
@@ -202,12 +202,12 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 #'
 #' @examples
 clade_comparison_confs <- function(
-    file, node, type, against = NA, name, category = "Y",
+    tree, node, type, against = NA, name, category = "Y",
     excludeNode = NA, excludeTips = NA
 ){
   
   
-  tr <- ape::read.tree(file)
+  tr <- ape::read.tree(tree)
   
   stopifnot(
     is.character(node),
@@ -319,7 +319,7 @@ clade_comparison_confs <- function(
 #'
 #' @examples NA
 get_species_key_data <- function(genomes, metadata, type = "wide"){
-  
+
   stopifnot(
     type %in% c("wide", "long"),
     all(genomes %in% metadata$Genome),
@@ -344,9 +344,5 @@ get_species_key_data <- function(genomes, metadata, type = "wide"){
   return(speciesKey)
 }
 ################################################################################
-
-
-
-
 
 

@@ -14,6 +14,7 @@ rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
 source("scripts/utils/config_functions.R")
+source("scripts/utils/association_analysis.R")
 ################################################################################
 set.seed(124)
 
@@ -36,55 +37,14 @@ phnConf <- suppressMessages(
   )
 )
 
-# phn <- "assay_FN"
+phn <- "assay_FN"
+
+## extract and save phenotype specific groups
 for (phn in phnConf$name) {
   cat("phenotype", phn, "\n")
-  
-  file_phenoAsso <- file.path(
-    pangenomeConf$db$gene_classification$phenotypes$dir, phn, "phenotype_association.csv"
+  phenotype_specific_groups(
+    phenotype = phn, panConf = pangenomeConf,
+   save = confs$analysis$association$files$pheno_specific_groups 
   )
-  
-  ## process phenotype association results
-  res <- suppressMessages(
-    readr::read_csv(file = file_phenoAsso, comment = "#")
-  ) %>% 
-    dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "( |-)", "_")) %>% 
-    dplyr::rename_with(.fn = ~tolower(.x)) %>% 
-    dplyr::filter(phenotype == phn, fisher_exact_p_value != "No test")
-  
-  ## homology groups specific for a phenotype
-  phenoSpecific <- dplyr::filter(
-    res, 
-    phenotype_members_absent == 0,
-    other_phenotype_members_present == 0
-  )
-  
-  if(nrow(phenoSpecific) > 0){
-    dplyr::select(phenoSpecific, phenotype, homology_group_id) %>% 
-      dplyr::group_by(phenotype) %>% 
-      dplyr::summarize(
-        homology_group_id = stringr::str_c(homology_group_id, collapse = ",")
-      ) %>% 
-      readr::write_tsv(
-        file = confs$analysis$association$files$pheno_specific_groups,
-        append = TRUE
-      )
-  }
 }
-
-
-## remove duplicates and rewrite the data
-suppressMessages(
-  readr::read_tsv(
-    confs$analysis$association$files$pheno_specific_groups, col_names = FALSE,
-    col_types = "cc"
-  )
-) %>% 
-  dplyr::distinct() %>% 
-  readr::write_tsv(
-    file = confs$analysis$association$files$pheno_specific_groups,
-    col_names = FALSE
-  )
-
-
 

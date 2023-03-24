@@ -17,7 +17,6 @@ source("scripts/utils/phylogeny_functions.R")
 ################################################################################
 set.seed(124)
 
-
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
@@ -27,7 +26,11 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 pangenomeConf <- confs$data$pangenomes[[pangenome]]
 ################################################################################
 
-sampleInfo <- get_metadata(file = pangenomeConf$files$metadata)
+assemblyMeta <- suppressMessages(readr::read_tsv(confs$data$reference_data$files$metadata)) %>% 
+  dplyr::select(sampleId, length,N50, N90, L50, L90)
+
+sampleInfo <- get_metadata(file = pangenomeConf$files$metadata) %>% 
+  dplyr::left_join(y = assemblyMeta, by = "sampleId")
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -69,7 +72,7 @@ cladeCmpList <- purrr::map(
     treeName <- cmp$tree
     
     clade_comparison_confs(
-      file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
+      tree = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
       node = cmp$compare,
       type = cmp$compareType,
       against = cmp$background,
@@ -111,14 +114,28 @@ purrr::map_dfr(
       )
     )
   }
-) %>% 
+) %>%
+  dplyr::mutate(compare = stringr::str_split(compare, ",")) %>% 
+  tidyr::unnest(cols = compare) %>% 
+  dplyr::left_join(y = dplyr::select(sampleInfo, Genome, N50, length),
+                   by = c("compare" = "Genome")) %>% 
+  dplyr::group_by(name) %>% 
+  dplyr::arrange(N50, .by_group = TRUE) %>% 
+  dplyr::mutate(compare = stringi::stri_flatten(compare, collapse = ",")) %>% 
+  dplyr::slice(1L) %>% 
+  dplyr::ungroup() %>%
+  dplyr::select(-N50, -length) %>% 
   dplyr::mutate(
     phenotypeArg = dplyr::if_else(
       condition = is.na(include) | include == "",
       true = stringr::str_c("--phenotype=", name, sep = ""), 
       false = stringr::str_c("--phenotype=", name, " --include=", include, sep = "")
+    ),
+    name = forcats::fct_relevel(
+      name, purrr::map_chr(cladeGrps, "name") %>% unname
     )
   ) %>% 
+  dplyr::arrange(name) %>% 
   dplyr::select(name, phenotypeArg, compare, against, include) %>% 
   readr::write_tsv(
     file = pangenomeConf$analysis_confs$files$phenotype_association,
