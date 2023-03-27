@@ -10,6 +10,7 @@ suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
+suppressPackageStartupMessages(library(GenomicRanges))
 
 ## plot PAV for the homology groups specific for a particular phenotype
 
@@ -94,7 +95,7 @@ readr::write_tsv(
   file = paste(outPrefix, ".specific_hgs.pangenome_summary.tab", sep = "")
 )
 
-bestGenome <- genomeSummary$Genome[1]
+bestGenome <- associatedGenomes$compare[1]
 
 hgAnnotation <- dplyr::filter(hgSeqInfo, Genome == !!bestGenome) %>% 
   dplyr::arrange(chr, start) %>% 

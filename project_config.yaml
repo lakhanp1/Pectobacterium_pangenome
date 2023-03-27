@@ -10,6 +10,10 @@ colors:
    unique: "#3070C8"
    presence: ""
    absence: "black"
+treeDims:
+  width: 14
+  height: 20
+  scale: 2
 data:
   dir: "data"
   include_source: ['NCBI', 'NAK', 'NVWA']

@@ -39,13 +39,13 @@ fi
 
 ######################################################################
 
+source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
+
 PANGENOME_NAME=$1
 # PANGENOME_NAME='pectobacterium.ts'
 # PANGENOME_NAME='pectobacterium.v2'
 
-source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
-
 export PANTOOLS="$PANTOOLS_4_1"
 
 ## Setup
@@ -322,6 +322,7 @@ mv ${pan_db}/function/functional_classification ${pan_db}/function/functional_cl
 ```
 
 #### function overview
+
 ```bash
 ## function_overview
 process_start function_overview
@@ -329,6 +330,27 @@ $PANTOOLS function_overview ${pan_db}
 error_exit $?
 
 Rscript ${pan_db}/cog_per_class.R
+```
+
+```bash
+## GO enrichment for core, accessory and unique homology groups
+for grp in core accessory unique
+do
+    process_start GO_enrichment:$grp
+    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.100.0/${grp}_groups.csv  ${pan_db}
+    error_exit $?
+    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.100.0.${grp} 
+done
+
+## GO enrichment for soft-core, accessory and cloud homology groups
+for grp in core accessory unique
+do
+    process_start GO_enrichment:$grp
+    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.95.5/${grp}_groups.csv  ${pan_db}
+    error_exit $?
+    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.95.5.${grp} 
+done
+
 #######################################################################
 ```
 
@@ -354,7 +376,19 @@ $PANTOOLS core_phylogeny -t 20  --clustering-mode ML ${pan_db}
 error_exit $?
 rm -r ${pan_db}/gene_classification
 
-rm ${pan_db}//core_snp_tree/informative.fasta.*
-iqtree -nt 20 -s ${pan_db}/core_snp_tree/informative.fasta -redo -bb 1000
+## running_job: leunissen
+mkdir ${pan_db}/core_snp_tree/ML_tree 
+nohup nice iqtree -T 40 -s data/pangenomes/pectobacterium.v2/backup/pectobacterium.v2.DB.msa/core_snp_tree/informative.fasta -redo -B 1000 \
+--prefix data/pangenomes/pectobacterium.v2/backup/pectobacterium.v2.DB.msa/core_snp_tree/ML_tree/informative.fasta \
+>> logs/v2_pecto/core_tree.log 2>&1 &
+
+nohup nice iqtree -T 40 -s informative.fasta -B 1000 --prefix ML_tree/informative.fasta \
+>> core_tree.log 2>&1 &
+
+## run IQ-tree with a specific model
+nohup iqtree -T 30 -s ${pan_db}/core_snp_tree/informative.fasta -redo -B 1000 \
+-m GTR+F+ASC --prefix ${pan_db}/core_snp_tree/informative.fasta.GTR_F_ASC \
+> logs/v2_pecto/iqtree_GTR_F_ASC.log 2>&1 &
+
 ######################################################################
 ```
