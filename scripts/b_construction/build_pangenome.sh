@@ -41,7 +41,8 @@ PANGENOME_NAME=$1
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 
-export PANTOOLS="$PANTOOLS_DEV"
+#export PANTOOLS="$PANTOOLS_DEV"
+export PANTOOLS="$PANTOOLS_4_1"
 
 ## Setup
 PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
@@ -86,13 +87,16 @@ fi
 #${pan_db} $PANGENOME_DIR/genomes_fa.list
 #error_exit $?
 
-#cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
+#cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.raw
 
 #######################################################################
+
 ### add annotations
+#export PANTOOLS="$PANTOOLS_DEV"
 #process_start add_annotations
 #$PANTOOLS add_annotations --connect ${pan_db} $PANGENOME_DIR/genomes_gff3.list
 #error_exit $?
+#export PANTOOLS="$PANTOOLS_4_1"
 
 ## add phenotypes
 #process_start add_phenotypes
@@ -107,13 +111,12 @@ fi
 #$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
 #error_exit $?
 
+### BUSCO
+#process_start busco_protein
+#$PANTOOLS busco_protein -t 30 --busco10 enterobacterales_odb10 ${pan_db}
+#error_exit $?
 
-## BUSCO
-process_start busco_protein
-$PANTOOLS busco_protein -t 30 --busco10 enterobacterales_odb10 ${pan_db}
-error_exit $?
-
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
+#cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
 
 ######################################################################
 ## type strains
@@ -136,16 +139,17 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
 #Rscript scripts/c_analysis/grouping_subsets_analyze.R
 
 ######################################################################
-## grouping with relaxation 4 setting
-process_start group_v4
-nice $PANTOOLS group -t 30 --relaxation 4 ${pan_db}
-error_exit $?
+### grouping with relaxation 4 setting
+#process_start group_v4
+#nice $PANTOOLS group -t 30 --relaxation 4 ${pan_db}
+#error_exit $?
 
-cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
+#cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 
 ## optimized grmultiqc_buscoouping
+#$PANTOOLS remove_grouping -v all ${pan_db}
 #process_start optimal_grouping
-#nice $PANTOOLS optimal_grouping -t 30 ${pan_db} ${pan_db}/busco/enterobacterales_odb10
+#nice $PANTOOLS optimal_grouping -t 40 ${pan_db} ${pan_db}/busco/enterobacterales_odb10
 #error_exit $?
 
 #Rscript ${pan_db}/optimal_grouping/optimal_grouping.R
@@ -154,7 +158,7 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 #$PANTOOLS change_grouping -v 4 ${pan_db}
 #$PANTOOLS grouping_overview ${pan_db}
 
-#cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.opt_grp
+#cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.opt_grp
 
 ######################################################################
 ### extract the metrics from pangenome
@@ -193,9 +197,9 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 #$PANTOOLS group_info -H ${pan_db}/gene_classification.100.0/all_homology_groups.csv ${pan_db}
 #error_exit $?
 
-########################################################################
+#########################################################################
 #### k-mer classification
-### K-mer classification: soft core and cloud
+## K-mer classification: soft core and cloud
 #process_start kmer_classification_core_unique
 #$PANTOOLS k_mer_classification ${pan_db}
 #error_exit $?
@@ -221,7 +225,7 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 #Rscript ${pan_db}/pangenome_size/gene/pangenome_growth.R
 #Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
 #Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
-#Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
+##Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
 
 #mv ${pan_db}/pangenome_size/gene ${pan_db}/pangenome_size/gene.pangenome
 
@@ -232,7 +236,7 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 
 #Rscript ${pan_db}/pangenome_size/kmer/pangenome_growth.R
 
-#######################################################################
+######################################################################
 ### functional_classification: core and unique
 #process_start functional_classification_core_unique
 #$PANTOOLS functional_classification ${pan_db}
@@ -254,7 +258,25 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 
 ##Rscript ${pan_db}/cog_per_class.R
 
-#cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.chr
+## GO enrichment for core, accessory and unique homology groups
+for grp in core accessory unique
+do
+    process_start GO_enrichment:$grp
+    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.100.0/${grp}_groups.csv  ${pan_db}
+    error_exit $?
+    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.100.0.${grp} 
+done
+
+## GO enrichment for soft-core, accessory and cloud homology groups
+for grp in core accessory unique
+do
+    process_start GO_enrichment:$grp
+    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.95.5/${grp}_groups.csv  ${pan_db}
+    error_exit $?
+    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.95.5.${grp} 
+done
+
+#cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.chr
 #######################################################################
 
 ### MSA for homology groups
@@ -262,17 +284,15 @@ cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.grp
 #$PANTOOLS msa -t 30 --method per-group --mode nucleotide ${pan_db}
 #error_exit $?
 
-#cp -r ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
+#cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.msa
 #######################################################################
 
 ### SNP tree using core gene SNPs
 #process_start core_phylogeny
-#cp -r ${pan_db}/gene_classification.100.0 ${pan_db}/gene_classification
+#cp -r --preserve ${pan_db}/gene_classification.100.0 ${pan_db}/gene_classification
 #$PANTOOLS core_phylogeny -t 30  --clustering-mode ML ${pan_db}
 #error_exit $?
-
-#rm ${pan_db}//core_snp_tree/informative.fasta.*
-#iqtree -nt 30 -s ${pan_db}/core_snp_tree/informative.fasta -redo -bb 1000
+#rm -r ${pan_db}/gene_classification
 
 ######################################################################
 
