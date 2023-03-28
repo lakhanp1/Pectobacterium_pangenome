@@ -120,7 +120,7 @@ purrr::map_dfr(
   dplyr::left_join(y = dplyr::select(sampleInfo, Genome, N50, length),
                    by = c("compare" = "Genome")) %>% 
   dplyr::group_by(name) %>% 
-  dplyr::arrange(N50, .by_group = TRUE) %>% 
+  dplyr::arrange(desc(N50), .by_group = TRUE) %>% 
   dplyr::mutate(compare = stringi::stri_flatten(compare, collapse = ",")) %>% 
   dplyr::slice(1L) %>% 
   dplyr::ungroup() %>%
