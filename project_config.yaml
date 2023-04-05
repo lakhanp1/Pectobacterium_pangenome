@@ -5,18 +5,18 @@ parameters:
   cutoff_busco: 99
   seed: 124
 colors:
-   core: "#249629"
-   accessory: "#DB701F"
-   unique: "#3070C8"
-   presence: ""
-   absence: "black"
+  core: "#249629"
+  accessory: "#DB701F"
+  unique: "#3070C8"
+  presence: ""
+  absence: "black"
 treeDims:
   width: 14
   height: 20
   scale: 2
 data:
   dir: "data"
-  include_source: ['NCBI', 'NAK', 'NVWA']
+  include_source: ["NCBI", "NAK", "NVWA"]
   reference_data:
     dir: "reference_data"
     files:
@@ -37,10 +37,10 @@ data:
   other:
     dir: "other"
     files:
-        ani_report: "ANI_report_prokaryotes.txt"
-        assay_probes: "pecto_assay/pectobacterium_assay_probes.fasta"
-        probe_info: "pecto_assay/probe_info.txt"
-        pecto1_metadata: "pecto1_data/WUR_assemblies_metadata.txt"
+      ani_report: "ANI_report_prokaryotes.txt"
+      assay_probes: "pecto_assay/pectobacterium_assay_probes.fasta"
+      probe_info: "pecto_assay/probe_info.txt"
+      pecto1_metadata: "pecto1_data/WUR_assemblies_metadata.txt"
   prokka:
     dir: "prokka_annotation"
   interproscan:
@@ -67,7 +67,7 @@ data:
     pectobacterium.v2:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
-      include_source: ['NCBI', 'NAK', 'NVWA']
+      include_source: ["NCBI", "NAK", "NVWA"]
       homology_group_setting: 4
       files:
         input_lock: "input_genomes.tab"
@@ -76,6 +76,7 @@ data:
         annotations: "functional_annotations.txt"
         metadata: "genomes_metadata.csv"
         combined_fa: "blastdb/genomes_combined.fa"
+        go_data: "pangenome_GO.tab"
         blastdb: "blastdb/genomes_combined.fa"
         genome_chrs: "blastdb/genome_chr_map.tab"
       analysis_confs:
@@ -83,6 +84,7 @@ data:
         files:
           phenotype_association: "pheno_association_config.tab"
           clade_phenotypes: "clade_association_phenotypes.csv"
+          species_genomes: "species_wise_genomes.tab"
       db:
         dir: "pectobacterium.v2.DB"
         metrics:
@@ -165,7 +167,7 @@ analysis:
       genome_chr_size: "assembly_chr_size.txt"
       duplicate_genomes: "duplicate_genomes.tab"
       exclude_genomes: "exclude_genomes.txt"
-      prebuild_metadata : "prebuild_metadata.tsv"
+      prebuild_metadata: "prebuild_metadata.tsv"
       prebuild_metadata_xls: "prebuild_metadata.xlsx"
       tax_check: "taxonomy_check.tab"
   ANI:
@@ -249,4 +251,3 @@ analysis:
     dir: "04_pangenome_pecto_v2/pheno_association"
     files:
       pheno_specific_groups: "phenotype_specific_groups.txt"
-...

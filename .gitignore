@@ -19,6 +19,7 @@ sample_info.txt
 /data/*
 /data/pangenomes/**/*.DB*/
 !/data/pangenomes/
+!/data/pangenomes/
 !/data/reference_data/
 !/data/analysis_configs/
 /analysis
@@ -26,4 +27,5 @@ sample_info.txt
 .DS_Store
 busco_downloads
 blastdb
+extracted_data
 .vscode

@@ -12,48 +12,18 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-scriptName=`basename $0`
+# source scripts/utils/setup_analysis.sh 'pectobacterium.v2'
+source scripts/utils/setup_analysis.sh $@
 
-usage="USAGE:
--------------------------------------------------------------
-bash ${scriptName} <db_name> <exists> <suffix>
-db_name   : STRING name for pangenome database
--------------------------------------------------------------
-"
-
-if [ $# -ne 1 ]; then
-    printf "Error: Require pangenome name\n${usage}" >&2 ; exit 1
+if [ -z ${pan_db+x} ];
+then
+    echo "\$pan_db is unset"
+    error_exit 1
 fi
 
-######################################################################
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-
-PANGENOME_NAME=$1
-# PANGENOME_NAME='pectobacterium.ts'
-# PANGENOME_NAME='pectobacterium.v2'
-
 conda activate pantools_master
 export PANTOOLS="$PANTOOLS_4_1"
-
-## Setup
-PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
-PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
-
-## setup for local disk processing on handelsman
-LOCAL_DIR_PATH="/local_scratch/$USER"
-# LOCAL_DIR_PATH="/local/$USER"
-# LOCAL_DIR_PATH="/dev/shm/$USER"
-
-# PAN_BUILD_DIR="$LOCAL_DIR_PATH/03_Pectobacterium"
-PAN_BUILD_DIR=$PANGENOME_DIR
-pan_db="$PAN_BUILD_DIR/${PANGENOME_NAME}.DB${DB_SUFFIX}"
-
-printf "PANGENOME_DIR: ${PANGENOME_DIR}
-BUILD_DIR: ${PAN_BUILD_DIR}
-pangenome: ${pan_db}
-"
-
-hg_aln_dir="${pan_db}/alignments/msa_per_group/grouping_v1"
 
 ######################################################################
 ```
@@ -114,8 +84,8 @@ makeblastdb -dbtype nucl -in $PANGENOME_DIR/blastdb/genomes_combined.fa -parse_s
 
 #### run BLASTN
 
-**NOTE:** 
-`blastn` was not showing hits of some primer sequences when searched against all the genomes. Hence, database sequences are split into batches of 100 genomes and `blastdb_aliastool` is run to preprocess the sequence ids. These preprocessed sequence ids are provided as input to `-seqidlist ` argument while running `blastn`. Somehow, when the search space is limited using `-seqidlist` option, missing hits are shown. This is run for each set of sequence ids.
+**NOTE:**
+`blastn` was not showing hits of some primer sequences when searched against all the genomes. Hence, database sequences are split into batches of 100 genomes and `blastdb_aliastool` is run to preprocess the sequence ids. These preprocessed sequence ids are provided as input to `-seqidlist` argument while running `blastn`. Somehow, when the search space is limited using `-seqidlist` option, missing hits are shown. This is run for each set of sequence ids.
 
 ```bash
 
@@ -155,24 +125,28 @@ error_exit $?
 ######################################################################
 ```
 
-
 ### Use subset of genomes to determine pangenome structure
 
 ```bash
-## Pangenome structure for subset of genomes
-genomeSets=(`awk -F "\t" '{ print $1 }' $PANGENOME_DIR/genome_sets.tab`)
-
-for gs in ${genomeSets[@]}
+## Pangenome structure for species with more than 20 genomes
+for sp in `awk -F "\t" '{ if (NR != 1 && $2 >= 20) {print $1} }' $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab`
 do
-    process_start "gene_classification for genome subset $gs"
-    str_arg=`grep "^${phn}\b" $PANGENOME_DIR/genome_sets.tab | cut -f2`
-    $PANTOOLS pangenome_structure -t 20 ${str_arg} ${pan_db}
+    genomes=`grep "^${sp}\b" $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab | cut -f3`
+    
+    process_start "pangenome_structure for genome of species ${sp}: $genomes"
+    $PANTOOLS pangenome_structure -t 20 --include ${genomes} ${pan_db}
     error_exit $?
 
+    Rscript ${pan_db}/pangenome_size/gene/pangenome_growth.R
+    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
+    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
+    # Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
+
     ## move results to a folder
-    gs_dir=${pan_db}/pangenome_size/gene.${gs}
-    [ -d ${gs_dir} ] && rm -r ${gs_dir}
-    mv ${pan_db}/pangenome_size/gene ${gs_dir}
+    psDir=${pan_db}/pangenome_size/gene.${sp}
+    [ -d ${psDir} ] && rm -r ${psDir}
+    mv ${pan_db}/pangenome_size/gene ${psDir}
 done
+
 ######################################################################
 ```

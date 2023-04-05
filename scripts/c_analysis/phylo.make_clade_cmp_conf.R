@@ -11,7 +11,7 @@ suppressPackageStartupMessages(library(treeio))
 
 rm(list = ls())
 
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
 ################################################################################
@@ -23,13 +23,13 @@ confs <- prefix_config_paths(
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
-pangenomeConf <- confs$data$pangenomes[[pangenome]]
+panConf <- confs$data$pangenomes[[pangenome]]
 ################################################################################
 
 assemblyMeta <- suppressMessages(readr::read_tsv(confs$data$reference_data$files$metadata)) %>% 
   dplyr::select(sampleId, length,N50, N90, L50, L90)
 
-sampleInfo <- get_metadata(file = pangenomeConf$files$metadata) %>% 
+sampleInfo <- get_metadata(file = panConf$files$metadata) %>% 
   dplyr::left_join(y = assemblyMeta, by = "sampleId")
 
 sampleInfoList <- as.list_metadata(
@@ -98,7 +98,7 @@ for (cmp in cladeCmpList) {
 
 readr::write_csv(
   cladePhenotypes,
-  file = pangenomeConf$analysis_confs$files$clade_phenotypes
+  file = panConf$analysis_confs$files$clade_phenotypes
 )
 
 
@@ -138,11 +138,25 @@ purrr::map_dfr(
   dplyr::arrange(name) %>% 
   dplyr::select(name, phenotypeArg, compare, against, include) %>% 
   readr::write_tsv(
-    file = pangenomeConf$analysis_confs$files$phenotype_association,
+    file = panConf$analysis_confs$files$phenotype_association,
     na = ""
   )
 
 
 ################################################################################
+## save config for species wise analysis 
+spGenomes <- dplyr::group_by(sampleInfo, SpeciesName) %>% 
+  dplyr::summarise(
+    count = n(),
+    genomes = paste(Genome, collapse = ",")
+  ) %>% 
+  dplyr::arrange(desc(count)) %>% 
+  dplyr::mutate(
+    SpeciesName = stringr::str_replace_all(
+      string = SpeciesName, pattern = "\\W+", replacement = "_"
+    )
+  )
 
-
+readr::write_tsv(
+  spGenomes, file = panConf$analysis_confs$files$species_genomes
+)
