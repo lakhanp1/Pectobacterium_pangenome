@@ -148,5 +148,12 @@ do
     mv ${pan_db}/pangenome_size/gene ${psDir}
 done
 
+## update the path in heaps_law.R script
+cd ${pan_db}/pangenome_size
+for i in gene.*
+do
+    sed -i.bak "s/pangenome_size\/gene/pangenome_size\/gene.$i/g" $i/heaps_law.R
+done
+cd $PROJECT_DIR
 ######################################################################
 ```

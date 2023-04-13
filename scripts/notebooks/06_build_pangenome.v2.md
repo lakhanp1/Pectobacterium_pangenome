@@ -12,72 +12,17 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-scriptName=`basename $0`
+source scripts/utils/setup_analysis.sh $@
 
-usage="USAGE:
--------------------------------------------------------------
-bash ${scriptName} <db_name> <exists> <suffix>
-db_name   : STRING name for pangenome database
-exists    : INT (0, 1) flag whether the db exists or not
-suffix    : STRING suffix for pangenome db_name
--------------------------------------------------------------
-"
-
-if [ $# -ne 2 ] && [ $# -ne 3 ]; then
-    printf "Error: Require at least 2 args\n${usage}" >&2 ; exit 1
+if [ -z ${pan_db+x} ];
+then
+    echo "\$pan_db is unset"
+    error_exit 1
 fi
-
-if [ $2 -ne 1 ] && [ $2 -ne 0 ]; then
-    printf "Error: exists should be either 0 or 1\n${usage}" >&2
-    exit 1
-fi
-
-# DB_SUFFIX=""
-if [ $# -eq 3 ]; then
-    DB_SUFFIX="_"$3
-fi
-
-######################################################################
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-
-PANGENOME_NAME=$1
-# PANGENOME_NAME='pectobacterium.ts'
-# PANGENOME_NAME='pectobacterium.v2'
-
 conda activate pantools_master
 export PANTOOLS="$PANTOOLS_4_1"
-
-## Setup
-PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
-PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
-
-## setup for local disk processing on handelsman
-LOCAL_DIR_PATH="/local_scratch/$USER"
-# LOCAL_DIR_PATH="/local/$USER"
-# LOCAL_DIR_PATH="/dev/shm/$USER"
-
-PAN_BUILD_DIR="$LOCAL_DIR_PATH/03_Pectobacterium"
-pan_db="$PAN_BUILD_DIR/${PANGENOME_NAME}.DB${DB_SUFFIX}"
-
-printf "PANGENOME_DIR: ${PANGENOME_DIR}
-BUILD_DIR: ${PAN_BUILD_DIR}
-pangenome: ${pan_db}
-"
-
-if [ $2 -eq 1 ]; then
-    printf "Using existing pangenome ${PANGENOME_NAME}\n"
-    if [ ! -d ${pan_db} ]; then
-        printf "Could not find pangenome db: ${pan_db}\n" >&2
-        exit 1
-    fi
-elif [ $2 -eq 0 ]; then
-    printf "Building pangenome ${PANGENOME_NAME}\n"
-    [ ! -d $PANGENOME_DIR ] && mkdir $PANGENOME_DIR
-    [ ! -d $PANGENOME_DIR/backup ] && mkdir $PANGENOME_DIR/backup
-    [ ! -d $PAN_BUILD_DIR ] && mkdir -p $PAN_BUILD_DIR
-fi
-
 ######################################################################
 ```
 
@@ -391,4 +336,10 @@ nohup iqtree -T 30 -s ${pan_db}/core_snp_tree/informative.fasta -redo -B 1000 \
 > logs/v2_pecto/iqtree_GTR_F_ASC.log 2>&1 &
 
 ######################################################################
+```
+
+## Extract pangenome data from Neo4j database
+
+```bash
+python3 scripts/b_construction/neo4j_extract_go.py
 ```

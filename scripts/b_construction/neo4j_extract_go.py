@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from neo4j import GraphDatabase
+from typing import List
 
 # https://neo4j.com/docs/api/python-driver/current/#example-application
 
@@ -14,7 +15,6 @@ class QueryPangenome:
 
     # get GO and homology group informaiton
     def get_GO(self, out: str, version: int) -> None:
-
         query = (
             "MATCH (m:mRNA)<-[:has_homolog]-(h:homology_group) "
             f"WHERE h.group_version = {version} "
@@ -34,7 +34,6 @@ class QueryPangenome:
 
     # get homology group information
     def get_homology_groups(self, version: int, out: str) -> None:
-
         query = (
             "MATCH (m:mRNA)<-[:has_homolog]-(h:homology_group) "
             f"WHERE h.group_version = {version} "
@@ -55,7 +54,7 @@ class QueryPangenome:
     def _query_pangenome(
         tx,
         query: str,
-        cols: list[chr],
+        cols: List[chr],
         out: str,
     ) -> None:
         # file to store the output

@@ -16,7 +16,8 @@ suppressPackageStartupMessages(library(GenomicRanges))
 
 rm(list = ls())
 
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/GO_enrichment/enrichment_functions.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
 source("scripts/utils/association_analysis.R")
@@ -39,6 +40,7 @@ outPrefix <- file.path(outDir, phenotype)
 ## sequence info file for mRNAs across all genomes belonging to homology groups 
 ## specific to a phenotype of interest
 file_associatedSeqInfo <- paste(outPrefix, ".pheno_specific.seq_info.txt", sep = "")
+orgDb <- org.Pectobacterium.spp.pan.eg.db
 ################################################################################
 
 if(!dir.exists(outDir)){
@@ -104,6 +106,7 @@ hgAnnotation <- dplyr::filter(hgSeqInfo, Genome == !!bestGenome) %>%
     label = paste(mRNA_identifier, "| ", chr, ":", start, sep = "")
   )
 
+topGoDf <- topGO_enrichment(genes = hgAnnotation$homology_group_id, orgdb = orgDb)
 ################################################################################
 #' Plot homology group heatmap with provided clustering
 #'
