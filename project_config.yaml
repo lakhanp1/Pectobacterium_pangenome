@@ -5,9 +5,9 @@ parameters:
   cutoff_busco: 99
   seed: 124
 colors:
-  core: "#249629"
-  accessory: "#DB701F"
-  unique: "#3070C8"
+  core: "#0072B2"
+  accessory: "#009E73"
+  unique: "#D55E00"
   presence: ""
   absence: "black"
 treeDims:
@@ -76,7 +76,7 @@ data:
         annotations: "functional_annotations.txt"
         metadata: "genomes_metadata.csv"
         combined_fa: "blastdb/genomes_combined.fa"
-        go_data: "pangenome_GO.tab"
+        go_data: "extracted_data/pangenome_GO.tab"
         blastdb: "blastdb/genomes_combined.fa"
         genome_chrs: "blastdb/genome_chr_map.tab"
       analysis_confs:
@@ -247,6 +247,8 @@ analysis:
     files:
       groups: "genome_to_groups.tab"
       groups_meta: "homology_groups_meta.tab"
+      spp_group_go: "spp_group_GO.tab"
+      spp_group_stats: "spp_group_stats.tab"
   association:
     dir: "04_pangenome_pecto_v2/pheno_association"
     files:

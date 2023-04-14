@@ -3,8 +3,6 @@
 ### IMP NCBI link
 https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/
 
-summarize ANI assembly report: visualize
-
 
 ### Other notes
 
@@ -17,7 +15,7 @@ java -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:<
 
 ```
 
-## Workflow
+## Project workflow
 
 ### Preprocessing
 
@@ -77,6 +75,8 @@ flowchart TB
 
 ### Analysis
 
+#### ANI data analysis
+
 ```mermaid
 flowchart TD
     ANI_tree[c01_pangenome_ANI_tree.R]
@@ -85,4 +85,46 @@ flowchart TD
 
     ANI_tree --> ANI_distribution
     ANI_tree --> plot_trees
+```
+
+#### *In*-sliico assay validation
+
+```mermaid
+flowchart TD
+```
+
+#### Homology group summary
+
+```mermaid
+flowchart TD
+```
+
+#### Phylogeny processing
+
+```bash
+Rscript scripts/c_analysis/phylo.process_newicks.R
+Rscript scripts/c_analysis/phylo.correlate_trees.R
+```
+
+#### Phenotype association
+
+```bash
+Rscript scripts/c_analysis/phylo.explore_clades.R
+Rscript scripts/c_analysis/phylo.make_clade_cmp_conf.R 
+```
+
+```mermaid
+flowchart TD
+```
+
+#### Pangenome characterization for species group
+
+```mermaid
+flowchart TD
+```
+
+#### Temp
+
+```bash
+nohup bash scripts/b_construction/b03_build_pangenome.v2.sh pectobacterium.v2 1 >>logs/pantools/pheno_association.log 2>&1 &
 ```
