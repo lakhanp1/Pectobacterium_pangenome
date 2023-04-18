@@ -17,7 +17,7 @@ suppressPackageStartupMessages(library(viridisLite))
 
 rm(list = ls())
 
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
 ################################################################################

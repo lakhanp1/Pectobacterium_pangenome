@@ -22,6 +22,9 @@ panConf <- confs$data$pangenomes[[pangenome]]
 outDir <- panConf$dir
 ################################################################################
 
+sampleInfo <- get_metadata(file = panConf$files$metadata) %>% 
+  dplyr::select(Genome, SpeciesName)
+
 panDf <- suppressMessages(
   readr::read_tsv(file = panConf$files$go_data, na = "None")
 ) %>% 
@@ -39,9 +42,11 @@ hgGoDf <- dplyr::select(panDf, GID, GO = go_id) %>%
   dplyr::mutate(EVIDENCE = "IEA")
 
 hgMeta <- suppressMessages(
-  readr::read_tsv(file = confs$analysis$homology_groups$files$groups_meta)
+  readr::read_csv(
+    file = panConf$db$gene_classification$GC.100.0$files$groups
+  )
 ) %>% 
-  dplyr::rename(GID = homology_group_id) %>% 
+  dplyr::select(GID = "Homology group id", class) %>% 
   dplyr::mutate(GID = as.character(GID))
 
 #sed -n '1,/##FASTA/p' interproscan/GCF_024506455.1_ASM2450645v1.interProScan.gff3 | grep -v '^#' | cut -f1 | sort | uniq | wc -l

@@ -12,7 +12,7 @@ suppressPackageStartupMessages(library(skimr))
 
 rm(list = ls())
 
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
@@ -25,7 +25,7 @@ confs <- prefix_config_paths(
 outDir <- confs$analysis$summary$dir
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
-pangenomeConf <- confs$data$pangenomes[[pangenome]]
+panConf <- confs$data$pangenomes[[pangenome]]
 
 ################################################################################
 
@@ -34,11 +34,11 @@ metadata <- suppressMessages(readr::read_tsv(confs$data$reference_data$files$met
                 N50, N90, L50, L90, collection_year)
 
 
-panMeta <- suppressMessages(readr::read_csv(pangenomeConf$files$metadata)) %>% 
+panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>% 
   dplyr::select(Genome, sampleId, virulence, virulence_pcr) %>% 
   dplyr::left_join(y = metadata, by = "sampleId")
 
-metDf <- suppressMessages(readr::read_csv(pangenomeConf$db$metrics$files$per_genome, col_names = T)) %>% 
+metDf <- suppressMessages(readr::read_csv(panConf$db$metrics$files$per_genome, col_names = T)) %>% 
   dplyr::select(-c(N50, N90, L50, L90)) %>% 
   dplyr::rename_all(
     .funs = ~ stringr::str_replace_all(., "\\s+", "_")

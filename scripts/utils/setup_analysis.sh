@@ -7,7 +7,7 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-scriptName=`basename ${BASH_SOURCE[0]}`
+scriptName=$(basename ${BASH_SOURCE[0]})
 
 usage="USAGE:
 -------------------------------------------------------------
@@ -17,7 +17,8 @@ db_name   : STRING name for pangenome database
 "
 
 if [ $# -ne 1 ]; then
-    printf "Error: Require pangenome name\n${usage}" >&2 ; exit 1
+    printf "Error: Require pangenome name\n${usage}" >&2
+    exit 1
 fi
 
 ######################################################################
@@ -26,7 +27,7 @@ PANGENOME_NAME=$1
 # PANGENOME_NAME='pectobacterium.v2'
 
 ## Setup
-PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
+PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
 PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
 
 ## setup for local disk processing on handelsman
@@ -44,4 +45,3 @@ printf "\$PANGENOME_DIR: ${PANGENOME_DIR}
 "
 
 hg_aln_dir="${pan_db}/alignments/msa_per_group/grouping_v1"
-

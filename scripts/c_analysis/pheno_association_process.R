@@ -24,15 +24,15 @@ confs <- prefix_config_paths(
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
-pangenomeConf <- confs$data$pangenomes[[pangenome]]
+panConf <- confs$data$pangenomes[[pangenome]]
 
-pangenomeConf$db$gene_classification$phenotypes$dir
+panConf$db$gene_classification$phenotypes$dir
 
 ################################################################################
 
 phnConf <- suppressMessages(
   readr::read_tsv(
-    file = pangenomeConf$analysis_confs$files$phenotype_association, 
+    file = panConf$analysis_confs$files$phenotype_association, 
     col_types = "ccccc"
   )
 )
@@ -43,7 +43,7 @@ phn <- "assay_FN"
 for (phn in phnConf$name) {
   cat("phenotype", phn, "\n")
   phenotype_specific_groups(
-    phenotype = phn, panConf = pangenomeConf,
+    phenotype = phn, panConf = panConf,
    save = confs$analysis$association$files$pheno_specific_groups 
   )
 }
