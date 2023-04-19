@@ -96,7 +96,7 @@ ${analysis_dir}/phylogeny_tree.newick > ${analysis_dir}/phylogeny_K.tsv
 ```bash
 ## PAV
 genotype='pav'
-genotype_data_arg="--pres <>"
+genotype_data_arg="--pres ${analysis_dir}/pbr.accessory_PAV.tab"
 ```
 
 #### `pyseer` on core SNPs
@@ -122,7 +122,7 @@ Setup the paths for analysis files.
 ```bash
 ## global setup
 phenotype='virulence'
-phn_file="${analysis_dir}/pyseer_pbr.phenotype.tab"
+phn_file="${analysis_dir}/pbr_phenotypes.tab"
 result_dir="${analysis_dir}/${genotype}_association"
 [ ! -d $result_dir ] && mkdir ${result_dir}
 result_prefix="${genotype}.${phenotype}_asso"
@@ -139,7 +139,9 @@ pyseer ${genotype_data_arg} \
 --distances ${analysis_dir}/phylogeny_dist.tab \
 --save-m ${analysis_dir}/phylogeny_dist.MDS \
 --output-patterns ${result_dir}/${genotype}_patterns.fixed_eff.txt --cpu 30 \
-> ${result_dir}/${result_prefix}.fixed_eff.txt 2>>logs/v2_pecto/pyseer.log
+> ${result_dir}/${result_prefix}.fixed_eff.txt 
+
+error_exit $?
 
 ## get significance threshold
 python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${result_dir}/${genotype}_patterns.fixed_eff.txt \
@@ -164,14 +166,18 @@ pyseer --lmm ${genotype_data_arg} \
 --similarity ${analysis_dir}/phylogeny_K.tsv \
 --save-lmm ${analysis_dir}/pyseer_pbr.lmm \
 --output-patterns ${result_dir}/${genotype}_patterns.lmm.txt --cpu 30 \
-> ${result_dir}/${result_prefix}.lmm.txt 2>>logs/v2_pecto/pyseer.log
+> ${result_dir}/${result_prefix}.lmm.txt 
+
+error_exit $?
 
 ## get significance threshold
 python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${result_dir}/${genotype}_patterns.lmm.txt \
 > ${result_dir}/threshold.lmm.txt
 
+pval_cut=`sed -nr '/^Threshold/ s/Threshold:\s+//p' ${result_dir}/threshold.lmm.txt`
+
 cat <(head -1 ${result_dir}/${result_prefix}.lmm.txt) \
-<(awk '$4<1.23E-07 {print $0}' ${result_dir}/${result_prefix}.lmm.txt) \
+<(awk -v pval_cut="${pval_cut}" '$4<pval_cut {print $0}' ${result_dir}/${result_prefix}.lmm.txt) \
 > ${result_dir}/${result_prefix}.lmm.significant.txt
 #############################
 ```
@@ -185,14 +191,18 @@ pyseer --lineage ${genotype_data_arg} \
 --load-m ${analysis_dir}/phylogeny_dist.MDS.pkl \
 --lineage-file ${result_dir}/lineage_effects.txt \
 --output-patterns ${result_dir}/${genotype}_patterns.lineage_eff.txt --cpu 30 \
-> ${result_dir}/${result_prefix}.lineage_eff.txt 2>>logs/v2_pecto/pyseer.log
+> ${result_dir}/${result_prefix}.lineage_eff.txt 
+
+error_exit $?
 
 ## get significance threshold
 python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${result_dir}/${genotype}_patterns.lineage_eff.txt \
 > ${result_dir}/threshold.lineage_eff.txt
 
+pval_cut=`sed -nr '/^Threshold/ s/Threshold:\s+//p' ${result_dir}/threshold.lineage_eff.txt`
+
 cat <(head -1 ${result_dir}/${result_prefix}.lineage_eff.txt) \
-<(awk '$4<1.23E-07 {print $0}' ${result_dir}/${result_prefix}.lineage_eff.txt) \
+<(awk -v pval_cut="${pval_cut}" '$4<pval_cut {print $0}' ${result_dir}/${result_prefix}.lineage_eff.txt) \
 > ${result_dir}/${result_prefix}.lineage_eff.significant.txt
 #############################
 ```
@@ -205,5 +215,8 @@ pyseer --wg enet ${genotype_data_arg} \
 --load-m ${analysis_dir}/phylogeny_dist.MDS.pkl \
 --cpu 30 --n-folds 5 --save-vars ${result_dir}/${result_prefix}.wg_vars \
 --save-model ${result_dir}/${result_prefix}.wg_lasso \ 
-> ${result_dir}/${result_prefix}.elastic_net.txt 2>>logs/v2_pecto/pyseer.log
+> ${result_dir}/${result_prefix}.elastic_net.txt 
+
+error_exit $?
+
 ```

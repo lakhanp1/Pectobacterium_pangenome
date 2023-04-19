@@ -344,5 +344,3 @@ get_species_key_data <- function(genomes, metadata, type = "wide"){
   return(speciesKey)
 }
 ################################################################################
-
-
