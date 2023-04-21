@@ -168,3 +168,26 @@ error_exit $?
 ## process pangenome blast results and visualize 
 Rscript scripts/c_analysis/pheno_association.blastn_viz.R
 ```
+
+## Genome to align
+
+```mermaid
+flowchart
+    region --> hit
+```
+
+```cypher
+MATCH (m:mRNA) RETURN m.id, m.genome, m.protein_ID LIMIT 25
+MATCH (g:GO) RETURN g.id LIMIT 25
+MATCH (m:mRNA)-->(g:GO) WHERE (m)-[:has_go]->(g) RETURN m.id, m.genome, m.protein_ID, g.id LIMIT 25
+MATCH (m:mRNA)-[r:has_go]->(g:GO) WITH * RETURN m.id, m.genome, m.protein_ID, g.id LIMIT 25
+MATCH p = (m:mRNA)-[r:has_go]->(g:GO) RETURN p LIMIT 5
+
+MATCH (m:mRNA {id: 'KJEENCHO_04179'})-->(g:GO) RETURN g
+
+MATCH (n:GO) WHERE any(f IN n.frequency WHERE f = 1) RETURN n.id, size(n.frequency), n.frequency LIMIT 20
+
+MATCH (m:mRNA)<-[:has_homolog]-(h:homology_group) WHERE h.group_version = 1
+OPTIONAL MATCH (m)-[:has_go]->(g:GO)
+RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr, g.id AS go_id, id(h) AS hg_id, h.group_version AS hg_ver
+```

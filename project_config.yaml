@@ -82,7 +82,7 @@ data:
       analysis_confs:
         dir: "analysis_configs"
         files:
-          phenotype_association: "pheno_association_config.tab"
+          clade_association: "clade_association_config.tab"
           clade_phenotypes: "clade_association_phenotypes.csv"
           species_genomes: "species_wise_genomes.tab"
       db:
