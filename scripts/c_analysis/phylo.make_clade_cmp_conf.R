@@ -138,7 +138,7 @@ purrr::map_dfr(
   dplyr::arrange(name) %>% 
   dplyr::select(name, phenotypeArg, compare, against, include) %>% 
   readr::write_tsv(
-    file = panConf$analysis_confs$files$phenotype_association,
+    file = panConf$analysis_confs$files$clade_association,
     na = ""
   )
 
