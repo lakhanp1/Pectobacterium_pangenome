@@ -7,7 +7,7 @@ suppressPackageStartupMessages(library(tidyverse))
 
 rm(list = ls())
 
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 ################################################################################
 set.seed(124)
 
@@ -54,6 +54,9 @@ filteredMeta <- dplyr::filter(
     interpro = paste(
       confs$data$interproscan$dir, "/", sampleId, ".interProScan.gff3", sep = ""
     ),
+    cog = paste(
+      confs$data$cog$dir, "/", sampleId, ".emapper.annotations", sep = ""
+    ),
     ## replace "," with ";"
     dplyr::across(
       .cols = everything(),
@@ -62,6 +65,7 @@ filteredMeta <- dplyr::filter(
       )
     )
   )
+
 
 #####################################################################
 ## FASTA file paths
@@ -78,6 +82,10 @@ dplyr::select(filteredMeta, genomeId, gff3) %>%
 ## functional annotation file paths
 dplyr::select(filteredMeta, genomeId, interpro) %>% 
   readr::write_delim(file = panConf$files$annotations, col_names = FALSE)
+
+## COG annotation file path
+dplyr::select(filteredMeta, genomeId, cog) %>% 
+  readr::write_delim(file = panConf$files$cog, col_names = FALSE)
 
 ## metadata file
 dplyr::select(filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata) %>% 

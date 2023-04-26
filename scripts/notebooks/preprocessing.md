@@ -168,6 +168,38 @@ env_parallel --jobs 4 --workdir $PWD --halt now,fail=1 \
 
 ```
 
+## eggNOG annotation
+
+```bash
+conda activate eggnog
+
+## download eggNOG data
+download_eggnog_data.py -M -F -H -d 1 --dbname root -f -y
+download_eggnog_data.py -D -H -d 2759 --dbname eukaryota -q -y
+download_eggnog_data.py -D -H -d 2 --dbname bacteria -q -y
+download_eggnog_data.py -D -H -d 10239 --dbname viruses -q -y
+download_eggnog_data.py -D -H -d 4751 --dbname fungi -q -y
+download_eggnog_data.py -D -H -d 2157 --dbname archea -q -y
+
+mmseqs createindex "$EGGNOG_DATA_DIR"/mmseqs/mmseqs.db /local_scratch/parde001/tmp
+
+## create mmseq database for bacteria, archea and viruses
+create_dbs.py -m mmseqs --dbname bact_arch_vir --taxids 2,2157,10239 -y
+
+## annotate for eggNOG clusters
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+    file_aa="data/prokka_annotation/${i}/${i}.faa"
+    
+    emapper.py --cpu 20 -m mmseqs --dbmem --go_evidence all  \
+    -i ${file_aa} -o ${i} --output_dir data/eggnog \
+    --scratch_dir /local_scratch/parde001/ --temp_dir /local_scratch/parde001/tmp
+
+    error_exit $?
+done
+
+```
+
 ## MultiQC
 
 ``` bash

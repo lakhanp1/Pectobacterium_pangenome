@@ -45,6 +45,8 @@ data:
     dir: "prokka_annotation"
   interproscan:
     dir: "interproscan"
+  cog:
+    dir: "eggnog"
   busco_db:
     dir: "busco_downloads"
   busco_genome:
@@ -74,6 +76,7 @@ data:
         genomes: "genomes_fa.list"
         gff: "genomes_gff3.list"
         annotations: "functional_annotations.txt"
+        cog: "eggnog_annotations.txt"
         metadata: "genomes_metadata.csv"
         combined_fa: "blastdb/genomes_combined.fa"
         go_data: "extracted_data/pangenome_GO.tab"
