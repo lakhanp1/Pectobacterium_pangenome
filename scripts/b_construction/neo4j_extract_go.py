@@ -22,23 +22,11 @@ class QueryPangenome:
             f"WHERE hg.group_version = {version} "
             "OPTIONAL MATCH (m)-[:has_go]->(g:GO) "
             "RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr, "
-            "g.id AS go_id, id(hg) AS hg_id, hg.group_version AS hg_ver, "
-            "m.COG_id AS COG_id, m.COG_description AS COG_description, "
-            "m.COG_category AS COG_category "
+            "g.id AS go_id, id(hg) AS hg_id, hg.group_version AS hg_ver "
             # "LIMIT 25 "
         )
 
-        col_names = [
-            "mRNA_id",
-            "genome",
-            "chr",
-            "go_id",
-            "hg_id",
-            "hg_ver",
-            "COG_id",
-            "COG_description",
-            "COG_category",
-        ]
+        col_names = ["mRNA_id", "genome", "chr", "go_id", "hg_id", "hg_ver"]
 
         # run transaction
         with self.driver.session() as session:
@@ -80,11 +68,24 @@ class QueryPangenome:
         query = (
             "MATCH (g:gene)-[:codes_for]->(m:mRNA) "
             "RETURN g.genome AS genome, g.sequence AS chr_num, g.begin AS start, "
-            "g.end AS end, g.strand AS strand, g.id AS gene_name, m.id as mRNA_id "
+            "g.end AS end, g.strand AS strand, g.id AS gene_name, m.id as mRNA_id, "
+            "m.COG_id AS COG_id, m.COG_description AS COG_description, "
+            "m.COG_category AS COG_category "
             # "LIMIT 20"
         )
 
-        col_names = ["genome", "chr_num", "chr_id", "chr_name"]
+        col_names = [
+            "genome",
+            "chr_num",
+            "start",
+            "end",
+            "strand",
+            "gene_name",
+            "mRNA_id",
+            "COG_id",
+            "COG_description",
+            "COG_category",
+        ]
 
         # run transaction
         with self.driver.session() as session:
@@ -132,6 +133,12 @@ if __name__ == "__main__":
     ## get mRNA - GO - homology group data
     try:
         panQ.get_GO(out="pangenome_GO.tab", version=1)
+    finally:
+        panQ.close()
+
+    ## get gene - mRNA - COG
+    try:
+        panQ.get_gene_info(out="pangenome_gene_info.tab")
     finally:
         panQ.close()
 
