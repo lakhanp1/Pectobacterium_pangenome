@@ -12,6 +12,7 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
+# source scripts/utils/setup_analysis.sh 'pectobacterium.v2'
 source scripts/utils/setup_analysis.sh $@
 
 if [ -z ${pan_db+x} ];
@@ -23,6 +24,7 @@ fi
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 export PANTOOLS="$PANTOOLS_4_1"
+#export PANTOOLS="$PANTOOLS_DEV"
 ######################################################################
 ```
 
@@ -58,12 +60,17 @@ error_exit $?
 
 ```
 
-## Add InterProScan annotations
+## Add InterProScan and COG annotations
 
 ``` bash
-## add_functions
+## InterProScan
 process_start add_InterProScan_annotations
 $PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
+error_exit $?
+
+## COG
+process_start add_COG_annotations 
+$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/deggnog_annotations.txt
 error_exit $?
 
 cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
