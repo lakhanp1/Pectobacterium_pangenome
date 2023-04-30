@@ -80,6 +80,8 @@ data:
         metadata: "genomes_metadata.csv"
         combined_fa: "blastdb/genomes_combined.fa"
         go_data: "extracted_data/pangenome_GO.tab"
+        chr_info: "extracted_data/pangenome_chr.tab"
+        gene_info: "extracted_data/pangenome_gene_info.tab"
         blastdb: "blastdb/genomes_combined.fa"
         genome_chrs: "blastdb/genome_chr_map.tab"
       analysis_confs:
