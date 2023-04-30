@@ -11,6 +11,7 @@ suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
 suppressPackageStartupMessages(library(matrixStats))
+suppressPackageStartupMessages(library(ggnewscale))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 ## 1) process homology groups to transpose the table where
@@ -44,6 +45,10 @@ sampleInfo <- get_metadata(file = panConf$files$metadata)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+)
+
+spOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
 )
 
 hgs <- suppressMessages(
@@ -173,67 +178,86 @@ ptDf <- dplyr::group_by(panGo, class) %>%
 
 pt_go <- enrichment_bar(df = ptDf, title = "pangenome GO", colorCol = "class")
 
-pt_go <- pt_go +
-  scale_color_manual(
-    values = c("core" = confs$colors$core, "accessory" = confs$colors$accessory,
-               "unique" = confs$colors$unique)
-  )
+(pt_go <- pt_go +
+    scale_y_continuous(expand = expansion(mult = c(0,0.2))) +
+    scale_x_discrete(labels = label_wrap(60)) +
+    scale_fill_manual(
+      values = c("core" = confs$colors$core, "accessory" = confs$colors$accessory,
+                 "unique" = confs$colors$unique)
+    )
+)
 
 ggsave(
-  plot = pt_go, filename = file.path(outDir, "pangenome_GO.png"),
-  width = 8, height = 5
+  plot = pt_go, filename = file.path(outDir, "pangenome_GO.pdf"),
+  width = 8, height = 6
 )
 
 
 ################################################################################
-
-sppGrpStats <- readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats) %>% 
+# core-accessory-unique stats for each species
+sppGrpStats <- suppressMessages(
+  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
+) %>% 
   dplyr::mutate(
-    class = forcats::fct_relevel(class, "core", "accessory", "unique")
+    class = forcats::fct_relevel(class, "core", "accessory", "unique"),
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!spOrder$SpeciesName)
   )
 
-pt_stats <- ggplot(data = sppGrpStats) +
-  geom_bar(
-    mapping = aes(x = count, y = SpeciesName, fill = class),
-    stat = "identity", position = position_dodge()
-  ) +
-  scale_fill_manual(
-    values = c("core" = confs$colors$core, "accessory" = confs$colors$accessory,
-               "unique" = confs$colors$unique)
-  ) +
-  theme_bw(base_size = 16) +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    legend.position = "bottom"
-  )
-
+(pt_stats <- ggplot(data = sppGrpStats) +
+    geom_bar(
+      mapping = aes(x = count, y = forcats::fct_rev(SpeciesName), fill = class),
+      stat = "identity", position = position_dodge(), width = 0.8
+    ) +
+    scale_fill_manual(
+      values = c("core" = confs$colors$core, "accessory" = confs$colors$accessory,
+                 "unique" = confs$colors$unique)
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
+    theme_bw(base_size = 16) +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text = element_text(face = "bold"),
+      axis.text.y = element_text(face = "bold.italic"),
+      legend.position = "bottom",
+      legend.title = element_blank()
+    )
+)
 
 ggsave(
-  plot = pt_stats, filename = file.path(outDir, "pangenome_spp_stats.png"),
+  plot = pt_stats, filename = file.path(outDir, "pangenome_spp_stats.pdf"),
   width = 5, height = 4
 )
 
-
-
+################################################################################
+## plot Heap's law alpha for multiple species in pangenome
 heaps <- suppressMessages(readr::read_tsv(file.path(outDir, "heaps_law.tab"))) %>% 
   dplyr::filter(species != "pangenome") %>% 
-  dplyr::mutate(complete = "complete")
+  dplyr::mutate(
+    complete = "complete",
+    species = forcats::fct_relevel(species, !!!spOrder$SpeciesName)
+  )
 
+(pt_alpha <- ggplot(data = heaps) +
+    geom_bar(
+      mapping = aes(y = forcats::fct_rev(species), x = alpha),
+      fill = "black", stat = "identity", width = 0.8
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
+    theme_bw(base_size = 16) +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text = element_text(face = "bold"),
+      axis.text.y = element_text(face = "bold.italic")
+    )
+)
 
-ggplot(data = heaps) +
-  geom_bar(
-    mapping = aes(y = species, x = alpha, fill = complete),
-    stat = "identity"
-  ) +
-  scale_color_manual(
-    values = c("complete" = "black")
-  ) +
-  coord_polar(theta = "x", start=0)
-  
+ggsave(
+  plot = pt_alpha, filename = file.path(outDir, "pangenome_spp_alpha.pdf"),
+  width = 5, height = 4
+)
 
-
-
-
+################################################################################
 
 
