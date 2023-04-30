@@ -25,6 +25,14 @@ outDir <- panConf$dir
 sampleInfo <- get_metadata(file = panConf$files$metadata) %>% 
   dplyr::select(Genome, SpeciesName)
 
+allHgs <- suppressMessages(
+  readr::read_csv(
+    file = panConf$db$gene_classification$GC.100.0$files$groups,
+    col_select = 1, col_types = "c"
+    )
+) %>% 
+  dplyr::rename(hg_id = "Homology group id")
+
 # pangenome GO infor
 panDf <- suppressMessages(
   readr::read_tsv(file = panConf$files$go_data, na = "None")
@@ -58,6 +66,10 @@ hgDf <- dplyr::left_join(
     by = c("genome", "chr" = "chr_num", "mRNA_id")
   )
 
+if(!setequal(hgDf$GID, allHgs$hg_id)){
+  stop("Some missing homology groups")
+}
+
 ## homology group - GO links
 hgGoDf <- dplyr::select(panDf, GID, GO = go_id) %>% 
   dplyr::filter(!is.na(GO)) %>% 
@@ -87,8 +99,6 @@ hgMeta <- suppressMessages(
 ################################################################################
 
 ## prepare pangenome.db
-
-
 AnnotationForge::makeOrgPackage(
   hgDf = hgDf,
   hgMeta = hgMeta,
@@ -104,6 +114,8 @@ AnnotationForge::makeOrgPackage(
   goTable = "go",
   verbose = TRUE
 )
+
+remove.packages("org.Pectobacterium.spp.pan.eg.db")
 
 devtools::install(
   pkg = file.path(outDir, "org.Pectobacterium.spp.pan.eg.db"),
