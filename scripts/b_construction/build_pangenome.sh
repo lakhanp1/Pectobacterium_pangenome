@@ -7,73 +7,19 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-scriptName=`basename $0`
+# source scripts/utils/setup_analysis.sh 'pectobacterium.v2'
+source scripts/utils/setup_analysis.sh $@
 
-usage="USAGE:
--------------------------------------------------------------
-bash ${scriptName} <db_name> <exists> <suffix>
-db_name   : STRING name for pangenome database
-exists    : INT (0, 1) flag whether the db exists or not
-suffix    : STRING suffix for pangenome db_name
--------------------------------------------------------------
-"
-
-if [ $# -ne 2 ] && [ $# -ne 3 ]; then
-    printf "Error: Require at least 2 args\n${usage}" >&2 ; exit 1
+if [ -z ${pan_db+x} ];
+then
+    echo "\$pan_db is unset"
+    error_exit 1
 fi
-
-if [ $2 -ne 1 ] && [ $2 -ne 0 ]; then
-    printf "Error: exists should be either 0 or 1\n${usage}" >&2
-    exit 1
-fi
-
-# DB_SUFFIX=""
-if [ $# -eq 3 ]; then
-    DB_SUFFIX="_"$3
-fi
-
-######################################################################
-
-PANGENOME_NAME=$1
-# PANGENOME_NAME='pectobacterium.ts'
-# PANGENOME_NAME='pectobacterium.v2'
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
-
-#export PANTOOLS="$PANTOOLS_DEV"
 export PANTOOLS="$PANTOOLS_4_1"
-
-## Setup
-PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
-PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
-
-## setup for local disk processing on handelsman
-LOCAL_DIR_PATH="/local_scratch/$USER"
-#LOCAL_DIR_PATH="/local/$USER"
-#LOCAL_DIR_PATH="/dev/shm/$USER"
-
-PAN_BUILD_DIR="$LOCAL_DIR_PATH/03_Pectobacterium"
-pan_db="$PAN_BUILD_DIR/${PANGENOME_NAME}.DB${DB_SUFFIX}"
-
-printf "PANGENOME_DIR: ${PANGENOME_DIR}
-BUILD_DIR: ${PAN_BUILD_DIR}
-pangenome: ${pan_db}
-"
-
-if [ $2 -eq 1 ]; then
-    printf "Using existing pangenome ${PANGENOME_NAME}\n"
-    if [ ! -d ${pan_db} ]; then
-        printf "Could not find pangenome db: ${pan_db}\n" >&2
-        exit 1
-    fi
-elif [ $2 -eq 0 ]; then
-    printf "Building pangenome ${PANGENOME_NAME}\n"
-    [ ! -d $PANGENOME_DIR ] && mkdir $PANGENOME_DIR
-    [ ! -d $PANGENOME_DIR/backup ] && mkdir $PANGENOME_DIR/backup
-    [ ! -d $PAN_BUILD_DIR ] && mkdir -p $PAN_BUILD_DIR
-fi
-
+#export PANTOOLS="$PANTOOLS_DEV"
 ######################################################################
 
 #TMPDIR="$LOCAL_DIR_PATH/tmp"
@@ -109,6 +55,11 @@ fi
 #process_start add_InterProScan_annotations
 #$PANTOOLS remove_functions ${pan_db}
 #$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/functional_annotations.txt
+#error_exit $?
+
+## COG
+#process_start add_COG_annotations
+#$PANTOOLS_DEV add_functions ${pan_db} $PANGENOME_DIR/eggnog_annotations.txt
 #error_exit $?
 
 ### BUSCO
@@ -251,30 +202,30 @@ fi
 
 #mv ${pan_db}/function/functional_classification ${pan_db}/function/functional_classification.95.5
 
-### function_overview
-#process_start function_overview
-#$PANTOOLS function_overview ${pan_db} 
-#error_exit $?
+## function_overview
+process_start function_overview
+$PANTOOLS function_overview ${pan_db} 
+error_exit $?
 
-##Rscript ${pan_db}/cog_per_class.R
+Rscript ${pan_db}/cog_per_class.R
 
-## GO enrichment for core, accessory and unique homology groups
-for grp in core accessory unique
-do
-    process_start GO_enrichment:$grp
-    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.100.0/${grp}_groups.csv  ${pan_db}
-    error_exit $?
-    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.100.0.${grp} 
-done
+### GO enrichment for core, accessory and unique homology groups
+#for grp in core accessory unique
+#do
+#    process_start GO_enrichment:$grp
+#    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.100.0/${grp}_groups.csv  ${pan_db}
+#    error_exit $?
+#    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.100.0.${grp} 
+#done
 
-## GO enrichment for soft-core, accessory and cloud homology groups
-for grp in core accessory unique
-do
-    process_start GO_enrichment:$grp
-    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.95.5/${grp}_groups.csv  ${pan_db}
-    error_exit $?
-    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.95.5.${grp} 
-done
+### GO enrichment for soft-core, accessory and cloud homology groups
+#for grp in core accessory unique
+#do
+#    process_start GO_enrichment:$grp
+#    $PANTOOLS go_enrichment -H ${pan_db}/gene_classification.95.5/${grp}_groups.csv  ${pan_db}
+#    error_exit $?
+#    mv ${pan_db}/function/go_enrichment ${pan_db}/function/go_enrichment.95.5.${grp} 
+#done
 
 #cp -r --preserve ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.chr
 #######################################################################

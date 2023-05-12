@@ -7,67 +7,27 @@ source ~/.bash_aliases
 # set -u
 set -o pipefail
 
-scriptName=`basename $0`
+# source scripts/utils/setup_analysis.sh 'pectobacterium.v2'
+source scripts/utils/setup_analysis.sh $@
 
-usage="USAGE:
--------------------------------------------------------------
-bash ${scriptName} <db_name> <exists> <suffix>
-db_name   : STRING name for pangenome database
--------------------------------------------------------------
-"
-
-if [ $# -ne 1 ]; then
-    printf "Error: Require pangenome name\n${usage}" >&2 ; exit 1
+if [ -z ${pan_db+x} ];
+then
+    echo "\$pan_db is unset"
+    error_exit 1
 fi
-
-######################################################################
-
-PANGENOME_NAME=$1
-# PANGENOME_NAME='pectobacterium.10g'
-# PANGENOME_NAME='pectobacterium.v2'
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
-
 export PANTOOLS="$PANTOOLS_4_1"
 
-## Setup
-PROJECT_DIR="/lustre/BIF/nobackup/$USER/projects/03_Pectobacterium"
-PANGENOME_DIR="$PROJECT_DIR/data/pangenomes/$PANGENOME_NAME"
-pan_db="$PANGENOME_DIR/${PANGENOME_NAME}.DB${DB_SUFFIX}"
-
-printf "PANGENOME_DIR: ${PANGENOME_DIR}
-pangenome: ${pan_db}
-"
-
 ######################################################################
-### UPGMA tree
-#./scripts/c_analysis/phylo.process_newicks.R \
-#--tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick \
-#--name "ani_upgma" --config project_config.yaml
 
-### Neighbor joining tree
-#./scripts/c_analysis/phylo.process_newicks.R \
-#--tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_NJ.pangenome.newick \
-#--name "ani_nj" --config project_config.yaml
+### prepare clade comparison config and phenotype file
+#conda activate r_4.2
+#Rscript scripts/c_analysis/phylo.make_clade_cmp_conf.R
 
-### gene distance NJ tree
-#./scripts/c_analysis/phylo.process_newicks.R \
-#--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree \
-#--name "gene_nj" --config project_config.yaml
+#conda activate pantools_master
 
-### kmer distance NJ tree
-#./scripts/c_analysis/phylo.process_newicks.R \
-#--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/genome_kmer_distance.tree \
-#--name "kmer_nj" --config project_config.yaml
-
-### core-SNP ML tree
-#./scripts/c_analysis/phylo.process_newicks.R \
-#--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile \
-#--name "core_snp_ml" --config project_config.yaml
-
-######################################################################
-### Phenotype association
 ### add the updated phenotypes for association analysis
 #process_start add_phenotypes
 #$PANTOOLS remove_phenotype ${pan_db}
@@ -97,56 +57,17 @@ pangenome: ${pan_db}
 
 #rm -r ${pan_db}/gene_classification
 
-######################################################################
-### Use subset of genomes to determine pangenome structure
-#genomeSets=(`awk -F "\t" '{ print $1 }' $PANGENOME_DIR/genome_sets.tab`)
-
-#for gs in ${genomeSets[@]}
-#do
-#    process_start "gene_classification for genome subset $gs"
-#    str_arg=`grep "^${phn}\b" $PANGENOME_DIR/genome_sets.tab | cut -f2`
-#    $PANTOOLS pangenome_structure -t 20 ${str_arg} ${pan_db}
-#    error_exit $?
-
-#    ## move results to a folder
-#    gs_dir=${pan_db}/pangenome_size/gene.${gs}
-#    [ -d ${gs_dir} ] && rm -r ${gs_dir}
-#    mv ${pan_db}/pangenome_size/gene ${gs_dir}
-#done
-
-######################################################################
-### PCR assay blast
-#ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_v2/insilico_assay"
-#[ ! -d $ANALYSIS_DIR ] && mkdir $ANALYSIS_DIR
-
-### combine genomes and prepare blastn index
-#python3 scripts/a_preprocessing/a10_merge_genome_faa.py --geno $PANGENOME_DIR/genomes_fa.list \
-#--out $PANGENOME_DIR/blastdb/genomes_combined.fa
-
-### index the sequences
-#makeblastdb -dbtype nucl -in $PANGENOME_DIR/blastdb/genomes_combined.fa -parse_seqids \
-#-title $PANGENOME_NAME -logfile $PANGENOME_DIR/blastdb/makeblastdb.log
-
-#for chrset in $PANGENOME_DIR/blastdb/chrset_*.acc
-#do
-#    ##
-#    blastdb_aliastool -seqid_file_in ${chrset}
-
-#    setName=`basename ${chrset} | sed 's/.acc//'`
-
-#    ## run blastn in blastn-short mode
-#    blastn -db $PANGENOME_DIR/blastdb/genomes_combined.fa \
-#    -query data/other/pecto_assay/pectobacterium_assay_probes.fasta \
-#    -task blastn-short -num_threads 12 -max_target_seqs 5000 -seqidlist ${chrset}.bsl \
-#    -outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen pident length mismatch qcovs gapopen evalue bitscore" \
-#    -out $ANALYSIS_DIR/${blastnOut}
-
-#done
-
-#Rscript scripts/c_analysis/c02_blastn_parse.R
+#conda activate r_4.2
+#Rscript scripts/c_analysis/pheno_association_process.R
+#Rscript scripts/c_analysis/phenotype_association_summary.R
 #######################################################################
 
 ### Extract specific information from pangenome
+###************
+## Replace the analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
+## file dependency by directly accessing pheno_association_config.tab file and parsing
+###************
+
 ## gene_classification.pheno/${phn}/phenotype_association.csv file
 #conda activate omics_py37
 #while IFS=$'\t' read -r phn groups ; do
@@ -157,49 +78,85 @@ pangenome: ${pan_db}
 
 #    genome=`grep "^${phn}\b" $PANGENOME_DIR/analysis_configs/pheno_association_config.tab | cut -f3 | sed 's/,.*//'`
 #    pheno_dir="analysis/04_pangenome_pecto_v2/pheno_association/${phn}"
+#    [ ! -d ${pheno_dir} ] && mkdir -p ${pheno_dir}
 
 #    file_info="${pheno_dir}/${phn}.pheno_specific.seq_info.txt"
 #    file_info_g1="${pheno_dir}/${phn}.pheno_specific.${genome}g.seq_info.txt"
-#    file_fasta="${pheno_dir}/${phn}.pheno_specific.${genome}g.mRNA.fasta"
+#    file_ffn="${pheno_dir}/${phn}.pheno_specific.${genome}g.ffn"
+#    file_faa="${pheno_dir}/${phn}.pheno_specific.${genome}g.fna"
 
 #    printf "homology_group_id\tGenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome_id\tchr\tstart\tend\tstrand\n"  > ${file_info}
 #    printf "homology_group_id\tGenome\tmRNA_name\tmRNA_identifier\tnode_identifier\tgenome_id\tchr\tstart\tend\tstrand\n"  > ${file_info_g1}
-#    printf "" > ${file_fasta}
+#    printf "" > ${file_ffn}
+#    printf "" > ${file_faa}
 
 #    ## read groups into array
 #    IFS=',' read -ra hg_array <<< "${groups}"
 #    for hg in "${hg_array[@]}"
 #    do
 #        # printf "${hg} "
-#        seq_info=`grep "^${genome}" ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info`
+#        seq_info=`grep "^${genome}" ${hg_aln_dir}/${hg}/input/sequences.info`
 #        mrna_id=`echo ${seq_info} | cut -d"," -f3`
-#        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta
+#        protein_id=`echo ${mrna_id} | sed -r "s/${genome}_[0-9]+_//"`
+#        samtools faidx ${hg_aln_dir}/${hg}/input/nuc.fasta
 
 #        printf "${hg}, ${seq_info}\n" | sed -r 's/(, | )/\t/g' >> ${file_info_g1}
 
-#        cat ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/sequences.info |
+#        cat ${hg_aln_dir}/${hg}/input/sequences.info |
 #        sed -n "1,/^#genome/! s/^\(.\)/${hg}, \1/p" |
 #        sed -r 's/(, | )/\t/g' >> ${file_info}
 
-#        samtools faidx ${pan_db}/alignments/msa_per_group/grouping_v4/${hg}/input/nuc.fasta ${mrna_id} >> ${file_fasta}
+#        samtools faidx ${hg_aln_dir}/${hg}/input/nuc.fasta ${mrna_id} >> ${file_ffn}
+#        samtools faidx ${pan_db}/proteins/proteins_${genome}.fasta ${protein_id} >> ${file_faa}
 #    done
 #done < <(grep '^assay_FN\b' analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt)
 
-######################################################################
+#######################################################################
 
 #conda activate omics_py37
 
-### run blastn on phenotype specific sequences against pangenome to verify that
-### the homology group based specificity is not because of lack of annotation
+## BLAST the assay specific sequence against pangenome
 #process_start "blastn phenotype specific sequences against pangenome"
 
 #blastn -db $PANGENOME_DIR/blastdb/genomes_combined.fa \
-#-query analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/assay_FN.pheno_specific.399g.mRNA.fasta \
-#-num_threads 12 -max_target_seqs 5000  \
-#-outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen pident length mismatch qcovs gapopen evalue bitscore" \
+#-query analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/assay_FN.pheno_specific.399g.ffn \
+#-num_threads 12 -max_target_seqs 5000 \
+#-outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen pident length mismatch qcovs qcovus gapopen evalue bitscore" \
 #-out analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/pheno_specific.399g.pangenome.blastn.out
+
+#error_exit $?
+
+# BLAST the assay specific sequence against pangenome
+#process_start "blastn clade specific sequences against nt database"
+
+#blastn -db /mnt/LTR_userdata/reference/blast_latest/extracted_latest.nobackup/nt \
+#-query analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/assay_FN.pheno_specific.399g.ffn \
+#-num_threads 12 -max_target_seqs 5000 -html \
+#-outfmt "6 qseqid qstart qend qlen sseqid sstart send sstrand slen staxid ssciname pident length mismatch qcovs qcovus gapopen evalue bitscore" \
+#-out analysis/04_pangenome_pecto_v2/pheno_association/assay_FN/pheno_specific.399g.nt.blastn.out
 
 #error_exit $?
 ######################################################################
 
+## Pangenome structure for species with more than 20 genomes
+for sp in `awk -F "\t" '{ if (NR != 1 && $2 >= 20) {print $1} }' $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab`
+do
+    genomes=`grep "^${sp}\b" $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab | cut -f3`
+
+    process_start "pangenome_structure for genome of species ${sp}: $genomes"
+    $PANTOOLS pangenome_structure -t 20 --include ${genomes} ${pan_db}
+    error_exit $?
+
+    Rscript ${pan_db}/pangenome_size/gene/pangenome_growth.R
+    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
+    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
+    # Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
+
+    ## move results to a folder
+    psDir=${pan_db}/pangenome_size/gene.${sp}
+    [ -d ${psDir} ] && rm -r ${psDir}
+    mv ${pan_db}/pangenome_size/gene ${psDir}
+done
+
+######################################################################
 
