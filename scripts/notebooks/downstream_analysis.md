@@ -32,7 +32,7 @@ export PANTOOLS="$PANTOOLS_4_1"
 
 ### Generate various trees with default layout
 
-```bash
+``` bash
 ## UPGMA tree
 ./scripts/c_analysis/phylo.process_newicks.R \
 --tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick \
@@ -67,7 +67,7 @@ Rscript scripts/c_analysis/homology_group_process.R
 
 #### combine multiple genome FASTA into a single file
 
-```bash
+``` bash
 ## PCR assay blast
 ANALYSIS_DIR="$PROJECT_DIR/analysis/04_pangenome_pecto_v2/insilico_assay"
 [ ! -d $ANALYSIS_DIR ] && mkdir $ANALYSIS_DIR
@@ -87,7 +87,7 @@ makeblastdb -dbtype nucl -in $PANGENOME_DIR/blastdb/genomes_combined.fa -parse_s
 **NOTE:**
 `blastn` was not showing hits of some primer sequences when searched against all the genomes. Hence, database sequences are split into batches of 100 genomes and `blastdb_aliastool` is run to preprocess the sequence ids. These preprocessed sequence ids are provided as input to `-seqidlist` argument while running `blastn`. Somehow, when the search space is limited using `-seqidlist` option, missing hits are shown. This is run for each set of sequence ids.
 
-```bash
+``` bash
 
 for chrset in $PANGENOME_DIR/blastdb/chrset_*.acc
 do
@@ -109,14 +109,14 @@ done
 
 #### parse & summarize blastn result table
 
-```bash
+``` bash
 Rscript scripts/c_analysis/c02_blastn_parse.R
 ######################################################################
 ```
 
 ### GO enrichment for homology groups of interest
 
-```bash
+``` bash
 ## go_enrichment for assay_FN enriched homology groups
 process_start "go_enrichment for assay_FN enriched homology groups"
 $PANTOOLS go_enrichment -H analysis/04_pangenome_pecto_v2/pheno_association/specific_hgs.assay_FN.txt \
@@ -127,7 +127,7 @@ error_exit $?
 
 ### Use subset of genomes to determine pangenome structure
 
-```bash
+``` bash
 ## Pangenome structure for species with more than 20 genomes
 for sp in `awk -F "\t" '{ if (NR != 1 && $2 >= 20) {print $1} }' $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab`
 do

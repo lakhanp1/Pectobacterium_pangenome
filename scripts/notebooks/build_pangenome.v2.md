@@ -91,7 +91,7 @@ error_exit $?
 
 `optimal_grouping` at the Pangenome level is time consuming. An alternative approch using subset of genomes or only type strains was tried and the results were compared with the pangenome scale `optimal_grouping`.
 
-```bash
+``` bash
 ## type strains
 bash ./scripts/b_construction/grouping_subsets_process.sh "typeStrain" "374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"
 
@@ -114,7 +114,7 @@ Rscript scripts/c_analysis/grouping_subsets_analyze.R
 
 ### Grouping at the pangenome level
 
-```bash
+``` bash
 ## grouping with relaxation 4 setting
 process_start group_v4
 nice $PANTOOLS group -t 30 --relaxation 4 ${pan_db}
@@ -152,7 +152,7 @@ error_exit $?
 
 #### core-unique variation w.r.t. cutoffs
 
-```bash
+``` bash
 ## Core unique thresholds
 process_start core_unique_thresholds
 $PANTOOLS core_unique_thresholds ${pan_db}
@@ -162,7 +162,7 @@ Rscript ${pan_db}/core_unique_thresholds/core_unique_thresholds.R
 
 #### core and unique genes
 
-```bash
+``` bash
 ## gene classification: core and unique
 process_start gene_classification_core_unique
 $PANTOOLS gene_classification ${pan_db} 
@@ -176,7 +176,7 @@ mv ${pan_db}/gene_classification ${pan_db}/gene_classification.100.0
 
 #### soft core (95%) and cloud (5%) genes
 
-```bash
+``` bash
 ## gene classification: soft core and cloud
 process_start gene_classification_softcore_cloud
 $PANTOOLS gene_classification --core-threshold 95 --unique-threshold 5 ${pan_db} 
@@ -189,7 +189,7 @@ mv ${pan_db}/gene_classification ${pan_db}/gene_classification.95.5
 
 ### Extract information for all homology groups
 
-```bash
+``` bash
 ## homology group information
 sed -i.bak -r -n '/^#/! p' ${pan_db}/gene_classification.100.0/all_homology_groups.csv
 process_start "extracting homology group information"
@@ -201,7 +201,7 @@ error_exit $?
 
 #### core and unique kmers
 
-```bash
+``` bash
 ## K-mer classification: soft core and cloud
 process_start kmer_classification_core_unique
 $PANTOOLS k_mer_classification ${pan_db}
@@ -213,7 +213,7 @@ mv ${pan_db}/kmer_classification ${pan_db}/kmer_classification.100.0
 
 #### soft core (95%) and cloud (5%) kmers
 
-```bash
+``` bash
 ## K-mer classification: soft core and cloud
 process_start kmer_classification_softcore_cloud
 $PANTOOLS k_mer_classification --core-threshold 95 --unique-threshold 5 ${pan_db}
@@ -227,7 +227,7 @@ mv ${pan_db}/kmer_classification ${pan_db}/kmer_classification.95.5
 
 #### Use all genomes to determine pangenome structure
 
-```bash
+``` bash
 ## Pangenome structure: genes
 process_start pangenome_structure_gene
 $PANTOOLS pangenome_structure -t 20 ${pan_db}
@@ -253,7 +253,7 @@ Rscript ${pan_db}/pangenome_size/kmer/pangenome_growth.R
 
 #### core and unique functional classification
 
-```bash
+``` bash
 ## functional_classification: core and unique
 process_start functional_classification_core_unique
 $PANTOOLS functional_classification ${pan_db}
@@ -264,7 +264,7 @@ mv ${pan_db}/function/functional_classification ${pan_db}/function/functional_cl
 
 #### softcore (95%) and cloud (5%) functional classification
 
-```bash
+``` bash
 ## functional_classification: softcore and cloud
 process_start functional_classification_softcore_cloud
 $PANTOOLS functional_classification --core-threshold 95 --unique-threshold 5 ${pan_db}
@@ -275,7 +275,7 @@ mv ${pan_db}/function/functional_classification ${pan_db}/function/functional_cl
 
 #### function overview
 
-```bash
+``` bash
 ## function_overview
 process_start function_overview
 $PANTOOLS function_overview ${pan_db} 
@@ -284,7 +284,7 @@ error_exit $?
 Rscript ${pan_db}/cog_per_class.R
 ```
 
-```bash
+``` bash
 ## GO enrichment for core, accessory and unique homology groups
 for grp in core accessory unique
 do
@@ -308,7 +308,7 @@ done
 
 ### MSA for all homology groups
 
-```bash
+``` bash
 ## MSA for homology groups
 process_start "msa for homology groups"
 $PANTOOLS msa -t 12 --method per-group --mode nucleotide ${pan_db}
@@ -347,6 +347,6 @@ nohup iqtree -T 30 -s ${pan_db}/core_snp_tree/informative.fasta -redo -B 1000 \
 
 ## Extract pangenome data from Neo4j database
 
-```bash
+``` bash
 python3 scripts/b_construction/neo4j_extract_go.py
 ```

@@ -170,7 +170,7 @@ env_parallel --jobs 4 --workdir $PWD --halt now,fail=1 \
 
 ## eggNOG annotation
 
-```bash
+``` bash
 conda activate eggnog
 
 ## download eggNOG data

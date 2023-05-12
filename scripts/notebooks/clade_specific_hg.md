@@ -31,13 +31,13 @@ export PANTOOLS="$PANTOOLS_4_1"
 
 ### Phenotype association
 
-```bash
+``` bash
 ## prepare clade comparison config and phenotype file
 conda activate r_4.2
 Rscript scripts/c_analysis/phylo.make_clade_cmp_conf.R
 ```
 
-```bash
+``` bash
 conda activate pantools_master
 
 ## add the updated phenotypes for association analysis
@@ -70,7 +70,7 @@ done
 rm -r ${pan_db}/gene_classification
 ```
 
-```bash
+``` bash
 conda activate r_4.2
 Rscript scripts/c_analysis/pheno_association_process.R
 Rscript scripts/c_analysis/phenotype_association_summary.R
@@ -79,7 +79,7 @@ Rscript scripts/c_analysis/phenotype_association_summary.R
 
 ### Extract specific information from pangenome
 
-```bash
+``` bash
 ## Extract specific information from pangenome
 ##************
 # Replace the analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
@@ -137,7 +137,7 @@ done < <(grep '^assay_FN\b' analysis/04_pangenome_pecto_v2/pheno_association/phe
 
 Run blastn on phenotype specific sequences against pangenome to verify that the homology group based specificity is not because of lack of annotation
 
-```bash
+``` bash
 conda activate omics_py37
 
 # BLAST the assay specific sequence against pangenome
@@ -164,7 +164,7 @@ error_exit $?
 ######################################################################
 ```
 
-```bash
+``` bash
 ## process pangenome blast results and visualize 
 Rscript scripts/c_analysis/pheno_association.blastn_viz.R
 ```

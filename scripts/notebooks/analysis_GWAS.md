@@ -2,7 +2,7 @@
 
 ## Setup
 
-```bash
+``` bash
 #!/usr/bin/env bash
 
 ## assoication analysis using pyseer
@@ -34,7 +34,7 @@ conda activate pyseer
 
 ### Generate unitigs for pangenome
 
-```bash
+``` bash
 ## pangenome unitigs
 genomes_list="${PANGENOME_DIR}/genomes_fa.list"
 unitigs_name='pangenome'
@@ -42,7 +42,7 @@ unitigs_name='pangenome'
 
 ### generate unitigs for *P. brasiliense* genomes
 
-```bash
+``` bash
 ## P. brasiliense unitigs
 genomes_list="analysis/04_pangenome_pecto_v2/pheno_association/pbr_virulence/pbr.fa.list"
 unitigs_name='pbr'
@@ -50,7 +50,7 @@ unitigs_name='pbr'
 
 Call unitigs
 
-```bash
+``` bash
 ## generate unitigs
 build_dir="$PAN_BUILD_DIR/unitigs_${unitigs_name}"
 [ ! -d $build_dir ] && mkdir $build_dir
@@ -75,7 +75,7 @@ mv ${graph_base}.color.bfg ${unitigs_dir}/unitigs_${unitigs_name}/${unitigs_name
 
 ## Run `pyseer`
 
-```bash
+``` bash
 ## analysis setup
 analysis_prefix='pbr_virulence'
 analysis_dir="analysis/04_pangenome_pecto_v2/pheno_association/${analysis_prefix}"
@@ -85,7 +85,7 @@ analysis_dir="analysis/04_pangenome_pecto_v2/pheno_association/${analysis_prefix
 
 #### `pyseer` on homology group PAV
 
-```bash
+``` bash
 ## PAV
 genotype='pav'
 genotype_data_arg="--pres ${analysis_dir}/pbr.accessory_PAV.tab"
@@ -93,7 +93,7 @@ genotype_data_arg="--pres ${analysis_dir}/pbr.accessory_PAV.tab"
 
 #### `pyseer` on core SNPs
 
-```bash
+``` bash
 ## SNP
 genotype='snp'
 genotype_data_arg="--vcf <>"
@@ -101,7 +101,7 @@ genotype_data_arg="--vcf <>"
 
 #### `pyseer` on unitigs
 
-```bash
+``` bash
 genotype='kmer'
 unitigs_name='pbr' #pangenome, pbr
 genotype_data_arg="--kmers data/unitigs_${unitigs_name}/unitigs_${unitigs_name}.pyseer.gz"
@@ -109,7 +109,7 @@ genotype_data_arg="--kmers data/unitigs_${unitigs_name}/unitigs_${unitigs_name}.
 
 #### Setup the paths for analysis files
 
-```bash
+``` bash
 ## global setup
 phenotype='virulence'
 phn_file="${analysis_dir}/pbr_phenotypes.tab"
@@ -124,7 +124,7 @@ out_prefix="${result_dir}/${genotype}.${phenotype}.asso"
 
 #### Fixed effects model
 
-```bash
+``` bash
 ## pyseer: fixed effect model
 pyseer ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
@@ -154,13 +154,13 @@ cat <(head -1 ${out_prefix}.fixed_eff.txt) \
 
 Similarity estimation
 
-```bash
+``` bash
 ## similarity
 python $TOOLS_PATH/pyseer/scripts/phylogeny_distance.py --lmm \
 ${analysis_dir}/phylogeny_tree.newick > ${analysis_dir}/phylogeny_K.tsv
 ```
 
-```bash
+``` bash
 ## pyseer: mixed effect model
 pyseer --lmm ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
@@ -188,7 +188,7 @@ cat <(head -1 ${out_prefix}.lmm.txt) \
 
 #### Lineage effect: using MDS components as lineage
 
-```bash
+``` bash
 ## pyseer: lineage effect
 pyseer --lineage ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
@@ -216,7 +216,7 @@ cat <(head -1 ${out_prefix}.lineage_eff.txt) \
 
 #### Whole genome models (elastic net)
 
-```bash
+``` bash
 pyseer --wg enet ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
 --load-m ${analysis_dir}/phylogeny_dist.MDS.pkl \
@@ -235,7 +235,7 @@ error_exit $?
 Use fixed effect model without any population structure correction. This is useful
 for estimating lineage specific features
 
-```bash
+``` bash
 ## pyseer: fixed effect model without population structure
 pyseer  --no-distances ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
