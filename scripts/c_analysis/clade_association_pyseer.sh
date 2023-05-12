@@ -37,7 +37,7 @@ genotype_data_arg="--pres ${analysis_dir}/clade.accessory_PAV.tab"
 #genotype_data_arg="--kmers data/unitigs_${unitigs_name}/unitigs_${unitigs_name}.pyseer.gz"
 
 ## global setup
-phenotype='assay_TP_vs_Pbr'
+phenotype='assay_FN'
 phn_file="${analysis_dir}/clade_phenotypes.tab"
 result_dir="${analysis_dir}/${phenotype}"
 [ ! -d $result_dir ] && mkdir ${result_dir}

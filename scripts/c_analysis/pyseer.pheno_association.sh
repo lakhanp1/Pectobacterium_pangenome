@@ -29,61 +29,71 @@ analysis_prefix='pbr_virulence'
 analysis_dir="analysis/04_pangenome_pecto_v2/pheno_association/${analysis_prefix}"
 
 ## PAV
-#genotype='pav'
-#genotype_data_arg="--pres <>"
+genotype='pav'
+genotype_data_arg="--pres ${analysis_dir}/pbr.accessory_PAV.tab"
 
 ## SNP
-#genotype='snp'
-#genotype_data_arg="--vcf <>"
+genotype='snp'
+genotype_data_arg="--vcf <>"
 
-## k-mers
 genotype='kmer'
-unitigs_name='pbr'  # pangenome, pbr
+unitigs_name='pbr' #pangenome, pbr
 genotype_data_arg="--kmers data/unitigs_${unitigs_name}/unitigs_${unitigs_name}.pyseer.gz"
 
-#####################################################################
-## global setup for pyseer
+## global setup
 phenotype='virulence'
-phn_file="${analysis_dir}/pyseer_pbr.phenotype.tab"
-result_dir="${analysis_dir}/${genotype}_association"
+phn_file="${analysis_dir}/pbr_phenotypes.tab"
+result_dir="${analysis_dir}/${phenotype}"
 [ ! -d $result_dir ] && mkdir ${result_dir}
-result_prefix="${genotype}.${phenotype}_asso"
+out_prefix="${result_dir}/${genotype}.${phenotype}.asso"
+
+#############################
 
 ## pyseer: fixed effect model
 pyseer ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
 --distances ${analysis_dir}/phylogeny_dist.tab \
 --save-m ${analysis_dir}/phylogeny_dist.MDS \
---output-patterns ${result_dir}/${genotype}_patterns.fixed_eff.txt --cpu 30 \
-> ${result_dir}/${result_prefix}.fixed_eff.txt 2>>logs/v2_pecto/pyseer.log
+--output-patterns ${out_prefix}.patterns.fixed_eff.txt --cpu 30 \
+> ${out_prefix}.fixed_eff.txt
+
+error_exit $?
 
 ## get significance threshold
-python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${result_dir}/${genotype}_patterns.fixed_eff.txt \
-> ${result_dir}/threshold.fixed_eff.txt
+python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${out_prefix}.patterns.fixed_eff.txt \
+> ${out_prefix}.threshold.fixed_eff.txt
 
 pval_cut=`sed -nr '/^Threshold/ s/Threshold:\s+//p' ${result_dir}/threshold.fixed_eff.txt`
 
-cat <(head -1 ${result_dir}/${result_prefix}.fixed_eff.txt) \
-<(awk -v pval_cut="${pval_cut}" '$4<pval_cut {print $0}' ${result_dir}/${result_prefix}.fixed_eff.txt) \
-> ${result_dir}/${result_prefix}.fixed_eff.significant.txt
+cat <(head -1 ${out_prefix}.fixed_eff.txt) \
+<(awk -v pval_cut="${pval_cut}" '$4<pval_cut {print $0}' ${out_prefix}.fixed_eff.txt) \
+> ${out_prefix}.fixed_eff.significant.txt
 
 #############################
+
+## similarity
+python $TOOLS_PATH/pyseer/scripts/phylogeny_distance.py --lmm \
+${analysis_dir}/phylogeny_tree.newick > ${analysis_dir}/phylogeny_K.tsv
 
 ## pyseer: mixed effect model
 pyseer --lmm ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
 --similarity ${analysis_dir}/phylogeny_K.tsv \
 --save-lmm ${analysis_dir}/pyseer_pbr.lmm \
---output-patterns ${result_dir}/${genotype}_patterns.lmm.txt --cpu 30 \
-> ${result_dir}/${result_prefix}.lmm.txt 2>>logs/v2_pecto/pyseer.log
+--output-patterns ${out_prefix}.patterns.lmm.txt --cpu 30 \
+> ${out_prefix}.lmm.txt
+
+error_exit $?
 
 ## get significance threshold
-python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${result_dir}/${genotype}_patterns.lmm.txt \
-> ${result_dir}/threshold.lmm.txt
+python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${out_prefix}.patterns.lmm.txt \
+> ${out_prefix}.threshold.lmm.txt
 
-cat <(head -1 ${result_dir}/${result_prefix}.lmm.txt) \
-<(awk '$4<1.23E-07 {print $0}' ${result_dir}/${result_prefix}.lmm.txt) \
-> ${result_dir}/${result_prefix}.lmm.significant.txt
+pval_cut=`sed -nr '/^Threshold/ s/Threshold:\s+//p' ${result_dir}/threshold.lmm.txt`
+
+cat <(head -1 ${out_prefix}.lmm.txt) \
+<(awk -v pval_cut="${pval_cut}" '$4<pval_cut {print $0}' ${out_prefix}.lmm.txt) \
+> ${out_prefix}.lmm.significant.txt
 
 #############################
 
@@ -91,19 +101,22 @@ cat <(head -1 ${result_dir}/${result_prefix}.lmm.txt) \
 pyseer --lineage ${genotype_data_arg} \
 --phenotypes ${phn_file} --phenotype-column ${phenotype} \
 --load-m ${analysis_dir}/phylogeny_dist.MDS.pkl \
---lineage-file ${result_dir}/lineage_effects.txt \
---output-patterns ${result_dir}/${genotype}_patterns.lineage_eff.txt --cpu 30 \
-> ${result_dir}/${result_prefix}.lineage_eff.txt 2>>logs/v2_pecto/pyseer.log
+--lineage-file ${out_prefix}.lineage_effects.txt \
+--output-patterns ${out_prefix}.patterns.lineage_eff.txt --cpu 30 \
+> ${out_prefix}.lineage_eff.txt
+
+error_exit $?
 
 ## get significance threshold
-python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${result_dir}/${genotype}_patterns.lineage_eff.txt \
-> ${result_dir}/threshold.lineage_eff.txt
+python $TOOLS_PATH/pyseer/scripts/count_patterns.py ${out_prefix}.patterns.lineage_eff.txt \
+> ${out_prefix}.threshold.lineage_eff.txt
 
-cat <(head -1 ${result_dir}/${result_prefix}.lineage_eff.txt) \
-<(awk '$4<1.23E-07 {print $0}' ${result_dir}/${result_prefix}.lineage_eff.txt) \
-> ${result_dir}/${result_prefix}.lineage_eff.significant.txt
+pval_cut=`sed -nr '/^Threshold/ s/Threshold:\s+//p' ${result_dir}/threshold.lineage_eff.txt`
+
+cat <(head -1 ${out_prefix}.lineage_eff.txt) \
+<(awk -v pval_cut="${pval_cut}" '$4<pval_cut {print $0}' ${out_prefix}.lineage_eff.txt) \
+> ${out_prefix}.lineage_eff.significant.txt
 
 #############################
-
 
 
