@@ -24,6 +24,7 @@ sample_info.txt
 !/data/analysis_configs/
 /analysis
 /reports
+/scripts/*/*.html
 .DS_Store
 busco_downloads
 blastdb
