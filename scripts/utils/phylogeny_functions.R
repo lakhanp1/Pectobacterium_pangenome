@@ -9,7 +9,12 @@
 #' @export
 #'
 #' @examples
-annotate_ggtree <- function(pt, offset){
+annotate_ggtree <- function(pt, offset, annotations = NULL){
+  
+  stopifnot(
+    isa(pt, "ggplot2")
+  )
+  
   pt2 <- pt +
     ggtreeExtra::geom_fruit(
       mapping = aes(starshape = type_material),
@@ -344,3 +349,73 @@ get_species_key_data <- function(genomes, metadata, type = "wide"){
   return(speciesKey)
 }
 ################################################################################
+
+#' plot species name key as heatmap
+#'
+#' @param keyDf a data.frame
+#'
+#' @return a ggplot2 object
+#' @export
+#'
+#' @examples NA
+species_key_plot <- function(keyDf){
+  
+  stopifnot(
+    tibble::has_name(keyDf, "SpeciesName"),
+    tibble::has_name(keyDf, "Genome")
+  )
+  
+  pt <- ggplot2::ggplot(
+    data = keyDf,
+    mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
+  ) +
+    geom_tile() +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+      plot.title = element_text(hjust = 0.5, vjust = 0)
+    )
+  
+  return(pt)
+}
+
+################################################################################
+
+#' Generate ANI heatmap
+#'
+#' @param aniDf a data.frame with three columns: `c("g1", "g2", "ANI")`
+#'
+#' @return a ggplot2 object
+#' @export
+#'
+#' @examples NA
+ani_heatmap <- function(aniDf){
+  
+  pt <- ggplot2::ggplot(data = aniDf, mapping = aes(x = g1, y = g2)) +
+    geom_tile(mapping = aes(fill = ANI)) +
+    # scale_fill_viridis_c(name = "% identity", option = "B") +
+    # scale_fill_gradientn() +
+    scale_fill_stepsn(
+      breaks = c(80, 85, 90, 91, 92, 92.5, 93, 93.5, 94, 95, 96, 97, 99),
+      colors = viridisLite::viridis(n = 13, option = "B"),
+      limits = c(80, 100)
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      plot.title = element_text(hjust = 0.5, vjust = 0)
+    )
+  
+  return(pt)
+}
+
+################################################################################
+
+

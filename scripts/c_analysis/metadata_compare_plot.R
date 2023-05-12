@@ -165,65 +165,72 @@ pbrMeta <- dplyr::filter(panMeta, !is.na(collection_year)) %>%
   )
 
 
-pt_pbrTimeline <-  ggplot2::ggplot(pbrMeta) +
-  geom_histogram(
-    mapping = aes(x = collection_year, fill = forcats::fct_rev(geo_loc_country)),
-    binwidth = 2, color = "black"
-  ) +
-  geom_vline(xintercept = 2015, color = "blue", linewidth = 1, linetype = "dashed") +
-  labs(
-    title = "Pbr collection after 2015 in the Netherlands"
-  ) +
-  scale_x_continuous(expand = expansion(add = 0)) +
-  scale_y_continuous(expand = expansion(add = c(0, 5))) +
-  theme_bw(base_size = 20) +
-  theme(
-    legend.position = c(0.1, 0.9),
-    legend.justification = c(0, 1),
-    legend.key.size = unit(1, "cm"),
-    legend.text = element_text(size = 20),
-    legend.title = element_blank(),
-    axis.title = element_blank(),
-    panel.grid = element_blank()
-  )
+(
+  pt_pbrTimeline <-  ggplot2::ggplot(pbrMeta) +
+    geom_histogram(
+      mapping = aes(x = collection_year, fill = forcats::fct_rev(geo_loc_country)),
+      binwidth = 2, color = "black"
+    ) +
+    geom_vline(xintercept = 2015, color = "blue", linewidth = 1, linetype = "dashed") +
+    scale_fill_manual(
+      values = c("Netherlands" = "black", "other" = "grey90")
+    ) +
+    labs(
+      title = "Pbr collection after 2015 in the Netherlands"
+    ) +
+    scale_x_continuous(expand = expansion(add = 0)) +
+    scale_y_continuous(expand = expansion(add = c(0, 5))) +
+    theme_bw(base_size = 20) +
+    theme(
+      legend.position = c(0.1, 0.9),
+      legend.justification = c(0, 1),
+      legend.key.size = unit(1, "cm"),
+      legend.text = element_text(size = 20),
+      legend.title = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank()
+    )
+)
 
-ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline, width = 8, height = 6)
+ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline,
+       width = 8, height = 6)
 
 
-pt_fnPbr <- dplyr::filter(pbrMeta, geo_loc_country == "Netherlands") %>% 
-  ggplot2::ggplot() +
-  ggpattern::geom_histogram_pattern(
-    mapping = aes(x = collection_year, fill = virType, pattern_shape = virType, pattern_fill = virType),
-    binwidth = 1, pattern = "regular_polygon", pattern_density = 0.6, pattern_grid = "hex",
-    color = "black", pattern_spacing = 0.02, pattern_colour = "black"
-  ) +
-  scale_fill_manual(
-    values = c("TP" = "red", "FP" = alpha("green", 0.6),
-               "TN" = "green", "FN" = alpha("red", 0.6), "missing-data" = "grey")
-  ) +
-  scale_pattern_shape_manual(
-    values = c("TP" = "null", "FP" = "convex6", "TN" = "null", "FN" = "convex6", "missing-data" = "null")
-  ) +
-  scale_pattern_fill_manual(
-    values = c("TP" = "red", "FP" = "red", "TN" = "green", "FN" = "green", "missing-data" = "grey")
-  ) +
-  labs(
-    title = "FN-Pbr emergence in the Netherlands"
-  ) +
-  scale_x_continuous(expand = expansion(add = 0)) +
-  scale_y_continuous(expand = expansion(add = c(0, 5))) +
-  theme_bw(base_size = 20) +
-  theme(
-    legend.position = c(0.1, 0.9),
-    legend.justification = c(0, 1),
-    legend.key.size = unit(1, "cm"),
-    legend.text = element_text(size = 20),
-    legend.title = element_blank(),
-    axis.title = element_blank(),
-    panel.grid = element_blank()
-  )
+(
+  pt_fnPbr <- dplyr::filter(pbrMeta, geo_loc_country == "Netherlands") %>% 
+    ggplot2::ggplot() +
+    ggpattern::geom_histogram_pattern(
+      mapping = aes(x = collection_year, fill = virType, pattern_density = virType),
+      binwidth = 1,
+      pattern = "stripe", pattern_fill = "black",
+      # pattern_density = 0.6,
+      color = "black", pattern_spacing = 0.02, pattern_colour = "black"
+    ) +
+    scale_fill_manual(
+      values = c("TP" = "red", "FP" = alpha("green", 1),
+                 "TN" = "green", "FN" = alpha("red", 1), "missing-data" = "grey")
+    ) +
+    scale_pattern_density_manual(
+      values = c("TP" = 0, "FP" = 0.5, "TN" = 0,
+                 "FN" = 0.5, "missing-data" = 0)
+    ) +
+    labs(
+      title = "FN-Pbr emergence in the Netherlands"
+    ) +
+    scale_x_continuous(expand = expansion(add = 0)) +
+    scale_y_continuous(expand = expansion(add = c(0, 5))) +
+    theme_bw(base_size = 20) +
+    theme(
+      legend.position = c(0.1, 0.9),
+      legend.justification = c(0, 1),
+      legend.key.size = unit(1, "cm"),
+      legend.text = element_text(size = 20),
+      legend.title = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank()
+    )
+)
 
-pt_fnPbr
 
 ggsave(filename = file.path(outDir, "fn_pbr_NL.pdf"), plot = pt_fnPbr, width = 8, height = 6)
 

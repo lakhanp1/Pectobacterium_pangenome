@@ -1,8 +1,6 @@
 # Association analysis using `pyseer`
 
-## Preprocessing
-
-### Setup
+## Setup
 
 ```bash
 #!/usr/bin/env bash
@@ -31,6 +29,8 @@ source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pyseer
 ######################################################################
 ```
+
+## Preprocessing
 
 ### Generate unitigs for pangenome
 

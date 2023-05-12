@@ -224,36 +224,37 @@ genomeAssaySummary <- dplyr::group_by(
 pt_tree <- pt_treeMain
 
 ## assay blastn visualization
-pt_pcrBlast <- ggplot2::ggplot(
-  data = genomeAssayDetails,
-  mapping = aes(x = type, y = Genome)
-) +
-  geom_tile(
-    mapping = aes(fill = pident, width = qcovs/100, height = qcovs/100),
-    color = "black", linewidth = 0.5) +
-  labs(
-    title = "blastn results for forward (F), probe (P) and reverse (R) PCR primers"
+(
+  pt_pcrBlast <- ggplot2::ggplot(
+    data = genomeAssayDetails,
+    mapping = aes(x = type, y = Genome)
   ) +
-  facet_grid(cols = vars(assay), scales = "free_y") +
-  viridis::scale_fill_viridis(name = "% identity", option = "plasma") +
-  scale_x_discrete(
-    labels = c("forward" = "F", "probe" = "P", "reverse" = "R")
-  ) +
-  guides(
-    size = guide_legend(override.aes = list(fill = "white"))
-  ) +
-  theme_bw() +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank(),
-    axis.text.x = element_text(size = 14, face = "bold"),
-    plot.title = element_text(hjust = 0.5, vjust = 0),
-    strip.text.x = element_text(size = 12, face = "bold") 
-  )
+    geom_tile(
+      mapping = aes(fill = pident, width = qcovs/100, height = qcovs/100),
+      color = "black", linewidth = 0.5) +
+    labs(
+      title = "blastn results for forward (F), probe (P) and reverse (R) PCR primers"
+    ) +
+    facet_grid(cols = vars(assay), scales = "free_y") +
+    viridis::scale_fill_viridis(name = "% identity", option = "viridis", direction = -1) +
+    scale_x_discrete(
+      labels = c("forward" = "F", "probe" = "P", "reverse" = "R")
+    ) +
+    guides(
+      size = guide_legend(override.aes = list(fill = "white"))
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.text.x = element_text(size = 14, face = "bold"),
+      plot.title = element_text(hjust = 0.5, vjust = 0),
+      strip.text.x = element_text(size = 12, face = "bold") 
+    )
+)
 
-# pt_pcrBlast
 ##################################################################################
 ## generate annotation plots
 pt_theme <- theme_bw() +
@@ -351,16 +352,18 @@ pt_all <- pt_source %>% aplot::insert_left(pt_tree, width = 12) %>%
   aplot::insert_right(pt_pcrBlast, width = 15)
 
 
-png(filename = paste(outPrefix, ".png", sep = ""), width = 3000, height = 1500, res = 200)
+# png(filename = paste(outPrefix, ".png", sep = ""), width = 3000, height = 1500, res = 200)
+pdf(file = paste(outPrefix, ".pdf", sep = ""), width = 15, height = 12)
 pt_all
 dev.off()
 
 
-pt_treeBlast <- pt_vir %>% aplot::insert_right(pt_tree, width = 15) %>%
-  aplot::insert_right(pt_pcrBlast, width = 15)
+pt_treeBlast <- pt_vir %>% aplot::insert_right(pt_tree, width = 12) %>%
+  aplot::insert_right(pt_pcrBlast, width = 8)
 
 
-png(filename = paste(outPrefix, ".treeBlast.png", sep = ""), width = 2500, height = 1500, res = 150)
+# png(filename = paste(outPrefix, ".treeBlast.png", sep = ""), width = 2500, height = 1500, res = 150)
+pdf(file = paste(outPrefix, ".treeBlast.pdf", sep = ""), width = 12, height = 12)
 pt_treeBlast
 dev.off()
 

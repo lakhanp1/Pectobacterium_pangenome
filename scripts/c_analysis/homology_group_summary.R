@@ -195,17 +195,29 @@ ggsave(
 
 ################################################################################
 # core-accessory-unique stats for each species
-sppGrpStats <- suppressMessages(
-  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
-) %>% 
+sppGrpStats <-
+  # dplyr::select(panGo, class, count = inputSize) %>% 
+  # dplyr::distinct() %>% 
+  # dplyr::mutate(
+  #   SpeciesName = "Pangenome",
+  #   fraction = count / sum(count)
+  # ) %>% 
+  # dplyr::bind_rows(
+  suppressMessages(
+    readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
+    # )
+  ) %>% 
   dplyr::mutate(
     class = forcats::fct_relevel(class, "core", "accessory", "unique"),
-    SpeciesName = forcats::fct_relevel(SpeciesName, !!!spOrder$SpeciesName)
+    SpeciesName = forcats::fct_relevel(SpeciesName, "Pangenome", !!!spOrder$SpeciesName)
   )
 
 (pt_stats <- ggplot(data = sppGrpStats) +
     geom_bar(
-      mapping = aes(x = count, y = forcats::fct_rev(SpeciesName), fill = class),
+      mapping = aes(
+        x = count, y = forcats::fct_rev(SpeciesName),
+        fill = forcats::fct_rev(class)
+      ),
       stat = "identity", position = position_dodge(), width = 0.8
     ) +
     scale_fill_manual(

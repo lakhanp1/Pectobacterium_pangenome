@@ -157,3 +157,29 @@ done
 cd $PROJECT_DIR
 ######################################################################
 ```
+
+## Extract homology group information
+
+```r
+library(org.Pectobacterium.spp.pan.eg.db)
+
+orgDb <- org.Pectobacterium.spp.pan.eg.db
+
+
+df <- AnnotationDbi::select(
+  x = orgDb,
+  # keys = c("EHFCGFFO_03506", "EHFCGFFO_02053", "LMKHCIEC_01165", "LMKHCIEC_03770"),
+  # keytype = "mRNA_id",
+  keys = "22430460",
+  columns = c(
+    "GID", "gene_name", "mRNA_id",
+    # "COG_description",
+    "genome", "chr", "chr_id", "start", "end", "strand"
+  )
+) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(
+    dplyr::across(.cols = c(start, end), .fns = as.numeric),
+    length = end - start + 1
+  ) 
+```

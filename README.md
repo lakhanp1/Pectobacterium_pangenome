@@ -17,7 +17,48 @@ java -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:<
 
 ## Project workflow
 
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}} }%%
+flowchart TB
+subgraph data["`*Pectobacterium* spp. genomes`"]
+    direction LR
+    inhouse[("Inhouse: 56")]
+    ncbi[("NCBI: 450")]
+    inhouse ~~~ ncbi
+end
+data --> Preprocessing
+subgraph Preprocessing
+    direction LR
+    prokka[Prokka annotation]
+    interproscan["InterProScan & COG annotation"]
+    prokka --- interproscan
+end
+Preprocessing --> QC
+subgraph "QC"
+    direction LR
+    ncbi_qc["fa:fa-ban Remove genomes with NCBI QC tags:\nAnomalous/Replaced/Excluded"]
+    busco[BUSCO >= 99%]
+    ani["ANI based\ntaxonomy correction"]
+    duplicate["Remove duplicate \nassemblies"]
+    ncbi_qc ~~~ busco
+    ani ~~~ duplicate
+end
+subgraph pangenome[Pangenome with 454 genomes]
+    direction LR
+    construct[Build pangenome]
+    group[Group orthologs]
+    analyze[Association analysis]
+    viz[Visualize & summarize]
+    construct ~~~ group
+    analyze ~~~ viz
+end
+QC --> pangenome
+```
+
 ### Preprocessing
+
+
+
 
 ```mermaid
 flowchart TB

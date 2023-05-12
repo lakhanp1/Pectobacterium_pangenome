@@ -5,8 +5,8 @@ parameters:
   cutoff_busco: 99
   seed: 124
 colors:
-  core: "#0072B2"
-  accessory: "#009E73"
+  core: "#009E73"
+  accessory: "#0072B2"
   unique: "#D55E00"
   presence: ""
   absence: "black"

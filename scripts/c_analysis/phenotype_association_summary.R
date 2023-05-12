@@ -11,6 +11,7 @@ suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
 suppressPackageStartupMessages(library(GenomicRanges))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 ## plot PAV for the homology groups specific for a particular phenotype
 
@@ -56,7 +57,7 @@ sampleInfoList <- as.list_metadata(
 ## genomes that are used for phenotype association analysis
 associatedGenomes <- get_phenotype_association_genomes(
   phenotype = phenotype,
-  confFile = panConf$analysis_confs$files$phenotype_association
+  confFile = panConf$analysis_confs$files$clade_association
 )
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
@@ -106,6 +107,16 @@ hgAnnotation <- dplyr::filter(hgSeqInfo, Genome == !!bestGenome) %>%
     label = paste(mRNA_identifier, "| ", chr, ":", start, sep = "")
   )
 
+df <- AnnotationDbi::select(
+  x = orgDb,
+  # keys = c("EHFCGFFO_03506", "EHFCGFFO_02053", "LMKHCIEC_01165", "LMKHCIEC_03770"),
+  # keytype = "mRNA_id",
+  keys = hgAnnotation$homology_group_id,
+  columns = c(
+    "GID", "COG_description"
+  )
+)
+
 topGoDf <- topGO_enrichment(genes = hgAnnotation$homology_group_id, orgdb = orgDb)
 ################################################################################
 #' Plot homology group heatmap with provided clustering
@@ -140,9 +151,9 @@ homology_group_heatmap <- function(mat, phy, metadata, hgAn, width, markGenomes)
   ht_hg <- ComplexHeatmap::Heatmap(
     matrix = hgMat,
     name = "hg",
-    col = circlize::colorRamp2(
-      breaks = seq(0, min(3, max(hgMat))),
-      colors = viridisLite::viridis(n = min(3, max(hgMat))+1, option = "B")
+    col = structure(
+      viridisLite::viridis(n = min(3, max(hgMat))+1, option = "B"),
+      names = seq(0, min(3, max(hgMat)))
     ),
     # heatmap_legend_param = list(legend_height = unit(3, "cm")),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
@@ -213,11 +224,11 @@ hgMat <- hgMat[rawTree$tip.label, ]
 
 htList <- homology_group_heatmap(
   mat = hgMat, phy = rawTree, metadata = sampleInfo,
-  hgAn = hgAnnotation, width = c(10,24),
+  hgAn = hgAnnotation, width = c(9, 20),
   markGenomes = associatedGenomes
 )
 
-png(filename = paste(outPrefix, ".pheno_hg_association.png", sep = ""), width = 6000, height = 3000, res = 350)
+pdf(file = paste(outPrefix, ".pheno_hg_association.pdf", sep = ""), width = 14, height = 8)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "hg",
