@@ -110,9 +110,9 @@ homology_group_heatmap <- function(mat, phy, hgAn, metadata, width, markGenomes)
   ht_hg <- ComplexHeatmap::Heatmap(
     matrix = hgMat,
     name = "hg",
-    col = circlize::colorRamp2(
-      breaks = seq(0, min(3, max(hgMat))),
-      colors = viridisLite::viridis(n = min(3, max(hgMat))+1, option = "B")
+    col = structure(
+      viridisLite::viridis(n = min(3, max(hgMat))+1, option = "B"),
+      names = seq(0, min(3, max(hgMat)))
     ),
     # heatmap_legend_param = list(legend_height = unit(3, "cm")),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,

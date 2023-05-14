@@ -63,3 +63,48 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE){
 }
 
 ################################################################################
+
+#' prepare homology group PAV matrix from pan.db 
+#'
+#' @param pandb A OrgDb object that store pangenome data
+#' @param type One of c("pav", "cnv")
+#' @param groups Homology groups to return. Default: all groups
+#'
+#' @return a matrix of homology groups PAV/CNV per genome
+#' @export
+#'
+#' @examples
+homology_groups_mat <- function(pandb, type, groups = NULL){
+  type <- match.arg(arg = tolower(type), choices = c("pav", "cnv"))
+  
+  stopifnot(
+    isa(pandb, c("OrgDb"))
+  )
+  
+  hgs <- AnnotationDbi::select(
+    x = pandb, keys = keys(pandb), columns = c("genome", "mRNA_key")
+  )
+  
+  if(type == "cnv"){
+    hgWide <- tidyr::pivot_wider(
+      hgs,
+      names_from = "GID",  values_from = "mRNA_key", 
+      values_fn = ~length(.x), values_fill = 0
+    )
+  } else{
+    hgWide <- tidyr::pivot_wider(
+      hgs,
+      names_from = "GID",  values_from = "mRNA_key", 
+      values_fn = ~ length(.x[1]), values_fill = 0
+    )
+  }
+  
+    if(!is.null(groups)){
+      hgWide %<>% dplyr::select(genome, tidyselect::all_of(groups))
+    }
+  
+  hgMat <- tibble::column_to_rownames(hgWide, var = "genome") %>% 
+    as.matrix()
+  
+  return(hgMat)
+}

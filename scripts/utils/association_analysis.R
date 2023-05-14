@@ -81,8 +81,8 @@ phenotype_specific_groups <- function(phenotype, panConf, save = NULL){
 
   }
   
-  # return(phenoSpecific$homology_group_id)
-  return(df)
+  return(phenoSpecific$homology_group_id)
+  # return(df)
 }
 
 ################################################################################

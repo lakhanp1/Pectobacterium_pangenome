@@ -48,6 +48,7 @@ chrInfo <- suppressMessages(
 # pangenome gene - mRNA - COG info
 geneInfo <- suppressMessages(readr::read_tsv(panConf$files$gene_info))
 
+
 ################################################################################
 ## combine data to make annotation tables
 
@@ -64,6 +65,11 @@ hgDf <- dplyr::left_join(
   dplyr::left_join(
     y = dplyr::select(geneInfo, mRNA_id, genome, chr_num, start, end, strand, gene_name),
     by = c("genome", "chr" = "chr_num", "mRNA_id")
+  ) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(genome, chr, start, end), .fns = as.integer
+    )
   )
 
 if(!setequal(hgDf$GID, allHgs$hg_id)){

@@ -10,6 +10,7 @@ suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
+suppressPackageStartupMessages(library(openxlsx))
 suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
@@ -22,6 +23,7 @@ source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/GO_enrichmen
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
 source("scripts/utils/association_analysis.R")
+source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
@@ -71,18 +73,26 @@ sampleInfo %<>%  dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
-## import homology group data
-g2hg <- suppressMessages(
-  readr::read_tsv(confs$analysis$homology_groups$files$groups)
-) %>% 
-  dplyr::mutate(Genome = as.character(Genome))
+## get phenotype specific groups
+specGrps <- phenotype_specific_groups(
+  phenotype = phenotype, panConf = panConf
+) %>% as.character()
 
 
 ## get the best genome
-hgSeqInfo <- suppressMessages(readr::read_tsv(file_associatedSeqInfo)) %>% 
-  dplyr::mutate(
-    dplyr::across(.cols = c(Genome, homology_group_id), .fns = ~as.character(.x))
+hgSeqInfo <- AnnotationDbi::select(
+  x = orgDb,
+  keys = specGrps,
+  columns = c(
+    "genome", "chr", "chr_id", "chr_name", "start", "end", "strand", "mRNA_id", "mRNA_key"
   )
+) %>% 
+  dplyr::rename(Genome = genome, homology_group_id = GID) %>% 
+  dplyr::mutate(
+    dplyr::across(.cols = c(chr, start, end), .fns = as.integer)
+  ) %>% 
+  tibble::as_tibble()
+
 
 genomeSummary <- dplyr::add_count(hgSeqInfo, Genome, name = "nHg") %>% 
   dplyr::group_by(Genome, nHg) %>% 
@@ -103,21 +113,45 @@ bestGenome <- associatedGenomes$compare[1]
 hgAnnotation <- dplyr::filter(hgSeqInfo, Genome == !!bestGenome) %>% 
   dplyr::arrange(chr, start) %>% 
   dplyr::mutate(
-    mRNA_identifier = stringr::str_replace(mRNA_identifier, "-mRNA", ""),
-    label = paste(mRNA_identifier, "| ", chr, ":", start, sep = "")
+    label = paste(mRNA_id, "| ", chr, ":", start, sep = "")
   )
 
-df <- AnnotationDbi::select(
+################################################################################
+# functional annotation for homology groups
+# COG
+grpCog <- AnnotationDbi::select(
   x = orgDb,
-  # keys = c("EHFCGFFO_03506", "EHFCGFFO_02053", "LMKHCIEC_01165", "LMKHCIEC_03770"),
-  # keytype = "mRNA_id",
   keys = hgAnnotation$homology_group_id,
-  columns = c(
-    "GID", "COG_description"
-  )
-)
+  columns = c("GID", "COG_description", "COG_category")
+) %>% 
+  dplyr::rename(homology_group_id = GID) %>% 
+  dplyr::left_join(y = hgAnnotation, by = "homology_group_id") %>% 
+  dplyr::select(homology_group_id, Genome, chr, start, end, strand, mRNA_id,
+                starts_with("COG"))
 
-topGoDf <- topGO_enrichment(genes = hgAnnotation$homology_group_id, orgdb = orgDb)
+# topGO
+topGoDf <- topGO_enrichment(genes = specGrps, orgdb = orgDb)
+
+wb <- openxlsx::createWorkbook()
+openxlsx::addWorksheet(wb = wb, sheetName = "COG")
+openxlsx::writeData(
+  wb = wb, sheet = 1, x = grpCog,
+  startCol = 1, startRow = 1, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = 1, firstActiveRow = 2, firstActiveCol = 2)
+
+openxlsx::addWorksheet(wb = wb, sheetName = "topGO")
+openxlsx::writeData(
+  wb = wb, sheet = 2, x = topGoDf,
+  startCol = 1, startRow = 1, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = 1, firstActiveRow = 2, firstActiveCol = 2)
+
+# openxlsx::openXL(wb)
+openxlsx::saveWorkbook(wb = wb, file = paste(outPrefix, ".functions.xlsx", sep = ""), overwrite = TRUE)
+
 ################################################################################
 #' Plot homology group heatmap with provided clustering
 #'
@@ -216,9 +250,8 @@ homology_group_heatmap <- function(mat, phy, metadata, hgAn, width, markGenomes)
 }
 
 ################################################################################
-hgMat <- dplyr::select(g2hg, Genome, !!!hgAnnotation$homology_group_id) %>% 
-  tibble::column_to_rownames(var = "Genome") %>% 
-  as.matrix()
+# prepare homology group PAV matrix from pan.db
+hgMat <- homology_groups_mat(pandb = orgDb, type = "cnv", groups = hgAnnotation$homology_group_id)
 
 hgMat <- hgMat[rawTree$tip.label, ]
 
