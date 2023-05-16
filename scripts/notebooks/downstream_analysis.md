@@ -158,28 +158,43 @@ cd $PROJECT_DIR
 ######################################################################
 ```
 
-## Extract homology group information
+## LZI and TIR assay genes
+
+### LZI assay
+
+- gene: GOECMFEC_02714
+- sample: NAK238
+- genome: 401
+- location pangenome: 401_10:140994-141296(+)
+- location fna: NAK238_contig_10_consensus:140994-141296(+)
+- homology group: 22434221
+- COG description: 4-amino-4-deoxy-alpha-L-arabinopyranosyl undecaprenyl phosphate biosynthetic process
+
+### TIR assay
+
+- gene: GOECMFEC_02263
+- sample: NAK238
+- genome: 401
+- location pangenome: 401_8:166700-167047(-)
+- location fna: NAK238_contig_8_consensus:166700-167047(-)
+- homology group: 22434077
+- COG description: MTH538 TIR-like domain (DUF1863)
+
+## Visualize homology groups of interest
+
+### viral DNA integration related biological processes
 
 ```r
-library(org.Pectobacterium.spp.pan.eg.db)
+analysisName <- "virulence_GO"
 
-orgDb <- org.Pectobacterium.spp.pan.eg.db
+goIds <- c(
+  "GO:0046718", "GO:0044826", "GO:0019069", "GO:0044659", "GO:0075713",
+  "GO:0044660", "GO:0019076", "GO:0019058"
+)
+```
 
+### secretion systems in *Pectobacterium* spp.
 
-df <- AnnotationDbi::select(
-  x = orgDb,
-  # keys = c("EHFCGFFO_03506", "EHFCGFFO_02053", "LMKHCIEC_01165", "LMKHCIEC_03770"),
-  # keytype = "mRNA_id",
-  keys = "22430460",
-  columns = c(
-    "GID", "gene_name", "mRNA_id",
-    # "COG_description",
-    "genome", "chr", "chr_id", "start", "end", "strand"
-  )
-) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(
-    dplyr::across(.cols = c(start, end), .fns = as.numeric),
-    length = end - start + 1
-  ) 
+```r
+
 ```

@@ -1,6 +1,6 @@
-# Cypher queries for pangenome exploration
+*# queries for pangenome exploration
 
-## Explore basic feature links
+## Cypher queries for neo4j pangenome
 
 ### Gene, mRNA and CDS relationships
 
@@ -91,7 +91,7 @@ LIMIT 25
 ```
 
 
-## Test 
+### Test 
 
 ``` cypher
 
@@ -115,3 +115,77 @@ OPTIONAL MATCH (m)-[:has_go]->(g:GO)
 RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr, g.id AS go_id, id(h) AS hg_id, h.group_version AS hg_ver
 
 ```
+
+## pangenome pan.db object to explore data
+
+### mRNA identifiers
+
+```r
+library(org.Pectobacterium.spp.pan.eg.db)
+
+orgDb <- org.Pectobacterium.spp.pan.eg.db
+
+df <- AnnotationDbi::select(
+  x = orgDb,
+  keys = c("GOECMFEC_02714", "GOECMFEC_02263"),
+  keytype = "mRNA_id",
+  columns = c(
+    "GID", "gene_name", "mRNA_id",
+    "COG_description",
+    # "ONTOLOGY", "GO",
+    "genome", "chr", "chr_id", "chr_name", "start", "end", "strand"
+  )
+) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(
+    dplyr::across(.cols = c(start, end), .fns = as.numeric),
+    length = end - start + 1
+  ) 
+```
+
+### homology groups
+
+```r
+library(org.Pectobacterium.spp.pan.eg.db)
+
+orgDb <- org.Pectobacterium.spp.pan.eg.db
+
+df <- AnnotationDbi::select(
+  x = orgDb,
+  keys = c("22434221"),
+  columns = c(
+    "GID", "gene_name", "mRNA_id",
+    "COG_description",
+    # "ONTOLOGY", "GO",
+    "genome", "chr", "chr_id", "chr_name", "start", "end", "strand"
+  )
+) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(
+    dplyr::across(.cols = c(start, end), .fns = as.numeric),
+    length = end - start + 1
+  ) 
+```
+
+### GO terms
+
+```r
+library(org.Pectobacterium.spp.pan.eg.db)
+
+orgDb <- org.Pectobacterium.spp.pan.eg.db
+
+df <- AnnotationDbi::select(
+  x = orgDb,
+  keys = c("GO:0030253", "GO:0015628", "GO:0030254", "GO:0030255", "GO:0046819", "GO:0033103", "GO:0044315"),
+  keytype = "GOALL",
+  columns = c(
+    "GID", "COG_description"
+  )
+) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(
+    dplyr::across(.cols = c(start, end), .fns = as.numeric),
+    length = end - start + 1
+  ) 
+```
+*
