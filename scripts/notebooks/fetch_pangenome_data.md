@@ -121,18 +121,18 @@ RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr, g.id AS go_id, id
 ### mRNA identifiers
 
 ```r
-library(org.Pectobacterium.spp.pan.eg.db)
+suppressMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
 df <- AnnotationDbi::select(
   x = orgDb,
-  keys = c("GOECMFEC_02714", "GOECMFEC_02263"),
+  keys = c("BAKEABOG_01777"),
   keytype = "mRNA_id",
   columns = c(
     "GID", "gene_name", "mRNA_id",
     "COG_description",
-    # "ONTOLOGY", "GO",
+    "ONTOLOGY", "GO",
     "genome", "chr", "chr_id", "chr_name", "start", "end", "strand"
   )
 ) %>% 
@@ -140,13 +140,22 @@ df <- AnnotationDbi::select(
   dplyr::mutate(
     dplyr::across(.cols = c(start, end), .fns = as.numeric),
     length = end - start + 1
-  ) 
+  )
+
+df <- dplyr::left_join(
+  x = df,
+  y = AnnotationDbi::select(
+    x = GO.db, keys = df$GO, columns = "TERM", keytype = "GOID"
+  ),
+  by = c("GO" = "GOID")
+)
+ 
 ```
 
 ### homology groups
 
 ```r
-library(org.Pectobacterium.spp.pan.eg.db)
+suppressMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
@@ -170,7 +179,7 @@ df <- AnnotationDbi::select(
 ### GO terms
 
 ```r
-library(org.Pectobacterium.spp.pan.eg.db)
+suppressMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
@@ -188,4 +197,4 @@ df <- AnnotationDbi::select(
     length = end - start + 1
   ) 
 ```
-*
+

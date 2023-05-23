@@ -14,7 +14,7 @@ suppressPackageStartupMessages(library(openxlsx))
 suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
-## visualize homology groups for GO terms
+## visualize homology groups PAV 
 
 rm(list = ls())
 
@@ -31,12 +31,13 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-analysisName <- "secretion_sys"
+analysisName <- "JGAR-100719-1_contig_3_consensus_442933_461352"
 
-goIds <- c(
-  "GO:0030253", "GO:0015628", "GO:0030254", "GO:0030255", "GO:0046819",
-  "GO:0033103", "GO:0044315"
-  # "GO:0032940"
+hgs <- c(
+  "22426826", "22426802", "22426819", "22427604", "22427607", "22427609", "22427610",
+  "22427612", "22427614", "22427616", "22427618", "22427622", "22427623", "22427625",
+  "22427626", "22427627", "22427629", "22427634", "22427630", "22427633", "22427636",
+  "22427640"
 )
 
 treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
@@ -66,20 +67,10 @@ sampleInfo %<>%  dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
-hgs <- AnnotationDbi::select(
-  x = orgDb, keys = goIds, keytype = "GOALL", columns = "GID"
-) %>% 
-  dplyr::filter(!is.na(GID)) %>% 
-  dplyr::mutate(count = 1) %>% 
-  dplyr::rename(hg_id = GID) %>% 
-  tidyr::pivot_wider(
-    id_cols = hg_id, names_from = GOALL, values_from = count, values_fill = 0
-  )
-
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
-hgMat <- homology_groups_mat(pandb = orgDb, type = "cnv", groups = hgs$hg_id)
+hgMat <- homology_groups_mat(pandb = orgDb, type = "cnv", groups = hgs)
 
 hgMat <- hgMat[rawTree$tip.label, ]
 
@@ -88,31 +79,7 @@ htList <- homology_group_heatmap(
   width = c(10, 20)
 )
 
-# GO term top annotation
-goMat <- tibble::column_to_rownames(hgs, var = "hg_id") %>% as.matrix()
-go_lables <- AnnotationDbi::mapIds(
-  x = GO.db, keys = colnames(goMat), keytype = "GOID", column = "TERM"
-)
-
-colnames(goMat) <- go_lables
-
-an_go <- ComplexHeatmap::HeatmapAnnotation(
-  go = goMat,
-  name = "go",
-  which = "column",
-  col = list(go = c("1" = "black", "0" = "white")),
-  annotation_name_side = "left",
-  annotation_name_gp = gpar(fontsize = 12),
-  height = unit(5, "cm")
-)
-
-# add top annotation to the main heatmap
-htList@ht_list$hg@top_annotation <- an_go
-
-htList@ht_list$hg@column_names_param$show <- FALSE
 htList@ht_list$hg@column_dend_param$cluster <- FALSE
-
-
 
 pdf(file = paste(outPrefix, ".homology_grps.pdf", sep = ""), width = 15, height = 9)
 ComplexHeatmap::draw(

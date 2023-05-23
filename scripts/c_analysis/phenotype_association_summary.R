@@ -135,6 +135,28 @@ grpCog <- AnnotationDbi::select(
     starts_with("COG")
   )
 
+# GO assignment
+goMap <- AnnotationDbi::select(
+  x = orgDb,
+  keys = hgAnnotation$hg_id,
+  columns = c("GID", "GO")
+)
+
+goDesc <- AnnotationDbi::select(
+  x = GO.db, keys = na.omit(goMap$GO), column = "TERM", keytype = "GOID"
+) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(description = paste("(", GOID, ") ", TERM, sep = "")) %>% 
+  dplyr::select(-TERM) %>% 
+  dplyr::left_join(y = goMap, by = c("GOID" = "GO")) %>% 
+  dplyr::group_by(GID) %>% 
+  dplyr::summarise(GO = paste(description, collapse = "; "), .groups = "drop")
+
+goMap <- dplyr::left_join(x = hgAnnotation, y = goDesc, by = c("hg_id" = "GID")) %>%
+  dplyr::select(
+    hg_id, Genome, chr, start, end, strand, mRNA_id, GO
+  ) 
+
 # topGO
 topGoDf <- topGO_enrichment(genes = specGrps, orgdb = orgDb)
 
@@ -147,13 +169,21 @@ openxlsx::writeData(
 )
 openxlsx::freezePane(wb = wb, sheet = 1, firstActiveRow = 2, firstActiveCol = 2)
 
-openxlsx::addWorksheet(wb = wb, sheetName = "topGO")
+openxlsx::addWorksheet(wb = wb, sheetName = "GO")
 openxlsx::writeData(
-  wb = wb, sheet = 2, x = topGoDf,
+  wb = wb, sheet = 2, x = goMap,
   startCol = 1, startRow = 1, withFilter = TRUE,
   keepNA = TRUE, na.string = "NA"
 )
-openxlsx::freezePane(wb = wb, sheet = 1, firstActiveRow = 2, firstActiveCol = 2)
+openxlsx::freezePane(wb = wb, sheet = 2, firstActiveRow = 2, firstActiveCol = 2)
+
+openxlsx::addWorksheet(wb = wb, sheetName = "topGO")
+openxlsx::writeData(
+  wb = wb, sheet = 3, x = topGoDf,
+  startCol = 1, startRow = 1, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = 3, firstActiveRow = 2, firstActiveCol = 2)
 
 # openxlsx::openXL(wb)
 openxlsx::saveWorkbook(wb = wb, file = paste(outPrefix, ".functions.xlsx", sep = ""), overwrite = TRUE)
