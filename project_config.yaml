@@ -47,6 +47,10 @@ data:
     dir: "interproscan"
   cog:
     dir: "eggnog"
+  genomad:
+    dir: "prophage_genomad"
+    files:
+      prophages: "prophage_summary.tab"
   busco_db:
     dir: "busco_downloads"
   busco_genome:
