@@ -46,14 +46,18 @@ if [ ! -f ${out_path}/${sampleId}_summary/${sampleId}_virus_summary.tsv ]; then
 
     error_exit $?
 
-    # run checkv
-    process_start "checkv on $sampleId"
+    n_vir=$(tail +2 $out_path/${sampleId}_summary/${sampleId}_virus_summary.tsv | wc -l)
 
-    checkv end_to_end --remove_tmp -t 12 \
-        $out_path/${sampleId}_summary/${sampleId}_virus.fna \
-        $out_path/${sampleId}_checkv
+    if [ ${n_vir} -gt 0 ]; then
+        # run checkv
+        process_start "checkv on $sampleId"
 
-    error_exit $?
+        checkv end_to_end --remove_tmp -t 12 \
+            $out_path/${sampleId}_summary/${sampleId}_virus.fna \
+            $out_path/${sampleId}_checkv
+
+        error_exit $?
+    fi
 
 else
     echo "genomad output for ${sampleId} already exists"

@@ -28,12 +28,7 @@ sampleId <- "GCF_024498715.1_ASM2449871v1"
 prophageDf <- NULL
 
 for (sampleId in sampleInfo$sampleId) {
-  checkv <- suppressMessages(
-    readr::read_tsv(
-      file = paste(confs$data$genomad$dir, "/", sampleId, "/", sampleId,
-                   "_checkv/quality_summary.tsv", sep = "")
-    )
-  )
+
   
   virSummary <- suppressMessages(
     readr::read_tsv(
@@ -47,14 +42,24 @@ for (sampleId in sampleInfo$sampleId) {
       chr = stringr::str_replace(seq_name, "(.*)\\|.*", "\\1"),
       .before = coordinates
     ) %>% 
-    tidyr::separate(col = coordinates, into = c("start", "end"), sep = "-") %>% 
-    dplyr::left_join(y = checkv, by = c("seq_name" = "contig_id"))
-
-  prophageDf <- dplyr::bind_rows(prophageDf, virSummary)
+    tidyr::separate(col = coordinates, into = c("start", "end"), sep = "-")
   
+  if(nrow(virSummary) > 0){
+    checkv <- suppressMessages(
+      readr::read_tsv(
+        file = paste(confs$data$genomad$dir, "/", sampleId, "/", sampleId,
+                     "_checkv/quality_summary.tsv", sep = "")
+      )
+    ) %>% 
+      dplyr::left_join(y = virSummary, by = c("contig_id" = "seq_name"))
+    
+    prophageDf <- dplyr::bind_rows(prophageDf, checkv)
+  }
+
 }
 
-readr::write_tsv(x = prophageDf, file = confs$data$genomad$files$prophages)
+dplyr::relocate(prophageDf, sampleId, topology, chr, start, end, .after = contig_id) %>% 
+readr::write_tsv(file = confs$data$genomad$files$prophages)
 
 
 
