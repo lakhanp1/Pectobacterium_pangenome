@@ -180,6 +180,28 @@ cd $PROJECT_DIR
 - homology group: 22434077
 - COG description: MTH538 TIR-like domain (DUF1863)
 
+
+## Detect prophage in genomes using `genomad`
+
+```bash
+# run genomad and checkv pipeline
+nohup \
+cat data/reference_data/assembly_ids.txt | \
+parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
+--keep-order --results logs/genomad/{} \
+--joblog logs/genomad/parallel.log \
+scripts/a_preprocessing/genomad_prophage_ann.sh {} \
+>>logs/genomad/nohup.out 2>&1 &
+
+# count of prophage detected in each genome
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+printf "$i\t"
+tail -n +2 data/prophage_genomad/$i/${i}_summary/${i}_virus_summary.tsv | wc -l
+done | sort -nr -k2
+
+```
+
 ## Visualize homology groups of interest
 
 ### viral DNA integration related biological processes
