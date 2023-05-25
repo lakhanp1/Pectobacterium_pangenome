@@ -41,7 +41,7 @@ if [ ! -f ${out_path}/${sampleId}_summary/${sampleId}_virus_summary.tsv ]; then
     conda activate genomad
     process_start "geNamad on $sampleId"
 
-    genomad end-to-end --cleanup -t 12 \
+    genomad end-to-end --cleanup -t 12 --enable-score-calibration \
         $file_fna $out_path $TOOLS_PATH/genomad_db
 
     error_exit $?

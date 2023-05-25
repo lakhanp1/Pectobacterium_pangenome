@@ -28,7 +28,7 @@ sampleId <- "GCF_024498715.1_ASM2449871v1"
 prophageDf <- NULL
 
 for (sampleId in sampleInfo$sampleId) {
-
+  
   
   virSummary <- suppressMessages(
     readr::read_tsv(
@@ -36,7 +36,11 @@ for (sampleId in sampleInfo$sampleId) {
                    "_summary/", sampleId, "_virus_summary.tsv", sep = "")
     )
   ) %>% 
-    dplyr::select(seq_name, topology, coordinates) %>% 
+    dplyr::select(-n_genes) %>% 
+    dplyr::rename_with(
+      .fn = ~paste("genomad.", .x, sep = ""),
+      .cols = c(virus_score, fdr, n_hallmarks, marker_enrichment)
+    ) %>% 
     dplyr::mutate(
       sampleId = !!sampleId,
       chr = stringr::str_replace(seq_name, "(.*)\\|.*", "\\1"),
@@ -55,11 +59,15 @@ for (sampleId in sampleInfo$sampleId) {
     
     prophageDf <- dplyr::bind_rows(prophageDf, checkv)
   }
-
+  
 }
 
-dplyr::relocate(prophageDf, sampleId, topology, chr, start, end, .after = contig_id) %>% 
-readr::write_tsv(file = confs$data$genomad$files$prophages)
+dplyr::select(
+  prophageDf, contig_id, sampleId, chr, start, end, topology, taxonomy, 
+  starts_with("genomad."), everything()
+) %>% 
+  dplyr::glimpse() %>% 
+  readr::write_tsv(file = confs$data$genomad$files$prophages)
 
 
 
