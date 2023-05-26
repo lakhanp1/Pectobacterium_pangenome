@@ -43,6 +43,7 @@ for (sampleId in sampleInfo$sampleId) {
     ) %>% 
     dplyr::mutate(
       sampleId = !!sampleId,
+      SpeciesName = !!sampleInfoList[[sampleId]]$SpeciesName,
       chr = stringr::str_replace(seq_name, "(.*)\\|.*", "\\1"),
       .before = coordinates
     ) %>% 
@@ -63,10 +64,10 @@ for (sampleId in sampleInfo$sampleId) {
 }
 
 dplyr::select(
-  prophageDf, contig_id, sampleId, chr, start, end, topology, taxonomy, 
+  prophageDf, contig_id, sampleId, SpeciesName, chr, start, end, topology, taxonomy, 
   starts_with("genomad."), everything()
 ) %>% 
-  dplyr::glimpse() %>% 
+  # dplyr::glimpse() %>% 
   readr::write_tsv(file = confs$data$genomad$files$prophages)
 
 

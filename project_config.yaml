@@ -262,3 +262,7 @@ analysis:
     dir: "04_pangenome_pecto_v2/pheno_association"
     files:
       pheno_specific_groups: "phenotype_specific_groups.txt"
+  prophages:
+    dir: "04_pangenome_pecto_v2/prophages"
+    files:
+      x: ""

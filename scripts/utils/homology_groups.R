@@ -228,5 +228,34 @@ homology_group_heatmap <- function(mat, phy, metadata, width, hgAn = NULL, markG
 
 ################################################################################
 
+#' Get homology groups for a genomic region
+#'
+#' @param orgDb org.db pangenome object
+#' @param genome genome number in pangenome
+#' @param chr chromosome name
+#' @param start start. default: `1` i.e. start of chromosome
+#' @param end end position. default: `Inf` end of chromosome
+#'
+#' @return A vector of homology group identifiers
+#' @export
+#'
+#' @examples
+region_homology_groups <- function(orgDb, genome, chr, start = 1, end = Inf){
+  
+  df <- AnnotationDbi::select(
+    x = orgDb, keys = genome, keytype = "genome",
+    columns = c("GID", "chr_name", "start", "end")
+  ) %>% 
+    dplyr::mutate(
+      dplyr::across(
+        .cols = c(start, end), .fns = as.integer
+      )
+    ) %>% 
+    dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end)
+  
+  return(df$GID)
+}
+################################################################################
+
 
 

@@ -190,7 +190,7 @@ cat data/reference_data/assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/genomad/{} \
 --joblog logs/genomad/parallel.log \
-scripts/a_preprocessing/genomad_prophage_ann.sh {} \
+scripts/a_preprocessing/genomad_prophage_annotation.sh {} \
 >>logs/genomad/nohup.out 2>&1 &
 
 # count of prophage detected in each genome
