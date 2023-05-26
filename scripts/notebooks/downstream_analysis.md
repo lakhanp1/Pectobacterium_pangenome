@@ -181,7 +181,13 @@ cd $PROJECT_DIR
 - COG description: MTH538 TIR-like domain (DUF1863)
 
 
-## Detect prophage in genomes using `genomad`
+## Prophage analysis
+
+```bash
+
+```
+
+### Detect prophages in pangenome
 
 ```bash
 # run genomad and checkv pipeline
@@ -200,6 +206,22 @@ printf "$i\t"
 tail -n +2 data/prophage_genomad/$i/${i}_summary/${i}_virus_summary.tsv | wc -l
 done | sort -nr -k2
 
+```
+
+### Compare prophages
+
+```bash
+## list prophage FASTA files
+for i in `tail +2 data/pangenomes/pectobacterium.v2/input_genomes.tab | cut -f2`
+do
+  n_proph=$(cat data/prophage_genomad/$i/${i}_summary/${i}_virus.fna | wc -l)
+  if [ ${n_proph} -gt 0 ]; then
+    ls data/prophage_genomad/$i/${i}_summary/${i}_virus.fna
+  fi
+done > data/prophage_genomad/prophage_fasta.list
+
+# run fastANI
+bash scripts/a_preprocessing/ANI_processing.sh
 ```
 
 ## Visualize homology groups of interest
