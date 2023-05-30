@@ -67,6 +67,7 @@ dplyr::select(
   prophageDf, contig_id, sampleId, SpeciesName, chr, start, end, topology, taxonomy, 
   starts_with("genomad."), everything()
 ) %>% 
+  dplyr::mutate(prophage_id = paste("phage_", 1:n()), .after = contig_id) %>% 
   # dplyr::glimpse() %>% 
   readr::write_tsv(file = confs$data$genomad$files$prophages)
 
