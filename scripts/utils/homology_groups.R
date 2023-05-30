@@ -161,7 +161,7 @@ homology_group_heatmap <- function(mat, phy, metadata, width, hgAn = NULL, markG
     column_title = "Homology groups",
     width = unit(width[2], "cm")
   )
-    
+  
   if(!is.null(hgAn)){
     ht_args$column_split <- hgAn$hg_group
     ht_args$column_order <- hgAn$hg_id
@@ -242,9 +242,17 @@ homology_group_heatmap <- function(mat, phy, metadata, width, hgAn = NULL, markG
 #' @examples
 region_homology_groups <- function(orgDb, genome, chr, start = 1, end = Inf){
   
+  stopifnot(
+    !is.na(chr)
+  )
+  
+  start <- ifelse(is.na(start), 1, start)
+  end <- ifelse(is.na(end), Inf, end)
+  
   df <- AnnotationDbi::select(
     x = orgDb, keys = genome, keytype = "genome",
     columns = c("GID", "chr_name", "start", "end")
+    
   ) %>% 
     dplyr::mutate(
       dplyr::across(

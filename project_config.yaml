@@ -51,6 +51,7 @@ data:
     dir: "prophage_genomad"
     files:
       prophages: "prophage_summary.tab"
+      ani: "prophage_ANI"
   busco_db:
     dir: "busco_downloads"
   busco_genome:
@@ -265,4 +266,5 @@ analysis:
   prophages:
     dir: "04_pangenome_pecto_v2/prophages"
     files:
-      x: ""
+      prophage_hg: "prophage_hgs.tab"
+      species_prophage_stats: "species_prophage_stats.tab"
