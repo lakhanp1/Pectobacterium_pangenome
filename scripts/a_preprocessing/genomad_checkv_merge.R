@@ -1,5 +1,4 @@
 suppressMessages(library(tidyverse))
-suppressMessages(library(Rsamtools))
 
 # process and combine genomad and checkv output files for all samples
 
@@ -78,7 +77,9 @@ readr::write_tsv(prophageDf, file = confs$data$genomad$files$prophages)
 dplyr::select(prophageDf, sampleId, chr, start, end, prophage_id) %>% 
   dplyr::mutate(
     fna = paste(confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""),
-    region = paste(chr, ":", start, "-", end, sep = ""),
+    region = dplyr::if_else(
+      is.na(start), true = chr, false = paste(chr, ":", start, "-", end, sep = ""),
+    ),
     out = paste(confs$data$genomad$dir, "/phage_seqs/", prophage_id, ".fna", sep = ""),
     faidx = paste("samtools faidx", fna, region, ">", out)
   ) %>% 
