@@ -93,7 +93,7 @@ error_exit $?
 
 ``` bash
 ## generate random subsets to run `optimal_grouping`
-Rscript scripts/c_analysis/grouping_subsets_build.R
+Rscript scripts/b_construction/grouping_subsets_build.R
 
 ```
 
@@ -135,7 +135,7 @@ Summarize the results by plotting in R
 
 ```bash
 ## summarize the results
-Rscript scripts/c_analysis/grouping_subsets_analyze.R
+Rscript scripts/b_construction/grouping_subsets_analyze.R
 ```
 
 ### Grouping at the pangenome level
