@@ -193,7 +193,7 @@ analysis:
     files:
       data: ""
       pangenome: ""
-  gouping_optimization:
+  grouping_optimization:
     name: "grouping"
     dir: "04_pangenome_pecto_v2/subset_optimal_group"
   phylogeny:

@@ -1,29 +1,33 @@
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(here))
 
+# visualize subset optimal grouping results
 
 rm(list = ls())
 
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
 ################################################################################
+set.seed(124)
 
-file_fastani <- here::here("analysis", "02_fastANI", "ANI_results")
-file_metadata <- here::here("data/pangenomes/pectobacterium.v2", "genomes_metadata.csv")
-file_sampleSummary <- here::here("data/reference_data", "sample_metadata.tsv")
-file_tree <- here::here("analysis", "02_fastANI", "ANI_UPGMA.newick")
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
 
-outDir <- here::here("analysis", "03_pangenome_pecto_v2", "subset_optimal_group")
+outDir <- confs$analysis$grouping_optimization$dir
 
 files_grpOverview <- list.files(
-  path = "analysis/03_pangenome_pecto_v2/subset_optimal_group",
+  path = confs$analysis$grouping_optimization$dir,
   pattern = "fn_fp.csv", recursive = TRUE, full.names = TRUE
 )
 
 ################################################################################
-df <- suppressMessages(
-  readr::read_csv(
-    file = "analysis/03_pangenome_pecto_v2/subset_optimal_group/optimal_grouping_pangenome/grouping_overview.csv"
-  )
-)
+# df <- suppressMessages(
+#   readr::read_csv(
+#     file = file.path(outDir, "/optimal_grouping_pangenome/grouping_overview.csv")
+#   )
+# )
 
 fpFn <- purrr::map_dfr(
   .x = files_grpOverview,
@@ -54,14 +58,16 @@ pt_optGrp <- ggplot(
   mapping = aes(x=Mode, y=Score, group = id)
 ) +
   geom_line(
-    mapping = aes(color=Type, linetype = setType, alpha = setType, size = setType)
+    mapping = aes(color=setType, linetype = setType, alpha = setType),
+    linewidth = 1
   ) +
-  scale_color_manual(values=c("FP" = "#000000", "FN" = "#990000")) +
+  scale_color_manual(values=c("random" = "#000000", "type_strains" = "#990000", "pangenome" = "blue")) +
   scale_linetype_manual(
-    values = c("random" = "dotted", "type_strains" = "solid", "pangenome" = "solid")
+    values = c("random" = "dashed", "type_strains" = "solid", "pangenome" = "solid")
   ) +
   scale_alpha_manual(values = c("random" = 0.7, "type_strains" = 0.7, "pangenome" = 1)) +
-  scale_size_manual(values = c("random" = 0.5, "type_strains" = 1, "pangenome" = 2)) +
+  # scale_size_manual(values = c("random" = 0.5, "type_strains" = 1, "pangenome" = 2)) +
+  # scale_linewidth_discrete(values = c("random" = 0.5, "type_strains" = 1, "pangenome" = 2)) +
   scale_y_continuous(
     name = "Proteins", trans = 'log10',
     breaks=c(1,10,100,1000,10000,100000,100000,1000000)

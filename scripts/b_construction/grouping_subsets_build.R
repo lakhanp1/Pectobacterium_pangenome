@@ -9,14 +9,18 @@ suppressPackageStartupMessages(library(ape))
 
 rm(list = ls())
 
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
 
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
 
-file_fastani <- here::here("analysis", "02_fastANI", "ANI_results")
-file_metadata <- here::here("data/pangenomes/pectobacterium.v2", "genomes_metadata.csv")
-file_sampleSummary <- here::here("data/reference_data", "sample_metadata.tsv")
-file_tree <- here::here("analysis", "02_fastANI", "ANI_UPGMA.newick")
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
 
 outDir <- here::here("analysis", "03_pangenome_pecto_v2", "subset_optimal_group")
 
@@ -26,31 +30,23 @@ if(!dir.exists(outDir)){
   dir.create(outDir, recursive = T)
 }
 
-metadata <- suppressMessages(readr::read_tsv(file = file_sampleSummary)) %>% 
+metadata <- suppressMessages(readr::read_tsv(confs$data$reference_data$files$metadata)) %>% 
   dplyr::select(sampleId, length, GC_per, n_contigs, N50,L50)
 
-sampleInfo <- suppressMessages(readr::read_csv(file = file_metadata)) %>% 
-  dplyr::mutate(
-    SpeciesName = stringr::str_replace(
-      string = SpeciesName, pattern = "Pectobacterium", replacement = "P."
-    ),
-    nodeLabs = stringr::str_c(sampleName, " (", SpeciesName,")", sep = "")
-  ) %>% 
-  dplyr::select(id, everything()) %>% 
-  dplyr::left_join(y = metadata, by = c("id" = "sampleId"))
+sampleInfo <- get_metadata(file = panConf$files$metadata) %>% 
+  dplyr::left_join(y = metadata, by = c("sampleId"))
 
-treeUpgma <- ape::read.tree(file = file_tree)
+treeUpgma <- ape::read.tree(file = confs$analysis$phylogeny$ani_upgma$files$tree)
 ################################################################################
-
+## type strains, with best N50 in case of multiple type strains per species
 typeStrains <- dplyr::filter(sampleInfo, !is.na(type_material)) %>% 
   dplyr::group_by(SpeciesName) %>% 
   dplyr::arrange(desc(N50)) %>% 
   dplyr::slice(1L) %>% 
   dplyr::ungroup()
 
-
 ################################################################################
-
+# cut tree into 20 clusters and (select 1 random representative from each cluster) * 100 times
 treeSets <- tibble::enframe(
   x = cutree(tree = as.hclust.phylo(treeUpgma), k = 20),
   name = "id", value = "group"
@@ -64,11 +60,11 @@ treeSets <- tibble::enframe(
     setId = paste("rand", sprintf(fmt = "%03d", set), sep = "_")
   ) %>% 
   dplyr::ungroup() %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, id, Genome), by = "id")
+  dplyr::left_join(y = dplyr::select(sampleInfo, sampleId, Genome), by = c("id" = "Genome"))
 
 
 optGrpSets <- dplyr::group_by(treeSets, setId) %>% 
-  dplyr::summarise(genomes = paste(Genome, collapse = ",")) %>% 
+  dplyr::summarise(genomes = paste(id, collapse = ",")) %>% 
   dplyr::bind_rows(
     tibble(
       setId = "typeStrain", genomes = paste(typeStrains$Genome, collapse = ",")

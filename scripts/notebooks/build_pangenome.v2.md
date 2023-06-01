@@ -92,12 +92,35 @@ error_exit $?
 `optimal_grouping` at the Pangenome level is time consuming. An alternative approch using subset of genomes or only type strains was tried and the results were compared with the pangenome scale `optimal_grouping`.
 
 ``` bash
-## type strains
-bash ./scripts/b_construction/grouping_subsets_process.sh "typeStrain" "374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"
-
 ## generate random subsets to run `optimal_grouping`
 Rscript scripts/c_analysis/grouping_subsets_build.R
 
+```
+
+This script will generate a two column TSV file where first column is a set identifier and second column include comma separated genome identifers.
+
+
+> **Note**
+> typeStrain	374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266
+> rand_001	451,375,343,346,220,403,251,228,431,248,116,440,383,322,306,351,430,15,14,314
+> rand_002	451,375,374,224,32,360,252,226,442,248,116,266,386,385,306,387,205,15,265,92
+> rand_003	451,375,374,334,279,391,103,445,442,248,116,266,386,27,305,351,393,15,265,21
+> rand_004	451,375,374,88,96,193,251,235,431,248,116,440,386,124,335,387,294,15,423,123
+> .
+> .
+> .
+
+
+An example to run optimal grouping on subset of genomes in the pangenome.
+
+```bash
+## type strains
+bash ./scripts/b_construction/grouping_subsets_process.sh "typeStrain" "374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"
+```
+
+Use GNU parallel to run optimal grouping on all random sets.
+
+```bash
 ## run `optimal_grouping` on these random subsets
 nohup \
 # sed -n '1,6!p' analysis/03_pangenome_pecto_v2/subset_optimal_group/subsets_conf.tab | \
@@ -107,14 +130,18 @@ parallel --colsep '\t' --jobs 10  --keep-order --workdir $PWD --halt soon,fail=1
 --joblog logs/pantools/sub_opt_group/sub_opt_group.log \
 bash ./scripts/b_construction/grouping_subsets_process.sh {1} {2} \
 >>logs/pantools/sub_opt_group/nohup.out 2>&1 &
+```
 
+Summarize the results by plotting in R
+
+```bash
 ## summarize the results
 Rscript scripts/c_analysis/grouping_subsets_analyze.R
 ```
 
 ### Grouping at the pangenome level
 
-``` bash
+```bash
 ## grouping with relaxation 4 setting
 process_start group_v4
 nice $PANTOOLS group -t 30 --relaxation 4 ${pan_db}
