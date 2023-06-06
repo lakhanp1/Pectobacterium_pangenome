@@ -24,7 +24,8 @@ cols_metadata <- c(
   "strain", "virulence", "virulence_pcr", "geo_loc_country", "host", "isolation_source",
   "collection_year", "collected_by", "env_broad_scale", 
   "type_material", "virulence", "virulence_pcr",
-  "source", "type_material", "representative_status", "sample_type")
+  "source", "type_material", "representative_status", "sample_type",
+  "length", "N50", "L50", "n_contigs")
 
 #####################################################################
 ! dir.exists(panConf$dir) && dir.create(path = panConf$dir, recursive = TRUE)
@@ -37,6 +38,7 @@ if(! dir.exists(panConf$dir)){
 metadata <- suppressMessages(
   readr::read_tsv(file = confs$data$reference_data$files$metadata)
 )
+
 
 filteredMeta <- dplyr::filter(
   metadata,

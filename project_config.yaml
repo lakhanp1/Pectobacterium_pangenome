@@ -193,7 +193,7 @@ analysis:
     files:
       data: ""
       pangenome: ""
-  grouping_optimization:
+  gouping_optimization:
     name: "grouping"
     dir: "04_pangenome_pecto_v2/subset_optimal_group"
   phylogeny:
@@ -267,4 +267,5 @@ analysis:
     dir: "04_pangenome_pecto_v2/prophages"
     files:
       prophage_hg: "prophage_hgs.tab"
-      species_prophage_stats: "species_prophage_stats.tab"
+      prophage_stats_species: "prophage_stats_species.tab"
+      prophage_stats_genome: "prophage_stats_genome.tab"
