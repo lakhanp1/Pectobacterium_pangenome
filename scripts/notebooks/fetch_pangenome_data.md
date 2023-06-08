@@ -118,7 +118,7 @@ RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr, g.id AS go_id, id
 
 ## pangenome pan.db object to explore data
 
-### mRNA identifiers
+### mRNA identifiers as query
 
 ```r
 suppressMessages(library(org.Pectobacterium.spp.pan.eg.db))
@@ -152,7 +152,7 @@ df <- dplyr::left_join(
  
 ```
 
-### homology groups
+### homology groups as query
 
 ```r
 suppressMessages(library(org.Pectobacterium.spp.pan.eg.db))
@@ -176,7 +176,7 @@ df <- AnnotationDbi::select(
   ) 
 ```
 
-### GO terms
+### GO terms as query
 
 ```r
 suppressMessages(library(org.Pectobacterium.spp.pan.eg.db))

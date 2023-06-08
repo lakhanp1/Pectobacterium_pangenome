@@ -31,14 +31,19 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-analysisName <- "JGAR-100719-1_contig_3_consensus_442933_461352"
+analysisName <- "prophage_hgs"
 
-hgs <- c(
-  "22426826", "22426802", "22426819", "22427604", "22427607", "22427609", "22427610",
-  "22427612", "22427614", "22427616", "22427618", "22427622", "22427623", "22427625",
-  "22427626", "22427627", "22427629", "22427634", "22427630", "22427633", "22427636",
-  "22427640"
-)
+hgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$prophage_hg)
+) %>%
+  dplyr::filter(!is.na(hgs)) %>%
+  dplyr::filter(
+    sampleId %in% c("JGAR-100719-1", "NAK238", "NAK716", "NAK700", "GCF_000754695.1_ASM75469v1")
+    # sampleId == "JGAR-100719-1"
+  ) %>%
+  # dplyr::pull(hgs) %>%
+  stringr::str_split(";") %>%
+  unlist() %>% unique()
 
 treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
@@ -70,7 +75,7 @@ sampleInfo %<>%  dplyr::mutate(
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
-hgMat <- homology_groups_mat(pandb = orgDb, type = "cnv", groups = hgs)
+hgMat <- homology_groups_mat(pandb = orgDb, type = "pav", groups = hgs)
 
 hgMat <- hgMat[rawTree$tip.label, ]
 
@@ -79,9 +84,10 @@ htList <- homology_group_heatmap(
   width = c(10, 20)
 )
 
-htList@ht_list$hg@column_dend_param$cluster <- FALSE
+htList@ht_list$hg@column_dend_param$cluster <- FALSE 
+htList@ht_list$hg@column_names_param$show <- FALSE
 
-pdf(file = paste(outPrefix, ".homology_grps.pdf", sep = ""), width = 15, height = 9)
+pdf(file = paste(outPrefix, ".homology_grps.pdf", sep = ""), width = 20, height = 9)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "hg",

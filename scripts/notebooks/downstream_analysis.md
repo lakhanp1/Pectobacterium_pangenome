@@ -202,8 +202,8 @@ scripts/a_preprocessing/genomad_prophage_annotation.sh {} \
 # count of prophage detected in each genome
 for i in `cat data/reference_data/assembly_ids.txt`
 do
-printf "$i\t"
-tail -n +2 data/prophage_genomad/$i/${i}_summary/${i}_virus_summary.tsv | wc -l
+  printf "$i\t"
+  tail -n +2 data/prophage_genomad/$i/${i}_summary/${i}_virus_summary.tsv | wc -l
 done | sort -nr -k2
 
 ```
@@ -211,17 +211,16 @@ done | sort -nr -k2
 ### Compare prophages
 
 ```bash
-## list prophage FASTA files
-for i in `tail +2 data/pangenomes/pectobacterium.v2/input_genomes.tab | cut -f2`
-do
-  n_proph=$(cat data/prophage_genomad/$i/${i}_summary/${i}_virus.fna | wc -l)
-  if [ ${n_proph} -gt 0 ]; then
-    ls data/prophage_genomad/$i/${i}_summary/${i}_virus.fna
-  fi
-done > data/prophage_genomad/prophage_fasta.list
+# process genomad output and separate prophages into independent FASTA files
+Rscript scripts/a_preprocessing/genomad_checkv_merge.R
+
+# list prophage FASTA files
+ls data/prophage_genomad/phage_seqs/*.fna  > data/prophage_genomad/prophage_fasta.list
 
 # run fastANI
-bash scripts/a_preprocessing/ANI_processing.sh
+bash scripts/a_preprocessing/ANI_processing.sh \
+  data/prophage_genomad/prophage_fasta.list \
+  data/prophage_genomad/prophage_ANI
 ```
 
 ## Visualize homology groups of interest
