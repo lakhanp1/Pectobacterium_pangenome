@@ -110,7 +110,6 @@ homology_groups_mat <- function(pandb, type, groups = NULL){
 }
 
 ################################################################################
-################################################################################
 #' Plot homology group heatmap with provided clustering
 #'
 #' @param mat homology group matrix
@@ -230,7 +229,7 @@ homology_group_heatmap <- function(mat, phy, metadata, width, hgAn = NULL, markG
 
 #' Get homology groups for a genomic region
 #'
-#' @param orgDb org.db pangenome object
+#' @param pandb org.db pangenome object
 #' @param genome genome number in pangenome
 #' @param chr chromosome name
 #' @param start start. default: `1` i.e. start of chromosome
@@ -240,7 +239,7 @@ homology_group_heatmap <- function(mat, phy, metadata, width, hgAn = NULL, markG
 #' @export
 #'
 #' @examples
-region_homology_groups <- function(orgDb, genome, chr, start = 1, end = Inf){
+region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf){
   
   stopifnot(
     !is.na(chr)
@@ -250,7 +249,7 @@ region_homology_groups <- function(orgDb, genome, chr, start = 1, end = Inf){
   end <- ifelse(is.na(end), Inf, end)
   
   df <- AnnotationDbi::select(
-    x = orgDb, keys = genome, keytype = "genome",
+    x = pandb, keys = genome, keytype = "genome",
     columns = c("GID", "chr_name", "start", "end")
     
   ) %>% 
@@ -264,6 +263,97 @@ region_homology_groups <- function(orgDb, genome, chr, start = 1, end = Inf){
   return(df$GID)
 }
 ################################################################################
+
+#' Locate homology group set position on a contig or chromosome
+#'
+#' @param hgs homology groups
+#' @param genome Genome against which to map 
+#' @param pandb org.db pangenome object
+#'
+#' @return A number `[0, 1]` giving relative position of homology groups on contig.
+#' `-1` if the homology groups are scattered on a contig.
+#' @export
+#'
+#' @examples
+get_hg_sets_location <- function(hgs, genome, pandb){
+  
+  hgInfo <- suppressMessages(
+    AnnotationDbi::select(
+      x = pandb, keys = hgs,
+      columns =  c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+    ) 
+  ) %>% 
+    dplyr::filter(genome == !!genome) %>% 
+    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
+    dplyr::arrange(start)
+  
+  stopifnot(length(unique(hgInfo$chr_id)) == 1)
+  
+  chrInfo <- suppressMessages(
+    AnnotationDbi::select(
+      x = pandb, keys = genome, keytype = "genome",
+      columns =  c("GID", "genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+    ) 
+  ) %>% 
+    dplyr::filter(chr_id == !!hgInfo$chr_id[1]) %>% 
+    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
+    dplyr::arrange(start)
+  
+  # use RLE structure to check for tandem overlap
+  hgRle <- rle(chrInfo$GID %in% hgInfo$GID)
+  
+  if (!any(hgRle$lengths[hgRle$values == TRUE] >= nrow(hgInfo))) {
+    # for a tandem match of homology groups, there should be one (RLE length for TRUE) >= #HGs
+    # if these is no such RLE length, something is wrong
+    return(-1)
+    
+  } else{
+    
+    if (identical(hgRle$values, c(TRUE))) {
+      # hgs are on independent contig
+      return(0)
+      
+    } else if(identical(hgRle$values[1:2], c(TRUE, FALSE)) &
+              hgRle$lengths[1] >= nrow(hgInfo)){
+      # hgs are at the beginning
+      return(0)
+      
+    } else if(identical(tail(hgRle$values, 2), c(FALSE, TRUE)) & 
+              tail(hgRle$lengths, 1) >= nrow(hgInfo)){
+      # hgs are at the beginning
+      return(1)
+      
+    } else{
+      # hgs present within a contig
+      
+      hgPosition <- which(
+        hgRle$values == TRUE & hgRle$lengths >= nrow(hgInfo)
+      )
+      
+      return((sum(head(hgRle$lengthsm, hgPosition - 1)) + 1)/nrow(chrInfo))
+      
+    }
+  }
+}
+
+
+################################################################################
+
+
+#' From a set of homology groups, detect homology groups that are arranged in tandem
+#'
+#' @param hgs A vector of homology group ids
+#' @param genome Genome against which to map
+#' @param pandb org.db pangenome object
+#'
+#' @return A list of homology groups where each element is a tandem group set
+#' @export
+#'
+#' @examples
+find_tandem_hgs <- function(hgs, genome, pandb){
+  
+}
+
 
 
 
