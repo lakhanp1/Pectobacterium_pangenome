@@ -269,3 +269,4 @@ analysis:
       prophage_hg: "prophage_hgs.tab"
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
+      prophage_similarity: "pangenome_phage_similarity.tab"
