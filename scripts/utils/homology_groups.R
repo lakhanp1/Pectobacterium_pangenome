@@ -269,13 +269,14 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf){
 #' @param hgs homology groups
 #' @param genome Genome against which to map 
 #' @param pandb org.db pangenome object
+#' @param chr chromosome or contig name to restrict
 #'
 #' @return A number `[0, 1]` giving relative position of homology groups on contig.
 #' `-1` if the homology groups are scattered on a contig.
 #' @export
 #'
 #' @examples
-get_hg_sets_location <- function(hgs, genome, pandb){
+get_hg_sets_location <- function(hgs, genome, chr, pandb){
   
   hgInfo <- suppressMessages(
     AnnotationDbi::select(
@@ -283,7 +284,7 @@ get_hg_sets_location <- function(hgs, genome, pandb){
       columns =  c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
     ) 
   ) %>% 
-    dplyr::filter(genome == !!genome) %>% 
+    dplyr::filter(genome == !!genome, chr_name == !!chr) %>% 
     dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
     dplyr::arrange(start)
   
