@@ -19,7 +19,6 @@ fi
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
 conda activate pantools_master
 export PANTOOLS="$PANTOOLS_4_1"
-#export PANTOOLS="$PANTOOLS_DEV"
 ######################################################################
 
 #TMPDIR="$LOCAL_DIR_PATH/tmp"
