@@ -20,7 +20,6 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -28,12 +27,12 @@ outDir <- confs$analysis$prophages$dir
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
-logger::log_threshold(DEBUG)
-# file_log <- "logs/prophage_correction.log"
-# unlink(file_log)
-# logger::log_appender(
-#   appender = logger::appender_file(file = file_log)
-# )
+logger::log_threshold(WARN)
+file_log <- "logs/prophage_correction.log"
+unlink(file_log)
+logger::log_appender(
+  appender = logger::appender_file(file = file_log)
+)
 
 ################################################################################
 # sorting by N50 to avoid the circular links. In case of duplicate prophages
@@ -80,11 +79,11 @@ phageGraph <- igraph::make_empty_graph() +
 
 # g_386.vir_2; g_438.vir_3
 
-sampleInfo <- dplyr::filter(
-  sampleInfo,
-  # Genome %in% "378",
-  Genome %in% c("68", "87", "94", "90", "59", "86", "30", "93")
-)
+# sampleInfo <- dplyr::filter(
+#   sampleInfo,
+#   # Genome %in% "378",
+#   Genome %in% c("68", "87", "94", "90", "59", "86", "30", "93")
+# )
 # gn <- "378"
 # ph <- "g_111.vir_3"
 # ph <- "g_261.vir_5"
@@ -134,30 +133,22 @@ for (gn in sampleInfo$Genome) {
       logger::log_debug('parent phage: ', ph, ' | evaulating children: ',
                         paste(childPhages, collapse = "; "))
       
-      # prevent circular links: was current parentPh detected as child
+      # prevent circular links: 
+      # was there a previous link from parentPh-(has_parent)->childPhages
+      # no need to make childPhages-(has_parent)->parentPh link
       # to the current childPhages
-      # need a recursion here
-      if(!is.null(childParentList[[parentPh$prophage_id]])){
-        if (setequal(childParentList[[parentPh$prophage_id]], childPhages)) {
-          logger::log_warn('Circular link ', parentPh$prophage_id, ' and ',
-                           paste(childPhages, collapse = "; "))
-          # next
-          break
-        }
-        
-        isLinkedPreviously <- purrr::map_dbl(
-          .x = childPhages,
-          .f = ~ igraph::edge_connectivity(
-            graph = gf, source = .x, target = parentPh$prophage_id
-          )
+      isLinkedPreviously <- purrr::map_dbl(
+        .x = childPhages,
+        .f = ~ igraph::edge_connectivity(
+          graph = phageGraph, source = parentPh$prophage_id, target = .x
         )
-          
-        if(all(isLinkedPreviously == 1)){
-          logger::log_warn('Circular link ', parentPh$prophage_id, ' and ',
-                           paste(childPhages, collapse = "; "))
-          
-          break
-        }
+      )
+      
+      if(all(isLinkedPreviously == 1)){
+        logger::log_warn('Circular link avoided between ', parentPh$prophage_id,
+                         ' and ', paste(childPhages, collapse = "; "))
+        
+        break
       }
       
       
@@ -350,7 +341,7 @@ for (gn in sampleInfo$Genome) {
     ) %>% 
       unlist()
     
-    # add edges with attributes
+    # add edges with attributes: direction is child_phage--(has_parent)-->parent_phage
     phageGraph <- phageGraph + 
       igraph::edges(
         phageEdges,
