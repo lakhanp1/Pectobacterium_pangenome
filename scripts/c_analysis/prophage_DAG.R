@@ -46,8 +46,6 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
-
 ################################################################################
 
 prophageDf <- suppressMessages(readr::read_tsv(confs$data$genomad$files$prophages)) %>% 
