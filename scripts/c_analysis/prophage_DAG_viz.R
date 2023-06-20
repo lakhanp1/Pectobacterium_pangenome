@@ -11,7 +11,7 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 
-# visualize the prophage network
+# visualize the prophage relationship DAG 
 
 rm(list = ls())
 
@@ -54,7 +54,7 @@ proHgs <- suppressMessages(
     y = dplyr::select(sampleInfo, sampleId, SpeciesName, Genome, N50), by = "sampleId"
   ) 
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$genomad$files$prophages)) %>% 
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$summary)) %>% 
   dplyr::select(prophage_id, prophage_length = length, completeness)
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
@@ -71,7 +71,7 @@ sampleInfo %<>%  dplyr::mutate(
 ################################################################################
 
 phageRelations <- suppressMessages(
-  readr::read_tsv(file = confs$analysis$prophages$files$prophage_similarity)
+  readr::read_tsv(file = confs$analysis$prophages$files$hg_similarity)
 ) %>% 
   dplyr::mutate(child = stringr::str_split(child, ";")) %>% 
   tidyr::unnest(child) %>% 
@@ -178,134 +178,6 @@ ggsave(filename = paste(outDir, "/prophage_clusters.pdf", sep = ""),
        width = 12, height = 10)
 
 ################################################################################
-
-# prophage homology groups on pangenome phylogeny
-proReps <- dplyr::filter(nodes, nodeType != "child") %>% 
-  dplyr::select(prophage_id = id, nodeType) %>% 
-  dplyr::left_join(proHgs, by = "prophage_id") %>% 
-  dplyr::select(-contig_id)
-
-# function to get homology group counts in each genome of a pangenome
-homology_groups_genome_counts <- function(h, pandb){
-  suppressMessages(
-    AnnotationDbi::select(
-      x = pandb, keys = unique(h),
-      columns = c("genome")
-    )
-  ) %>% 
-    dplyr::group_by(genome) %>% 
-    dplyr::summarise(n = n())
-}
-
-proHgPerGenome <- dplyr::select(proReps, prophage_id, hgs, nHgs) %>% 
-  # dplyr::slice_head(n = 10) %>% 
-  dplyr::rowwise() %>% 
-  dplyr::mutate(
-    genomeCounts = list(homology_groups_genome_counts(h = hgs, pandb = orgDb)
-    )
-  ) %>% 
-  dplyr::select(-hgs) %>% 
-  tidyr::unnest(cols = genomeCounts) %>% 
-  dplyr::mutate(fraction = n/nHgs)
-
-proHgCounts <- tidyr::pivot_wider(
-  data = proHgPerGenome,
-  id_cols = c(genome),
-  names_from = prophage_id,
-  values_from = fraction,
-  values_fill = 0,
-)
-
-
-countMat <- tibble::tibble(genome = rawTree$tip.label) %>% 
-  dplyr::left_join(y = proHgCounts, by = c("genome")) %>% 
-  tibble::column_to_rownames(var = "genome") %>% 
-  as.matrix()
-
-hist(matrixStats::colMaxs(countMat))
-hist(countMat)
-
-speciesMat <- tibble::tibble(Genome = rownames(countMat)) %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, Genome, SpeciesName), by = "Genome") %>% 
-  dplyr::mutate(species = 1) %>% 
-  tidyr::pivot_wider(
-    id_cols = Genome, names_from = SpeciesName,
-    values_from = species, values_fill = 0, names_sort = TRUE
-  ) %>% 
-  tibble::column_to_rownames(var = "Genome") %>% 
-  as.matrix()
-
-prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>% 
-  dplyr::left_join(y = nodes, by = c("prophage_id" = "id"))
-
-## ensure the row order is same: this is because of a bug in ComplexHeatmap
-stopifnot(
-  all(rownames(countMat) == rawTree$tip.label),
-  all(rownames(speciesMat) == rawTree$tip.label)
-)
-
-# top annotation
-an_bar <- ComplexHeatmap::HeatmapAnnotation(
-  nHgs = ComplexHeatmap::anno_barplot(
-    x = prophageAnDf$nHgs,
-    axis_param = list(side = "right")
-  ),
-  completeness = ComplexHeatmap::anno_barplot(
-    x = prophageAnDf$completeness,
-    gp = gpar(col = "blue"),
-    axis_param = list(side = "right")
-  ),
-  which = "column",
-  annotation_name_side = "right",
-  annotation_name_rot = 0,
-  annotation_name_gp = gpar(fontsize = 12),
-  annotation_height = unit(c(2, 0.5), "cm")
-)
-
-# prophage homology group count heatmap
-ht_count <- ComplexHeatmap::Heatmap(
-  matrix = countMat,
-  name = "hg_count",
-  col = viridisLite::viridis(n = 11, option = "B"),
-  bottom_annotation = an_bar,
-  cluster_rows = ape::as.hclust.phylo(rawTree), row_dend_reorder = FALSE,
-  cluster_columns = TRUE,
-  show_column_names = FALSE,
-  show_row_dend = TRUE, show_column_dend = FALSE,
-  row_dend_width = unit(3, "cm"),
-  show_row_names = FALSE,
-  column_title = "Prophage homology groups / genome",
-  width = unit(20, "cm")
-)
-
-
-# species key heatmap
-ht_species <- ComplexHeatmap::Heatmap(
-  matrix = speciesMat,
-  name = "species_key",
-  col = c("1" = "black", "0" = "white", "compare" = "red", "against" = "green"),
-  # cluster_rows = as.hclust.phylo(phy), row_dend_reorder = FALSE,
-  cluster_columns = FALSE,
-  # column_order = speciesOrder,
-  column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
-  border = TRUE, column_gap = unit(0, "mm"),
-  show_row_names = FALSE, show_column_names = TRUE,
-  column_names_rot = 45,
-  column_names_gp = gpar(fontsize = 12),
-  column_title = "Species key",
-  width = unit(8, "cm")
-)
-
-htList <- ht_species + ht_count
-
-pdf(file = paste(outDir, "/prophage_hg_summary.pdf", sep = ""), width = 15, height = 9)
-ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "hg_count",
-  row_dend_side = "left",
-  merge_legends = TRUE
-)
-dev.off()
 
 
 

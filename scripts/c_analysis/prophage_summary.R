@@ -4,7 +4,6 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
 
 
-
 rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
@@ -44,6 +43,18 @@ prophageDf <- suppressMessages(
   dplyr::filter(length > 5000 | genomad.virus_score >= 0.95 | checkv_quality == "Complete") %>% 
   dplyr::select(-SpeciesName, -Genome)
 
+hgSummary <- suppressMessages(
+  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
+) %>% 
+  tidyr::pivot_wider(
+    id_cols = c(SpeciesName),
+    names_from = class,
+    values_from = count
+  ) %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(
+    total_hgs = sum(core, accessory, unique, na.rm = T) 
+  )
 ################################################################################
 panProphages <- dplyr::left_join(sampleInfo, prophageDf, by = "sampleId")
 
@@ -92,7 +103,12 @@ proHgs <- suppressMessages(
   dplyr::arrange(desc(nHgs)) %>%
   dplyr::left_join(
     y = dplyr::select(sampleInfo, sampleId, SpeciesName), by = "sampleId"
-  )
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(prophageDf, prophage_id, prophage_length = length,
+                      completeness, checkv_quality, miuvig_quality),
+    by = "prophage_id") %>% 
+  dplyr::filter(prophage_length >= 5000)
 
 ################################################################################
 # species wise prophage summary
@@ -120,7 +136,7 @@ panVirSummary <- dplyr::summarise(
   total_vir_hgs = sum(n_hgs),
   unique_vir_hgs = length(unique(unlist(hgs)))
 ) %>% 
-  dplyr::mutate(SpeciesName = "pangenome", .before = n_genomes)
+  dplyr::mutate(SpeciesName = "Pangenome", .before = n_genomes)
 
 spVirSummary <- dplyr::group_by(proHgStats, SpeciesName) %>% 
   dplyr::summarise(
@@ -135,8 +151,8 @@ spVirSummary <- dplyr::group_by(proHgStats, SpeciesName) %>%
     unique_vir_hgs = length(unique(unlist(hgs)))
   ) %>%
   dplyr::bind_rows(panVirSummary) %>% 
-  dplyr::arrange(desc(n_genomes))
-
+  dplyr::arrange(desc(n_genomes)) %>% 
+  dplyr::left_join(y = hgSummary, by = "SpeciesName")
 
 readr::write_tsv(x = spVirSummary, file = confs$analysis$prophages$files$prophage_stats_species)
 

@@ -48,7 +48,7 @@ sampleInfoList <- as.list_metadata(
 
 ################################################################################
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$genomad$files$prophages)) %>% 
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$summary)) %>% 
   dplyr::select(prophage_id, prophage_length = length, chr)
 
 # read prophage HGs stored locally
@@ -378,7 +378,7 @@ for (gn in sampleInfo$Genome) {
 
 readr::write_tsv(
   x = sharedStats,
-  file = confs$analysis$prophages$files$prophage_similarity 
+  file = confs$analysis$prophages$files$hg_similarity
 )
 
 
