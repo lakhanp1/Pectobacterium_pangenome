@@ -253,15 +253,36 @@ ComplexHeatmap::draw(
 dev.off()
 
 ################################################################################
-## ANI heatmap for subset of genomes
+## ANI heatmap for P. brasiliense species clade
+nodeOfInterest <- dplyr::filter(leafOrder, SpeciesName == "P. brasiliense") %>% 
+  dplyr::pull(label)
 
+clade <- ape::getMRCA(phy = treeUpgma, tip = nodeOfInterest)
+subTree <- ape::extract.clade(phy = treeUpgma, node = clade)
+# nodelab(treeUpgma, clade)
+
+# subTree <- treeio::tree_subset(tree = treeTbl, node = clade, levels_back = 0)
+# ape::as.hclust.phylo(treeio::as.phylo(subTree))
+
+subAni <- aniMat[subTree$tip.label, subTree$tip.label]
+
+htList2 <- plot_species_ANI_heatmap(
+  mat = subAni, phy = subTree, metadata = sampleInfo,
+  width = c(1, 14)
+)
+
+png(filename = file.path(outDir, "ANI_PBrasiliense.heatmap.png"),
+    width = 4000, height = 2500, res = 350)
+ComplexHeatmap::draw(
+  object = htList2,
+  main_heatmap = "ani",
+  row_dend_side = "left"
+)
+dev.off()
+
+################################################################################
 ## ANI heatmap for inhouse strains
-# inhouseNodes <- dplyr::filter(sampleInfo, source %in% c("NAK", "NVWA"))
-# subsetName <- "ANI_inhouse"
-
-## ANI heatmap for P. brasiliense strains
-inhouseNodes <- dplyr::filter(sampleInfo, SpeciesName == "P. brasiliense")
-subsetName <- "ANI_PBrasiliense"
+inhouseNodes <- dplyr::filter(sampleInfo, source %in% c("NAK", "NVWA"))
 
 subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$Genome)
 subAni2 <- aniMat[subTree2$tip.label, subTree2$tip.label] %>% 
@@ -275,11 +296,19 @@ inhouseTreeTbl <- as_tibble(subTree2) %>%
   dplyr::full_join(y = inhouseNodes, by = c("label" = "Genome")) %>%
   treeio::as.treedata()
 
-## generate ggtree plot
 pt_inhouseTree <- ggtree::ggtree(
   tr = inhouseTreeTbl
 ) +
+  ggtree::geom_tippoint(
+    mapping = aes(subset = c(SpeciesName == "P. brasiliense")),
+    color = "blue"
+  ) +
+  # ggtree::geom_tiplab(
+  #   mapping = aes(label = label),
+  #   size = 3, align = TRUE, linesize = 0.5
+  # ) +
   scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  ggnewscale::new_scale_color() +
   ## virulence phenotype
   ggtreeExtra::geom_fruit(
     mapping = aes(y = id, x = "virulence", color = virulence),
@@ -302,47 +331,56 @@ pt_inhouseTree <- ggtree::ggtree(
     na.value = alpha("white", 0)
   )
 
-# # mark specific nodes: SpeciesName
-# pt_inhouseTree <- pt_inhouseTree +
-#   ggnewscale::new_scale_color() +
-#   ggtree::geom_tippoint(
-#     mapping = aes(subset = c(SpeciesName == "P. brasiliense")),
-#     color = "blue"
-#   ) 
-
-# mark specific nodes: source
-pt_inhouseTree <- pt_inhouseTree +
-  ggnewscale::new_scale_color() +
-  ggtree::geom_tippoint(
-    mapping = aes(subset = c(source %in% c("NAK", "NVWA"))),
-    color = "blue"
-  )
-
-
-# species name key heatmap
 speciesKyeDf <- get_species_key_data(
   genomes = inhouseNodes$Genome, metadata = sampleInfo, type = "long"
 )
 
-pt_spKey <- species_key_plot(keyDf = speciesKyeDf)
+pt_spKey <- ggplot2::ggplot(
+  data = speciesKyeDf,
+  mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
+) +
+  geom_tile() +
+  theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, vjust = 0)
+  )
 
-# ANI heatmap
-subAni2 <- dplyr::mutate(
+pt_ani <- dplyr::mutate(
   subAni2,
   g1 = forcats::fct_relevel(g1, ggtree::get_taxa_name(pt_inhouseTree)),
   g2 = forcats::fct_relevel(g2, ggtree::get_taxa_name(pt_inhouseTree))
-)
-pt_ani <- ani_heatmap(aniDf = subAni2)
+) %>% 
+  ggplot2::ggplot(mapping = aes(x = g1, y = g2)) +
+  geom_tile(mapping = aes(fill = ANI)) +
+  # scale_fill_viridis_c(name = "% identity", option = "B") +
+  scale_fill_stepsn(
+      breaks = c(80, 85, 90, 91, 92, 92.5, 93, 93.5, 94, 95, 96, 97, 99),
+      colors = viridisLite::viridis(n = 13, option = "B")
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    plot.title = element_text(hjust = 0.5, vjust = 0)
+  )
 
 ## arrange plots one by one
 pt_all <- pt_spKey %>% aplot::insert_left(pt_inhouseTree, width = 0.5) %>%
   aplot::insert_right(pt_ani, width = 2)
-
+  
 
 ggsave(
-  plot = pt_all, width = 18, height = 10,
-  filename = paste(outDir, "/", subsetName, ".heatmap.pdf", sep = "")
+  plot = pt_all, width = 14, height = 8,
+  filename = file.path(outDir, "ANI_inhouse.heatmap.pdf")
 )
+
 
 
 ################################################################################

@@ -94,7 +94,7 @@ hgBinaryMat <- dplyr::mutate(
   as.matrix()
 
 spNames <- dplyr::count(sampleInfo, SpeciesName) %>% 
-  dplyr::filter(n >= 20) %>% 
+  # dplyr::filter(n >= 20) %>% 
   dplyr::pull(SpeciesName)
 
 sppGrpStats <- NULL
@@ -127,14 +127,14 @@ for (sp in spNames) {
     dplyr::mutate(SpeciesName = .env$sp, fraction = count/!!nrow(hgSum)) %>% 
     dplyr::bind_rows(sppGrpStats)
   
-  ## GO enrichment 
-  sppGrpGo <- dplyr::group_by(hgSum, class) %>% 
-    dplyr::group_modify(
-      .f = ~topGO_enrichment(genes = .x$hg, orgdb = orgDb)
-    ) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::mutate(SpeciesName = .env$sp) %>% 
-    dplyr::bind_rows(sppGrpGo)
+  # ## GO enrichment 
+  # sppGrpGo <- dplyr::group_by(hgSum, class) %>% 
+  #   dplyr::group_modify(
+  #     .f = ~topGO_enrichment(genes = .x$hg, orgdb = orgDb)
+  #   ) %>% 
+  #   dplyr::ungroup() %>% 
+  #   dplyr::mutate(SpeciesName = .env$sp) %>% 
+  #   dplyr::bind_rows(sppGrpGo)
   
 }
 
@@ -157,10 +157,6 @@ panGo <- hgMeta %>%
 
 sppGrpGo <- dplyr::bind_rows(panGo, sppGrpGo) %>% 
   dplyr::select(SpeciesName, everything())
-
-readr::write_tsv(
-  x = sppGrpStats, file = confs$analysis$homology_groups$files$spp_group_stats
-)
 
 readr::write_tsv(
   x = sppGrpGo, file = confs$analysis$homology_groups$files$spp_group_go
@@ -195,22 +191,28 @@ ggsave(
 
 ################################################################################
 # core-accessory-unique stats for each species
-sppGrpStats <-
-  # dplyr::select(panGo, class, count = inputSize) %>% 
-  # dplyr::distinct() %>% 
-  # dplyr::mutate(
-  #   SpeciesName = "Pangenome",
-  #   fraction = count / sum(count)
-  # ) %>% 
-  # dplyr::bind_rows(
-  suppressMessages(
-    readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
-    # )
+sppGrpStats <- hgMeta %>% 
+  dplyr::mutate(
+    class = dplyr::if_else(
+      condition = class == "core & single copy orthologous",
+      true = "core", false = class
+    )
   ) %>% 
+  dplyr::group_by(class) %>% 
+  dplyr::summarise(count = n(), .groups = "drop") %>% 
+  dplyr::mutate(
+    SpeciesName = "Pangenome",
+    fraction = count / sum(count)
+  ) %>% 
+  dplyr::bind_rows(sppGrpStats) %>% 
   dplyr::mutate(
     class = forcats::fct_relevel(class, "core", "accessory", "unique"),
     SpeciesName = forcats::fct_relevel(SpeciesName, "Pangenome", !!!spOrder$SpeciesName)
   )
+
+readr::write_tsv(
+  x = sppGrpStats, file = confs$analysis$homology_groups$files$spp_group_stats
+)
 
 (pt_stats <- ggplot(data = sppGrpStats) +
     geom_bar(
