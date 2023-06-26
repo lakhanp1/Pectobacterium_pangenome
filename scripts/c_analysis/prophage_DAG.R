@@ -48,7 +48,7 @@ sampleInfoList <- as.list_metadata(
 
 ################################################################################
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$summary)) %>% 
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
   dplyr::select(prophage_id, prophage_length = length, chr)
 
 # read prophage HGs stored locally

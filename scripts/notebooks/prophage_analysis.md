@@ -56,6 +56,20 @@ fastANI --ql data/prophage_genomad/prophage_fasta.list \
 --rl data/prophage_genomad/prophage_fasta.list \
 --threads 30 --matrix --visualize --fragLen 500 \
 -o data/prophage_genomad/prophage_ANI
+
+# use mash for distance estimation
+mkdir data/prophage_genomad/mash
+
+mash sketch -p 30 -s 15000 -k 17 -o data/prophage_genomad/mash/prophages_ref \
+-l data/prophage_genomad/prophage_fasta.list >logs/prophage/mash.log 2>&1
+
+mash info data/prophage_genomad/mash/prophages_ref.msh > \
+data/prophage_genomad/mash/prophage_sketch_info.txt
+
+mash dist -p 30 data/prophage_genomad/mash/prophages_ref.msh \
+data/prophage_genomad/mash/prophages_ref.msh > \
+data/prophage_genomad/mash/prophage_distance.tab
+
 ```
 
 ## Analysis
@@ -76,7 +90,7 @@ Rscript scripts/c_analysis/prophage_DAG_viz.R
 Process prophage ANI results and cluster prophages based on ANI.
 
 ```bash
-Rscript scripts/c_analysis/prophage_ANI_summary.R
+Rscript scripts/c_analysis/prophage_seq_similarity.R
 ```
 
 Merge the homology groups based prophage DAG with ANI to make final representative

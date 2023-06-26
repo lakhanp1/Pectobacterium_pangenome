@@ -2,6 +2,7 @@
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 
 rm(list = ls())
@@ -9,8 +10,6 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
-source("scripts/utils/association_analysis.R")
-source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
@@ -19,7 +18,6 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -34,13 +32,11 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
-
 prophageDf <- suppressMessages(
-  readr::read_tsv(confs$data$genomad$files$prophages)
+  readr::read_tsv(confs$data$prophages$files$data)
 ) %>% 
+  dplyr::rename(prophage_length = length) %>% 
   dplyr::filter(viral_genes != 0) %>% 
-  dplyr::filter(length > 5000 | genomad.virus_score >= 0.95 | checkv_quality == "Complete") %>% 
   dplyr::select(-SpeciesName, -Genome)
 
 hgSummary <- suppressMessages(
@@ -56,43 +52,17 @@ hgSummary <- suppressMessages(
     total_hgs = sum(core, accessory, unique, na.rm = T) 
   )
 ################################################################################
-panProphages <- dplyr::left_join(sampleInfo, prophageDf, by = "sampleId")
+panProphages <- dplyr::left_join(
+  dplyr::select(sampleInfo, sampleId, Genome, SpeciesName, geo_loc_country), 
+  y = prophageDf, by = "sampleId")
 
 table(panProphages$checkv_quality, panProphages$SpeciesName)
 
 dplyr::group_by(panProphages, sampleId, SpeciesName) %>% 
-  dplyr::summarise(n = n(), .groups = "drop") %>%
+  dplyr::summarise(n = n_distinct(prophage_id, na.rm = TRUE), .groups = "drop") %>%
   dplyr::group_by(SpeciesName) %>% 
   skimr::skim()
 
-# get homology groups for each prophage region
-proHgs <- dplyr::filter(panProphages, !is.na(contig_id)) %>% 
-  # dplyr::select(sampleId, Genome, chr, start, end, contig_id) %>% 
-  dplyr::rowwise() %>% 
-  dplyr::mutate(
-    hgs = list(
-      region_homology_groups(
-        orgDb = orgDb, genome = Genome, chr = chr, start = start, end = end
-      )
-    )
-  )
-
-# filter to keep high quality prophages
-proHgs %>% 
-  dplyr::mutate(
-    nHgs = length(hgs),
-    hgs = paste(hgs, collapse = ";")
-  ) %>%
-  dplyr::filter(
-    length > 5000 | genomad.virus_score >= 0.95 | checkv_quality == "Complete",
-    nHgs > 0
-  ) %>% 
-  dplyr::select(contig_id, prophage_id, sampleId, nHgs, hgs) %>% 
-  readr::write_tsv(
-    file = confs$analysis$prophages$files$prophage_hg
-  )
-
-################################################################################
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$prophage_hg)
@@ -105,7 +75,7 @@ proHgs <- suppressMessages(
     y = dplyr::select(sampleInfo, sampleId, SpeciesName), by = "sampleId"
   ) %>% 
   dplyr::left_join(
-    y = dplyr::select(prophageDf, prophage_id, prophage_length = length,
+    y = dplyr::select(prophageDf, prophage_id, prophage_length,
                       completeness, checkv_quality, miuvig_quality),
     by = "prophage_id") %>% 
   dplyr::filter(prophage_length >= 5000)
