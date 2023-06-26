@@ -50,8 +50,9 @@ data:
   prophages:
     dir: "prophage_genomad"
     files:
-      summary: "prophage_summary.tab"
+      data: "prophage_summary.tab"
       ani: "prophage_ANI"
+      mash: "mash/prophage_distance.tab"
   busco_db:
     dir: "busco_downloads"
   busco_genome:
@@ -271,3 +272,9 @@ analysis:
       prophage_stats_genome: "prophage_stats_genome.tab"
       hg_similarity: "pangenome_phage_similarity.tab"
       representatives: "unique_prophages.tab"
+      ani_distance: "prophage_ani_distance.tab"
+      ani_upgma: "prophage_ani_upgma.newick"
+      ani_nj: "prophage_ani_nj.newick"
+      mash_distance: "prophage_mash_distance.tab"
+      mash_upgma: "prophage_mash_upgma.newick"
+      mash_nj: "prophage_mash_nj.newick"

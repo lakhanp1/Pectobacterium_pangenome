@@ -248,11 +248,10 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf){
   start <- ifelse(is.na(start), 1, start)
   end <- ifelse(is.na(end), Inf, end)
   
-  df <- AnnotationDbi::select(
+  df <- suppressMessages(AnnotationDbi::select(
     x = pandb, keys = genome, keytype = "genome",
     columns = c("GID", "chr_name", "start", "end")
-    
-  ) %>% 
+  )) %>% 
     dplyr::mutate(
       dplyr::across(
         .cols = c(start, end), .fns = as.integer

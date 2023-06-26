@@ -14,6 +14,7 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/genome_comparison.R")
 
 ################################################################################
 set.seed(124)
@@ -164,91 +165,26 @@ readr::write_tsv(
 )
 
 ################################################################################
-## visualize ANI data: all tree
-#' Plot ANI heatmap with provided clustering
-#'
-#' @param mat ANI score matrix
-#' @param phy A phylo object
-#' @param metadata metadata for genomes. Must have SpeciesName and Genome column
-#' @param width Vector of length 2 for heatmap widths
-#'
-#' @return ComplexHeatmap with layout: species key heatmap | ANI heatmap
-#' @export
-#'
-#' @examples
-plot_species_ANI_heatmap <- function(mat, phy, metadata, width){
-  
-  ## necessary checks
-  stopifnot(
-    setequal(rownames(mat), phy$tip.label),
-    ## ensure the row order is same: this is because of a bug in ComplexHeatmap
-    all(rownames(mat) == phy$tip.label),
-    setequal(rownames(mat), colnames(mat)),
-    all(rownames(mat) %in% metadata$Genome),
-    any(class(phy) == "phylo"),
-    length(width) == 2,
-    all(is.numeric(width))
-  )
-  
-  ## ANI heatmap
-  ht_ani <- ComplexHeatmap::Heatmap(
-    matrix = mat,
-    name = "ani",
-    col = circlize::colorRamp2(
-      breaks = c(80, 85, 90, 91, 92, 92.5, 93, 93.5, 94, 95, 96, 97, 99),
-      # breaks = c(80, 85, 90, 91, 91.5, 92, 92.5, 93, 93.5, 94, 96, 97, 99),
-      colors = viridisLite::viridis(n = 13, option = "B")
-    ),
-    heatmap_legend_param = list(direction = "horizontal", legend_width = unit(3, "cm")),
-    cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
-    cluster_columns = ape::as.hclust.phylo(phy), column_dend_reorder = FALSE,
-    show_row_dend = TRUE, show_column_dend = FALSE,
-    row_dend_width = unit(3, "cm"),
-    show_row_names = FALSE, show_column_names = FALSE,
-    column_title = "ANI scores",
-    width = unit(width[2], "cm")
-  )
-  
-  # draw(ht_ani)
-  ## species name key heatmap
-  speciesMat <- get_species_key_data(genomes = rownames(mat), metadata = metadata, type = "wide")
-  
-  ## ensure the row order is same: this is because of a bug in ComplexHeatmap
-  stopifnot(all(rownames(speciesMat) == phy$tip.label))
-  
-  ht_species <- ComplexHeatmap::Heatmap(
-    matrix = speciesMat,
-    name = "species_key",
-    col = c("1" = "black", "0" = "white"),
-    cluster_columns = FALSE,
-    column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
-    border = TRUE, column_gap = unit(0, "mm"),
-    show_row_names = FALSE, show_column_names = TRUE,
-    column_names_rot = 45,
-    column_names_gp = gpar(fontsize = 12),
-    column_title = "Species key",
-    width = unit(width[1], "cm")
-  )
-  
-  # draw(ht_species)
-  
-  htList <- ht_species + ht_ani
-  
-  return(htList)
-  
-}
-
-################################################################################
 ## ANI heatmap for all genomes
 htList <- plot_species_ANI_heatmap(
-  mat = aniMat, phy = treeUpgma, metadata = sampleInfo, width = c(12,18)
+  mat = aniMat, phy = treeUpgma, speciesInfo = sampleInfo, 
+  col = circlize::colorRamp2(
+    breaks = c(0, 50, 80, 90, 91, 92, 93, 93.5, 94, 95, 96, 97, 99),
+    colors = viridisLite::viridis(n = 13, option = "B")
+  ),
+  name = "ani"
 )
 
-png(filename = file.path(outDir, "ANI_heatmap.png"), width = 5000, height = 2800, res = 350)
+htList@ht_list$species_key@matrix_param$width <- unit(10, "cm")
+htList@ht_list$ani@matrix_param$width <- unit(18, "cm")
+
+png(filename = file.path(outDir, "ANI_heatmap.png"), width = 5000, height = 3000, res = 350)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "ani",
-  row_dend_side = "left"
+  row_dend_side = "left",
+  merge_legend = TRUE,
+  heatmap_legend_side = "bottom"
 )
 dev.off()
 
@@ -267,16 +203,22 @@ subTree <- ape::extract.clade(phy = treeUpgma, node = clade)
 subAni <- aniMat[subTree$tip.label, subTree$tip.label]
 
 htList2 <- plot_species_ANI_heatmap(
-  mat = subAni, phy = subTree, metadata = sampleInfo,
-  width = c(1, 14)
+  mat = subAni, phy = subTree, 
+  col = circlize::colorRamp2(
+    breaks = c(0, 50, 80, 90, 91, 92, 93, 93.5, 94, 95, 96, 97, 99),
+    colors = viridisLite::viridis(n = 13, option = "B")
+  ),
+  name = "ani"
 )
 
 png(filename = file.path(outDir, "ANI_PBrasiliense.heatmap.png"),
-    width = 4000, height = 2500, res = 350)
+    width = 3000, height = 2500, res = 350)
 ComplexHeatmap::draw(
   object = htList2,
   main_heatmap = "ani",
-  row_dend_side = "left"
+  row_dend_side = "left",
+  merge_legend = TRUE,
+  heatmap_legend_side = "bottom"
 )
 dev.off()
 
