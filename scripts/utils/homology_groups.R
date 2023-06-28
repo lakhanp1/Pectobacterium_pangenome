@@ -340,20 +340,30 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb){
 ################################################################################
 
 
-#' From a set of homology groups, detect homology groups that are arranged in tandem
+#' From a set of homology groups, detect homology groups that are arranged in 
+#' tandem in a genome
 #'
 #' @param hgs A vector of homology group ids
-#' @param genome Genome against which to map
 #' @param pandb org.db pangenome object
+#' @param genome Find tandem match against a specific genome
 #'
 #' @return A list of homology groups where each element is a tandem group set
 #' @export
 #'
 #' @examples
-find_tandem_hgs <- function(hgs, genome, pandb){
+tandem_hg_match <- function(hgs, pandb, genome = NULL){
+  hgInfo <- suppressMessages(
+    AnnotationDbi::select(
+      x = pandb, keys = hgs,
+      columns =  c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+    ) 
+  ) %>% 
+    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
+    dplyr::arrange(start)
+  
   
 }
 
 
-
+################################################################################
 
