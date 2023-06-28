@@ -27,7 +27,7 @@ outDir <- confs$analysis$prophages$dir
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
-logger::log_threshold(WARN)
+logger::log_threshold(DEBUG)
 file_log <- "logs/prophage_correction.log"
 unlink(file_log)
 logger::log_appender(
@@ -39,7 +39,7 @@ logger::log_appender(
 # across multiple genome assemblies, prophage from assembly with highest N50 is
 # always assigned as parent to the prophages from remaining assembly. Prophage
 # from the highest quality assembly is root in this case
-sampleInfo <- get_metadata(file = panConf$files$metadata) %>% 
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>% 
   dplyr::arrange(N50)
 
 sampleInfoList <- as.list_metadata(
@@ -80,9 +80,9 @@ phageGraph <- igraph::make_empty_graph() +
 # sampleInfo <- dplyr::filter(
 #   sampleInfo,
 #   # Genome %in% "378",
-#   Genome %in% c("68", "87", "94", "90", "59", "86", "30", "93")
+#   Genome %in% c("186", "100")
 # )
-# gn <- "378"
+# gn <- "186"
 # ph <- "g_111.vir_3"
 # ph <- "g_261.vir_5"
 
@@ -95,6 +95,8 @@ for (gn in sampleInfo$Genome) {
   
   gnPhages <- dplyr::filter(proHgs, Genome == !!gn) %>% 
     dplyr::pull(prophage_id)
+  
+  logger::log_info('prophages in genome: ', paste(gnPhages, collapse = "; "))
   
   # purrr::keep(.x = proHgL, .p = function(x) x$Genome == gn)
   
@@ -119,8 +121,14 @@ for (gn in sampleInfo$Genome) {
       nUniqHgs <- length(setdiff(gpL$hgs, parentPh$hgs))
       nSharedHgs <- length(intersect(gpL$hgs, parentPh$hgs))
       
+      logger::log_debug(
+        gp, ' --parent--> ', ph, ' || nUniqHgs: ',
+        nUniqHgs, '; nSharedHgs: ', nSharedHgs
+      )
+      
       if(nUniqHgs <= 2 && nSharedHgs > nUniqHgs){
         childPhages <- append(childPhages, gpL$prophage_id)
+        logger::log_debug(gp, ' --parent--> ', ph, ': significant match found')
       }
       
     }
@@ -128,8 +136,10 @@ for (gn in sampleInfo$Genome) {
     # evaluate if this parent is the best, if not, update the parent
     if(!is.null(childPhages)){
       
-      logger::log_debug('parent phage: ', ph, ' | evaulating children: ',
-                        paste(childPhages, collapse = "; "))
+      logger::log_debug(
+        paste(childPhages, collapse = "; "), ' --parent--> ', ph,
+        ' : evaulating relationship'
+      )
       
       # prevent circular links: 
       # was there a previous link from parentPh-(has_parent)->childPhages
@@ -143,10 +153,18 @@ for (gn in sampleInfo$Genome) {
       )
       
       if(all(isLinkedPreviously == 1)){
-        logger::log_warn('Circular link avoided between ', parentPh$prophage_id,
-                         ' and ', paste(childPhages, collapse = "; "))
+        logger::log_warn(
+          paste(childPhages, collapse = "; "), ' --parent--> ', parentPh$prophage_id,
+          ' : Circular link avoided'
+        )
         
-        break
+        # remove these childPhages from next evaluations
+        gnPhages <- setdiff(gnPhages, childPhages)
+        
+        if(length(gnPhages) == 0){
+          break
+        }
+        next
       }
       
       
@@ -207,8 +225,10 @@ for (gn in sampleInfo$Genome) {
         ## if no parent, make current phage as parent
         if (length(bestParent) == 0) {
           bestParent[1] <- list(thisParent)
-          logger::log_info("First parent: ", thisParent$parent, " for children: ",
-                           paste(thisParent$children, collapse = "; "))
+          logger::log_info(
+            thisParent$childString, ' --parent--> ', thisParent$parent,
+            ': First parent'
+          )
           logger::log_info("#parents: ", length(bestParent))
           
           next
@@ -263,12 +283,14 @@ for (gn in sampleInfo$Genome) {
                 ", N50: ", parentPh$N50, " > ", oldParentPhage$N50
               )
               logger::log_info(
-                "Previous parent: #", i, ": ", bestParent[[i]]$parent, " for children: ",
-                paste(bestParent[[i]]$children, collapse = ";")
+                'Previous parent: #', i, ' : ',
+                paste(bestParent[[i]]$children, collapse = ";"), ' --parent--> ',
+                bestParent[[i]]$parent
               )
               logger::log_info(
-                "New parent: #", i, ": ", thisParent$parent, " for children: ",
-                paste(thisParent$children, collapse = ";")
+                'New parent: #', i, ' : ',
+                paste(thisParent$children, collapse = ";"), ' --parent--> ',
+                thisParent$parent 
               )
               
               betterParentFound <- TRUE
@@ -278,9 +300,6 @@ for (gn in sampleInfo$Genome) {
               
             }
             
-            # IMP to break the loop here
-            # break
-            
           } else if (betterParentFound) {
             # if better parent was found in one of the previous iteration,
             # ensure the other parent-child relationship that involve any
@@ -289,8 +308,10 @@ for (gn in sampleInfo$Genome) {
             if(any(thisParent$children %in% bestParent[[i]]$children)){
               # cannot set to NULL as this will change the for loop index 
               logger::log_info(
-                "Removing parent #", i, ": ", bestParent[[i]]$parent, " for children: ",
-                paste(bestParent[[i]]$children, collapse = ";")
+                "Removing parent #", i, ' : ', 
+                paste(bestParent[[i]]$children, collapse = ";"), ' --parent--> ',
+                bestParent[[i]]$parent
+                
               )
               
               bestParent[[i]] <- NULL
@@ -306,8 +327,11 @@ for (gn in sampleInfo$Genome) {
         if(!parentChildSetFound){
           bestParent <- append(bestParent, list(thisParent))
           
-          logger::log_info("New parent: #", length(bestParent), ": ", thisParent$parent,
-                           " for children: ", paste(thisParent$children, collapse = ";"))
+          logger::log_info(
+            "New parent: #", length(bestParent), " : ",
+            paste(thisParent$children, collapse = ";"), ' --parent--> ',
+            thisParent$parent
+          )
           logger::log_info("#parents: ", length(bestParent))
         }
         
@@ -381,4 +405,9 @@ readr::write_tsv(
   file = confs$analysis$prophages$files$hg_similarity
 )
 
-
+file.rename(
+  file_log,
+  paste(
+    "logs/prophage_correction.", format(Sys.time(), "%Y%m%d.%H%M"), ".log", sep = ""
+  )
+)

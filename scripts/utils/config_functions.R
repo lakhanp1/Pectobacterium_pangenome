@@ -4,13 +4,13 @@
 #' get sample metadata
 #'
 #' @param file metadata file
+#' @param genus Genus for abbreviation
 #'
 #' @return a sample metadata tibble
 #' @export
 #'
 #' @examples
-get_metadata <- function(file){
-  genus <- confs$genus
+get_metadata <- function(file, genus){
   genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
   
   ftype <- tools::file_ext(file)
@@ -65,7 +65,7 @@ get_metadata <- function(file){
 #' @examples
 as.list_metadata <- function(df, ...){
   stopifnot(
-    any(class(sampleInfo) %in% c("tbl", "data.frame")),
+    any(class(df) %in% c("tbl", "data.frame")),
     nargs() > 1,
     tibble::has_name(df, "sampleId")
   )
