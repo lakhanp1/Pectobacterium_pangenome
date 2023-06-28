@@ -26,10 +26,10 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 ################################################################################
 
-assemblyMeta <- suppressMessages(readr::read_tsv(confs$data$reference_data$files$metadata)) %>% 
-  dplyr::select(sampleId, length,N50, N90, L50, L90)
+assemblyMeta <- suppressMessages(readr::read_tsv(confs$data$reference_data$files$metadata)) %>%
+  dplyr::select(sampleId, length, N50, N90, L50, L90)
 
-sampleInfo <- get_metadata(file = panConf$files$metadata) %>% 
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>%
   dplyr::left_join(y = assemblyMeta, by = "sampleId")
 
 sampleInfoList <- as.list_metadata(
@@ -38,20 +38,20 @@ sampleInfoList <- as.list_metadata(
 
 cladeGrps <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny$files$clade_copare, comment = "#")
-) %>% 
+) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(compare, background, bgExcludeNode, bgExcludeTip),
-      .fns = ~stringr::str_split(string = .x, pattern = ",")
+      .fns = ~ stringr::str_split(string = .x, pattern = ",")
     )
-  ) %>% 
-  purrr::transpose() %>% 
+  ) %>%
+  purrr::transpose() %>%
   purrr::set_names(nm = purrr::map(., "name"))
 
 # ## test
 # cmp <- cladeGrps$versatile_clade2
 # treeName <- cmp$tree
-# 
+#
 # clade_comparison_confs(
 #   file = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
 #   node = cmp$compare,
@@ -68,9 +68,9 @@ cladeGrps <- suppressMessages(
 ## and optionally genome ids for clade against the comparison will be made
 cladeCmpList <- purrr::map(
   .x = cladeGrps,
-  .f = function(cmp){
+  .f = function(cmp) {
     treeName <- cmp$tree
-    
+
     clade_comparison_confs(
       tree = confs$analysis$phylogeny[[treeName]]$files$tree_rooted,
       node = cmp$compare,
@@ -81,7 +81,6 @@ cladeCmpList <- purrr::map(
       excludeNode = cmp$bgExcludeNode,
       excludeTips = cmp$bgExcludeTip
     )
-    
   }
 )
 
@@ -92,7 +91,8 @@ cladePhenotypes <- dplyr::select(sampleInfo, Genome)
 for (cmp in cladeCmpList) {
   # print(cmp$name)
   cladePhenotypes <- dplyr::left_join(
-    cladePhenotypes, cmp$pheno, by = "Genome"
+    cladePhenotypes, cmp$pheno,
+    by = "Genome"
   )
 }
 
@@ -106,7 +106,7 @@ readr::write_csv(
 ## format: <name>\t<--phenotype="xyz" [--include="1,3,5,15,..N"]>\t<compare_genomes>\t<against_genomes>\t
 purrr::map_dfr(
   cladeCmpList,
-  .f = function(x){
+  .f = function(x) {
     return(
       list(
         name = x$name, include = x$includeSet,
@@ -115,28 +115,30 @@ purrr::map_dfr(
     )
   }
 ) %>%
-  dplyr::mutate(compare = stringr::str_split(compare, ",")) %>% 
-  tidyr::unnest(cols = compare) %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, Genome, N50, length),
-                   by = c("compare" = "Genome")) %>% 
-  dplyr::group_by(name) %>% 
-  dplyr::arrange(desc(N50), .by_group = TRUE) %>% 
-  dplyr::mutate(compare = stringi::stri_flatten(compare, collapse = ",")) %>% 
-  dplyr::slice(1L) %>% 
+  dplyr::mutate(compare = stringr::str_split(compare, ",")) %>%
+  tidyr::unnest(cols = compare) %>%
+  dplyr::left_join(
+    y = dplyr::select(sampleInfo, Genome, N50, length),
+    by = c("compare" = "Genome")
+  ) %>%
+  dplyr::group_by(name) %>%
+  dplyr::arrange(desc(N50), .by_group = TRUE) %>%
+  dplyr::mutate(compare = stringi::stri_flatten(compare, collapse = ",")) %>%
+  dplyr::slice(1L) %>%
   dplyr::ungroup() %>%
-  dplyr::select(-N50, -length) %>% 
+  dplyr::select(-N50, -length) %>%
   dplyr::mutate(
     phenotypeArg = dplyr::if_else(
       condition = is.na(include) | include == "",
-      true = stringr::str_c("--phenotype=", name, sep = ""), 
+      true = stringr::str_c("--phenotype=", name, sep = ""),
       false = stringr::str_c("--phenotype=", name, " --include=", include, sep = "")
     ),
     name = forcats::fct_relevel(
-      name, purrr::map_chr(cladeGrps, "name") %>% unname
+      name, purrr::map_chr(cladeGrps, "name") %>% unname()
     )
-  ) %>% 
-  dplyr::arrange(name) %>% 
-  dplyr::select(name, phenotypeArg, compare, against, include) %>% 
+  ) %>%
+  dplyr::arrange(name) %>%
+  dplyr::select(name, phenotypeArg, compare, against, include) %>%
   readr::write_tsv(
     file = panConf$analysis_confs$files$clade_association,
     na = ""
@@ -144,13 +146,13 @@ purrr::map_dfr(
 
 
 ################################################################################
-## save config for species wise analysis 
-spGenomes <- dplyr::group_by(sampleInfo, SpeciesName) %>% 
+## save config for species wise analysis
+spGenomes <- dplyr::group_by(sampleInfo, SpeciesName) %>%
   dplyr::summarise(
     count = n(),
     genomes = paste(Genome, collapse = ",")
-  ) %>% 
-  dplyr::arrange(desc(count)) %>% 
+  ) %>%
+  dplyr::arrange(desc(count)) %>%
   dplyr::mutate(
     SpeciesName = stringr::str_replace_all(
       string = SpeciesName, pattern = "\\W+", replacement = "_"
@@ -158,5 +160,6 @@ spGenomes <- dplyr::group_by(sampleInfo, SpeciesName) %>%
   )
 
 readr::write_tsv(
-  spGenomes, file = panConf$analysis_confs$files$species_genomes
+  spGenomes,
+  file = panConf$analysis_confs$files$species_genomes
 )

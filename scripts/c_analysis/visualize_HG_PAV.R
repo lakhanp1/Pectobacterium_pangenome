@@ -40,7 +40,7 @@ file_result <- file.path(outDir, 'pav.virulent_Pbrasiliense.asso.no_dist.signifi
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 ################################################################################
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome

@@ -30,16 +30,17 @@ outDir <- file.path(confs$analysis$association$dir, analysisName)
 outPrefix <- file.path(outDir, analysisName)
 ################################################################################
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 rawTree <- ape::read.tree(file = panConf$db$core_phylogeny$default$files$tree_ml)
 rawTree <- ape::updateLabel(rawTree, old = sampleInfo$Genome, new = sampleInfo$sampleId, exact = TRUE)
 
-## input for unitig-counter 
-sampleInfo %<>% dplyr::filter(SpeciesName == "P. brasiliense") %>% 
-  dplyr::filter(!is.na(virulence)) %>% 
+## input for unitig-counter
+sampleInfo %<>% dplyr::filter(SpeciesName == "P. brasiliense") %>%
+  dplyr::filter(!is.na(virulence)) %>%
   dplyr::mutate(
     fasta = paste(
-      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""
+      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna",
+      sep = ""
     )
   )
 
@@ -47,7 +48,7 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-if(!dir.exists(outDir)){
+if (!dir.exists(outDir)) {
   dir.create(outDir)
 }
 ################################################################################
@@ -63,10 +64,10 @@ hgs <- homology_groups_extract(
   groups <- "accessory", pav = TRUE
 )
 
-dplyr::select(hgs, -class, Gene = hg, !!!purrr::map_chr(sampleInfoList, "Genome")) %>% 
-  dplyr::mutate(Gene = paste("hg_", Gene, sep = "")) %>% 
+dplyr::select(hgs, -class, Gene = hg, !!!purrr::map_chr(sampleInfoList, "Genome")) %>%
+  dplyr::mutate(Gene = paste("hg_", Gene, sep = "")) %>%
   readr::write_tsv(
-    file =  paste(outDir, "/", genomeSetName, ".accessory_PAV.tab", sep = "")
+    file = paste(outDir, "/", genomeSetName, ".accessory_PAV.tab", sep = "")
   )
 
 
@@ -96,12 +97,12 @@ tibble::as_tibble(x = mds$points, rownames = "sampleId") %>%
   ggrepel::geom_text_repel(size = 2)
 
 ## save the phenotype
-dplyr::select(sampleInfo, samples = sampleId, Genome, virulence) %>% 
+dplyr::select(sampleInfo, samples = sampleId, Genome, virulence) %>%
   dplyr::mutate(
     virulence = dplyr::if_else(
       condition = virulence == "virulent", true = 1, false = 0
     )
-  ) %>% 
+  ) %>%
   readr::write_tsv(file = paste(outDir, "/", genomeSetName, "_phenotypes.tab", sep = ""))
 
 ## save the subtree for similarity calculation
@@ -110,4 +111,3 @@ ape::write.tree(
   phy = pbrTree,
   file = paste(outDir, "/phylogeny_tree.newick", sep = "")
 )
-

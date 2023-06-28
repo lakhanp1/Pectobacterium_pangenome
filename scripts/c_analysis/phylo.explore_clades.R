@@ -30,7 +30,7 @@ phyMethod <- "kmer_nj"
 treeConf <- confs$analysis$phylogeny[[phyMethod]]
 ################################################################################
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
+sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -48,10 +48,10 @@ treeTbl <- as_tibble(rawTree) %>%
 
 # pt_tree <- ggtree::ggtree(tr = treeTbl) +
 #   labs(title = treeConf$name)
-# 
+#
 # ## mark outgroup
 # pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleName")
-# 
+#
 # ## mark species of interest
 # pt_tree3 <- pt_tree2 +
 #   ggtree::geom_nodelab(
@@ -73,10 +73,10 @@ treeTbl <- as_tibble(rawTree) %>%
 #     na.value = "black"
 #   ) +
 #   ggnewscale::new_scale_color()
-# 
+#
 # pt_tree4 <- annotate_ggtree(pt = pt_tree3, offset = 0.25)
-# 
-# 
+#
+#
 # ggsave(
 #   plot = pt_tree4, width = 10, height = 20, scale = 2,
 #   filename = paste(outPrefix, "_tree.pdf", sep = "")
@@ -95,6 +95,3 @@ ggtree::ggtree(tr = subTree2) +
   ggtree::geom_tiplab(
     mapping = aes(label = label), size = 3, align = TRUE
   )
-
-
-

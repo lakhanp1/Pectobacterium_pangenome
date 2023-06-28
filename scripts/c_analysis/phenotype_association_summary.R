@@ -50,7 +50,7 @@ if (!dir.exists(outDir)) {
   dir.create(outDir)
 }
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -144,18 +144,18 @@ goMap <- AnnotationDbi::select(
 
 goDesc <- AnnotationDbi::select(
   x = GO.db, keys = na.omit(goMap$GO), column = "TERM", keytype = "GOID"
-) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(description = paste("(", GOID, ") ", TERM, sep = "")) %>% 
-  dplyr::select(-TERM) %>% 
-  dplyr::left_join(y = goMap, by = c("GOID" = "GO")) %>% 
-  dplyr::group_by(GID) %>% 
+) %>%
+  dplyr::distinct() %>%
+  dplyr::mutate(description = paste("(", GOID, ") ", TERM, sep = "")) %>%
+  dplyr::select(-TERM) %>%
+  dplyr::left_join(y = goMap, by = c("GOID" = "GO")) %>%
+  dplyr::group_by(GID) %>%
   dplyr::summarise(GO = paste(description, collapse = "; "), .groups = "drop")
 
 goMap <- dplyr::left_join(x = hgAnnotation, y = goDesc, by = c("hg_id" = "GID")) %>%
   dplyr::select(
     hg_id, Genome, chr, start, end, strand, mRNA_id, GO
-  ) 
+  )
 
 # topGO
 topGoDf <- topGO_enrichment(genes = specGrps, orgdb = orgDb)

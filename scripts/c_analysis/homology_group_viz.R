@@ -14,7 +14,7 @@ suppressPackageStartupMessages(library(openxlsx))
 suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
-## visualize homology groups PAV 
+## visualize homology groups PAV
 
 rm(list = ls())
 
@@ -43,9 +43,10 @@ hgs <- suppressMessages(
   ) %>%
   # dplyr::pull(hgs) %>%
   stringr::str_split(";") %>%
-  unlist() %>% unique()
+  unlist() %>%
+  unique()
 
-treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
+treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -55,7 +56,7 @@ outPrefix <- file.path(outDir, analysisName)
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ################################################################################
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -68,7 +69,7 @@ speciesOrder <- suppressMessages(
 )
 
 ## add species order factor levels to SpeciesName column
-sampleInfo %<>%  dplyr::mutate(
+sampleInfo %<>% dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
@@ -84,7 +85,7 @@ htList <- homology_group_heatmap(
   width = c(10, 20)
 )
 
-htList@ht_list$hg@column_dend_param$cluster <- FALSE 
+htList@ht_list$hg@column_dend_param$cluster <- FALSE
 htList@ht_list$hg@column_names_param$show <- FALSE
 
 pdf(file = paste(outPrefix, ".homology_grps.pdf", sep = ""), width = 20, height = 9)
@@ -97,5 +98,3 @@ ComplexHeatmap::draw(
 dev.off()
 
 ################################################################################
-
-

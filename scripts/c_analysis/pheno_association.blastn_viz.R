@@ -28,7 +28,7 @@ confs <- prefix_config_paths(
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
-treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
+treeMethod <- "kmer_nj" # ani_upgma, kmer_nj
 outGroup <- confs$analysis$phylogeny$outgroup
 
 phenotype <- "assay_FN"
@@ -43,7 +43,7 @@ file_associatedSeqInfo <- paste(outPrefix, ".pheno_specific.seq_info.txt", sep =
 
 ################################################################################
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -65,14 +65,14 @@ associatedGenomes <- get_phenotype_association_genomes(
 )
 
 ## sequence info: use for chr wise separation and ordering
-hgSeqInfo <- suppressMessages(readr::read_tsv(file_associatedSeqInfo)) %>% 
+hgSeqInfo <- suppressMessages(readr::read_tsv(file_associatedSeqInfo)) %>%
   dplyr::mutate(
-    dplyr::across(.cols = c(Genome, homology_group_id), .fns = ~as.character(.x))
-  ) %>% 
+    dplyr::across(.cols = c(Genome, homology_group_id), .fns = ~ as.character(.x))
+  ) %>%
   dplyr::select(
     qGenome = Genome, qseqid = mRNA_identifier, qChr = chr, qChrStart = start,
     qChrEnd = end, qHomologyGrp = homology_group_id
-  ) %>% 
+  ) %>%
   dplyr::arrange(qGenome, qChr, qChrStart)
 
 ## import blast result
@@ -84,27 +84,27 @@ blastRes <- suppressMessages(
       "pident", "length", "mismatch", "qcovs", "gapopen", "evalue", "bitscore"
     )
   )
-) %>% 
+) %>%
   dplyr::mutate(
-    totalqcov = as.numeric(sprintf(fmt = "%.2f", 100*(qend - qstart + 1)/qlen))
-  ) %>% 
-  dplyr::left_join(y = hgSeqInfo, by = "qseqid") %>% 
+    totalqcov = as.numeric(sprintf(fmt = "%.2f", 100 * (qend - qstart + 1) / qlen))
+  ) %>%
+  dplyr::left_join(y = hgSeqInfo, by = "qseqid") %>%
   dplyr::left_join(
     y = dplyr::rename(genomeChrs, sGenome = Genome), by = c("sseqid" = "chr")
-  ) %>% 
+  ) %>%
   dplyr::left_join(
     y = dplyr::select(sampleInfo, Genome, sSpecies = SpeciesName, sSample = sampleName),
     by = c("sGenome" = "Genome")
-  ) %>% 
+  ) %>%
   dplyr::left_join(
     ## add tag to blast hit if it is from the phenotype specific genome
     y = tibble::enframe(associatedGenomes, name = "sGenomeType", value = "sGenome") %>%
       tidyr::unnest(cols = sGenome),
     by = "sGenome"
-  ) %>% 
-  tidyr::replace_na(list(sGenomeType = "other")) %>% 
-  dplyr::relocate(sGenome, sGenomeType, sSpecies, sSample, .before = sseqid) %>% 
-  dplyr::relocate(qGenome, qChr, qChrStart, qChrEnd, qHomologyGrp, .after = qseqid) %>% 
+  ) %>%
+  tidyr::replace_na(list(sGenomeType = "other")) %>%
+  dplyr::relocate(sGenome, sGenomeType, sSpecies, sSample, .before = sseqid) %>%
+  dplyr::relocate(qGenome, qChr, qChrStart, qChrEnd, qHomologyGrp, .after = qseqid) %>%
   dplyr::relocate(totalqcov, .before = qcovs)
 
 ################################################################################
@@ -113,7 +113,7 @@ blastRes <- suppressMessages(
 ## root tree
 rootedTr <- ape::root(
   phy = rawTree, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE
-) %>% 
+) %>%
   ape::ladderize()
 
 ## add data to tree
@@ -135,17 +135,17 @@ significantHits <- dplyr::filter(
   blastRes, totalqcov >= 80, pident >= 70
 )
 
-bestHits <- dplyr::group_by(significantHits, qseqid, sGenome) %>% 
-  dplyr::arrange(desc(totalqcov), desc(pident), .by_group = TRUE) %>% 
-  dplyr::slice(1L) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::select(qseqid, qHomologyGrp, qGenome, qChr, qChrStart, sGenome, pident, sGenomeType) %>% 
+bestHits <- dplyr::group_by(significantHits, qseqid, sGenome) %>%
+  dplyr::arrange(desc(totalqcov), desc(pident), .by_group = TRUE) %>%
+  dplyr::slice(1L) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(qseqid, qHomologyGrp, qGenome, qChr, qChrStart, sGenome, pident, sGenomeType) %>%
   dplyr::arrange(qGenome, qChr, qChrStart)
 
 ## ensure that the genomes without any blast hits are added for proper alignment with tree
-bestHits %<>% 
-  dplyr::full_join(y = tibble::tibble(sGenome = leafOrder), by = "sGenome") %>% 
-  tidyr::replace_na(list(qseqid = "genome-without-match")) %>% 
+bestHits %<>%
+  dplyr::full_join(y = tibble::tibble(sGenome = leafOrder), by = "sGenome") %>%
+  tidyr::replace_na(list(qseqid = "genome-without-match")) %>%
   dplyr::mutate(
     qseqid = forcats::as_factor(qseqid)
   )
@@ -153,12 +153,12 @@ bestHits %<>%
 ## genes that matches only in compare genome category and not in any other
 specificAssays <- setdiff(
   x = bestHits$qseqid,
-  y = dplyr::filter(bestHits, sGenomeType != "compare") %>% 
+  y = dplyr::filter(bestHits, sGenomeType != "compare") %>%
     dplyr::distinct(as.character(qseqid)) %>% tibble::deframe() %>%
     append("genome-without-match")
 )
 
-tibble::tibble(seqId = specificAssays) %>% 
+tibble::tibble(seqId = specificAssays) %>%
   readr::write_tsv(file = paste(outPrefix, ".specific_assay_seq_id.txt", sep = ""))
 
 ################################################################################
@@ -176,7 +176,7 @@ pt_tree3 <- pt_tree2 +
   ggtree::geom_tippoint(
     mapping = aes(subset = c(label %in% c(associatedGenomes$against))),
     color = "red"
-  )+
+  ) +
   scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   ggnewscale::new_scale_color() +
   ## virulence phenotype
@@ -209,7 +209,8 @@ pt_blast <- ggplot2::ggplot(
 ) +
   geom_tile(
     mapping = aes(fill = pident),
-    color = "black", linewidth = 0.01) +
+    color = "black", linewidth = 0.01
+  ) +
   geom_vline(
     data = tibble(qseqid = specificAssays),
     mapping = aes(xintercept = qseqid), color = "green"
@@ -260,6 +261,3 @@ openxlsx::saveWorkbook(
 )
 
 ################################################################################
-
-
-

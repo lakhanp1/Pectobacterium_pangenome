@@ -36,7 +36,7 @@ genomeChrs <- suppressMessages(
   )
 )
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata) %>% 
+sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus) %>% 
   dplyr::mutate(
     virulence_pcr = dplyr::case_when(
       virulence_pcr == "positive" ~ "+",

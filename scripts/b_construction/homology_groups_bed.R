@@ -20,7 +20,7 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -30,22 +30,22 @@ outPrefix <- sampleInfo$sampleId[which(sampleInfo$Genome == genomeId)]
 ################################################################################
 # extract data
 gn <- AnnotationDbi::select(
-  x =orgDb, keys = genomeId, keytype = "genome",
+  x = orgDb, keys = genomeId, keytype = "genome",
   columns = c(
     "GID", "class", "chr_name", "start", "end", "strand", "chr", "mRNA_id",
     "COG_description"
   )
 ) %>%
-  dplyr::group_by(mRNA_id, GID) %>% 
+  dplyr::group_by(mRNA_id, GID) %>%
   dplyr::mutate(
     COG_description = paste(COG_description, collapse = "; ")
-  ) %>% 
-  dplyr::slice(1L) %>% 
+  ) %>%
+  dplyr::slice(1L) %>%
   dplyr::ungroup()
 
 # make GRanges object
 gr <- dplyr::mutate(
-  gn, 
+  gn,
   score = dplyr::case_when(
     class == "core" ~ 1000,
     class == "core & single copy orthologous" ~ 1000,
@@ -61,7 +61,8 @@ gr <- dplyr::mutate(
     class == "unique" ~ "#D55E00"
   ),
   name = stringr::str_c(
-    "Homology group=", GID, ";COG=", COG_description, sep = ""
+    "Homology group=", GID, ";COG=", COG_description,
+    sep = ""
   ),
   name = stringr::str_replace_all(
     string = name, pattern = "\\s+", replacement = "%20"
@@ -69,11 +70,11 @@ gr <- dplyr::mutate(
   name = stringr::str_replace_all(
     string = name, pattern = ":", replacement = "-"
   )
-) %>% 
+) %>%
   dplyr::select(
     chr = chr_name, start, end, strand, score, name,
     thickStart, thickEnd, itemRgb
-  ) %>% 
+  ) %>%
   GenomicRanges::makeGRangesFromDataFrame(keep.extra.columns = TRUE)
 
 
@@ -84,5 +85,3 @@ gru@trackLine <- as(
 )
 
 rtracklayer::export.bed(object = gru, con = paste(outPrefix, ".homology_groups.bed", sep = ""))
-
-

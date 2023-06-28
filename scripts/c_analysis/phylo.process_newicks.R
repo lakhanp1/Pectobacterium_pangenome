@@ -27,24 +27,28 @@ set.seed(124)
 parser <- optparse::OptionParser()
 
 parser <- optparse::add_option(
-  parser, opt_str = c("-t", "--tree"), type = "character", action = "store",
+  parser,
+  opt_str = c("-t", "--tree"), type = "character", action = "store",
   help = "tree file in NEWICK format"
 )
 
 parser <- optparse::add_option(
-  parser, opt_str = c("-n", "--name"), type = "character", action = "store",
+  parser,
+  opt_str = c("-n", "--name"), type = "character", action = "store",
   help = "name of the tree from YAML phylogeny tags"
 )
 
 parser <- optparse::add_option(
-  parser, opt_str = c("-c", "--config"), type = "character", action = "store",
+  parser,
+  opt_str = c("-c", "--config"), type = "character", action = "store",
   help = "project config YAML file"
 )
 
 opts <- optparse::parse_args(parser)
 
-if(any(is.null(opts$name), is.null(opts$config), is.null(opts$tree)))
+if (any(is.null(opts$name), is.null(opts$config), is.null(opts$tree))) {
   stop(optparse::print_help(parser), call. = TRUE)
+}
 
 # ## for test
 # opts$config <- "project_config.yaml"
@@ -74,12 +78,13 @@ outGroup <- confs$analysis$phylogeny$outgroup
 
 outDir <- confs$analysis$phylogeny[[opts$name]]$dir
 
-if(!dir.exists(outDir))
+if (!dir.exists(outDir)) {
   dir.create(outDir)
+}
 
 ################################################################################
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata)
+sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -91,7 +96,7 @@ rawTree <- ape::read.tree(file = opts$tree)
 ## set negative length edges => 0
 rawTree$edge.length[rawTree$edge.length < 0] <- 0
 
-rawTree <- ape::ladderize(rawTree) %>% 
+rawTree <- ape::ladderize(rawTree) %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
@@ -102,7 +107,7 @@ ape::write.tree(
 
 rootedTr <- ape::root(
   phy = rawTree, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE
-) %>% 
+) %>%
   ape::ladderize()
 
 ape::write.tree(
@@ -138,8 +143,10 @@ pt_tree3 <- pt_tree2 +
   scale_color_manual(
     values = setNames(
       c("red", "#E57A44", "#088734", "#088734"),
-      c(sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
-        "P. carotovorum", "P. c. subsp. carotovorum")
+      c(
+        sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
+        "P. carotovorum", "P. c. subsp. carotovorum"
+      )
     ),
     breaks = NULL,
     na.value = "black"

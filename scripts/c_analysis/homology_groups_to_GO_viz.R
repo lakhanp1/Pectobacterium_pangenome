@@ -39,7 +39,7 @@ goIds <- c(
   # "GO:0032940"
 )
 
-treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
+treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -49,7 +49,7 @@ outPrefix <- file.path(outDir, analysisName)
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ################################################################################
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -62,16 +62,16 @@ speciesOrder <- suppressMessages(
 )
 
 ## add species order factor levels to SpeciesName column
-sampleInfo %<>%  dplyr::mutate(
+sampleInfo %<>% dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 hgs <- AnnotationDbi::select(
   x = orgDb, keys = goIds, keytype = "GOALL", columns = "GID"
-) %>% 
-  dplyr::filter(!is.na(GID)) %>% 
-  dplyr::mutate(count = 1) %>% 
-  dplyr::rename(hg_id = GID) %>% 
+) %>%
+  dplyr::filter(!is.na(GID)) %>%
+  dplyr::mutate(count = 1) %>%
+  dplyr::rename(hg_id = GID) %>%
   tidyr::pivot_wider(
     id_cols = hg_id, names_from = GOALL, values_from = count, values_fill = 0
   )
@@ -124,5 +124,3 @@ ComplexHeatmap::draw(
 dev.off()
 
 ################################################################################
-
-

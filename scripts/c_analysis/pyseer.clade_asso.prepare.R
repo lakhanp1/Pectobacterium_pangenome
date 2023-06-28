@@ -28,31 +28,31 @@ outDir <- file.path(confs$analysis$association$dir, analysisName)
 outPrefix <- file.path(outDir, analysisName)
 ################################################################################
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-if(!dir.exists(outDir)){
+if (!dir.exists(outDir)) {
   dir.create(outDir)
 }
 ################################################################################
 ## clade as phenotypes
 pheno <- suppressMessages(
   readr::read_csv(panConf$analysis_confs$files$clade_phenotypes)
-) %>% 
+) %>%
   dplyr::mutate(
     Genome = as.character(Genome),
     dplyr::across(
       .cols = -Genome,
-      .fns = ~dplyr::if_else(.x == 'N', true = 0, false = 1, missing = NULL)
+      .fns = ~ dplyr::if_else(.x == "N", true = 0, false = 1, missing = NULL)
     )
   )
 
 pheno %<>% dplyr::left_join(
   y = dplyr::select(sampleInfo, samples = sampleId, Genome, SpeciesName), by = "Genome"
-) %>% 
+) %>%
   dplyr::select(
     samples, Genome, SpeciesName, everything()
   )
@@ -69,8 +69,8 @@ hgs <- homology_groups_extract(
   groups <- "accessory", pav = TRUE
 )
 
-dplyr::select(hgs, -class, Gene = hg, !!!purrr::map_chr(sampleInfoList, "Genome")) %>% 
-  dplyr::mutate(Gene = paste("hg_", Gene, sep = "")) %>% 
+dplyr::select(hgs, -class, Gene = hg, !!!purrr::map_chr(sampleInfoList, "Genome")) %>%
+  dplyr::mutate(Gene = paste("hg_", Gene, sep = "")) %>%
   readr::write_tsv(
-    file =  paste(outDir, "/clade.accessory_PAV.tab", sep = "")
+    file = paste(outDir, "/clade.accessory_PAV.tab", sep = "")
   )
