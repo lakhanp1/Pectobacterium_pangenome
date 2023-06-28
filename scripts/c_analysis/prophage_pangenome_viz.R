@@ -37,7 +37,7 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ################################################################################
 
-sampleInfo <- get_metadata(file = panConf$files$metadata)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
@@ -54,7 +54,7 @@ proHgs <- suppressMessages(
     y = dplyr::select(sampleInfo, sampleId, SpeciesName, Genome, N50), by = "sampleId"
   ) 
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$summary)) %>% 
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
   dplyr::select(prophage_id, prophage_length = length, completeness)
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
@@ -68,35 +68,15 @@ sampleInfo %<>%  dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
-################################################################################
-
 phageRelations <- suppressMessages(
-  readr::read_tsv(file = confs$analysis$prophages$files$hg_similarity)
+  readr::read_tsv(file = confs$analysis$prophages$files$network)
 ) %>% 
-  dplyr::mutate(child = stringr::str_split(child, ";")) %>% 
-  tidyr::unnest(child) %>% 
-  as.data.frame()
-
-parents <- dplyr::filter(phageRelations, !is.na(parent)) %>% 
-  dplyr::select(parent) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(nodeType = "root")
-
-nodeType <- dplyr::filter(phageRelations, is.na(parent)) %>% 
-  dplyr::select(child) %>% 
-  dplyr::left_join(y = parents, by = c("child" = "parent")) %>% 
-  tidyr::replace_na(replace = list(nodeType = "single"))
-
-nodes <- dplyr::select(phageRelations, id = child, Genome = childGenome,
-                       nHgs = nHgChild, perSharedParent) %>% 
-  dplyr::left_join(y = nodeType, by = c("id" = "child")) %>% 
-  dplyr::left_join(y = prophageDf, by = c("id" = "prophage_id")) %>% 
-  tidyr::replace_na(replace = list(nodeType = "child"))
+  dplyr::left_join(y = prophageDf, by = c("prophage_id"))
 
 ################################################################################
 # prophage homology groups on pangenome phylogeny
-proReps <- dplyr::filter(nodes, nodeType != "child") %>% 
-  dplyr::select(prophage_id = id, nodeType) %>% 
+proReps <- dplyr::filter(phageRelations, nodeType != "child") %>% 
+  dplyr::select(prophage_id, nodeType) %>% 
   dplyr::left_join(proHgs, by = "prophage_id") %>% 
   dplyr::select(-contig_id)
 
@@ -153,7 +133,7 @@ speciesMat <- tibble::tibble(Genome = rownames(countMat)) %>%
   as.matrix()
 
 prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>% 
-  dplyr::left_join(y = nodes, by = c("prophage_id" = "id"))
+  dplyr::left_join(y = phageRelations, by = "prophage_id")
 
 ## ensure the row order is same: this is because of a bug in ComplexHeatmap
 stopifnot(
