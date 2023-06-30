@@ -48,7 +48,8 @@ phageRelations <- suppressMessages(
   dplyr::mutate(
     nodeLabs = paste(id, "|", "| hgs =", nHgs, "| length =", length,
                      "|", SpeciesName)
-  ) 
+  ) %>% 
+  dplyr::filter(nodeType != "child")
 
 nodeOfInterest <- dplyr::filter(phageRelations, nodeType != "child") %>% 
   dplyr::select(id)
