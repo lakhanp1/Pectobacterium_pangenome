@@ -1,3 +1,31 @@
+---
+title: "Prophage data visualization"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_download: true
+    code_folding: show
+    toc: true
+    toc_float: true
+---
+
+<!-- ```{css, echo=FALSE} -->
+<!-- .scroll-100 { -->
+<!--   overflow-x: auto; -->
+<!--   overflow-y: auto; -->
+<!--   background-color: inherit; -->
+<!-- } -->
+<!-- ``` -->
+
+```{r, setup, include=FALSE}
+suppressPackageStartupMessages(library(here))
+knitr::opts_knit$set(root.dir = here::here())
+```
+
+## Initial setup
+
+```{r}
 #!/usr/bin/env Rscript
 
 suppressPackageStartupMessages(library(tidyverse))
@@ -11,8 +39,7 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 
-# visualize the prophage relationship DAG 
-
+# visualize the prophage network
 rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
@@ -37,7 +64,12 @@ outPrefix <- ""
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ################################################################################
+```
 
+
+## Import data
+
+```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -69,23 +101,41 @@ sampleInfo %<>%  dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
+```
+
+## DAG exploration
+
+Generate an igraph data structure for prophage relationships
+
+```{r}
 # import prophage relationships as igraph
 gf <- prophage_igraph(file = confs$analysis$prophages$files$network,
                       nodeAn = prophageDf, key = "prophage_id")
 
-################################################################################
-
-# there should be only two elements
-clique_size_counts(gf)
-# largest_cliques(gf)
+gf
+```
 
 
+```{r}
 # components of graph
 igraph::count_components(gf)
 clu <- igraph::components(gf)
 compL <- igraph::groups(clu)
 
-################################################################################
+```
+
+There should be only two elements when clique detection algorithm is run. One 
+for the nodes and second for the links. If there are more than 2 elements, there
+is a possibility of cycles in the graph.
+
+```{r}
+clique_size_counts(gf)
+# largest_cliques(gf)
+```
+
+### visualize DAG
+
+```{r}
 # DAG visualization 
 gf %>% 
   plot(vertex.size = 1.5, vertex.label = NA,
@@ -113,6 +163,12 @@ lot <- layout_with_fr(graph = gf)
 plot(gf, layout = lot, vertex.size = 1.5, vertex.label = NA,
      edge.arrow.size = 0.3, edge.color = "black")
 
+
+```
+
+### Plot graph using `ggraph`
+
+```{r}
 # each component layout first and then arranged
 lotc <- igraph::layout_components(graph = gf, layout = layout_with_kk)
 # plot(gf, layout = lotc, vertex.size = 1.5, vertex.label = NA,
@@ -146,7 +202,4 @@ lotc <- igraph::layout_components(graph = gf, layout = layout_with_kk)
 ggsave(filename = paste(outDir, "/prophage_clusters.pdf", sep = ""),
        width = 12, height = 10)
 
-################################################################################
-
-
-
+```
