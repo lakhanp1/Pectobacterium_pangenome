@@ -9,21 +9,20 @@
 #' @export
 #'
 #' @examples
-annotate_ggtree <- function(pt, offset, annotations = NULL){
-  
+annotate_ggtree <- function(pt, offset, annotations = NULL) {
   stopifnot(
     isa(pt, "ggplot2")
   )
-  
+
   pt2 <- pt +
     ggtreeExtra::geom_fruit(
       mapping = aes(starshape = type_material),
-      geom = "geom_star", fill = "#62BFED", size = 2, starstroke=0.1,
+      geom = "geom_star", fill = "#62BFED", size = 2, starstroke = 0.1,
       offset = offset, pwidth = 0.01
     ) +
     ggstar::scale_starshape_manual(
       values = c("type strain" = 1)
-    ) + 
+    ) +
     ggnewscale::new_scale_color() +
     ## genome source
     ggtreeExtra::geom_fruit(
@@ -40,8 +39,10 @@ annotate_ggtree <- function(pt, offset, annotations = NULL){
       pwidth = 0.01
     ) +
     scale_fill_manual(
-      values = c("Failed" = "red", "Inconclusive" = "blue", "OK" = alpha("white", 0),
-                 "corrected" = "#9DFBC1", "renamed" = "#046228")
+      values = c(
+        "Failed" = "red", "Inconclusive" = "blue", "OK" = alpha("white", 0),
+        "corrected" = "#9DFBC1", "renamed" = "#046228"
+      )
     ) +
     ## collection year
     ggtreeExtra::geom_fruit(
@@ -85,44 +86,43 @@ annotate_ggtree <- function(pt, offset, annotations = NULL){
 ################################################################################
 #' Title
 #'
-#' @param file 
-#' @param metadata 
-#' @param name 
+#' @param file
+#' @param metadata
+#' @param name
 #'
 #' @return
 #' @export
 #'
 #' @examples
-build_annotated_tree <- function(file, metadata, name, outgroup = NULL){
-  
+build_annotated_tree <- function(file, metadata, name, outgroup = NULL) {
   stopifnot(
     file.exists(file)
   )
-  
+
   ## import tree
   rawTree <- ape::read.tree(file)
-  
+
   ## set negative length edges => 0
   rawTree$edge.length[rawTree$edge.length < 0] <- 0
-  
+
   ## root the tree
-  if(!is.null(outgroup)){
-    rawTree <- ape::root(phy = rawTree, outgroup = outgroup) %>% 
+  if (!is.null(outgroup)) {
+    rawTree <- ape::root(phy = rawTree, outgroup = outgroup) %>%
       ape::ladderize()
   }
-  
+
   ## add metadata to tree
   treeTbl <- as_tibble(rawTree) %>%
     dplyr::full_join(y = metadata, by = c("label" = "Genome")) %>%
     treeio::as.treedata()
-  
+
   ## draw tree and add annotation
   pt_tree <- ggtree::ggtree(tr = treeTbl) +
     labs(title = "kmer distance NJ tree")
-  
+
   ## mark outgroup
   pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outgroup, column = "sampleName")
-  
+
   ## mark species of interest
   pt_tree3 <- pt_tree2 +
     ggtree::geom_nodelab(
@@ -137,16 +137,18 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL){
     scale_color_manual(
       values = setNames(
         c("red", "#E57A44", "#088734", "#088734"),
-        c(sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
-          "P. carotovorum", "P. c. subsp. carotovorum")
+        c(
+          sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
+          "P. carotovorum", "P. c. subsp. carotovorum"
+        )
       ),
       breaks = NULL,
       na.value = "black"
     ) +
     ggnewscale::new_scale_color()
-  
+
   pt_tree4 <- annotate_ggtree(pt = pt_tree3, offset = 0.25)
-  
+
   return(
     list(ggtree = pt_tree4, rawTree = rawTree)
   )
@@ -155,7 +157,7 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL){
 #' mark outgroup
 #'
 #' @param pt ggtree plot object
-#' @param otg identifier or name of the outgroup. 
+#' @param otg identifier or name of the outgroup.
 #' @param column column name that has outgroup identifier. Default: lable
 #' @param color color for outgroup. Default: red
 #'
@@ -163,13 +165,12 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL){
 #' @export
 #'
 #' @examples
-mark_outgroup <- function(pt, otg, column = "label", color = "red"){
-  
+mark_outgroup <- function(pt, otg, column = "label", color = "red") {
   stopifnot(
     tibble::has_name(pt$data, column),
     is.element(otg, pt$data[[column]])
   )
-  
+
   pt2 <- pt +
     geom_point(
       mapping = aes(shape = !!sym(column), color = !!sym(column)),
@@ -177,8 +178,8 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
     ) +
     scale_shape_manual(name = "outgroup", values = setNames(16, otg)) +
     scale_color_manual(name = "outgroup", values = setNames(color, otg)) +
-    ggnewscale::new_scale_color() 
-  
+    ggnewscale::new_scale_color()
+
   return(pt2)
 }
 
@@ -192,13 +193,13 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 #' @param name name of the phenotype. Default: pheno1
 #' @param category value of the phenotype for one category. Default: Y
 #' @param type type of genomeset id: node or tip
-#' @param excludeNode a vector of node identifiers to exclude additional genomes 
-#' from `against` 
+#' @param excludeNode a vector of node identifiers to exclude additional genomes
+#' from `against`
 #' @param excludeTips a vector of tip labels to exclude additional genomes from `against`
 #'
 #' @return a list with following elements
 #' \itemize{
-#' \item pheno: a `data.frame` with for phenotype information two columns: `Genome`, `name` 
+#' \item pheno: a `data.frame` with for phenotype information two columns: `Genome`, `name`
 #' \item compare: a comma separated list of tip lables or genome IDs to compare
 #' \item against: a comma separated list of tip lables or genome IDs to compare against
 #' \item name: name of the phenotype
@@ -206,14 +207,10 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red"){
 #' @export
 #'
 #' @examples
-clade_comparison_confs <- function(
-    tree, node, type, against = NA, name, category = "Y",
-    excludeNode = NA, excludeTips = NA
-){
-  
-  
+clade_comparison_confs <- function(tree, node, type, against = NA, name, category = "Y",
+                                   excludeNode = NA, excludeTips = NA) {
   tr <- ape::read.tree(tree)
-  
+
   stopifnot(
     is.character(node),
     (all(is.element(node, tr$node.label)) | all(is.element(node, tr$tip.label))),
@@ -224,59 +221,57 @@ clade_comparison_confs <- function(
     (is.na(excludeNode) | all(is.element(excludeNode, tr$node.label))),
     (is.na(excludeTips) | all(is.element(excludeTips, tr$tip.label)))
   )
-  
-  if(type == "node"){
+
+  if (type == "node") {
     ## phenotype for genomes of interest
     ## IMP: use tree as tibble for tip labels as output when providing node label
     phenoDf <- tibble::tibble(Genome = character())
-    
+
     for (nd in node) {
-      phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>% 
-        dplyr::select(Genome = label) %>% 
+      phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>%
+        dplyr::select(Genome = label) %>%
         dplyr::bind_rows(phenoDf)
     }
-    
+
     ## add phenotype
     phenoDf[[name]] <- category
-    
-  } else{
+  } else {
     ## when only a leaf (one genome) is being compared
     phenoDf <- tibble::tibble(
       Genome = node, !!name := category
     )
   }
-  
+
   nodeGenomes <- stringr::str_c(phenoDf$Genome, collapse = ",")
-  
+
   includeGenomes <- NA
-  
+
   ## select the background against which comparison will be made
-  if(all(!is.na(against))){
+  if (all(!is.na(against))) {
     ## use another clade (either parent or independent clade) as background
     parentSet <- character()
-    
+
     for (nd in against) {
       parentSet <- append(
         parentSet,
-        tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>% 
+        tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>%
           dplyr::pull(label)
       )
     }
-    
+
     negSet <- setdiff(parentSet, phenoDf$Genome)
-    
+
     ## include only genomes from the groups being compared
     includeGenomes <- stringr::str_c(c(nodeGenomes, negSet), collapse = ",")
-    
-  } else{
+  } else {
     ## use all tips as background
     negSet <- setdiff(tr$tip.label, phenoDf$Genome)
   }
 
   ## additional exclusion of nodes and/or tips
   filterNeg <- character()
-  
-  if(all(!is.na(excludeNode))){
+
+  if (all(!is.na(excludeNode))) {
     for (nd in excludeNode) {
       filterNeg <- append(
         filterNeg,
@@ -286,7 +281,7 @@ clade_comparison_confs <- function(
     }
   }
 
-  if(all(!is.na(excludeTips))){
+  if (all(!is.na(excludeTips))) {
     filterNeg <- append(filterNeg, excludeTips)
   }
 
@@ -296,17 +291,19 @@ clade_comparison_confs <- function(
     ## update includeGenomes
     includeGenomes <- stringr::str_c(c(nodeGenomes, negSet), collapse = ",")
   }
-  
-  
-  phenoDf %<>% 
+
+
+  phenoDf %<>%
     dplyr::bind_rows(tibble::tibble(Genome = negSet, !!name := "N"))
-  
+
   return(
-    list(pheno = phenoDf,
-         compare = nodeGenomes, 
-         against = stringr::str_c(negSet, collapse = ","),
-         includeSet = includeGenomes,
-         name = name)
+    list(
+      pheno = phenoDf,
+      compare = nodeGenomes,
+      against = stringr::str_c(negSet, collapse = ","),
+      includeSet = includeGenomes,
+      name = name
+    )
   )
 }
 
@@ -323,29 +320,28 @@ clade_comparison_confs <- function(
 #' @export
 #'
 #' @examples NA
-get_species_key_data <- function(genomes, metadata, type = "wide"){
-
+get_species_key_data <- function(genomes, metadata, type = "wide") {
   stopifnot(
     type %in% c("wide", "long"),
     all(genomes %in% metadata$Genome),
     tibble::has_name(metadata, "SpeciesName")
   )
-  
+
   ## species name key heatmap
-  speciesKey <- tibble::tibble(Genome = genomes) %>% 
-    dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>% 
+  speciesKey <- tibble::tibble(Genome = genomes) %>%
+    dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>%
     dplyr::mutate(sp = 1)
-  
-  if(type == "wide"){
-    speciesKey %<>% 
+
+  if (type == "wide") {
+    speciesKey %<>%
       tidyr::pivot_wider(
         id_cols = Genome, names_from = SpeciesName,
         values_from = sp, values_fill = 0, names_sort = TRUE
-      ) %>% 
-      tibble::column_to_rownames(var = "Genome") %>% 
+      ) %>%
+      tibble::column_to_rownames(var = "Genome") %>%
       as.matrix()
   }
-  
+
   return(speciesKey)
 }
 ################################################################################
@@ -358,13 +354,12 @@ get_species_key_data <- function(genomes, metadata, type = "wide"){
 #' @export
 #'
 #' @examples NA
-species_key_plot <- function(keyDf){
-  
+species_key_plot <- function(keyDf) {
   stopifnot(
     tibble::has_name(keyDf, "SpeciesName"),
     tibble::has_name(keyDf, "Genome")
   )
-  
+
   pt <- ggplot2::ggplot(
     data = keyDf,
     mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
@@ -379,7 +374,7 @@ species_key_plot <- function(keyDf){
       axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
       plot.title = element_text(hjust = 0.5, vjust = 0)
     )
-  
+
   return(pt)
 }
 
@@ -393,8 +388,7 @@ species_key_plot <- function(keyDf){
 #' @export
 #'
 #' @examples NA
-ani_heatmap <- function(aniDf){
-  
+ani_heatmap <- function(aniDf) {
   pt <- ggplot2::ggplot(data = aniDf, mapping = aes(x = g1, y = g2)) +
     geom_tile(mapping = aes(fill = ANI)) +
     # scale_fill_viridis_c(name = "% identity", option = "B") +
@@ -412,10 +406,42 @@ ani_heatmap <- function(aniDf){
       axis.ticks = element_blank(),
       plot.title = element_text(hjust = 0.5, vjust = 0)
     )
-  
+
   return(pt)
 }
 
 ################################################################################
 
+#' Get nodepath for a `phylo` object
+#'
+#' @param phy `phylo` object
+#' @param ...
+#'
+#' @return a tibble with `tip` and `nodepath` column
+#' @export
+#'
+#' @examples NA
+nodepath_df <- function(phy, ...) {
+  stopifnot(
+    isa(phy, "phylo")
+  )
 
+  np <- ape::nodepath(phy, ...)
+
+  nlabs <- c(phy$tip.label, phy$node.label)
+  names(nlabs) <- c(1:(length(phy$tip.label) + length(phy$node.label)))
+
+  np <- purrr::map_dfr(
+    .x = np,
+    .f = function(x) {
+      list(
+        tip = nlabs[tail(x, n = 1)],
+        nodepath = paste(nlabs[x], collapse = ";")
+      )
+    }
+  )
+
+  return(np)
+}
+
+################################################################################

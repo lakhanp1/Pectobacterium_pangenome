@@ -37,21 +37,23 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
   dplyr::select(-Genome)
 
 phageRelations <- suppressMessages(
   readr::read_tsv(file = confs$analysis$prophages$files$network)
-) %>% 
-  dplyr::select(id = prophage_id, nodeType, nHgs) %>% 
-  dplyr::left_join(y = prophageDf, by = c("id" = "prophage_id")) %>% 
+) %>%
+  dplyr::select(id = prophage_id, nodeType, nHgs) %>%
+  dplyr::left_join(y = prophageDf, by = c("id" = "prophage_id")) %>%
   dplyr::mutate(
-    nodeLabs = paste(id, "|", "| hgs =", nHgs, "| length =", length,
-                     "|", SpeciesName)
-  ) %>% 
+    nodeLabs = paste(
+      id, "|", "| hgs =", nHgs, "| length =", length,
+      "|", SpeciesName
+    )
+  ) %>%
   dplyr::filter(nodeType != "child")
 
-nodeOfInterest <- dplyr::filter(phageRelations, nodeType != "child") %>% 
+nodeOfInterest <- dplyr::filter(phageRelations, nodeType != "child") %>%
   dplyr::select(id)
 
 ################################################################################
@@ -63,9 +65,9 @@ aniDf <- suppressMessages(readr::read_tsv(
   dplyr::mutate(
     dplyr::across(
       .cols = c(id1, id2),
-      .fns = ~stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
+      .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
     ),
-    dist = 1 - (ani/100)
+    dist = 1 - (ani / 100)
   )
 
 aniDist <- dplyr::left_join(
@@ -78,21 +80,21 @@ aniDist <- dplyr::left_join(
     values_fill = 1
   ),
   by = c("id" = "id1")
-) %>% 
+) %>%
   dplyr::select(id, all_of(nodeOfInterest$id))
 
 readr::write_tsv(
   x = aniDist, file = confs$analysis$prophages$files$ani_distance
 )
 
-aniDistMat <- tibble::column_to_rownames(aniDist, var = "id") %>% 
-  as.matrix() %>% 
+aniDistMat <- tibble::column_to_rownames(aniDist, var = "id") %>%
+  as.matrix() %>%
   as.dist()
 
 ## store UPGMA and NJ trees
 # plot(hclust(distMat))
-aniUpgma <- ape::as.phylo(hclust(d = aniDistMat, method = "average")) %>% 
-  ape::ladderize() %>% 
+aniUpgma <- ape::as.phylo(hclust(d = aniDistMat, method = "average")) %>%
+  ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
@@ -104,7 +106,7 @@ ape::write.tree(
 # nodelabels()
 
 aniNj <- ape::nj(aniDistMat) %>%
-  ape::ladderize() %>% 
+  ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ## set negative length edges => 0
@@ -120,26 +122,28 @@ ape::write.tree(
 mashDf <- suppressMessages(readr::read_tsv(
   file = confs$data$prophages$files$mash,
   col_names = c("id1", "id2", "dist", "pvalue", "mapped")
-)) %>% 
+)) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(id1, id2),
-      .fns = ~stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
+      .fns = ~ stringr::str_replace(
+        string = .x, pattern = ".*/(.*).fna", replacement = "\\1"
+      ),
     )
   )
 
-# mashDf %>% 
-#   dplyr::filter(id1 %in% !!nodeOfInterest$id, id2 %in% !!nodeOfInterest$id) %>% 
+# mashDf %>%
+#   dplyr::filter(id1 %in% !!nodeOfInterest$id, id2 %in% !!nodeOfInterest$id) %>%
 #   dplyr::filter(id1 != id2) %>%
-#   dplyr::arrange(dist, id1, id2) %>% 
+#   dplyr::arrange(dist, id1, id2) %>%
 #   dplyr::left_join(
 #     y = dplyr::select(prophageDf, id1 = prophage_id, species1 = SpeciesName),
 #     by = "id1"
-#   ) %>% 
+#   ) %>%
 #   dplyr::left_join(
 #     y = dplyr::select(prophageDf, id2 = prophage_id, species2 = SpeciesName),
 #     by = "id2"
-#   ) %>% 
+#   ) %>%
 #   clipr::write_clip()
 
 mashDist <- dplyr::left_join(
@@ -152,7 +156,7 @@ mashDist <- dplyr::left_join(
     values_fill = 1
   ),
   by = c("id" = "id1")
-) %>% 
+) %>%
   dplyr::select(id, all_of(nodeOfInterest$id))
 
 
@@ -160,14 +164,14 @@ readr::write_tsv(
   x = mashDist, file = confs$analysis$prophages$files$mash_distance
 )
 
-mashDistMat <- tibble::column_to_rownames(mashDist, var = "id") %>% 
-  as.matrix() %>% 
+mashDistMat <- tibble::column_to_rownames(mashDist, var = "id") %>%
+  as.matrix() %>%
   as.dist()
 
 ## store UPGMA and NJ trees
 # plot(hclust(distMat))
-mashUpgma <- ape::as.phylo(hclust(d = mashDistMat, method = "average")) %>% 
-  ape::ladderize() %>% 
+mashUpgma <- ape::as.phylo(hclust(d = mashDistMat, method = "average")) %>%
+  ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
@@ -177,7 +181,7 @@ ape::write.tree(
 
 
 mashNj <- ape::nj(mashDistMat) %>%
-  ape::ladderize() %>% 
+  ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ## set negative length edges => 0
@@ -193,24 +197,25 @@ ape::write.tree(
 ## cophenetic distance calculation for NJ and UPGMA tree
 copheneticDist <- tibble::tibble(
   aniDist = as.vector(aniDistMat),
-  aniUpgma =  as.vector(as.dist(cophenetic(aniUpgma))),
-  aniNj =  as.vector(as.dist(cophenetic(aniNj))),
+  aniUpgma = as.vector(as.dist(cophenetic(aniUpgma))),
+  aniNj = as.vector(as.dist(cophenetic(aniNj))),
   mashDist = as.vector(mashDistMat),
   mashUpgma = as.vector(as.dist(cophenetic(mashUpgma))),
   mashNj = as.vector(as.dist(cophenetic(mashNj)))
 )
 
-M = cor(copheneticDist)
+M <- cor(copheneticDist)
 
 corrplot::corrplot(
-  M, type = 'lower',  tl.col = 'black',
-  cl.ratio = 0.2, tl.srt = 45, col = COL2('BrBG'), addCoef.col = 'white'
+  M,
+  type = "lower", tl.col = "black",
+  cl.ratio = 0.2, tl.srt = 45, col = COL2("BrBG"), addCoef.col = "white"
 )
 
 
 ################################################################################
 ## add data to tree
-treeTbl <- as_tibble(mashUpgma) %>%
+treeTbl <- treeio::as_tibble(mashUpgma) %>%
   dplyr::left_join(y = phageRelations, by = c("label" = "id")) %>%
   treeio::as.treedata()
 
@@ -225,8 +230,10 @@ pt_treeUpgma <- ggtree::ggtree(
   scale_color_manual(
     values = setNames(
       viridisLite::viridis(n = 5),
-      c("P. brasiliense", "P. carotovorum", "P. c. subsp. carotovorum",
-        "P. versatile", "P. parmentieri")
+      c(
+        "P. brasiliense", "P. carotovorum", "P. c. subsp. carotovorum",
+        "P. versatile", "P. parmentieri"
+      )
     ),
     breaks = NULL,
     na.value = "black"
@@ -241,7 +248,7 @@ ggsave(
 
 # ANI
 ht_ani <- plot_species_ANI_heatmap(
-  mat = 100*(1 -as.matrix(aniDistMat)), phy = aniUpgma, speciesInfo = NULL,
+  mat = 100 * (1 - as.matrix(aniDistMat)), phy = aniUpgma, speciesInfo = NULL,
   col = circlize::colorRamp2(
     breaks = c(0, 50, 80, 90, 91, 92, 93, 93.5, 94, 95, 96, 97, 99),
     colors = viridisLite::viridis(n = 13, option = "B")
@@ -249,8 +256,10 @@ ht_ani <- plot_species_ANI_heatmap(
   name = "ani"
 )
 
-pdf(file = file.path(outDir, "prophage_ANI_heatmap.pdf"), 
-    width = 10, height = 10)
+pdf(
+  file = file.path(outDir, "prophage_ANI_heatmap.pdf"),
+  width = 10, height = 10
+)
 ComplexHeatmap::draw(
   object = ht_ani,
   main_heatmap = "ani",
@@ -271,8 +280,10 @@ ht_mash <- plot_species_ANI_heatmap(
   ),
 )
 
-pdf(file = file.path(outDir, "prophage_MASH_heatmap.pdf"), 
-    width = 10, height = 10)
+pdf(
+  file = file.path(outDir, "prophage_MASH_heatmap.pdf"),
+  width = 10, height = 10
+)
 ComplexHeatmap::draw(
   object = ht_mash,
   main_heatmap = "mash",
@@ -282,8 +293,3 @@ ComplexHeatmap::draw(
 dev.off()
 
 ################################################################################
-
-
-
-
-
