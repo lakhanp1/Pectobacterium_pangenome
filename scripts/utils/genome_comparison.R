@@ -48,29 +48,10 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, ...){
       has_name(speciesInfo, "SpeciesName")
     )
     
-    # draw(ht_ani)
-    ## species name key heatmap
-    speciesMat <- get_species_key_data(
-      genomes = rownames(mat), metadata = speciesInfo, type = "wide"
+    ht_species <- species_key_heatmap(
+      genomes = rownames(mat), speciesInfo = speciesInfo,
+      markGenomes = markGenomes
     )
-    
-    ## ensure the row order is same: this is because of a bug in ComplexHeatmap
-    stopifnot(all(rownames(speciesMat) == phy$tip.label))
-    
-    ht_species <- ComplexHeatmap::Heatmap(
-      matrix = speciesMat,
-      name = "species_key",
-      col = c("1" = "black", "0" = "white"),
-      cluster_columns = FALSE,
-      column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
-      border = TRUE, column_gap = unit(0, "mm"),
-      show_row_names = FALSE, show_column_names = TRUE,
-      column_names_rot = 45,
-      column_names_gp = gpar(fontsize = 12),
-      column_title = "Species key"
-    )
-    
-    # draw(ht_species)
     
     htList <- ht_species + ht_ani
   }

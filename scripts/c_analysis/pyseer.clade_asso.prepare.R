@@ -66,7 +66,7 @@ readr::write_tsv(
 hgs <- homology_groups_extract(
   file = panConf$db$gene_classification$GC.100.0$files$groups,
   genomes = sampleInfo$Genome,
-  groups <- "accessory", pav = TRUE
+  groups = "accessory", pav = TRUE
 )
 
 dplyr::select(hgs, -class, Gene = hg, !!!purrr::map_chr(sampleInfoList, "Genome")) %>%

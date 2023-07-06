@@ -312,31 +312,44 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
 #' Generate species key data for plotting
 #'
 #' @param genomes genomes to select
-#' @param metadata a dataframe with two columns: `Genome` and `SpeciesName`
+#' @param speciesInfo a dataframe with two columns: `Genome` and `SpeciesName`
 #' @param type Return type: `wide`: a matrix of dimension n(Genome) x n(Species),
 #'  `long`: data.frame in long format
+#' @param markGenomes A list with two elements named `list(compare = c(),
+#' against = c())`. Default: `NULL`
 #'
 #' @return Either a matrix or data.frame
 #' @export
 #'
 #' @examples NA
-get_species_key_data <- function(genomes, metadata, type = "wide") {
+get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenomes = NULL) {
   stopifnot(
     type %in% c("wide", "long"),
-    all(genomes %in% metadata$Genome),
-    tibble::has_name(metadata, "SpeciesName")
+    all(genomes %in% speciesInfo$Genome),
+    tibble::has_name(speciesInfo, "SpeciesName")
   )
 
   ## species name key heatmap
   speciesKey <- tibble::tibble(Genome = genomes) %>%
-    dplyr::left_join(y = dplyr::select(metadata, Genome, SpeciesName), by = "Genome") %>%
-    dplyr::mutate(sp = 1)
+    {
+      if(!is.null(markGenomes)){
+        dplyr::left_join(
+          x = .,
+          y = tibble::enframe(markGenomes, name = "species") %>% tidyr::unnest(cols = value),
+          by = c("Genome" = "value")
+        ) %>% 
+          tidyr::replace_na(replace = list(species = "1"))
+      } else{
+        dplyr::mutate(., species = "1")
+      }
+    } %>% 
+    dplyr::left_join(y = dplyr::select(speciesInfo, Genome, SpeciesName), by = "Genome")
 
   if (type == "wide") {
     speciesKey %<>%
       tidyr::pivot_wider(
         id_cols = Genome, names_from = SpeciesName,
-        values_from = sp, values_fill = 0, names_sort = TRUE
+        values_from = species, values_fill = "0", names_sort = TRUE
       ) %>%
       tibble::column_to_rownames(var = "Genome") %>%
       as.matrix()
@@ -346,7 +359,52 @@ get_species_key_data <- function(genomes, metadata, type = "wide") {
 }
 ################################################################################
 
-#' plot species name key as heatmap
+#' plot species name key as `ComplexHeatmap` heatmap
+#'
+#' @param genomes genomes to select
+#' @param speciesInfo a dataframe with two columns: `Genome` and `SpeciesName`
+#' @param markGenomes A list with two elements named `list(compare = c(),
+#' against = c())`. Default: `NULL`
+#' 
+#' @return A heatmap
+#' @export
+#'
+#' @examples NA
+species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL){
+  
+  stopifnot(
+    all(genomes %in% speciesInfo$Genome),
+    tibble::has_name(speciesInfo, "SpeciesName")
+  )
+  
+  ## species name key heatmap
+  speciesMat <- get_species_key_data(
+    genomes = genomes, speciesInfo = speciesInfo,
+    type = "wide", markGenomes = markGenomes
+  )
+  
+  ## ensure the row order is same: this is because of a bug in ComplexHeatmap
+  stopifnot(all(rownames(speciesMat) == genomes))
+  
+  ht1 <- ComplexHeatmap::Heatmap(
+    matrix = speciesMat,
+    name = "species_key",
+    col = c("1" = "black", "0" = "white", "compare" = "red", "against" = "green"),
+    cluster_columns = FALSE,
+    column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
+    border = TRUE, column_gap = unit(0, "mm"),
+    show_row_names = FALSE, show_column_names = TRUE,
+    column_names_rot = 45,
+    column_names_gp = gpar(fontsize = 12),
+    column_title = "Species key"
+  )
+  
+  return(ht1)
+}
+
+################################################################################
+
+#' plot species name key as ggplot heatmap
 #'
 #' @param keyDf a data.frame
 #'
@@ -354,7 +412,7 @@ get_species_key_data <- function(genomes, metadata, type = "wide") {
 #' @export
 #'
 #' @examples NA
-species_key_plot <- function(keyDf) {
+species_key_ggplot <- function(keyDf) {
   stopifnot(
     tibble::has_name(keyDf, "SpeciesName"),
     tibble::has_name(keyDf, "Genome")
