@@ -27,7 +27,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
+treeMethod <- "kmer_upgma"     #ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -61,7 +61,7 @@ prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data))
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column
@@ -79,7 +79,7 @@ phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_upgma)
 # prophage homology groups on pangenome phylogeny
 proReps <- dplyr::filter(phageRelations, nodeType != "child") %>% 
   dplyr::select(prophage_id, nodeType) %>% 
-  dplyr::left_join(proHgs, by = "prophage_id") %>% 
+  dplyr::left_join(proHgs, by = c("prophage_id" = "id")) %>% 
   dplyr::select(-contig_id)
 
 length(unique(unlist(proReps$hgs)))
@@ -138,8 +138,7 @@ prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>%
 
 ## ensure the row order is same: this is because of a bug in ComplexHeatmap
 stopifnot(
-  all(rownames(countMat) == rawTree$tip.label),
-  all(rownames(speciesMat) == rawTree$tip.label)
+  all(rownames(countMat) == rawTree$tip.label)
 )
 
 # bottom annotation: number of HGs in prophage, prophage completeness

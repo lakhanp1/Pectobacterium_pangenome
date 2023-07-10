@@ -26,7 +26,7 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
+treeMethod <- "kmer_upgma"     #ani_upgma, kmer_upgma
 
 outDir <- confs$analysis$prophages$dir
 
@@ -59,7 +59,7 @@ proHgs <- suppressMessages(
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   ) %>% 
-  dplyr::select(prophage_id, hgs)
+  dplyr::select(id, hgs)
 
 # proHgL <- purrr::transpose(proHgs) %>%
 #   purrr::set_names(nm = purrr::map(., "prophage_id"))
@@ -92,7 +92,7 @@ phageRelations %<>%
   dplyr::rename(prophage_id = child, Genome = childGenome, nHgs = nHgChild) %>%
   dplyr::relocate(nodeType, .after = prophage_id) %>% 
   dplyr::left_join(y = nodePaths, by = "Genome") %>% 
-  dplyr::left_join(y = proHgs, by = "prophage_id")
+  dplyr::left_join(y = proHgs, by = c("prophage_id" = "id"))
 
 
 # make igraph

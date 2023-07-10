@@ -277,7 +277,7 @@ pt_inhouseTree <- ggtree::ggtree(
   )
 
 speciesKyeDf <- get_species_key_data(
-  genomes = inhouseNodes$Genome, metadata = sampleInfo, type = "long"
+  genomes = inhouseNodes$Genome, speciesInfo = sampleInfo, type = "long"
 )
 
 pt_spKey <- ggplot2::ggplot(

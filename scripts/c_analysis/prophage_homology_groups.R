@@ -81,7 +81,7 @@ proHgs %>%
     hgs = paste(hgs, collapse = ";")
   ) %>%
   dplyr::filter(nHgs > 0) %>%
-  dplyr::select(contig_id, prophage_id, sampleId, nHgs, hgs) %>%
+  dplyr::select(contig_id, id = prophage_id, sampleId, nHgs, hgs) %>%
   readr::write_tsv(
     file = confs$analysis$prophages$files$prophage_hg
   )

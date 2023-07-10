@@ -58,6 +58,7 @@ proHgs <- suppressMessages(
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   ) %>%
+  dplyr::rename(prophage_id = id) %>% 
   dplyr::left_join(
     y = dplyr::select(sampleInfo, sampleId, SpeciesName, Genome, N50), by = "sampleId"
   ) %>%
