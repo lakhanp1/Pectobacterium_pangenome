@@ -17,6 +17,7 @@ rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
 source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
@@ -73,6 +74,7 @@ phageRelations <- suppressMessages(
 ) %>% 
   dplyr::left_join(y = prophageDf, by = c("prophage_id"))
 
+phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_upgma)
 ################################################################################
 # prophage homology groups on pangenome phylogeny
 proReps <- dplyr::filter(phageRelations, nodeType != "child") %>% 
@@ -84,6 +86,9 @@ length(unique(unlist(proReps$hgs)))
 
 # function to get homology group counts in each genome of a pangenome
 homology_groups_genome_counts <- function(h, pandb){
+  # ****
+  # replace this function by searching for a tandem match of homology groups
+  # ****
   suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = unique(h),
@@ -111,7 +116,8 @@ proHgCounts <- tidyr::pivot_wider(
   names_from = prophage_id,
   values_from = fraction,
   values_fill = 0,
-)
+) %>% 
+  dplyr::select(genome, all_of(phageTree$tip.label))
 
 
 countMat <- tibble::tibble(genome = rawTree$tip.label) %>% 
@@ -122,15 +128,10 @@ countMat <- tibble::tibble(genome = rawTree$tip.label) %>%
 hist(matrixStats::colMaxs(countMat))
 hist(countMat)
 
-speciesMat <- tibble::tibble(Genome = rownames(countMat)) %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, Genome, SpeciesName), by = "Genome") %>% 
-  dplyr::mutate(species = 1) %>% 
-  tidyr::pivot_wider(
-    id_cols = Genome, names_from = SpeciesName,
-    values_from = species, values_fill = 0, names_sort = TRUE
-  ) %>% 
-  tibble::column_to_rownames(var = "Genome") %>% 
-  as.matrix()
+# species key heatmap
+ht_species <- species_key_heatmap(
+  genomes = rawTree$tip.label, speciesInfo = sampleInfo
+)
 
 prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>% 
   dplyr::left_join(y = phageRelations, by = "prophage_id")
@@ -141,7 +142,7 @@ stopifnot(
   all(rownames(speciesMat) == rawTree$tip.label)
 )
 
-# top annotation
+# bottom annotation: number of HGs in prophage, prophage completeness
 an_bar <- ComplexHeatmap::HeatmapAnnotation(
   nHgs = ComplexHeatmap::anno_barplot(
     x = prophageAnDf$nHgs,
@@ -166,36 +167,18 @@ ht_count <- ComplexHeatmap::Heatmap(
   col = viridisLite::viridis(n = 11, option = "B"),
   bottom_annotation = an_bar,
   cluster_rows = ape::as.hclust.phylo(rawTree), row_dend_reorder = FALSE,
-  cluster_columns = TRUE,
+  row_dend_width = unit(3, "cm"), show_row_dend = TRUE,
+  cluster_columns = ape::as.hclust.phylo(phageTree), column_dend_reorder = FALSE,
+  column_dend_height = unit(3, "cm"), show_column_dend = TRUE,
   show_column_names = FALSE,
-  show_row_dend = TRUE, show_column_dend = FALSE,
-  row_dend_width = unit(3, "cm"),
   show_row_names = FALSE,
   column_title = "Prophage homology groups / genome",
   width = unit(20, "cm")
 )
 
-
-# species key heatmap
-ht_species <- ComplexHeatmap::Heatmap(
-  matrix = speciesMat,
-  name = "species_key",
-  col = c("1" = "black", "0" = "white", "compare" = "red", "against" = "green"),
-  # cluster_rows = as.hclust.phylo(phy), row_dend_reorder = FALSE,
-  cluster_columns = FALSE,
-  # column_order = speciesOrder,
-  column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
-  border = TRUE, column_gap = unit(0, "mm"),
-  show_row_names = FALSE, show_column_names = TRUE,
-  column_names_rot = 45,
-  column_names_gp = gpar(fontsize = 12),
-  column_title = "Species key",
-  width = unit(8, "cm")
-)
-
 htList <- ht_species + ht_count
 
-pdf(file = paste(outDir, "/prophage_hg_summary.pdf", sep = ""), width = 15, height = 9)
+pdf(file = paste(outDir, "/prophage_pangenome_hgs.pdf", sep = ""), width = 15, height = 9)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "hg_count",
@@ -203,6 +186,4 @@ ComplexHeatmap::draw(
   merge_legends = TRUE
 )
 dev.off()
-
-
 

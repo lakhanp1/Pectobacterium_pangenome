@@ -81,13 +81,17 @@ relationship between the prophages in pangenome.
 
 ```bash
 Rscript scripts/c_analysis/prophage_DAG.R
+Rscript scripts/c_analysis/prophage_DAG_postprocess.R
 ```
 
-```bash
-Rscript scripts/c_analysis/prophage_DAG_viz.R
+Visualize the clusters of prophages as directed acyclic graphs.
+
+```r
+knitr::knit("scripts/c_analysis/prophage_DAG_viz.Rmd")
 ```
 
-Process prophage ANI results and cluster prophages based on ANI.
+Process prophage MASH and ANI results and visualize MASH similarity matrix for
+the non-redundant prophages.
 
 ```bash
 Rscript scripts/c_analysis/prophage_seq_similarity.R
@@ -102,8 +106,25 @@ Rscript scripts/c_analysis/prophages_representatives.R
 
 ### Visualize
 
-Visualize the representative prophages across pangenome.
+Visualize the representative prophages across pangenome. Use MASH distance to
+cluster prophages and ANI distance to cluster the genomes in the pangenome.
 
 ```bash
 Rscript scripts/c_analysis/prophage_pangenome_viz.R
+```
+
+Visualize homology group sets for selected prophages as PAV heatmap across the
+pangenome. Replace the code block in `scripts/c_analysis/homology_group_viz.R` 
+script with the following.
+
+```r
+analysisName <- "vir_lineage_prophages"
+
+outDir <- file.path(confs$analysis$prophages$dir)
+outPrefix <- file.path(outDir, analysisName)
+
+setIds <- c(
+  "g_93.vir_1", "g_448.vir_2", "g_188.vir_2", "g_189.vir_1", "g_393.vir_1",
+  "g_162.vir_4", "g_438.vir_3", "g_400.vir_2", "g_399.vir_2"
+)
 ```

@@ -11,17 +11,16 @@
 #' @export
 #'
 #' @examples NA
-homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE){
-
+homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) {
   stopifnot(
     groups %in% c("core", "accessory", "unique", "all")
   )
 
   ## homology groups PAV matrix
   hgs <- suppressMessages(readr::read_csv(file)) %>%
-    dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "( |-)", "_")) %>%
-    dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "Genome_", "")) %>%
-    dplyr::rename_with(.fn = ~tolower(.x)) %>%
+    dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "( |-)", "_")) %>%
+    dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "Genome_", "")) %>%
+    dplyr::rename_with(.fn = ~ tolower(.x)) %>%
     dplyr::mutate(homology_group_id = as.character(homology_group_id)) %>%
     dplyr::select(hg = homology_group_id, tidyselect::all_of(genomes))
 
@@ -30,7 +29,8 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE){
     hgs,
     dplyr::across(
       .cols = tidyselect::all_of(genomes),
-      .fns = ~dplyr::if_else(.x > 1, true = 1, false = .x))
+      .fns = ~ dplyr::if_else(.x > 1, true = 1, false = .x)
+    )
   ) %>%
     tibble::column_to_rownames(var = "hg") %>%
     as.matrix()
@@ -74,7 +74,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE){
 #' @export
 #'
 #' @examples
-homology_groups_mat <- function(pandb, type, groups = NULL){
+homology_groups_mat <- function(pandb, type, groups = NULL) {
   type <- match.arg(arg = tolower(type), choices = c("pav", "cnv"))
   
   stopifnot(
@@ -85,21 +85,21 @@ homology_groups_mat <- function(pandb, type, groups = NULL){
     x = pandb, keys = keys(pandb), columns = c("genome", "mRNA_key")
   )
   
-  if(type == "cnv"){
+  if (type == "cnv") {
     hgWide <- tidyr::pivot_wider(
       hgs,
-      names_from = "GID",  values_from = "mRNA_key", 
-      values_fn = ~length(.x), values_fill = 0
+      names_from = "GID", values_from = "mRNA_key",
+      values_fn = ~ length(.x), values_fill = 0
     )
-  } else{
+  } else {
     hgWide <- tidyr::pivot_wider(
       hgs,
-      names_from = "GID",  values_from = "mRNA_key", 
+      names_from = "GID", values_from = "mRNA_key",
       values_fn = ~ length(.x[1]), values_fill = 0
     )
   }
   
-  if(!is.null(groups)){
+  if (!is.null(groups)) {
     hgWide %<>% dplyr::select(genome, tidyselect::all_of(groups))
   }
   
@@ -128,15 +128,14 @@ homology_groups_mat <- function(pandb, type, groups = NULL){
 #'
 #' @examples
 homology_group_heatmap <- function(mat, phy, speciesInfo = NULL, 
-                                   hgAn = NULL, markGenomes = NULL, ...){
-  
+                                   hgAn = NULL, markGenomes = NULL, ...) {
   ## necessary checks
   stopifnot(
     setequal(rownames(mat), phy$tip.label),
     ## ensure the row order is same: this is because of a bug in ComplexHeatmap
     # https://github.com/jokergoo/ComplexHeatmap/issues/949
     all(rownames(mat) == phy$tip.label),
-    all(rownames(mat) %in% speciesInfo$Genome),
+    is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$Genome)),
     is.null(hgAn) | all(colnames(mat) == hgAn$hg_id),
     any(class(phy) == "phylo"),
     is.null(markGenomes) | 
@@ -160,7 +159,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     ...
   )
   
-  if(!is.null(hgAn)){
+  if (!is.null(hgAn)) {
     ht_args$column_split <- hgAn$hg_group
     ht_args$column_order <- hgAn$hg_id
     ht_args$column_labels <- hgAn$label
@@ -177,7 +176,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
   htList <- ht_hg
   
   # optional species key heatmap
-  if(!is.null(speciesInfo)){
+  if (!is.null(speciesInfo)) {
     stopifnot(
       all(rownames(mat) %in% speciesInfo$Genome),
       has_name(speciesInfo, "Genome"),
@@ -193,7 +192,6 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
   }
   
   return(htList)
-  
 }
 
 ################################################################################
@@ -210,8 +208,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
 #' @export
 #'
 #' @examples
-region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf){
-  
+region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
   stopifnot(
     !is.na(chr)
   )
@@ -228,7 +225,8 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf){
         .cols = c(start, end), .fns = as.integer
       )
     ) %>% 
-    dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end)
+    dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end) %>%
+    dplyr::arrange(start)
   
   return(df$GID)
 }
@@ -246,12 +244,11 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf){
 #' @export
 #'
 #' @examples
-get_hg_sets_location <- function(hgs, genome, chr, pandb){
-  
+get_hg_sets_location <- function(hgs, genome, chr, pandb) {
   hgInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = hgs,
-      columns =  c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+      columns = c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
     ) 
   ) %>% 
     dplyr::filter(genome == !!genome, chr_name == !!chr) %>% 
@@ -263,7 +260,7 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb){
   chrInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = genome, keytype = "genome",
-      columns =  c("GID", "genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+      columns = c("GID", "genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
     ) 
   ) %>% 
     dplyr::filter(chr_id == !!hgInfo$chr_id[1]) %>% 
@@ -277,32 +274,26 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb){
     # for a tandem match of homology groups, there should be one (RLE length for TRUE) >= #HGs
     # if these is no such RLE length, something is wrong
     return(-1)
-    
-  } else{
-    
+  } else {
     if (identical(hgRle$values, c(TRUE))) {
       # hgs are on independent contig
       return(0)
-      
-    } else if(identical(hgRle$values[1:2], c(TRUE, FALSE)) &
-              hgRle$lengths[1] >= nrow(hgInfo)){
+    } else if (identical(hgRle$values[1:2], c(TRUE, FALSE)) &
+      hgRle$lengths[1] >= nrow(hgInfo)) {
       # hgs are at the beginning
       return(0)
-      
-    } else if(identical(tail(hgRle$values, 2), c(FALSE, TRUE)) & 
-              tail(hgRle$lengths, 1) >= nrow(hgInfo)){
+    } else if (identical(tail(hgRle$values, 2), c(FALSE, TRUE)) &
+      tail(hgRle$lengths, 1) >= nrow(hgInfo)) {
       # hgs are at the beginning
       return(1)
-      
-    } else{
+    } else {
       # hgs present within a contig
       
       hgPosition <- which(
         hgRle$values == TRUE & hgRle$lengths >= nrow(hgInfo)
       )
       
-      return((sum(head(hgRle$lengthsm, hgPosition - 1)) + 1)/nrow(chrInfo))
-      
+      return((sum(head(hgRle$lengthsm, hgPosition - 1)) + 1) / nrow(chrInfo))
     }
   }
 }
