@@ -44,6 +44,12 @@ parser <- optparse::add_option(
   help = "project config YAML file"
 )
 
+parser <- optparse::add_option(
+  parser,
+  opt_str = c("--save_leaf_order"), type = "logical", action = "store_true",
+  help = "LOGICAL: Save the order of tip lables from phylogenetic tree"
+)
+
 opts <- optparse::parse_args(parser)
 
 if (any(is.null(opts$name), is.null(opts$config), is.null(opts$tree))) {
@@ -54,6 +60,7 @@ if (any(is.null(opts$name), is.null(opts$config), is.null(opts$tree))) {
 # opts$config <- "project_config.yaml"
 # opts$tree <- "./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick"
 # opts$name <- "kmer_upgma"
+# opts$save_leaf_order <- TRUE
 # opts$tree <- "./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile"
 # opts$name <- "core_snp_ml"
 # #######
@@ -162,3 +169,31 @@ ggsave(
   plot = pt_tree4, width = 10, height = 20, scale = 2,
   filename = paste(outDir, "/", opts$name, ".rooted_tree.pdf", sep = "")
 )
+
+################################################################################
+# optionally, save species order for plotting species key heatmap
+if(opts$save_leaf_order){
+  leafOrder <- dplyr::arrange(.data = pt_tree$data, y) %>%
+    dplyr::filter(isTip)
+  
+  speciesOrder <- dplyr::select(leafOrder, SpeciesName, y, type_material) %>%
+    dplyr::group_by(SpeciesName) %>%
+    dplyr::arrange(type_material, y, .by_group = TRUE) %>%
+    dplyr::slice(1L) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(desc(y)) %>%
+    # dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %>%
+    dplyr::pull(SpeciesName)
+  
+  readr::write_tsv(
+    x = tibble::tibble(SpeciesName = speciesOrder),
+    file = confs$analysis$phylogeny[[opts$name]]$files$species_order
+  )
+  
+}
+
+################################################################################
+
+
+
+

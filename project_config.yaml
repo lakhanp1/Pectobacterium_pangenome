@@ -242,12 +242,14 @@ analysis:
       files:
         tree: "kmer.nj.newick"
         tree_rooted: "kmer.nj.rooted.newick"
+        species_order: "kmer.nj.species_order.txt"
     kmer_upgma:
       name: "kmer distance UPGMA"
       dir: kmer_dist
       files:
         tree: "kmer.upgma.newick"
         tree_rooted: "kmer.upgma.rooted.newick"
+        species_order: "kmer.upgma.species_order.txt"
     core_snp_ml:
       dir: "core_snp"
       name: "core genome SNP ML"

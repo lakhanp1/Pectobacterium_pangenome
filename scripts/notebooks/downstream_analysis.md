@@ -51,12 +51,12 @@ export PANTOOLS="$PANTOOLS_4_1"
 ## kmer distance UPGMA tree
 ./scripts/c_analysis/phylo.process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick \
---name "kmer_upgma" --config project_config.yaml
+--name "kmer_upgma" --config project_config.yaml --save_leaf_order
 
 ## kmer distance NJ tree
 ./scripts/c_analysis/phylo.process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick \
---name "kmer_nj" --config project_config.yaml
+--name "kmer_nj" --config project_config.yaml --save_leaf_order
 
 ## core-SNP ML tree
 ./scripts/c_analysis/phylo.process_newicks.R \
