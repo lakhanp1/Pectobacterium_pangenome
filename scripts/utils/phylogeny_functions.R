@@ -11,7 +11,7 @@
 #' @examples
 annotate_ggtree <- function(pt, offset, annotations = NULL) {
   stopifnot(
-    isa(pt, "ggplot2")
+    inherits(pt, "ggtree")
   )
 
   pt2 <- pt +

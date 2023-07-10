@@ -48,9 +48,14 @@ export PANTOOLS="$PANTOOLS_4_1"
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree \
 --name "gene_nj" --config project_config.yaml
 
+## kmer distance UPGMA tree
+./scripts/c_analysis/phylo.process_newicks.R \
+--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick \
+--name "kmer_upgma" --config project_config.yaml
+
 ## kmer distance NJ tree
 ./scripts/c_analysis/phylo.process_newicks.R \
---tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/genome_kmer_distance.tree \
+--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick \
 --name "kmer_nj" --config project_config.yaml
 
 ## core-SNP ML tree

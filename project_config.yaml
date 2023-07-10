@@ -139,6 +139,11 @@ data:
             dir: "kmer_classification.100.0"
             files:
               tree: "genome_kmer_distance.tree"
+              mash_upgma: "kmer.upgma.newick"
+              mash_nj: "kmer.nj.newick"
+              mash_dist: "distances_for_tree/genome_mash_distance.csv"
+              distinct_kmer_dist: "distances_for_tree/genome_distance_distinct_kmers.csv"
+              all_kmer_dist: "distances_for_tree/genome_distance_all_kmers.csv"
           KC.95.5:
             dir: "kmer_classification.95.5"
             files:
@@ -235,8 +240,14 @@ analysis:
       name: "kmer distance NJ"
       dir: kmer_dist
       files:
-        tree: "kmer_dist.newick"
-        tree_rooted: "kmer_dist.rooted.newick"
+        tree: "kmer.nj.newick"
+        tree_rooted: "kmer.nj.rooted.newick"
+    kmer_upgma:
+      name: "kmer distance UPGMA"
+      dir: kmer_dist
+      files:
+        tree: "kmer.upgma.newick"
+        tree_rooted: "kmer.upgma.rooted.newick"
     core_snp_ml:
       dir: "core_snp"
       name: "core genome SNP ML"
