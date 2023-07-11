@@ -10,7 +10,7 @@ source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
 orgDb <- org.Pectobacterium.spp.pan.eg.db
-genomeId <- "410"
+genomeId <- "182"
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -84,4 +84,4 @@ gru@trackLine <- as(
   "BasicTrackLine"
 )
 
-rtracklayer::export.bed(object = gru, con = paste(outPrefix, ".homology_groups.bed", sep = ""))
+rtracklayer::export.bed(object = gru, con = paste(outPrefix, ".hg.bed", sep = ""))

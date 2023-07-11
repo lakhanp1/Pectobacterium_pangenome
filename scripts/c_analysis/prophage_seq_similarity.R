@@ -43,11 +43,11 @@ prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data))
 phageRelations <- suppressMessages(
   readr::read_tsv(file = confs$analysis$prophages$files$network)
 ) %>%
-  dplyr::select(id = prophage_id, nodeType, nHgs) %>%
+  dplyr::select(id = prophage_id, nodeType, nHgs, component_size) %>%
   dplyr::left_join(y = prophageDf, by = c("id" = "prophage_id")) %>%
   dplyr::mutate(
     nodeLabs = paste(
-      id, "|", "| hgs =", nHgs, "| length =", length,
+      id, "| hgs =", nHgs, "| cluster_size =", component_size, "| length =", length,
       "|", SpeciesName
     )
   ) %>%
@@ -222,6 +222,10 @@ treeTbl <- treeio::as_tibble(mashUpgma) %>%
 pt_treeUpgma <- ggtree::ggtree(
   tr = treeTbl
 ) +
+    ggtree::geom_nodelab(
+    mapping = aes(label = label),
+    node = "internal", size = 3, hjust = 1.3, color = "red"
+  ) +
   ggtree::geom_tiplab(
     mapping = aes(color = SpeciesName, label = nodeLabs),
     size = 2, align = TRUE, linesize = 0.5

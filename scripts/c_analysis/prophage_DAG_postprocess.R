@@ -47,9 +47,13 @@ nodePaths <- nodepath_df(phy = rawTree) %>%
   dplyr::mutate(Genome = as.numeric(Genome))
 
 prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
-  dplyr::select(prophage_id,
-    prophage_length = length, prophage_taxonomy = taxonomy,
-    completeness, checkv_quality, sampleId, SpeciesName
+  dplyr::mutate(
+    prophage_region = paste(chr, ":", start, "-", end, sep = ""),
+    prophage_region = dplyr::if_else(is.na(start), chr, prophage_region)
+  ) %>% 
+  dplyr::select(
+    prophage_id, prophage_length = length, prophage_taxonomy = taxonomy,
+    prophage_region, completeness, checkv_quality, sampleId, SpeciesName
   )
 
 # read prophage HGs stored locally
@@ -90,7 +94,13 @@ phageRelations %<>%
     nodeType = forcats::fct_relevel(.f = nodeType, "root", "singleton")
   ) %>%
   dplyr::rename(prophage_id = child, Genome = childGenome, nHgs = nHgChild) %>%
-  dplyr::relocate(nodeType, .after = prophage_id) %>% 
+  dplyr::left_join(
+    y = dplyr::select(prophageDf, prophage_id, prophage_length, prophage_region, sampleId),
+    by = "prophage_id") %>% 
+  dplyr::relocate(
+    nodeType, Genome, sampleId, prophage_region, prophage_length,
+    .after = prophage_id
+  ) %>% 
   dplyr::left_join(y = nodePaths, by = "Genome") %>% 
   dplyr::left_join(y = proHgs, by = c("prophage_id" = "id"))
 

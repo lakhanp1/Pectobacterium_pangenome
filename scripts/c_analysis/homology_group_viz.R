@@ -37,7 +37,8 @@ outPrefix <- file.path(outDir, analysisName)
 
 setIds <- c(
   "g_188.vir_2", "g_400.vir_2", "g_399.vir_2", "g_448.vir_2", "g_189.vir_1", 
-  "g_162.vir_4", "g_93.vir_1", "g_438.vir_3", "g_393.vir_1"
+  "g_93.vir_1", "g_218.vir_2", "g_3.vir_4", "g_391.vir_2", "g_438.vir_3",
+  "g_350.vir_1", "g_162.vir_4", "g_393.vir_1"
 )
 
 # add any homology group set file created to this vector
@@ -49,7 +50,7 @@ hgSetFiles <- c(
 
 ################################################################################
 
-treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -64,7 +65,7 @@ sampleInfoList <- as.list_metadata(
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column
@@ -109,7 +110,7 @@ htList <- species_key_heatmap(
   genomes = rawTree$tip.label, speciesInfo = sampleInfo
 )
 
-htList@heatmap_param$width <- unit(10, "cm")
+htList@heatmap_param$width <- unit(12, "cm")
 
 for (id in names(hgL)) {
   
