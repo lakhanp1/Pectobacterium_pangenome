@@ -18,11 +18,6 @@ output:
 <!-- } -->
 <!-- ``` -->
 
-```{r, setup, include=FALSE}
-suppressPackageStartupMessages(library(here))
-knitr::opts_knit$set(root.dir = here::here())
-```
-
 ## Initial setup
 
 ```{r}
@@ -41,6 +36,9 @@ suppressPackageStartupMessages(library(circlize))
 
 # visualize the prophage network
 rm(list = ls())
+
+suppressPackageStartupMessages(library(here))
+knitr::opts_knit$set(root.dir = here::here())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
@@ -106,11 +104,28 @@ gf
 
 ```{r}
 # components of graph
-igraph::count_components(gf)
+# igraph::count_components(gf)
 clu <- igraph::components(gf)
 compL <- igraph::groups(clu)
 
+# remove unused prophages for calculating summary stats
+proHgs <- tibble::as_tibble(igraph::vertex_attr(gf)) %>% 
+  dplyr::select(id = name, nodeType) %>% 
+  dplyr::left_join(proHgs, by = "id")
+
+rootHgsN <- dplyr::filter(proHgs, nodeType != "child") %>% 
+  dplyr::pull(hgs) %>% 
+  unlist() %>% unique() %>% length()
+
 ```
+
+Number of components or representative prophages in the prophage network: `r clu$no`
+
+Pangenome wide, `r igraph::vcount(gf)` prophages were detected and together these
+prophages contributed to `r length(unique(unlist(proHgs$hgs)))` homology groups.
+After grouping orthologous prophages, there are `r clu$no` representative 
+prophages that are represented by `r rootHgsN` unique homology groups.
+
 
 There should be only two elements when clique detection algorithm is run. One 
 for the nodes and second for the links. If there are more than 2 elements, there
