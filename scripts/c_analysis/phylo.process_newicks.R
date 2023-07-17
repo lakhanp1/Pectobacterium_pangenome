@@ -81,6 +81,7 @@ stopifnot(
 
 # listviewer::jsonedit(confs)
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
 outGroup <- confs$analysis$phylogeny$outgroup
 
 outDir <- confs$analysis$phylogeny[[opts$name]]$dir
@@ -190,6 +191,43 @@ if(opts$save_leaf_order){
     file = confs$analysis$phylogeny[[opts$name]]$files$species_order
   )
   
+  # add nodepath to the pangenome metadata file
+  nodePathCol <- paste('nodepath.', opts$name, sep = "")
+  nodePaths <- nodepath_df(phy = rootedTr) %>% 
+    dplyr::rename(
+      Genome = tip,
+      !!nodePathCol := nodepath
+    ) %>% 
+    dplyr::mutate(Genome = as.numeric(Genome))
+  
+  panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata))
+  
+  if(tibble::has_name(panMeta, nodePathCol)){
+    panMeta %<>% dplyr::select(-!!nodePathCol) 
+  }
+  
+  panMeta %<>% dplyr::left_join(nodePaths, by = "Genome")
+  
+  readr::write_csv(
+    x = panMeta, file = panConf$files$metadata
+  )
+  
+  ## write metadata to excel
+  wb <- openxlsx::createWorkbook()
+  currentSheet <- "metadata"
+  openxlsx::addWorksheet(wb, sheetName = currentSheet)
+  openxlsx::writeDataTable(
+    wb = wb, sheet = currentSheet, withFilter = TRUE, keepNA = TRUE,
+    na.string = "NA",
+    x = panMeta
+  )
+  openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
+  
+  # openxlsx::openXL(wb)
+  openxlsx::saveWorkbook(
+    wb = wb,
+    file = file.path(panConf$dir, "pangenome_metadata.xlsx"), overwrite = TRUE
+  )
 }
 
 ################################################################################
