@@ -370,7 +370,7 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
 #' @export
 #'
 #' @examples NA
-species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL){
+species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL, ...){
   
   stopifnot(
     all(genomes %in% speciesInfo$Genome),
@@ -396,7 +396,8 @@ species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL){
     show_row_names = FALSE, show_column_names = TRUE,
     column_names_rot = 45,
     column_names_gp = gpar(fontsize = 12),
-    column_title = "Species key"
+    column_title = "Species key",
+    ...
   )
   
   return(ht1)

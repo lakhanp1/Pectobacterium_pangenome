@@ -95,10 +95,13 @@ phageRelations %<>%
   ) %>%
   dplyr::rename(prophage_id = child, Genome = childGenome, nHgs = nHgChild) %>%
   dplyr::left_join(
-    y = dplyr::select(prophageDf, prophage_id, prophage_length, prophage_region, sampleId),
+    y = dplyr::select(
+      prophageDf, prophage_id, prophage_length, prophage_region,
+      sampleId, SpeciesName
+    ),
     by = "prophage_id") %>% 
   dplyr::relocate(
-    nodeType, Genome, sampleId, prophage_region, prophage_length,
+    nodeType, Genome, sampleId, SpeciesName, prophage_region, prophage_length,
     .after = prophage_id
   ) %>% 
   dplyr::left_join(y = nodePaths, by = "Genome") %>% 

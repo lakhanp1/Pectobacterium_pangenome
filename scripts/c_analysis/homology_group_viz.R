@@ -36,9 +36,9 @@ outDir <- file.path(confs$analysis$prophages$dir)
 outPrefix <- file.path(outDir, analysisName)
 
 setIds <- c(
-  "g_188.vir_2", "g_400.vir_2", "g_399.vir_2", "g_448.vir_2", "g_189.vir_1", 
-  "g_93.vir_1", "g_218.vir_2", "g_3.vir_4", "g_391.vir_2", "g_438.vir_3",
-  "g_350.vir_1", "g_162.vir_4", "g_393.vir_1"
+  "g_189.vir_2", "g_400.vir_2", "g_399.vir_2", "g_448.vir_2", "g_189.vir_1", 
+  "g_3.vir_4", "g_438.vir_3", "g_350.vir_1",
+  "g_172.vir_2", "g_393.vir_1"
 )
 
 # add any homology group set file created to this vector

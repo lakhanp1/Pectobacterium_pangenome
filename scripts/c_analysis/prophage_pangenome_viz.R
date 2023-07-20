@@ -84,7 +84,7 @@ proReps <- dplyr::filter(phageRelations, nodeType != "child") %>%
 
 length(unique(unlist(proReps$hgs)))
 
-# function to get homology group counts in each genome of a pangenome
+# function to get homology group counts in each genome of the pangenome
 homology_groups_genome_counts <- function(h, pandb){
   # ****
   # replace this function by searching for a tandem match of homology groups
@@ -130,7 +130,8 @@ hist(countMat)
 
 # species key heatmap
 ht_species <- species_key_heatmap(
-  genomes = rawTree$tip.label, speciesInfo = sampleInfo
+  genomes = rawTree$tip.label, speciesInfo = sampleInfo,
+  width = unit(10, "cm")
 )
 
 prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>% 
