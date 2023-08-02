@@ -1,0 +1,8 @@
+project:
+  title: "Pectobacterium pangenome data analysis"
+  # output-dir: "./scripts/quarto"
+  execute-dir: project
+toc: true
+format:
+  html: 
+    code-line-numbers: true
