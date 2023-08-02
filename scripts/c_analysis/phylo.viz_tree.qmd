@@ -1,0 +1,291 @@
+---
+title: "Visualized core SNP maximum-likelihood tree with metadata"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    toc: true
+    html-math-method: katex
+    code-overflow: scroll
+    code-copy: true
+    embed-resources: true
+toc: true
+toc-depth: 2
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(ggnewscale))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(ggbreak))
+suppressPackageStartupMessages(library(ggtreeExtra))
+suppressPackageStartupMessages(library(ggstar))
+suppressPackageStartupMessages(library(viridisLite))
+
+## visualized phylogenetic tree with metadata
+
+rm(list = ls())
+
+knitr::opts_knit$set(root.dir = here::here())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+
+outDir <- confs$analysis$phylogeny$core_snp_ml$dir
+outPrefix <- paste(outDir, "/", treeMethod, sep = "")
+
+```
+
+## Import tree data and add metadata
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+)
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
+metDf <- suppressMessages(
+  readr::read_csv(panConf$db$metrics$files$per_genome, col_names = T)
+) %>% 
+  dplyr::rename_all(
+    .funs = ~ stringr::str_replace_all(., "\\W+", "_")
+  ) %>% 
+  dplyr::rename_all(
+    .funs = ~ stringr::str_replace_all(., "_+$", "")
+  ) %>% 
+  dplyr::select(
+    Genome, Gene_count, mRNA_count, CDS_count, tRNA_count, rRNA_count,
+    Homology_groups, Singletons, GC_content
+  ) %>% 
+  dplyr::mutate(Genome = as.character(Genome))
+
+## add species order factor levels to SpeciesName column
+sampleInfo %<>% dplyr::mutate(
+  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+) %>% 
+  dplyr::left_join(
+    y = metDf, by = "Genome"
+  ) %>% 
+  dplyr::group_by(SpeciesName) %>% 
+  dplyr::mutate(
+    mRNA_med_diff = mRNA_count - median(mRNA_count)
+  ) %>% 
+  dplyr::ungroup()
+
+## read tree
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted)
+
+rawTree <- ape::ladderize(rawTree)
+
+## add data to tree
+treeTbl <- treeio::as_tibble(rawTree) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
+  treeio::as.treedata()
+
+```
+
+## Plotting
+
+```{r out.width='100%', fig.height=18}
+#| out-width: '100%'
+#| fig-height: 15
+
+
+pt_tree <- ggtree::ggtree(tr = treeTbl) +
+  theme_tree2()
+# ggbreak::scale_x_break(breaks = c(0.45, 0.8))
+
+pt_tree
+```
+
+The root branch is very long and hence trimming its length to 0.5 for visualization
+purpose.
+
+```{r}
+longestBranch <- which(pt_tree$data$x == max(pt_tree$data$x))
+pt_tree$data$x[longestBranch] <- 0.47
+```
+
+Plotting the circular layout tree.
+
+```{r}
+#| column: page 
+#| fig-height: 12
+#| out-width: '150%'
+#| layout-valign: top
+
+pt_tree2 <- pt_tree +
+  theme_tree() +
+  layout_fan(angle = 10) +
+  ggnewscale::new_scale_color() +
+  ggtree::geom_tiplab(
+    mapping = aes(label = NA),
+    align = TRUE, linesize = 0.4
+  )  +
+  ggnewscale::new_scale_color()
+
+spKeyDf <- get_species_key_data(sampleInfo$Genome, sampleInfo, type = 'wide') %>% 
+  tibble::as_tibble() %>% 
+  tibble::rownames_to_column(var = "Genome") %>% 
+  tidyr::pivot_longer(
+    cols = -Genome,
+    names_to = 'sp', values_to = "spCol"
+  ) %>% 
+  dplyr::mutate(sp = forcats::fct_relevel(sp, !!!speciesOrder$SpeciesName))
+
+pt_tree2 <- pt_tree2 +
+  # genome size
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = length - 4000000),
+    geom = geom_bar,
+    fill = "white", color = "black",
+    pwidth=0.15, 
+    orientation="y",
+    stat="identity",
+    grid.params = list(vline = TRUE, color = "grey"),
+    axis.params = list(
+      axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
+    )
+  ) +
+  # mRNA count difference with species median
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = mRNA_med_diff),
+    geom = geom_bar,
+    fill = "white", color = "blue",
+    offset = 0.2,
+    pwidth=0.15, 
+    orientation="y",
+    stat="identity",
+    grid.params = list(vline = TRUE, color = "grey"),
+    axis.params = list(
+      axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
+    )
+  ) +
+  # %GC
+  ggtreeExtra::geom_fruit(
+    geom = geom_bar,
+    mapping = aes(y = id, x = GC_content - 50),
+    fill = "white", color = "black",
+    pwidth = 0.15,
+    orientation = "y",
+    stat = "identity",
+    grid.params = list(vline = TRUE, color = "grey"),
+    axis.params = list(
+      axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
+    )
+  ) +
+  # collection year
+  ggtreeExtra::geom_fruit(
+    geom = geom_tile,
+    mapping = aes(fill = collection_year),
+    width = 0.02,
+    offset = 0.04
+  ) +
+  scale_fill_gradientn(
+    colours = viridisLite::viridis(n = 11, option = "A", direction = -1),
+    values = c(0, 0.6, 0.7, 0.8, 0.85, 0.9, 0.92, 0.94, 0.96, 0.98, 1),
+    # breaks = c(1970, 1990, 2010, 2015, 2020),
+    # limits = c(1970, 2020),
+    na.value = alpha("white", 1)
+  ) +
+  ggnewscale::new_scale_fill() +
+  # Netherlands collection
+  ggtreeExtra::geom_fruit(
+    geom = geom_point,
+    mapping = aes(color = geo_loc_country),
+    size = 0.7,
+    offset = 0.08
+  ) +
+  scale_color_manual(
+    values = c("Netherlands" = "black"),
+    na.value = alpha("white", 1)
+  ) +
+  ggnewscale::new_scale_color() +
+  # continent
+  ggtreeExtra::geom_fruit(
+    geom = geom_tile,
+    mapping = aes(fill = continent),
+    width = 0.02,
+    offset = 0.08
+  ) +
+  scale_fill_manual(
+    values = c("#E6AC00", "#D12E96", "#5E8B3A", "#AA741D", "#A5E7E1", "#244360"),
+    na.value = alpha("white", 1),
+    na.translate = FALSE
+  ) +
+  ggnewscale::new_scale_fill() +
+  # virulence phenotype
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = "virulence", color = virulence),
+    geom = geom_point, shape = 17, size = 1,
+    pwidth = 0.02, offset = 0.04
+  ) +
+  scale_color_manual(
+    values = c("virulent" = "red", "avirulent" = "green"),
+    na.value = alpha("white", 0)
+  ) +
+  ggnewscale::new_scale_color() +
+  # virulence PCR result
+  ggtreeExtra::geom_fruit(
+    geom = geom_point, size = 1,
+    mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
+    pwidth = 0.02, offset = 0.02
+  ) +
+  scale_color_manual(
+    values = c("positive" = "red", "negative" = "green"),
+    na.value = alpha("white", 0)
+  ) +
+  ggnewscale::new_scale_color() +
+  # # species key
+  # ggtreeExtra::geom_fruit(
+  #   geom = geom_tile, data = spKeyDf,
+  #   mapping = aes(y = Genome, x = sp, fill = spCol),
+  #   colour = "grey",
+  #   pwidth = 0.4
+  # ) +
+  # scale_fill_manual(
+  #   values = c("0" = "white", "1" = "black")
+  # ) +
+  theme(
+    legend.position = "bottom",
+    legend.box = "vertical"
+  )
+
+ggsave(
+  filename = paste(outPrefix, ".tree_plot.pdf", sep = ""), plot = pt_tree2,
+  width = 10, height = 14
+)
+
+pt_tree2
+```
+
+
+
