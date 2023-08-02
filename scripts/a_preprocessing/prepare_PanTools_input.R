@@ -21,8 +21,8 @@ testPanConf <- confs$data$pangenomes$pectobacterium.ts
 
 cols_metadata <- c(
   "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
-  "strain", "virulence", "virulence_pcr", "geo_loc_country", "host", "isolation_source",
-  "collection_year", "collected_by", "env_broad_scale", 
+  "strain", "virulence", "virulence_pcr", "geo_loc_country", "continent",
+  "host", "isolation_source", "collection_year", "collected_by", "env_broad_scale", 
   "type_material", "virulence", "virulence_pcr",
   "source", "type_material", "representative_status", "sample_type",
   "length", "N50", "L50", "n_contigs")

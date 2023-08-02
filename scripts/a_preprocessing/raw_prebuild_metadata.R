@@ -17,7 +17,7 @@ suppressPackageStartupMessages(library(spData))
 rm(list = ls())
 
 data(world, package = "spData")
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 ################################################################################
 analysisName <- "raw_data_summary"
 
@@ -377,6 +377,12 @@ if(!all(is.element(na.omit(unique(genomeMetadata$geo_loc_country)), world$name_l
   stop("Unmatched country name")
 }
 
+genomeMetadata %<>%
+  dplyr::left_join(
+    y = dplyr::select(world, name_long, continent),
+    by = c("geo_loc_country" = "name_long")
+  ) %>% 
+  dplyr::relocate(continent, .after = geo_loc_country)
 
 #####################################################################
 readr::write_tsv(

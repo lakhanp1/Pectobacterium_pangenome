@@ -256,6 +256,7 @@ analysis:
       files:
         tree: "core_snp_ml.newick"
         tree_rooted: "core_snp_ml.rooted.newick"
+        species_order: "core_snp_ml.species_order.txt"
     core_snp_nj:
       dir: "core_snp"
       name: "core genome SNP NJ"
