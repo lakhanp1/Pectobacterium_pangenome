@@ -1,3 +1,4 @@
+author: "Lakhansing Pardeshi"
 project:
   title: "Pectobacterium pangenome data analysis"
   # output-dir: "./scripts/quarto"
@@ -5,4 +6,9 @@ project:
 toc: true
 format:
   html: 
+    toc: true
+    toc-depth: 3
+    html-math-method: katex
+    code-overflow: scroll
+    code-copy: true
     code-line-numbers: true
