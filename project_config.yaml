@@ -282,6 +282,7 @@ analysis:
     dir: "04_pangenome_pecto_v2/prophages"
     files:
       prophage_hg: "prophage_hgs.tab"
+      prophages_filtered: "prophages_filtered.tab"
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
       hg_similarity: "pangenome_phage_similarity.tab"

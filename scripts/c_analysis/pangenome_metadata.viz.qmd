@@ -246,11 +246,11 @@ pt_loc <- plotDf %>%
   dplyr::filter(field %in% c("mRNA_count", "N50")) %>%
   # dplyr::filter(field %in% c("tRNA_count", "rRNA_count")) %>% 
   ggplot2::ggplot(
-    mapping = aes(x = geo_loc_country, y = value)
+    mapping = aes(x = forcats::fct_rev(geo_loc_country), y = value)
   ) +
   geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
   ggbeeswarm::geom_quasirandom(
-    mapping = aes(shape = source, color = virulence),
+    mapping = aes(color = virulence),
     size = 3, alpha = 0.8
   ) +
   ggpubr::stat_compare_means(method = "t.test") +
@@ -287,11 +287,11 @@ pt_vir <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>%
   ggplot(mapping = aes(x = virulence, y = value))  +
   geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
   ggbeeswarm::geom_quasirandom(
-    mapping = aes(color = source), size = 3
+    mapping = aes(color = virulence), size = 3
   ) +
   ggpubr::stat_compare_means(method = "t.test") +
   scale_color_manual(
-    values = c("NCBI" = "blue", "NAK" = "green", "NVWA" = "green")
+    values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
   ) +
   facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
   # labs(

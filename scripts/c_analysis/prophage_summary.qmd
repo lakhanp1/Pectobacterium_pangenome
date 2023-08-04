@@ -1,0 +1,257 @@
+---
+title: "Summary statistics for prophages"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(ggdist))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+
+outDir <- confs$analysis$prophages$dir
+
+orgDb <- org.Pectobacterium.spp.pan.eg.db
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+)
+
+prophageDf <- suppressMessages(
+  readr::read_tsv(confs$data$prophages$files$data)
+) %>% 
+  dplyr::rename(prophage_length = length) %>% 
+  dplyr::filter(viral_genes != 0) 
+
+# read prophage HGs stored locally
+proHgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$prophage_hg)
+) %>% 
+  dplyr::select(prophage_id = id, nHgs, hgs) %>% 
+  dplyr::mutate(
+    hgs = stringr::str_split(hgs, ";")
+  )
+
+hgSummary <- suppressMessages(
+  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
+) %>% 
+  tidyr::pivot_wider(
+    id_cols = c(SpeciesName),
+    names_from = class,
+    values_from = count
+  ) %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(
+    total_hgs = sum(core, accessory, unique, na.rm = T) 
+  )
+
+```
+
+## Prophage summary for deciding filtering
+
+```{r}
+glimpse(prophageDf)
+```
+
+```{r}
+#| fig-cap: Prophage length distribution
+#| out-width: '100%'
+#| fig-height: 4
+#| 
+compDf <- dplyr::select(prophageDf, prophage_id, prophage_length, completeness) %>% 
+  dplyr::mutate(
+    comp_category = dplyr::case_when(
+      completeness == 100 ~ "complete",
+      completeness >= 90 ~ ">= 90%",
+      completeness >= 50 ~ "[50%, 90%)",
+      completeness < 50 ~ "< 50%"
+    ),
+    grp = "prophages"
+  )
+
+shortestCompletePro <- dplyr::filter(compDf, completeness >= 90) %>% 
+  dplyr::arrange(prophage_length) %>% 
+  dplyr::slice(1L)
+
+(
+  pt_sizeDens <- ggplot2::ggplot(
+    data = compDf,
+    mapping = aes(x = prophage_length, color = comp_category, group = NA)
+  ) +
+    ggdist::geom_dots(layout = "weave", smooth = "bounded", scale = 1, shape = 19) +
+    geom_vline(xintercept = shortestCompletePro$prophage_length, linetype = 2) +
+    scale_color_manual(
+      values = c(
+        "complete" = "#4daf4a", ">= 90%" = "#b2df8a",
+        "[50%, 90%)" = "#ff7f00", "< 50%" = "#ffffb3"
+      )
+    ) +
+    scale_x_continuous(
+      labels = scales::label_number(big.mark = ",")
+    ) +
+    labs(x = "Prophage length", y = "density") +
+    theme_bw(base_size = 18) +
+    theme(
+      panel.grid = element_blank(),
+      legend.position = c(0.95, 0.95),
+      legend.justification = c(1, 1)
+    )
+)
+
+ggsave(filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
+       plot = pt_sizeDens, width = 8, height = 5)
+```
+
+Shortest prophage with completeness \>= 90% has length of `r shortestCompletePro$prophage_length`bp. Therefore, filtering prophages smaller than 5kb for downstream analysis.
+
+```{r}
+filteredPro <- dplyr::filter(
+  prophageDf, prophage_length >= 5000
+)
+
+readr::write_tsv(filteredPro, file = confs$analysis$prophages$files$prophages_filtered)
+
+```
+
+After filtering for low quality prophages, *Pectobacterium* pangenome has `r nrow(filteredPro)` prophages. We will summarize various statistics of these prophages below.
+
+## Pangenome prophage set
+
+```{r}
+# pangenome prophages
+panProphages <- dplyr::left_join(
+  dplyr::select(sampleInfo, sampleId, geo_loc_country), 
+  y = filteredPro, by = "sampleId") %>% 
+  dplyr::left_join(proHgs, by = "prophage_id")
+```
+
+## Prophage summary
+
+### Prophage types
+
+```{r}
+table(filteredPro$taxonomy)
+```
+
+```{r}
+#| fig-cap: "Prophage taxonomy"
+#| fig-height: 7
+#| out-width: "50%"
+
+(
+  pt_proTax <- dplyr::select(filteredPro, taxonomy) %>% 
+    dplyr::mutate(
+      taxonomy = stringr::str_replace(taxonomy, ".*;", "")
+    ) %>% 
+    ggplot2::ggplot() +
+    geom_bar(mapping = aes(x = taxonomy)) +
+    ggbreak::scale_y_break(breaks = c(10, 1395)) +
+    theme_bw(base_size = 24) +
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.title.x = element_blank()
+    )
+)
+
+ggsave(filename = paste(outDir, "/prophage_taxonomy.pdf", sep = ""),
+       plot = pt_proTax, width = 4, height = 7)
+```
+
+### Prophage summary per sample 
+
+```{r}
+perGenomePhageInfo <- dplyr::group_by(panProphages, sampleId, Genome, SpeciesName) %>% 
+  dplyr::summarise(
+    phage_count = n(),
+    longest_phage = max(prophage_length),
+    smallest_phage = min(prophage_length),
+    mean_phage_len = mean(prophage_length),
+    longest_nHg = max(nHgs),
+    smallest_nHg = min(nHgs),
+    phage_nHgs = sum(nHgs),
+    hgs = list(unlist(hgs)),
+    .groups = "drop"
+  ) %>% 
+  tidyr::replace_na(replace = list(phage_nHgs = 0)) %>% 
+  dplyr::arrange(desc(phage_count))
+
+readr::write_tsv(
+  x = dplyr::select(perGenomePhageInfo, -hgs),
+  file = confs$analysis$prophages$files$prophage_stats_genome
+)
+```
+
+### Prophage summary per species
+
+```{r}
+panVirSummary <- dplyr::summarise(
+  perGenomePhageInfo,
+  n_genomes = n(),
+  n_vir_sp = sum(phage_count),
+  max_vir_per_g = max(phage_count),
+  min_vir_per_g = min(phage_count),
+  mean_vir_per_g = mean(phage_count),
+  mean_vir_hgs = mean(phage_nHgs),
+  median_vir_hgs = median(phage_nHgs),
+  total_vir_hgs = sum(phage_nHgs),
+  unique_vir_hgs = length(unique(unlist(hgs)))
+) %>% 
+  dplyr::mutate(SpeciesName = "Pangenome", .before = n_genomes)
+
+spVirSummary <- dplyr::group_by(perGenomePhageInfo, SpeciesName) %>% 
+  dplyr::summarise(
+    n_genomes = n(),
+    n_vir_sp = sum(phage_count),
+    max_vir_per_g = max(phage_count),
+    min_vir_per_g = min(phage_count),
+    mean_vir_per_g = mean(phage_count),
+    mean_vir_hgs = mean(phage_nHgs),
+    median_vir_hgs = median(phage_nHgs),
+    total_vir_hgs = sum(phage_nHgs),
+    unique_vir_hgs = length(unique(unlist(hgs)))
+  ) %>%
+  dplyr::bind_rows(panVirSummary) %>% 
+  dplyr::arrange(desc(n_genomes)) %>% 
+  dplyr::left_join(y = hgSummary, by = "SpeciesName")
+
+readr::write_tsv(x = spVirSummary, file = confs$analysis$prophages$files$prophage_stats_species)
+
+spVirSummary
+```
+
+
