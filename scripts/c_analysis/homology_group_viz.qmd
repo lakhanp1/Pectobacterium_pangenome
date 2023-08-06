@@ -1,4 +1,16 @@
-#!/usr/bin/env Rscript
+---
+title: "Homology group visualization"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+---
+  
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
@@ -25,21 +37,19 @@ source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
+analysisName <- "vir_lineage_prophages"
+
+setIds <- c(
+  "g_3.vir_4", "g_189.vir_2", "g_399.vir_2", "g_189.vir_1", "g_172.vir_2"
+)
+
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
+
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
 
-analysisName <- "vir_lineage_prophages"
-
-outDir <- file.path(confs$analysis$prophages$dir)
-outPrefix <- file.path(outDir, analysisName)
-
-setIds <- c(
-  "g_189.vir_2", "g_400.vir_2", "g_399.vir_2", "g_448.vir_2", "g_189.vir_1", 
-  "g_3.vir_4", "g_438.vir_3", "g_350.vir_1",
-  "g_172.vir_2", "g_393.vir_1"
-)
 
 # add any homology group set file created to this vector
 # `setIds` are searched in these files to identify respective homology groups
@@ -48,14 +58,20 @@ hgSetFiles <- c(
   confs$analysis$prophages$files$prophage_hg
 )
 
-################################################################################
+outDir <- file.path(confs$analysis$prophages$dir)
+outPrefix <- file.path(outDir, analysisName)
 
-treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
+```
 
+## Import data
+
+### Sample metadata
+
+```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -73,14 +89,17 @@ sampleInfo %<>% dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
-################################################################################
+```
+
+
+### Import homology group information
+
+```{r}
 # prepare homology groups data for plotting
 hgSets <- NULL
 
 for (st in hgSetFiles) {
-  df <- suppressMessages(
-    readr::read_tsv(confs$analysis$prophages$files$prophage_hg)
-  ) %>%
+  df <- suppressMessages(readr::read_tsv(st)) %>%
     dplyr::mutate(
       hgs = stringr::str_split(hgs, ";"),
       setSource = st
@@ -104,7 +123,16 @@ hgL <- dplyr::left_join(
   purrr::transpose() %>% 
   purrr::set_names(nm = purrr::map(., "id"))
 
-################################################################################
+```
+
+## Data visualization
+
+```{r}
+#| column: page 
+#| fig-height: 8
+#| fig-width: 12
+#| out-width: '200%'
+#| layout-valign: top
 
 htList <- species_key_heatmap(
   genomes = rawTree$tip.label, speciesInfo = sampleInfo
@@ -146,4 +174,16 @@ ComplexHeatmap::draw(
 )
 dev.off()
 
-################################################################################
+ComplexHeatmap::draw(
+  object = htList,
+  main_heatmap = hgL[[1]]$id,
+  row_dend_side = "left",
+  merge_legends = TRUE
+)
+```
+
+
+
+
+
+

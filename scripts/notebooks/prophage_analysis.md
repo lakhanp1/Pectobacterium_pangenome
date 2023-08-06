@@ -29,7 +29,7 @@ done | sort -nr -k2
 
 ```
 
-### Post processing of prophage 
+### Post processing of prophages 
 
 Process genomad output and separate prophages into independent FASTA files. Each
 prophage is assigned a unique identifier with format `g_{genome}.vir_{#count}`.
