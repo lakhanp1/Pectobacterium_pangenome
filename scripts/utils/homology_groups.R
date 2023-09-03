@@ -146,8 +146,8 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
   ht_args <- list(
     matrix = mat,
     col = structure(
-      viridisLite::viridis(n = max(3, min(max(mat), 7)), option = "B"),
-      names = seq(0, max(3, min(max(mat), 7)) - 1)
+      viridisLite::viridis(n = max(3, min(max(mat), 6)) + 1, option = "B"),
+      names = seq(0, max(3, min(max(mat), 7)))
     ),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
     show_row_names = FALSE,

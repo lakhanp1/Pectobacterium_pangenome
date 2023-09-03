@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @examples
-plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, ...){
+plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes = NULL, ...){
   
   ## necessary checks
   stopifnot(
