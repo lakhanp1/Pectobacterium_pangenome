@@ -1,3 +1,21 @@
+---
+title: "ANI comparison and visualization for genomes"
+date: "`r Sys.time()`"
+format: 
+  html:
+    embed-resources: true
+fig-height: 8
+---
+
+Average nucleotide identity (ANI) between all genomes calculated by `fast-ani` 
+tool are processed and visualized in this script.
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
 suppressPackageStartupMessages(library(here))
@@ -5,6 +23,8 @@ suppressPackageStartupMessages(library(ape))
 suppressPackageStartupMessages(library(treeio))
 suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ComplexHeatmap))
+# suppressPackageStartupMessages(library(spiralize))
+# suppressPackageStartupMessages(library(dendextend))
 suppressPackageStartupMessages(library(circlize))
 
 ## generate UPGMA and NJ tree using ANI for pangenome
@@ -39,7 +59,11 @@ pt_theme <- theme_bw(base_size = 14) +
     plot.title = element_text(size = 15, face = "bold")
   )
 
-################################################################################
+```
+
+## Import data
+
+```{r}
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -48,7 +72,20 @@ sampleInfoList <- as.list_metadata(
 
 genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
 
-################################################################################
+fnGenomes <- dplyr::filter(
+  sampleInfo, virulence == "virulent", virulence_pcr == "negative"
+) %>% 
+  dplyr::pull(Genome)
+
+markGenomes <- list(
+  fn_pbr = list(genomes = fnGenomes, color = "red")
+)
+
+```
+
+## Process `fast-ANI` results
+
+```{r}
 ## process ANI data for pangenome and store ANI and ANI-distance matrices
 aniDf <- suppressMessages(readr::read_tsv(
   file = confs$analysis$ANI$files$fastani_out,
@@ -101,9 +138,14 @@ aniMat <- tibble::column_to_rownames(aniMat, var = "g1") %>%
 if (!all(rownames(as.matrix(distMat)) == rownames(aniMat))) {
   stop("rownames did not match")
 }
-################################################################################
-## store UPGMA and NJ trees
 
+```
+
+## Clustering genomes
+
+### Cluster genomes using UPGMA and NJ clustering
+
+```{r}
 # plot(hclust(distMat))
 treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>%
   ape::ladderize() %>%
@@ -124,14 +166,18 @@ treeNj <- ape::nj(distMat) %>%
 ## set negative length edges => 0
 treeNj$edge.length[treeNj$edge.length < 0] <- 0
 
+rootedNj <- ape::root(treeNj, outgroup = sampleInfoList[[outGroup]]$Genome)
+
 ape::write.tree(
   phy = treeNj, tree.names = "ANI_NJ",
   file = confs$analysis$phylogeny$ani_nj$files$tree
 )
 
+```
 
+### Save species order of the tree for later visualization
 
-################################################################################
+```{r}
 ## add data to tree
 treeTbl <- as_tibble(treeUpgma) %>%
   dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
@@ -165,15 +211,21 @@ readr::write_tsv(
   file = confs$analysis$phylogeny$ani_upgma$files$species_order
 )
 
-################################################################################
-## ANI heatmap for all genomes
+```
+
+## Generate ANI heatmaps
+
+### ANI heatmap for all genomes
+
+```{r}
 htList <- plot_species_ANI_heatmap(
   mat = aniMat, phy = treeUpgma, speciesInfo = sampleInfo,
   col = circlize::colorRamp2(
     breaks = c(0, 50, 80, 90, 91, 92, 93, 93.5, 94, 95, 96, 97, 99),
     colors = viridisLite::viridis(n = 13, option = "B")
   ),
-  name = "ani"
+  name = "ani",
+  markGenomes = markGenomes
 )
 
 htList@ht_list$species_key@matrix_param$width <- unit(10, "cm")
@@ -188,9 +240,25 @@ ComplexHeatmap::draw(
   heatmap_legend_side = "bottom"
 )
 dev.off()
+```
 
-################################################################################
-## ANI heatmap for P. brasiliense species clade
+```{r}
+#| column: page
+#| fig-width: 14
+#| fig-height: 9
+#| out-width: 100%
+
+ComplexHeatmap::draw(
+  object = htList,
+  main_heatmap = "ani",
+  row_dend_side = "left",
+  merge_legend = TRUE,
+  heatmap_legend_side = "bottom"
+)
+```
+### ANI heatmap for P. brasiliense species clade
+
+```{r}
 nodeOfInterest <- dplyr::filter(leafOrder, SpeciesName == "P. brasiliense") %>%
   dplyr::pull(label)
 
@@ -225,8 +293,26 @@ ComplexHeatmap::draw(
 )
 dev.off()
 
-################################################################################
-## ANI heatmap for inhouse strains
+```
+
+```{r echo=FALSE}
+#| fig-height: 7
+#| fig-width: 8
+#| out-width: '100%'
+#| fig-cap: P. brasiliense clade ANI
+
+ComplexHeatmap::draw(
+  object = htList2,
+  main_heatmap = "ani",
+  row_dend_side = "left",
+  merge_legend = TRUE,
+  heatmap_legend_side = "bottom"
+)
+```
+
+### ANI heatmap for inhouse strains
+
+```{r}
 inhouseNodes <- dplyr::filter(sampleInfo, source %in% c("NAK", "NVWA"))
 
 subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$Genome)
@@ -309,11 +395,11 @@ pt_ani <- dplyr::mutate(
   ) +
   theme_bw() +
   theme(
-    panel.grid = element_blank(),
     axis.title = element_blank(),
     axis.text = element_blank(),
     axis.ticks = element_blank(),
-    plot.title = element_text(hjust = 0.5, vjust = 0)
+    plot.title = element_text(hjust = 0.5, vjust = 0),
+    panel.grid = element_blank()
   )
 
 ## arrange plots one by one
@@ -327,6 +413,13 @@ ggsave(
   filename = file.path(outDir, "ANI_inhouse.heatmap.pdf")
 )
 
+```
 
+```{r echo=FALSE}
+#| fig-height: 8
+#| fig-width: 12
+#| out-width: '100%'
+#| fig-cap: Current collection ANI
 
-################################################################################
+pt_all
+```

@@ -1,0 +1,119 @@
+---
+title: "Homology group visualization"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+---
+
+## Initial setup
+
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(corrplot))
+
+## correlate various phylogenetic trees
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+outDir <- confs$analysis$phylogeny$dir
+genus <- confs$genus
+outGroup <- confs$analysis$phylogeny$outgroup
+
+pt_theme <- theme_bw(base_size = 14) +
+  theme(
+    axis.text = element_text(size = 14),
+    axis.title = element_text(size = 14, face = "bold"),
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 15, face = "bold")
+  )
+
+```
+
+## Data import
+
+```{r}
+aniNj <- ape::read.tree(confs$analysis$phylogeny$ani_nj$files$tree)
+aniUpgma <- ape::read.tree(confs$analysis$phylogeny$ani_upgma$files$tree)
+kmerNj <- ape::read.tree(confs$analysis$phylogeny$kmer_nj$files$tree)
+kmerUpgma <- ape::read.tree(confs$analysis$phylogeny$kmer_upgma$files$tree)
+geneNj <- ape::read.tree(confs$analysis$phylogeny$gene_nj$files$tree)
+coreSnpMl <- ape::read.tree(confs$analysis$phylogeny$core_snp_ml$files$tree)
+
+```
+
+## Correlate phylogenetic trees
+
+### All vs all correlation
+
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+#| out-width: '70%'
+
+## cophenetic distance calculation for NJ and UPGMA tree
+copheneticDist <- tibble::tibble(
+  aniNj = as.vector(as.dist(cophenetic(aniNj))),
+  aniUpgma = as.vector(as.dist(cophenetic(aniUpgma))),
+  kmerNj = as.vector(as.dist(cophenetic(kmerNj))),
+  kmerUpgma = as.vector(as.dist(cophenetic(kmerUpgma))),
+  geneNj = as.vector(as.dist(cophenetic(geneNj))),
+  coreSnpMl = as.vector(as.dist(cophenetic(coreSnpMl))),
+)
+
+M <- cor(copheneticDist)
+
+(
+  pt_corr <- corrplot::corrplot(
+    M,
+    type = "lower", tl.col = "black",
+    cl.ratio = 0.2,
+    method = "shade",
+    tl.srt = 45,
+    col = COL2("BrBG"),
+    addCoef.col = "white"
+  )
+)
+```
+
+### Visualize specific tree pair correlation as scatter plot
+
+```{r}
+#| fig-height: 6
+#| fig-width: 6
+#| out-width: '70%'
+
+(
+  pt_Scatter <- ggplot2::ggplot(
+    data = copheneticDist,
+    mapping = aes(x = kmerNj, y = coreSnpMl)
+  ) +
+    geom_point(size = 1) +
+    geom_smooth(method=lm) +
+    ggpubr::stat_cor(method = "pearson", size = 6) +
+    theme_bw(base_size = 20) +
+    theme(
+      panel.grid = element_blank()
+    )
+)
+```
+
+
+
+
+

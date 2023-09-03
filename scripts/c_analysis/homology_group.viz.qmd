@@ -20,7 +20,7 @@ suppressPackageStartupMessages(library(ape))
 suppressPackageStartupMessages(library(treeio))
 suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ComplexHeatmap))
-suppressPackageStartupMessages(library(circlize))
+suppressPackageStartupMessages(library(circlize))                   
 suppressPackageStartupMessages(library(viridisLite))
 suppressPackageStartupMessages(library(openxlsx))
 suppressPackageStartupMessages(library(GenomicRanges))
@@ -55,7 +55,8 @@ confs <- prefix_config_paths(
 # `setIds` are searched in these files to identify respective homology groups
 # for plotting
 hgSetFiles <- c(
-  confs$analysis$prophages$files$prophage_hg
+  confs$analysis$prophages$files$prophage_hg,
+  confs$analysis$homology_groups$files$hg_sets
 )
 
 outDir <- file.path(confs$analysis$prophages$dir)

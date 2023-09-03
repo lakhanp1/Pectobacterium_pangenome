@@ -2,26 +2,20 @@
 title: "Prophage data visualization"
 author: "Lakhansing Pardeshi"
 date: "`r Sys.Date()`"
-output:
-  html_document:
-    code_download: true
-    code_folding: show
-    toc: true
-    toc_float: true
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
 ---
-
-<!-- ```{css, echo=FALSE} -->
-<!-- .scroll-100 { -->
-<!--   overflow-x: auto; -->
-<!--   overflow-y: auto; -->
-<!--   background-color: inherit; -->
-<!-- } -->
-<!-- ``` -->
 
 ## Initial setup
 
 ```{r}
-#!/usr/bin/env Rscript
+#| label: setup
+#| warning: false
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
@@ -172,6 +166,11 @@ plot(gf, layout = lot, vertex.size = 1.5, vertex.label = NA,
 ### Plot graph using `ggraph`
 
 ```{r}
+#| column: page 
+#| fig-height: 8
+#| out-width: '150%'
+#| layout-valign: top
+
 # each component layout first and then arranged
 lotc <- igraph::layout_components(graph = gf, layout = layout_with_kk)
 # plot(gf, layout = lotc, vertex.size = 1.5, vertex.label = NA,

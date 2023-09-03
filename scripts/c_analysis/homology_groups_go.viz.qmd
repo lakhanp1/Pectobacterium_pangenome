@@ -1,4 +1,21 @@
-#!/usr/bin/env Rscript
+---
+title: "Visualize homology groups assigned to a gene ontology (GO) term"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.Date()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
@@ -10,8 +27,7 @@ suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
-suppressPackageStartupMessages(library(openxlsx))
-suppressPackageStartupMessages(library(GenomicRanges))
+suppressPackageStartupMessages(library(GO.db))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 ## visualize homology groups for GO terms
@@ -31,13 +47,9 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-analysisName <- "secretion_sys"
+analysisName <- "lps_syn"
 
-goIds <- c(
-  "GO:0030253", "GO:0015628", "GO:0030254", "GO:0030255", "GO:0046819",
-  "GO:0033103", "GO:0044315"
-  # "GO:0032940"
-)
+goIds <- c("GO:0009103", "GO:0009244")
 
 treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
@@ -48,7 +60,11 @@ outPrefix <- file.path(outDir, analysisName)
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
-################################################################################
+```
+
+## Import data
+
+```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -77,21 +93,26 @@ hgs <- AnnotationDbi::select(
   )
 
 
-################################################################################
-# prepare homology group PAV matrix from pan.db
+```
+
+## Plot homology group heatmap
+
+```{r}
+
+## prepare homology group PAV matrix from pan.db
 hgMat <- homology_groups_mat(pandb = orgDb, type = "cnv", groups = hgs$hg_id)
 
 hgMat <- hgMat[rawTree$tip.label, ]
 
 htList <- homology_group_heatmap(
-  mat = hgMat, phy = rawTree, metadata = sampleInfo,
-  width = c(10, 20)
+  mat = hgMat, phy = rawTree, speciesInfo = sampleInfo,
+  name = "hg"
 )
 
 # GO term top annotation
 goMat <- tibble::column_to_rownames(hgs, var = "hg_id") %>% as.matrix()
 go_lables <- AnnotationDbi::mapIds(
-  x = GO.db, keys = colnames(goMat), keytype = "GOID", column = "TERM"
+  x = GO.db::GO.db, keys = colnames(goMat), keytype = "GOID", column = "TERM"
 )
 
 colnames(goMat) <- go_lables
@@ -111,8 +132,8 @@ htList@ht_list$hg@top_annotation <- an_go
 
 htList@ht_list$hg@column_names_param$show <- FALSE
 htList@ht_list$hg@column_dend_param$cluster <- FALSE
-
-
+htList@ht_list$species_key@heatmap_param$width <- unit(10, "cm")
+htList@ht_list$hg@heatmap_param$width <- unit(18, "cm")
 
 pdf(file = paste(outPrefix, ".homology_grps.pdf", sep = ""), width = 15, height = 9)
 ComplexHeatmap::draw(
@@ -123,4 +144,22 @@ ComplexHeatmap::draw(
 )
 dev.off()
 
-################################################################################
+```
+
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 8
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
+
+ComplexHeatmap::draw(
+  object = htList,
+  main_heatmap = "hg",
+  row_dend_side = "left",
+  merge_legends = TRUE
+)
+
+```
+

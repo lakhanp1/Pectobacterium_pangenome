@@ -87,10 +87,17 @@ sampleInfo %<>% dplyr::mutate(
   ) %>% 
   dplyr::group_by(SpeciesName) %>% 
   dplyr::mutate(
-    mRNA_med_diff = mRNA_count - median(mRNA_count)
+    mRNA_med_diff = mRNA_count - median(mRNA_count),
+    genome_size_med_diff = length - median(length),
   ) %>% 
   dplyr::ungroup()
 
+
+```
+
+## Plot the tree
+
+```{r}
 ## read tree
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted)
 
@@ -100,10 +107,7 @@ rawTree <- ape::ladderize(rawTree)
 treeTbl <- treeio::as_tibble(rawTree) %>%
   dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
   treeio::as.treedata()
-
 ```
-
-## Plot the tree
 
 ### Explore the tree topology
 
@@ -157,9 +161,11 @@ spKeyDf <- get_species_key_data(sampleInfo$Genome, sampleInfo, type = 'wide') %>
 pt_tree2 <- pt_tree2 +
   # genome size
   ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, x = length - 4000000),
+    # mapping = aes(y = id, x = length - 4000000),
+    mapping = aes(y = id, x = genome_size_med_diff),
     geom = geom_bar,
     fill = "white", color = "black",
+    offset=0.2, 
     pwidth=0.15, 
     orientation="y",
     stat="identity",

@@ -57,19 +57,7 @@ metadata <- suppressMessages(
 
 panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>%
   dplyr::select(Genome, sampleId, virulence, virulence_pcr) %>%
-  dplyr::left_join(y = metadata, by = "sampleId")
-
-
-```
-
-## Explore *P. brasiliense* population metadata
-
-### Prepare plotting data
-
-```{r}
-pbrMeta <- dplyr::filter(panMeta, !is.na(collection_year)) %>% 
-  dplyr::select(Genome, sampleId, SpeciesName, collection_year, geo_loc_country,
-                virulence, virulence_pcr) %>% 
+  dplyr::left_join(y = metadata, by = "sampleId") %>% 
   dplyr::mutate(
     pbr = dplyr::if_else(
       SpeciesName == "Pectobacterium brasiliense", "P. brasiliense", "other"
@@ -82,25 +70,29 @@ pbrMeta <- dplyr::filter(panMeta, !is.na(collection_year)) %>%
       virulence == "virulent" & virulence_pcr == "negative" ~ "FN",
       virulence == "avirulent" & virulence_pcr == "positive" ~ "FP",
       virulence == "avirulent" & virulence_pcr == "negative" ~ "TN",
-      TRUE ~ "missing-data"
+      TRUE ~ "unknown"
     ),
     pbr = forcats::fct_relevel(pbr, "other", "P. brasiliense"),
     geo_loc_country = forcats::fct_relevel(geo_loc_country, "Netherlands"),
-    virType = forcats::fct_relevel(virType, "missing-data", "TP", "FN", "TN", "FP")
+    virType = forcats::fct_relevel(virType, "TP", "FN", "TN", "FP", "unknown")
   )
 
-glimpse(pbrMeta)
+
 ```
+
+## Explore *P. brasiliense* population metadata
 
 ### *P. brasiliense* collection in the Netherlands
 
 ```{r}
 #| fig-height: 5
-#| out-width: '70%'
+#| fig-width: 5
 #| fig-cap: "P. brasiliense collection after 2015 in the Netherlands"
 
 (
-  pt_pbrTimeline <- dplyr::filter(pbrMeta, geo_loc_country == "Netherlands") %>% 
+  pt_pbrTimeline <- dplyr::filter(
+    panMeta, geo_loc_country == "Netherlands", !is.na(collection_year)
+  ) %>% 
     ggplot2::ggplot() +
     geom_histogram(
       mapping = aes(x = collection_year, fill = forcats::fct_rev(pbr)),
@@ -117,16 +109,20 @@ glimpse(pbrMeta)
     scale_y_continuous(expand = expansion(add = c(0, 5))) +
     theme_bw(base_size = 20) +
     theme(
-      legend.position = c(0.1, 0.9),
+      legend.position = c(0.02, 0.9),
       legend.justification = c(0, 1),
       legend.key.size = unit(1, "cm"),
       legend.text = element_text(size = 20),
       legend.title = element_blank(),
       axis.title = element_blank(),
+      plot.margin = margin(1, 1, 1, 1, "cm"),
       panel.grid = element_blank()
     )
 )
 
+```
+
+```{r echo=FALSE}
 ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline,
        width = 8, height = 6)
 ```
@@ -134,13 +130,13 @@ ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline,
 ### Appearance of new *P. brasiliense* virulent isolates in the Netherlands
 
 ```{r}
-#| fig-height: 5
-#| out-width: '70%'
+#| fig-height: 4
+#| fig-width: 5
 #| fig-cap: "FN-Pbr emergence in the Netherlands"
 #| 
 (
   pt_fnPbr <- dplyr::filter(
-    pbrMeta, geo_loc_country == "Netherlands", pbr == "P. brasiliense"
+    panMeta, geo_loc_country == "Netherlands", pbr == "P. brasiliense"
   ) %>% 
     ggplot2::ggplot() +
     ggpattern::geom_histogram_pattern(
@@ -152,20 +148,20 @@ ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline,
     ) +
     scale_fill_manual(
       values = c("TP" = "red", "FP" = alpha("green", 1),
-                 "TN" = "green", "FN" = alpha("red", 1), "missing-data" = "grey")
+                 "TN" = "green", "FN" = alpha("red", 1), "unknown" = "grey")
     ) +
     scale_pattern_density_manual(
       values = c("TP" = 0, "FP" = 0.5, "TN" = 0,
-                 "FN" = 0.5, "missing-data" = 0)
+                 "FN" = 0.5, "unknown" = 0)
     ) +
     # labs(
     #   title = "FN-Pbr emergence in the Netherlands"
     # ) +
-    # scale_x_continuous(expand = expansion(add = c(0, 2))) +
-    scale_y_continuous(expand = expansion(add = c(0, 5))) +
+    scale_x_continuous(expand = expansion(add = 0)) +
+    scale_y_continuous(expand = expansion(add = c(0, 2))) +
     theme_bw(base_size = 20) +
     theme(
-      legend.position = c(0.1, 0.9),
+      legend.position = c(0.01, 0.9),
       legend.justification = c(0, 1),
       legend.key.size = unit(1, "cm"),
       legend.text = element_text(size = 20),
@@ -175,7 +171,9 @@ ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline,
     )
 )
 
+```
 
+```{r echo=FALSE}
 ggsave(filename = file.path(outDir, "fn_pbr_NL.pdf"), plot = pt_fnPbr, width = 8, height = 6)
 ```
 
@@ -188,7 +186,9 @@ ggsave(filename = file.path(outDir, "fn_pbr_NL.pdf"), plot = pt_fnPbr, width = 8
 metDf <- suppressMessages(readr::read_csv(panConf$db$metrics$files$per_genome, col_names = T)) %>%
   dplyr::select(-c(N50, N90, L50, L90)) %>%
   dplyr::rename_all(
-    .funs = ~ stringr::str_replace_all(., "\\s+", "_")
+    .funs = ~ stringr::str_replace_all(
+      ., c("\\s+" = "_", "%" = "percent", "(\\(|\\))" = "")
+    )
   ) %>%
   dplyr::left_join(y = panMeta, by = "Genome") %>%
   dplyr::filter(SpeciesName == "Pectobacterium brasiliense")
@@ -208,12 +208,6 @@ plotDf <- dplyr::select(
   Gene_count, mRNA_count, CDS_count, tRNA_count, rRNA_count,
   Homology_groups, Singletons
 ) %>%
-  dplyr::mutate(
-    geo_loc_country = if_else(
-      geo_loc_country == "Netherlands", geo_loc_country, "other", missing = "other"
-    )
-  ) %>%
-  # tidyr::replace_na(replace = list(virulence = "NA", virulence_pcr = "NA")) %>%
   tidyr::pivot_longer(
     cols = -c(Genome, sampleId, source, SpeciesName, geo_loc_country,
               virulence, virulence_pcr),
@@ -237,41 +231,47 @@ the N50 values between the same groups.
 
 ```{r}
 #| fig-height: 6
-#| out-width: '90%'
+#| fig-width: 5
 #| fig-cap: "Pbr isolates from the Netherlands have more protein coding genes"
 
-pt_loc <- plotDf %>% 
-  # dplyr::filter(field %in% c("length")) %>%
-  # dplyr::filter(field %in% c("mRNA_count", "length", "N50", "N90", "L50", "L90")) %>%
-  dplyr::filter(field %in% c("mRNA_count", "N50")) %>%
-  # dplyr::filter(field %in% c("tRNA_count", "rRNA_count")) %>% 
-  ggplot2::ggplot(
-    mapping = aes(x = forcats::fct_rev(geo_loc_country), y = value)
-  ) +
-  geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
-  ggbeeswarm::geom_quasirandom(
-    mapping = aes(color = virulence),
-    size = 3, alpha = 0.8
-  ) +
-  ggpubr::stat_compare_means(method = "t.test") +
-  facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
-  # labs(
-  #   title = "Pbr isolates from the Netherlands have more protein coding genes"
-  # ) +
-  scale_color_manual(
-    values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
-  ) +
-  theme_bw(base_size = 14) +
-  theme(
-    axis.title = element_blank(),
-    legend.position = "bottom",
-    panel.grid = element_blank()
-  )
+(
+  pt_loc <- plotDf %>% 
+    # dplyr::filter(field %in% c("length")) %>%
+    # dplyr::filter(field %in% c("mRNA_count", "length", "N50", "N90", "L50", "L90")) %>%
+    dplyr::filter(field %in% c("mRNA_count", "N50")) %>%
+    # dplyr::filter(field %in% c("tRNA_count", "rRNA_count")) %>% 
+    ggplot2::ggplot(
+      mapping = aes(x = forcats::fct_rev(geo_loc_country), y = value)
+    ) +
+    geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
+    ggbeeswarm::geom_quasirandom(
+      # mapping = aes(color = virulence),
+      size = 3
+    ) +
+    ggpubr::stat_compare_means(method = "t.test") +
+    scale_y_continuous(labels = scales::label_comma()) +
+    facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
+    # labs(
+    #   title = "Pbr isolates from the Netherlands have more protein coding genes"
+    # ) +
+    # scale_color_manual(
+    #   values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
+    # ) +
+    theme_bw(base_size = 20) +
+    theme(
+      axis.title = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom",
+      panel.grid = element_blank()
+    )
+)
 
+
+```
+
+```{r echo=FALSE}
 ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
        plot = pt_loc, width = 8, height = 8)
-
-print(pt_loc)
 ```
 
 ### Do virulent *P. brasiliense* isolates have more mRNAs?
@@ -279,33 +279,36 @@ print(pt_loc)
 
 ```{r}
 #| fig-cap: Virulent Pbr isolates have more protein coding genes than avirulent
-#| out-width: '90%'
 #| fig-height: 6
+#| fig-width: 7
 
-pt_vir <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
-  dplyr::filter(field %in% c("mRNA_count", "length", "N50")) %>%
-  ggplot(mapping = aes(x = virulence, y = value))  +
-  geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
-  ggbeeswarm::geom_quasirandom(
-    mapping = aes(color = virulence), size = 3
-  ) +
-  ggpubr::stat_compare_means(method = "t.test") +
-  scale_color_manual(
-    values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
-  ) +
-  facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
-  # labs(
-  #   title = "Virulent Pbr isolates have more protein coding genes than avirulent"
-  # ) +
-  theme_bw(base_size = 14) +
-  theme(
-    axis.title = element_blank(),
-    legend.position = "bottom",
-    panel.grid = element_blank()
-  )
+(
+  pt_vir <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
+    dplyr::filter(field %in% c("mRNA_count", "length", "N50")) %>%
+    ggplot(mapping = aes(x = virulence, y = value))  +
+    geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
+    ggbeeswarm::geom_quasirandom(
+      mapping = aes(color = virulence), size = 3
+    ) +
+    ggpubr::stat_compare_means(method = "t.test") +
+    scale_y_continuous(labels = scales::label_comma()) +
+    scale_color_manual(
+      values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
+    ) +
+    facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
+    # labs(
+    #   title = "Virulent Pbr isolates have more protein coding genes than avirulent"
+    # ) +
+    theme_bw(base_size = 20) +
+    theme(
+      axis.title = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom",
+      panel.grid = element_blank()
+    )
+)
 
-ggsave(filename = file.path(outDir, "vir_vs_ngenes.pdf"), plot = pt_vir, width = 8, height = 8)
-
-pt_vir
 ```
-
+```{r echo=FALSE}
+ggsave(filename = file.path(outDir, "vir_vs_ngenes.pdf"), plot = pt_vir, width = 8, height = 8)
+```
