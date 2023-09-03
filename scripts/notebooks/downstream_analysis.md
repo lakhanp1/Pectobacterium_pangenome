@@ -61,7 +61,7 @@ export PANTOOLS="$PANTOOLS_4_1"
 ## core-SNP ML tree
 ./scripts/c_analysis/phylo.process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile \
---name "core_snp_ml" --config project_config.yaml
+--name "core_snp_ml" --config project_config.yaml --save_leaf_order
 
 ## process homology groups
 Rscript scripts/c_analysis/homology_group_process.R 
@@ -222,4 +222,14 @@ hgs <- c(
   "22427626", "22427627", "22427629", "22427634", "22427630", "22427633", "22427636",
   "22427640"
 )
+```
+
+
+### Homology groups for `lipopolysaccharide biosynthetic process`
+
+```r
+analysisName <- "lps_syn"
+
+goIds <- c("GO:0009103", "GO:0009244")
+```
 ```

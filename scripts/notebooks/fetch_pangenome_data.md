@@ -1,4 +1,32 @@
-*# queries for pangenome exploration
+# queries for pangenome exploration
+
+## Setup
+
+``` bash
+#!/usr/bin/env bash
+
+shopt -s expand_aliases
+source ~/.bash_aliases
+
+# set -e
+# set -u
+set -o pipefail
+
+# source scripts/utils/setup_analysis.sh 'pectobacterium.v2'
+source scripts/utils/setup_analysis.sh $@
+
+if [ -z ${pan_db+x} ];
+then
+    echo "\$pan_db is unset"
+    error_exit 1
+fi
+
+source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
+conda activate pantools_master
+export PANTOOLS="$PANTOOLS_4_1"
+
+######################################################################
+```
 
 ## Cypher queries for neo4j pangenome
 
@@ -90,6 +118,21 @@ m.COG_category AS COG_category
 LIMIT 25 
 ```
 
+### Pfam information from mRNA - gene link
+
+```cypher
+MATCH (m:mRNA)<-[:codes_for]-(g:gene) WHERE m.id = "GOECMFEC_02714" RETURN m, g
+MATCH (m:mRNA)-[:has_pfam]-(p:pfam) WHERE m.id = "GOECMFEC_02714" RETURN m, p
+
+
+MATCH (g:gene)-[:codes_for]->(m:mRNA)
+OPTIONAL MATCH (m)-[:has_pfam]->(p:pfam)
+RETURN g.genome AS genome, g.sequence AS chr_num, g.begin AS start,
+g.end AS end, g.strand AS strand, g.id AS gene_name, m.id as mRNA_id,
+m.COG_id AS COG_id, m.COG_description AS COG_description,
+m.COG_category AS COG_category, p.id as pfam_id, p.description as pfam_description
+LIMIT 20
+```
 
 ### Test 
 
@@ -116,6 +159,19 @@ RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr, g.id AS go_id, id
 
 ```
 
+## Run Python script to extract data from the pangenome
+
+```bash
+./scripts/b_construction/neo4j_extract_go.py
+
+mv pangenome_GO.tab pangenome_gene_info.tab pangenome_chr.tab $PANGENOME_DIR/extracted_data/
+```
+
+## Build pangenome object using AnnotationDbi BioConductor package
+
+```bash
+Rscript 
+```
 ## pangenome pan.db object to explore data
 
 ### mRNA identifiers as query
