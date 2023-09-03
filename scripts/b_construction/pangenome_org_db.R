@@ -45,7 +45,7 @@ chrInfo <- suppressMessages(
   readr::read_tsv(file = panConf$files$chr_info)
 )
 
-# pangenome gene - mRNA - COG info
+# pangenome gene - mRNA - COG - Pfam info
 geneInfo <- suppressMessages(readr::read_tsv(panConf$files$gene_info))
 
 
@@ -70,7 +70,8 @@ hgDf <- dplyr::left_join(
     dplyr::across(
       .cols = c(genome, chr, start, end), .fns = as.integer
     )
-  )
+  ) %>% 
+  dplyr::distinct()
 
 if (!setequal(hgDf$GID, allHgs$hg_id)) {
   stop("Some missing homology groups")
@@ -89,6 +90,16 @@ hgCog <- dplyr::select(hgDf, GID, mRNA_id, genome, chr) %>%
     by = c("genome", "chr" = "chr_num", "mRNA_id")
   ) %>%
   dplyr::select(GID, starts_with("COG")) %>%
+  dplyr::distinct()
+
+# homology group - Pfam links
+hgPfam <- dplyr::select(hgDf, GID, mRNA_id, genome, chr) %>%
+  dplyr::left_join(
+    y = dplyr::select(geneInfo, mRNA_id, genome, chr_num, starts_with("pfam_")),
+    by = c("genome", "chr" = "chr_num", "mRNA_id")
+  ) %>%
+  dplyr::select(GID, starts_with("pfam_")) %>%
+  dplyr::filter(pfam_id != "None") %>% 
   dplyr::distinct()
 
 ## homology group category for pangenome: core/accessory/unique
@@ -110,6 +121,7 @@ AnnotationForge::makeOrgPackage(
   hgMeta = hgMeta,
   go = hgGoDf,
   hgCog = hgCog,
+  hgPfam = hgPfam,
   version = "1.0.0",
   maintainer = "Lakhansing Pardeshi <lakhansing.pardeshi@wur.nl>",
   author = "Lakhansing Pardeshi",

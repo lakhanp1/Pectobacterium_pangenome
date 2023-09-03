@@ -67,10 +67,12 @@ class QueryPangenome:
     def get_gene_info(self, out: str) -> None:
         query = (
             "MATCH (g:gene)-[:codes_for]->(m:mRNA) "
+            "OPTIONAL MATCH (m)-[:has_pfam]->(p:pfam) "
             "RETURN g.genome AS genome, g.sequence AS chr_num, g.begin AS start, "
             "g.end AS end, g.strand AS strand, g.id AS gene_name, m.id as mRNA_id, "
             "m.COG_id AS COG_id, m.COG_description AS COG_description, "
             "m.COG_category AS COG_category "
+            "p.id as pfam_id, p.description as pfam_description "
             # "LIMIT 20"
         )
 
@@ -85,6 +87,8 @@ class QueryPangenome:
             "COG_id",
             "COG_description",
             "COG_category",
+            "pfam_id",
+            "pfam_description",
         ]
 
         # run transaction
