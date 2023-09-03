@@ -12,3 +12,4 @@ format:
     code-overflow: scroll
     code-copy: true
     code-line-numbers: true
+    css: ./scripts/utils/quarto_style.css

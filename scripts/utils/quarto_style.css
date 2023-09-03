@@ -1,0 +1,17 @@
+.scrolling {
+    border: 1px solid black;
+    height: 500px;
+    overflow-y: scroll;
+    width: 500px;
+    overflow-x: scroll;
+}
+
+.scrolling_y {
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
+.scrolling_x {
+    max-width: 100%;
+    overflow-x: auto;
+}
