@@ -274,6 +274,7 @@ analysis:
       groups_meta: "homology_groups_meta.tab"
       spp_group_go: "spp_group_GO.tab"
       spp_group_stats: "spp_group_stats.tab"
+      hg_sets: "hg_sets_of_interest.tab"
   association:
     dir: "04_pangenome_pecto_v2/pheno_association"
     files:
