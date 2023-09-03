@@ -315,8 +315,12 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
 #' @param speciesInfo a dataframe with two columns: `Genome` and `SpeciesName`
 #' @param type Return type: `wide`: a matrix of dimension n(Genome) x n(Species),
 #'  `long`: data.frame in long format
-#' @param markGenomes A list with two elements named `list(compare = c(),
-#' against = c())`. Default: `NULL`
+#' @param markGenomes A named list of list with following structure:
+#' `list(
+#' vir = list(genomes = c("12", "2", "9"), color = "red"),
+#' avir = list(genomes = c("1", "11", "4", "19"), color = "green")
+#' )`
+#' Default: `NULL`
 #'
 #' @return Either a matrix or data.frame
 #' @export
@@ -335,8 +339,10 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
       if(!is.null(markGenomes)){
         dplyr::left_join(
           x = .,
-          y = tibble::enframe(markGenomes, name = "species") %>% tidyr::unnest(cols = value),
-          by = c("Genome" = "value")
+          y = purrr::map(markGenomes, .f = "genomes") %>%
+            tibble::enframe(name = "species", value = "Genome") %>%
+            tidyr::unnest(cols = Genome),
+          by = "Genome"
         ) %>% 
           tidyr::replace_na(replace = list(species = "1"))
       } else{
@@ -386,10 +392,15 @@ species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL, ...){
   ## ensure the row order is same: this is because of a bug in ComplexHeatmap
   stopifnot(all(rownames(speciesMat) == genomes))
   
+  spColor <- purrr::map(markGenomes, "color") %>%
+    unlist() %>%
+    append(c("1" = "black", "0" = "white"))
+  
   ht1 <- ComplexHeatmap::Heatmap(
     matrix = speciesMat,
     name = "species_key",
-    col = c("1" = "black", "0" = "white", "compare" = "red", "against" = "green"),
+    col = spColor,
+    # col = c("1" = "black"),
     cluster_columns = FALSE,
     column_split = 1:ncol(speciesMat), cluster_column_slices = FALSE,
     border = TRUE, column_gap = unit(0, "mm"),

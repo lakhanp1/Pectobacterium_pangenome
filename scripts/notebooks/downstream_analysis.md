@@ -232,4 +232,3 @@ analysisName <- "lps_syn"
 
 goIds <- c("GO:0009103", "GO:0009244")
 ```
-```
