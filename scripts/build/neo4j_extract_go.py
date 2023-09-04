@@ -71,7 +71,7 @@ class QueryPangenome:
             "RETURN g.genome AS genome, g.sequence AS chr_num, g.begin AS start, "
             "g.end AS end, g.strand AS strand, g.id AS gene_name, m.id as mRNA_id, "
             "m.COG_id AS COG_id, m.COG_description AS COG_description, "
-            "m.COG_category AS COG_category "
+            "m.COG_category AS COG_category, "
             "p.id as pfam_id, p.description as pfam_description "
             # "LIMIT 20"
         )
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     finally:
         panQ.close()
 
-    ## get gene - mRNA - COG
+    ## get gene - mRNA - COG - Pfam
     try:
         panQ.get_gene_info(out="pangenome_gene_info.tab")
     finally:
