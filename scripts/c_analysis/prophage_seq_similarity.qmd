@@ -1,4 +1,21 @@
-#!/usr/bin/env Rscript
+---
+title: "Prophage clustering using ANI and MASH"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.Date()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(here))
@@ -29,8 +46,11 @@ panConf <- confs$data$pangenomes[[pangenome]]
 
 outDir <- confs$analysis$prophages$dir
 
-################################################################################
+```
 
+## Process ANI and MASH output and hierarchical clustering of the data
+
+```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -56,8 +76,11 @@ phageRelations <- suppressMessages(
 nodeOfInterest <- dplyr::filter(phageRelations, nodeType != "child") %>%
   dplyr::select(id)
 
-################################################################################
-# process ANI data for phages and store ANI and ANI-distance matrices
+```
+
+### process ANI data for phages and store ANI and ANI-distance matrices
+
+```{r}
 aniDf <- suppressMessages(readr::read_tsv(
   file = confs$data$prophages$files$ani,
   col_names = c("id1", "id2", "ani", "mapped", "total")
@@ -117,8 +140,11 @@ ape::write.tree(
   file = confs$analysis$prophages$files$ani_nj
 )
 
-################################################################################
-# process MASH data and generate trees
+```
+
+### process MASH data and generate trees
+
+```{r}
 mashDf <- suppressMessages(readr::read_tsv(
   file = confs$data$prophages$files$mash,
   col_names = c("id1", "id2", "dist", "pvalue", "mapped")
@@ -192,8 +218,15 @@ ape::write.tree(
   file = confs$analysis$prophages$files$mash_nj
 )
 
-################################################################################
-# correlate trees
+```
+
+## correlate MASH and ANI trees
+
+```{r}
+#| fig-height: 7
+#| fig-width: 7
+#| out-width: '100%'
+
 ## cophenetic distance calculation for NJ and UPGMA tree
 copheneticDist <- tibble::tibble(
   aniDist = as.vector(aniDistMat),
@@ -212,9 +245,12 @@ corrplot::corrplot(
   cl.ratio = 0.2, tl.srt = 45, col = COL2("BrBG"), addCoef.col = "white"
 )
 
+```
 
-################################################################################
-## add data to tree
+## Visualize MASH tree 
+
+```{r}
+
 treeTbl <- treeio::as_tibble(mashUpgma) %>%
   dplyr::left_join(y = phageRelations, by = c("label" = "id")) %>%
   treeio::as.treedata()
@@ -248,9 +284,29 @@ ggsave(
   plot = pt_treeUpgma, width = 8, height = 20, scale = 2,
   filename = paste(outDir, "/prophages.MASH.UPGMA_tree.pdf", sep = "")
 )
-################################################################################
 
-# ANI
+```
+
+:::{.scrolling_y}
+
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 24
+#| fig-width: 10 
+#| out-width: '100%'
+#| layout-valign: top
+#| 
+
+pt_treeUpgma
+```
+
+:::
+
+## ANI
+
+```{r}
+
 ht_ani <- plot_species_ANI_heatmap(
   mat = 100 * (1 - as.matrix(aniDistMat)), phy = aniUpgma, speciesInfo = NULL,
   col = circlize::colorRamp2(
@@ -271,9 +327,27 @@ ComplexHeatmap::draw(
   heatmap_legend_side = "bottom"
 )
 dev.off()
+```
 
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 12
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
 
-# MASH
+ComplexHeatmap::draw(
+  object = ht_ani,
+  main_heatmap = "ani",
+  row_dend_side = "left",
+  heatmap_legend_side = "bottom"
+)
+```
+
+## MASH
+
+```{r}
 ht_mash <- plot_species_ANI_heatmap(
   mat = as.matrix(mashDistMat), phy = mashUpgma, speciesInfo = NULL,
   name = "mash",
@@ -296,4 +370,20 @@ ComplexHeatmap::draw(
 )
 dev.off()
 
-################################################################################
+```
+
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 12
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
+
+ComplexHeatmap::draw(
+  object = ht_mash,
+  main_heatmap = "mash",
+  row_dend_side = "left",
+  heatmap_legend_side = "bottom"
+)
+```

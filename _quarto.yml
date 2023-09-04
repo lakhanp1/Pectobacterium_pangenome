@@ -3,12 +3,12 @@ project:
   title: "Pectobacterium pangenome data analysis"
   # output-dir: "./scripts/quarto"
   execute-dir: project
-toc: true
 format:
   html: 
     toc: true
     toc-depth: 3
     html-math-method: katex
+    code-tools: true
     code-overflow: scroll
     code-copy: true
     code-line-numbers: true
