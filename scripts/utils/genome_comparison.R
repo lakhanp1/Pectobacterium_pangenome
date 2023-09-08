@@ -28,7 +28,6 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
   ## ANI heatmap
   ht_ani <- ComplexHeatmap::Heatmap(
     matrix = mat,
-    heatmap_legend_param = list(direction = "horizontal", legend_width = unit(3, "cm")),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
     cluster_columns = ape::as.hclust.phylo(phy), column_dend_reorder = FALSE,
     show_row_dend = TRUE, show_column_dend = FALSE,

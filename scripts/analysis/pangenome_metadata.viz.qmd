@@ -244,18 +244,12 @@ the N50 values between the same groups.
       mapping = aes(x = forcats::fct_rev(geo_loc_country), y = value)
     ) +
     geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
-    ggbeeswarm::geom_quasirandom(
-      # mapping = aes(color = virulence),
-      size = 3
-    ) +
+    ggbeeswarm::geom_quasirandom(size = 3) +
     ggpubr::stat_compare_means(method = "t.test") +
     scale_y_continuous(labels = scales::label_comma()) +
     facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
     # labs(
     #   title = "Pbr isolates from the Netherlands have more protein coding genes"
-    # ) +
-    # scale_color_manual(
-    #   values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
     # ) +
     theme_bw(base_size = 20) +
     theme(
@@ -280,21 +274,16 @@ ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
 ```{r}
 #| fig-cap: Virulent Pbr isolates have more protein coding genes than avirulent
 #| fig-height: 6
-#| fig-width: 7
+#| fig-width: 9
 
 (
   pt_vir <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
     dplyr::filter(field %in% c("mRNA_count", "length", "N50")) %>%
     ggplot(mapping = aes(x = virulence, y = value))  +
     geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
-    ggbeeswarm::geom_quasirandom(
-      mapping = aes(color = virulence), size = 3
-    ) +
-    ggpubr::stat_compare_means(method = "t.test") +
+    ggbeeswarm::geom_quasirandom(size = 3) +
+    ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
     scale_y_continuous(labels = scales::label_comma()) +
-    scale_color_manual(
-      values = c("virulent" = "red", "avirulent" = "green"), na.value = "black"
-    ) +
     facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
     # labs(
     #   title = "Virulent Pbr isolates have more protein coding genes than avirulent"

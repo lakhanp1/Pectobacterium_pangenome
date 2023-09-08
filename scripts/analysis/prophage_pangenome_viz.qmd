@@ -1,5 +1,18 @@
-#!/usr/bin/env Rscript
+---
+title: "Prophage visualization at the pangenome scale"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
 
+## Initial setup
+
+```{r}
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(skimr))
@@ -36,8 +49,11 @@ outPrefix <- ""
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 
-################################################################################
+```
 
+## Import data
+
+```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -75,16 +91,14 @@ phageRelations <- suppressMessages(
   dplyr::left_join(y = prophageDf, by = c("prophage_id"))
 
 phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_upgma)
-################################################################################
-# prophage homology groups on pangenome phylogeny
-proReps <- dplyr::filter(phageRelations, nodeType != "child") %>% 
-  dplyr::select(prophage_id, nodeType) %>% 
-  dplyr::left_join(proHgs, by = c("prophage_id" = "id")) %>% 
-  dplyr::select(-contig_id)
 
-length(unique(unlist(proReps$hgs)))
+```
 
-# function to get homology group counts in each genome of the pangenome
+## Get prophage presence across the pangenome using homology groups
+
+A function to get homology group counts in each genome of the pangenome
+
+```{r}
 homology_groups_genome_counts <- function(h, pandb){
   # ****
   # replace this function by searching for a tandem match of homology groups
@@ -98,7 +112,17 @@ homology_groups_genome_counts <- function(h, pandb){
     dplyr::group_by(genome) %>% 
     dplyr::summarise(n = n())
 }
+```
 
+```{r}
+proReps <- dplyr::filter(phageRelations, nodeType != "child") %>% 
+  dplyr::select(prophage_id, nodeType) %>% 
+  dplyr::left_join(proHgs, by = c("prophage_id" = "id")) %>% 
+  dplyr::select(-contig_id)
+
+length(unique(unlist(proReps$hgs)))
+
+# prophage presence per genome
 proHgPerGenome <- dplyr::select(proReps, prophage_id, hgs, nHgs) %>% 
   # dplyr::slice_head(n = 10) %>% 
   dplyr::rowwise() %>% 
@@ -119,6 +143,11 @@ proHgCounts <- tidyr::pivot_wider(
 ) %>% 
   dplyr::select(genome, all_of(phageTree$tip.label))
 
+```
+
+## Visualize prophages across the pangenome
+
+```{r}
 
 countMat <- tibble::tibble(genome = rawTree$tip.label) %>% 
   dplyr::left_join(y = proHgCounts, by = c("genome")) %>% 
@@ -186,4 +215,22 @@ ComplexHeatmap::draw(
   merge_legends = TRUE
 )
 dev.off()
+
+```
+
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 8
+#| fig-width: 15
+#| out-width: '100%'
+#| layout-valign: top
+
+ComplexHeatmap::draw(
+  object = htList,
+  main_heatmap = "hg_count",
+  row_dend_side = "left",
+  merge_legends = TRUE
+)
+```
 
