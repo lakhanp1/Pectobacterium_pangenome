@@ -8,7 +8,9 @@ format:
     toc: true
     toc-depth: 3
     html-math-method: katex
-    code-tools: true
+    code-tools:
+      source: true
+      toggle: true
     code-overflow: scroll
     code-copy: true
     code-line-numbers: true

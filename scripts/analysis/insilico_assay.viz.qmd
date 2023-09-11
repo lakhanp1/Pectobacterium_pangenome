@@ -1,18 +1,42 @@
+---
+title: "Visualize *in*-silico PCR results against pangenome phylogeny"
+date: "`r Sys.time()`"
+format: 
+  html:
+    embed-resources: true
+fig-height: 8
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(grid))
+suppressPackageStartupMessages(library(gridExtra))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(treeio))
 suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(GenomicRanges))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 ## parse PCR primer blastn results and generate summary figure
 
 rm(list = ls())
 
-
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+
 ################################################################################
 set.seed(124)
+
+analysisName <- "bioassay_probe_match"
+treeMethod <- "ani_upgma" # ani_upgma, kmer_upgma
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -22,21 +46,24 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
 
-analysisName <- "bioassay_probe_match"
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 outDir <- confs$analysis$insilico_assay$dir
 outPrefix <- file.path(outDir, analysisName)
+```
 
-################################################################################
+## Import required data
 
-genomeChrs <- suppressMessages(
-  readr::read_tsv(
-    file = confs$data$pangenomes[[pangenome]]$files$genome_chrs,
-    col_names = c("Genome", "chr"), col_types = "c"
-  )
+```{r}
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus) %>% 
+  dplyr::mutate(
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+  ) %>%
   dplyr::mutate(
     virulence_pcr = dplyr::case_when(
       virulence_pcr == "positive" ~ "+",
@@ -49,18 +76,50 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
+
+## set negative length edges => 0
+rawTree$edge.length[rawTree$edge.length < 0] <- 0
+
+genomeChrs <- suppressMessages(
+  readr::read_tsv(
+    file = confs$data$pangenomes[[pangenome]]$files$genome_chrs,
+    col_names = c("Genome", "chr"), col_types = "c"
+  )
+)
+
+# panOrgDb does not include all the chromosomes because some contigs in
+# the genome assembly does not have any gene annotated and hence
+# no homology groups
+# genomeChrs2 <- AnnotationDbi::select(
+#   x = panOrgDb, keys = keys(panOrgDb, "genome"),
+#   columns = c("genome", "chr_name"), keytype = "genome"
+#   ) %>% 
+#   tidyr::unite(col = "chr", sep = "_", remove = FALSE)
+
+
 probeInfo <- suppressMessages(readr::read_tsv(confs$data$other$files$probe_info)) %>% 
   dplyr::mutate(
     type = forcats::fct_relevel(.f = type, "forward", "probe", "reverse")
   )
 
-################################################################################
-## extract the ANI tree information for the node order
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny$ani_upgma$files$tree_rooted)
+## add data to tree
+treeTbl <- as_tibble(rawTree) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
+  treeio::as.treedata()
 
-## set negative length edges => 0
-rawTree$edge.length[rawTree$edge.length < 0] <- 0
+pt_tree <- ggtree::ggtree(
+  tr = treeTbl
+)
 
+leafOrder <- dplyr::arrange(.data = pt_tree$data, y) %>% 
+  dplyr::filter(isTip) %>% 
+  dplyr::pull(label)
+```
+
+## Optionally, when results are required only for a clade of interest 
+
+```{r eval=FALSE}
 
 ## P. brasiliense species clade
 nodeOfInterest <- dplyr::filter(sampleInfo, SpeciesName == "P. brasiliense") %>% 
@@ -69,34 +128,11 @@ nodeOfInterest <- dplyr::filter(sampleInfo, SpeciesName == "P. brasiliense") %>%
 clade <- ape::getMRCA(phy = rawTree, tip = nodeOfInterest)
 subTree <- ape::extract.clade(phy = rawTree, node = clade)
 
-sampleInfo <- dplyr::left_join(
-  x = tibble::tibble(Genome = nodeOfInterest),
-  y = sampleInfo, by = "Genome"
-)
+```
 
-## tree for plotting 
-## add data to tree
-treeTbl <- as_tibble(subTree) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
-  treeio::as.treedata()
-
-pt_treeMain <- ggtree::ggtree(
-  tr = treeTbl
-)
-
-leafOrder <- dplyr::arrange(.data = pt_treeMain$data, y) %>% 
-  dplyr::filter(isTip) %>% 
-  dplyr::pull(label)
-
-# leafOrder <- rev(ggtree::get_taxa_name(pt_treeMain))
-
-sampleInfo %<>% 
-  dplyr::mutate(
-    Genome = forcats::fct_relevel(Genome, !!!leafOrder)
-  )
-
-################################################################################
 ## process assay blast result
+
+```{r}
 blastRes <- suppressMessages(
   readr::read_tsv(
     file = confs$analysis$insilico_assay$files$blastn,
@@ -161,10 +197,11 @@ assayBlastDf <- dplyr::left_join(
   ) %>%
   dplyr::ungroup() %>% 
   dplyr::arrange(Genome, assay, sseqid, sstart, type) %>% 
-  dplyr::select(Genome,
-                # sampleId, SpeciesName, strain,
-                assay, type,
-                assayRegionHits, regionId, assayGenomeGrp, everything())
+  dplyr::select(
+    Genome,
+    # sampleId, SpeciesName, strain,
+    assay, type, assayRegionHits, regionId, assayGenomeGrp, everything()
+  )
 
 
 readr::write_tsv(x = assayBlastDf, file = paste(outPrefix, ".data.tab", sep = ""))
@@ -191,11 +228,11 @@ bestAssaysInGenomes <- dplyr::select(bestAssaysInGenomes, assayGenomeGrp) %>%
 ## finally select assays only for the Genomes in sampleInfo
 genomeAssayDetails <- dplyr::select(sampleInfo, Genome) %>% 
   dplyr::left_join(y = bestAssaysInGenomes, by = "Genome") %>% 
-  dplyr::filter(!is.na(assay)) %>% 
+  dplyr::filter(!is.na(assay)) %>%
   dplyr::mutate(
     Genome = forcats::fct_relevel(Genome, !!!leafOrder),
     assay = forcats::fct_relevel(
-      assay, "Erwinia", "P_br_1360500", "LZI", "TIR"
+      assay, "Erwinia", "P_br_1360500", "Pecto_generic", "LZI", "TIR"
     )
   )
 
@@ -219,43 +256,115 @@ genomeAssaySummary <- dplyr::group_by(
     assayResult = if_else(assayMismatches == 0, "pass", "fail")
   )
 
-################################################################################
 
-pt_tree <- pt_treeMain
+```
 
-## assay blastn visualization
-(
-  pt_pcrBlast <- ggplot2::ggplot(
-    data = genomeAssayDetails,
-    mapping = aes(x = type, y = Genome)
-  ) +
-    geom_tile(
-      mapping = aes(fill = pident, width = qcovs/100, height = qcovs/100),
-      color = "black", linewidth = 0.5) +
-    labs(
-      title = "blastn results for forward (F), probe (P) and reverse (R) PCR primers"
-    ) +
-    facet_grid(cols = vars(assay), scales = "free_y") +
-    viridis::scale_fill_viridis(name = "% identity", option = "viridis", direction = -1) +
-    scale_x_discrete(
-      labels = c("forward" = "F", "probe" = "P", "reverse" = "R")
-    ) +
-    guides(
-      size = guide_legend(override.aes = list(fill = "white"))
-    ) +
-    theme_bw() +
-    theme(
-      panel.grid = element_blank(),
-      axis.title = element_blank(),
-      axis.text.y = element_blank(),
-      axis.ticks.y = element_blank(),
-      axis.text.x = element_text(size = 14, face = "bold"),
-      plot.title = element_text(hjust = 0.5, vjust = 0),
-      strip.text.x = element_text(size = 12, face = "bold") 
-    )
+## Visualize the *in*-silico PCR results on pangenome phylogeny
+
+### Taxonomy key
+
+```{r}
+speciesKyeDf <- get_species_key_data(
+  genomes = leafOrder, speciesInfo = sampleInfo, type = "long"
 )
 
-##################################################################################
+pt_spKey <- ggplot2::ggplot(
+  data = speciesKyeDf,
+  mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
+) +
+  geom_tile() +
+  theme_bw() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, vjust = 0)
+  )
+
+```
+
+### Plot PCR primer BLAST results
+
+```{r}
+## assay blastn visualization
+pt_pcrBlast <- ggplot2::ggplot(
+  data = genomeAssayDetails,
+  mapping = aes(x = type, y = Genome)
+) +
+  geom_tile(
+    mapping = aes(fill = pident, width = qcovs/100, height = qcovs/100),
+  ) +
+  labs(
+    title = "blastn results for forward (F), probe (P) and reverse (R) PCR primers"
+  ) +
+  facet_grid(cols = vars(assay), scales = "free_y") +
+  viridis::scale_fill_viridis(name = "% identity", option = "viridis", direction = -1) +
+  scale_x_discrete(
+    labels = c("forward" = "F", "probe" = "P", "reverse" = "R"),
+    expand = expansion(add = 0)
+  ) +
+  guides(
+    size = guide_legend(override.aes = list(fill = "white"))
+  ) +
+  theme_bw() +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_text(size = 14, face = "bold"),
+    plot.title = element_text(hjust = 0.5, vjust = 0),
+    strip.text.x = element_text(size = 12, face = "bold", angle = 90, hjust = 0),
+    legend.position = "bottom",
+    panel.grid = element_blank()
+  )
+
+```
+
+### Visualize the phylogeny and PCR blast results
+
+```{r}
+pt_treeBlast <- pt_spKey %>%
+  aplot::insert_left(pt_tree, width = 0.5) %>%
+  aplot::insert_right(pt_pcrBlast, width = 0.9)
+
+pdf(file = paste(outPrefix, ".treeBlast.pdf", sep = ""), width = 14, height = 20)
+pt_treeBlast
+dev.off()
+
+```
+
+Width and height of the tiles in the plot below are relative to the query
+coverage. A complete tile implies 100% query coverage. Color scale for the tiles
+is shown below:
+
+```{r echo=FALSE}
+#| fig-height: 0.5
+
+legend <- cowplot::get_legend(pt_pcrBlast)
+grid::grid.draw(legend)
+```
+
+<!-- ::: .scrolling-y -->
+
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 25
+#| fig-width: 15
+#| out-width: '100%'
+#| layout-valign: top
+
+pt_treeBlast
+
+```
+
+<!-- ::: -->
+
+### Generate additional annotation plots
+
+```{r eval=FALSE}
 ## generate annotation plots
 pt_theme <- theme_bw() +
   theme(
@@ -357,13 +466,5 @@ pdf(file = paste(outPrefix, ".pdf", sep = ""), width = 15, height = 12)
 pt_all
 dev.off()
 
-
-pt_treeBlast <- pt_vir %>% aplot::insert_right(pt_tree, width = 12) %>%
-  aplot::insert_right(pt_pcrBlast, width = 8)
-
-
-# png(filename = paste(outPrefix, ".treeBlast.png", sep = ""), width = 2500, height = 1500, res = 150)
-pdf(file = paste(outPrefix, ".treeBlast.pdf", sep = ""), width = 12, height = 12)
-pt_treeBlast
-dev.off()
+```
 

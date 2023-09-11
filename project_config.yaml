@@ -266,7 +266,7 @@ analysis:
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:
-      blastn: "probe_blastn.out"
+      blastn: "pcr_primer_blastn.out"
   homology_groups:
     dir: "04_pangenome_pecto_v2/homology_groups"
     files:
