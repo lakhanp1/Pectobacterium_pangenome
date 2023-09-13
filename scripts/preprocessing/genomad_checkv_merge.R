@@ -21,15 +21,17 @@ panConf <- confs$data$pangenomes[[pangenome]]
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 # sampleId <- "JGAR-100719-1"
 prophageDf <- NULL
 
 for (sampleId in sampleInfo$sampleId) {
-  virPathPrefix <- paste(confs$data$genomad$dir, "/", sampleId, "/", sampleId, sep = "")
-
+  virPathPrefix <- paste(confs$data$prophages$dir, "/", sampleId, "/", sampleId, sep = "")
+  
+  cat(virPathPrefix, "...\n")
+  
   virSummary <- suppressMessages(
     readr::read_tsv(
       file = paste(virPathPrefix, "_summary/", sampleId, "_virus_summary.tsv", sep = "")
@@ -42,7 +44,7 @@ for (sampleId in sampleInfo$sampleId) {
     ) %>%
     dplyr::mutate(
       sampleId = !!sampleId,
-      Genome = !!sampleInfoList[[sampleId]]$Genome,
+      genomeId = !!sampleInfoList[[sampleId]]$genomeId,
       SpeciesName = !!sampleInfoList[[sampleId]]$SpeciesName,
       chr = stringr::str_replace(seq_name, "(.*)\\|.*", "\\1"),
       .before = coordinates
@@ -57,7 +59,7 @@ for (sampleId in sampleInfo$sampleId) {
     ) %>%
       dplyr::left_join(y = virSummary, by = c("contig_id" = "seq_name")) %>%
       dplyr::mutate(
-        prophage_id = paste("g_", Genome, ".vir_", 1:n(), sep = "")
+        prophage_id = paste(genomeId, ".vir_", 1:n(), sep = "")
       )
 
     prophageDf <- dplyr::bind_rows(prophageDf, checkv)
@@ -69,7 +71,7 @@ prophageDf <- dplyr::select(
   topology, taxonomy, starts_with("genomad."), everything()
 )
 
-readr::write_tsv(prophageDf, file = confs$data$genomad$files$prophages)
+readr::write_tsv(prophageDf, file = confs$data$prophages$files$data)
 
 dplyr::select(prophageDf, sampleId, chr, start, end, prophage_id) %>%
   dplyr::mutate(
@@ -82,6 +84,6 @@ dplyr::select(prophageDf, sampleId, chr, start, end, prophage_id) %>%
   ) %>%
   dplyr::select(faidx) %>%
   readr::write_tsv(
-    file = "./scripts/a_preprocessing/prophage_genomes_extract.sh",
+    file = "./scripts/preprocessing/prophage_genomes_extract.sh",
     col_names = F
   )

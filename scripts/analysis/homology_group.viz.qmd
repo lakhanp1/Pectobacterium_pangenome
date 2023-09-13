@@ -55,8 +55,8 @@ confs <- prefix_config_paths(
 # `setIds` are searched in these files to identify respective homology groups
 # for plotting
 hgSetFiles <- c(
-  confs$analysis$prophages$files$prophage_hg,
-  confs$analysis$homology_groups$files$hg_sets
+  confs$analysis$prophages$files$prophage_hg
+  # confs$analysis$homology_groups$files$hg_sets
 )
 
 outDir <- file.path(confs$analysis$prophages$dir)
@@ -65,7 +65,7 @@ outPrefix <- file.path(outDir, analysisName)
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-orgDb <- org.Pectobacterium.spp.pan.eg.db
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ```
 
 ## Import data
@@ -76,7 +76,7 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
@@ -145,7 +145,7 @@ for (id in names(hgL)) {
   
   # prepare homology group PAV matrix from pan.db
   hgMat <- homology_groups_mat(
-    pandb = orgDb, type = "pav", groups = hgL[[id]]$hgs
+    pandb = panOrgDb, type = "pav", groups = hgL[[id]]$hgs
   )
   
   hgMat <- hgMat[rawTree$tip.label, ]

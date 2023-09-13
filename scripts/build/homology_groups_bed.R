@@ -10,7 +10,7 @@ source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
 orgDb <- org.Pectobacterium.spp.pan.eg.db
-genomeId <- "182"
+genomeId <- "g_182"
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -23,14 +23,14 @@ panConf <- confs$data$pangenomes[[pangenome]]
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
-outPrefix <- sampleInfo$sampleId[which(sampleInfo$Genome == genomeId)]
+outPrefix <- sampleInfo$sampleId[which(sampleInfo$genomeId == genomeId)]
 ################################################################################
 # extract data
 gn <- AnnotationDbi::select(
-  x = orgDb, keys = genomeId, keytype = "genome",
+  x = orgDb, keys = genomeId, keytype = "genomeId",
   columns = c(
     "GID", "class", "chr_name", "start", "end", "strand", "chr", "mRNA_id",
     "COG_description"

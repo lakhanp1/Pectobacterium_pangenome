@@ -66,15 +66,15 @@ pt_theme <- theme_bw(base_size = 14) +
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId
 )
 
-genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
+genomeIds <- dplyr::pull(sampleInfo, genomeId, name = sampleId)
 
 fnGenomes <- dplyr::filter(
   sampleInfo, virulence == "virulent", virulence_pcr == "negative"
 ) %>% 
-  dplyr::pull(Genome)
+  dplyr::pull(genomeId)
 
 markGenomes <- list(
   fn_pbr = list(genomes = fnGenomes, color = "red")
@@ -165,7 +165,7 @@ treeNj <- ape::nj(distMat) %>%
 ## set negative length edges => 0
 treeNj$edge.length[treeNj$edge.length < 0] <- 0
 
-rootedNj <- ape::root(treeNj, outgroup = sampleInfoList[[outGroup]]$Genome)
+rootedNj <- ape::root(treeNj, outgroup = sampleInfoList[[outGroup]]$genomeId)
 
 ape::write.tree(
   phy = treeNj, tree.names = "ANI_NJ",
@@ -179,9 +179,9 @@ ape::write.tree(
 ```{r}
 ## add data to tree
 treeTbl <- as_tibble(treeUpgma) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
   treeio::as.treedata() %>%
-  treeio::root(outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE)
+  treeio::root(outgroup = sampleInfoList[[outGroup]]$genomeId, edgelabel = TRUE)
 
 pt_treeUpgma <- ggtree::ggtree(
   tr = treeTbl
@@ -354,7 +354,7 @@ In *P. brasiliense* genome ANI comparison, `r scales::percent(length(which(lower
 ```{r}
 inhouseNodes <- dplyr::filter(sampleInfo, source %in% c("NAK", "NVWA"))
 
-subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$Genome)
+subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$genomeId)
 subAni2 <- aniMat[subTree2$tip.label, subTree2$tip.label] %>%
   tibble::as_tibble(rownames = "g1") %>%
   tidyr::pivot_longer(
@@ -363,7 +363,7 @@ subAni2 <- aniMat[subTree2$tip.label, subTree2$tip.label] %>%
   )
 
 inhouseTreeTbl <- as_tibble(subTree2) %>%
-  dplyr::full_join(y = inhouseNodes, by = c("label" = "Genome")) %>%
+  dplyr::full_join(y = inhouseNodes, by = c("label" = "genomeId")) %>%
   treeio::as.treedata()
 
 pt_inhouseTree <- ggtree::ggtree(
@@ -402,12 +402,12 @@ pt_inhouseTree <- ggtree::ggtree(
   )
 
 speciesKyeDf <- get_species_key_data(
-  genomes = inhouseNodes$Genome, speciesInfo = sampleInfo, type = "long"
+  genomes = inhouseNodes$genomeId, speciesInfo = sampleInfo, type = "long"
 )
 
 pt_spKey <- ggplot2::ggplot(
   data = speciesKyeDf,
-  mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
+  mapping = aes(x = SpeciesName, y = genomeId), color = "black", fill = "black"
 ) +
   geom_tile() +
   theme_bw() +

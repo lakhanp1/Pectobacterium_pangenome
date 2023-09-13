@@ -42,8 +42,8 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
   # species key heatmap
   if(!is.null(speciesInfo)){
     stopifnot(
-      all(rownames(mat) %in% speciesInfo$Genome),
-      has_name(speciesInfo, "Genome"),
+      all(rownames(mat) %in% speciesInfo$genomeId),
+      has_name(speciesInfo, "genomeId"),
       has_name(speciesInfo, "SpeciesName")
     )
     

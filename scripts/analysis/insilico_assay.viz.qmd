@@ -73,7 +73,7 @@ sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metad
   )
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
@@ -81,22 +81,19 @@ rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tr
 ## set negative length edges => 0
 rawTree$edge.length[rawTree$edge.length < 0] <- 0
 
+# panOrgDb does not include all the chromosomes because some contigs in
+# the genome assembly does not have any gene annotated and hence
+# no homology groups. Therefore, this information is read from a file
+# which was generated from the neo4j databased extraction script
 genomeChrs <- suppressMessages(
   readr::read_tsv(
     file = confs$data$pangenomes[[pangenome]]$files$genome_chrs,
-    col_names = c("Genome", "chr"), col_types = "c"
+    col_names = c("genomeId", "chr"), col_types = "c"
   )
-)
-
-# panOrgDb does not include all the chromosomes because some contigs in
-# the genome assembly does not have any gene annotated and hence
-# no homology groups
-# genomeChrs2 <- AnnotationDbi::select(
-#   x = panOrgDb, keys = keys(panOrgDb, "genome"),
-#   columns = c("genome", "chr_name"), keytype = "genome"
-#   ) %>% 
-#   tidyr::unite(col = "chr", sep = "_", remove = FALSE)
-
+) %>% 
+  dplyr::mutate(
+    genomeId = paste("g_", genomeId, sep = "")
+  )
 
 probeInfo <- suppressMessages(readr::read_tsv(confs$data$other$files$probe_info)) %>% 
   dplyr::mutate(
@@ -105,7 +102,7 @@ probeInfo <- suppressMessages(readr::read_tsv(confs$data$other$files$probe_info)
 
 ## add data to tree
 treeTbl <- as_tibble(rawTree) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
   treeio::as.treedata()
 
 pt_tree <- ggtree::ggtree(
@@ -123,7 +120,7 @@ leafOrder <- dplyr::arrange(.data = pt_tree$data, y) %>%
 
 ## P. brasiliense species clade
 nodeOfInterest <- dplyr::filter(sampleInfo, SpeciesName == "P. brasiliense") %>% 
-  dplyr::pull(Genome)
+  dplyr::pull(genomeId)
 
 clade <- ape::getMRCA(phy = rawTree, tip = nodeOfInterest)
 subTree <- ape::extract.clade(phy = rawTree, node = clade)
@@ -148,7 +145,6 @@ blastRes <- suppressMessages(
       sstrand == "minus" ~ "-",
     )
   )
-
 
 blastGr <- GenomicRanges::makeGRangesFromDataFrame(
   df = dplyr::mutate(
@@ -189,16 +185,16 @@ assayBlastDf <- dplyr::left_join(
   dplyr::left_join(
     y = probeInfo, by = c("qseqid" = "probeId")
   ) %>% 
-  dplyr::group_by(Genome, assay, sseqid, regionId) %>% 
+  dplyr::group_by(genomeId, assay, sseqid, regionId) %>% 
   dplyr::mutate(
     assayRegionHits = n(),
     assayGenomeGrp = cur_group_id(),
     assayMismatches = sum(mismatch)
   ) %>%
   dplyr::ungroup() %>% 
-  dplyr::arrange(Genome, assay, sseqid, sstart, type) %>% 
+  dplyr::arrange(genomeId, assay, sseqid, sstart, type) %>% 
   dplyr::select(
-    Genome,
+    genomeId,
     # sampleId, SpeciesName, strain,
     assay, type, assayRegionHits, regionId, assayGenomeGrp, everything()
   )
@@ -209,9 +205,9 @@ readr::write_tsv(x = assayBlastDf, file = paste(outPrefix, ".data.tab", sep = ""
 ## select only best matching assay
 bestAssaysInGenomes <- dplyr::filter(assayBlastDf, assay != "P_wasabiae_WPP163") %>% 
   dplyr::distinct(
-    assayGenomeGrp, Genome, assay, sseqid, regionId, assayRegionHits, assayMismatches
+    assayGenomeGrp, genomeId, assay, sseqid, regionId, assayRegionHits, assayMismatches
   ) %>% 
-  dplyr::group_by(Genome, assay) %>% 
+  dplyr::group_by(genomeId, assay) %>% 
   dplyr::arrange(desc(assayRegionHits), assayMismatches, .by_group = TRUE) %>% 
   dplyr::slice(1L) %>% 
   dplyr::ungroup()
@@ -226,18 +222,18 @@ bestAssaysInGenomes <- dplyr::select(bestAssaysInGenomes, assayGenomeGrp) %>%
   )
 
 ## finally select assays only for the Genomes in sampleInfo
-genomeAssayDetails <- dplyr::select(sampleInfo, Genome) %>% 
-  dplyr::left_join(y = bestAssaysInGenomes, by = "Genome") %>% 
+genomeAssayDetails <- dplyr::select(sampleInfo, genomeId) %>% 
+  dplyr::left_join(y = bestAssaysInGenomes, by = "genomeId") %>% 
   dplyr::filter(!is.na(assay)) %>%
   dplyr::mutate(
-    Genome = forcats::fct_relevel(Genome, !!!leafOrder),
+    Genome = forcats::fct_relevel(genomeId, !!!leafOrder),
     assay = forcats::fct_relevel(
       assay, "Erwinia", "P_br_1360500", "Pecto_generic", "LZI", "TIR"
     )
   )
 
 genomeAssaySummary <- dplyr::group_by(
-  bestAssaysInGenomes, assayGenomeGrp, Genome, assay, assayMismatches
+  bestAssaysInGenomes, assayGenomeGrp, genomeId, assay, assayMismatches
 ) %>% 
   dplyr::summarise(
     assayLen = sum(qlen), .groups = "drop"
@@ -270,7 +266,7 @@ speciesKyeDf <- get_species_key_data(
 
 pt_spKey <- ggplot2::ggplot(
   data = speciesKyeDf,
-  mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
+  mapping = aes(x = SpeciesName, y = genomeId), color = "black", fill = "black"
 ) +
   geom_tile() +
   theme_bw() +
@@ -291,7 +287,7 @@ pt_spKey <- ggplot2::ggplot(
 ## assay blastn visualization
 pt_pcrBlast <- ggplot2::ggplot(
   data = genomeAssayDetails,
-  mapping = aes(x = type, y = Genome)
+  mapping = aes(x = type, y = genomeId)
 ) +
   geom_tile(
     mapping = aes(fill = pident, width = qcovs/100, height = qcovs/100),
@@ -375,9 +371,9 @@ pt_theme <- theme_bw() +
     axis.ticks.y = element_blank()
   )
 
-pt_source <- dplyr::select(sampleInfo, Genome, source) %>% 
+pt_source <- dplyr::select(sampleInfo, genomeId, source) %>% 
   ggplot2::ggplot(
-    mapping = aes(x = "source", y = Genome, color = source)
+    mapping = aes(x = "source", y = genomeId, color = source)
   ) +
   geom_point(shape = 15, size = 1) +
   scale_color_viridis_d() +
@@ -386,9 +382,9 @@ pt_source <- dplyr::select(sampleInfo, Genome, source) %>%
     axis.ticks = element_blank()
   )
 
-pt_region <- dplyr::select(sampleInfo, Genome, geo_loc_country) %>% 
+pt_region <- dplyr::select(sampleInfo, genomeId, geo_loc_country) %>% 
   ggplot2::ggplot(
-    mapping = aes(x = "country", y = Genome, color = geo_loc_country)
+    mapping = aes(x = "country", y = genomeId, color = geo_loc_country)
   ) +
   geom_point(size = 1) +
   scale_color_manual(
@@ -399,12 +395,12 @@ pt_region <- dplyr::select(sampleInfo, Genome, geo_loc_country) %>%
     axis.ticks = element_blank()
   )
 
-pt_vir <- dplyr::select(sampleInfo, Genome, virulence) %>% 
+pt_vir <- dplyr::select(sampleInfo, genomeId, virulence) %>% 
   dplyr::mutate(
     virulence = forcats::fct_relevel(virulence, "virulent", "avirulent")
   ) %>% 
   ggplot2::ggplot(
-    mapping = aes(x = "virulence", y = Genome, shape = virulence, color = virulence)
+    mapping = aes(x = "virulence", y = genomeId, shape = virulence, color = virulence)
   ) +
   geom_point(size = 1) +
   scale_shape_manual(
@@ -421,9 +417,9 @@ pt_vir <- dplyr::select(sampleInfo, Genome, virulence) %>%
   )
 
 
-pt_pcr <- dplyr::select(sampleInfo, Genome, virulence_pcr) %>% 
+pt_pcr <- dplyr::select(sampleInfo, genomeId, virulence_pcr) %>% 
   ggplot2::ggplot(
-    mapping = aes(x = "PCR", y = Genome, label = virulence_pcr, color = virulence_pcr)
+    mapping = aes(x = "PCR", y = genomeId, label = virulence_pcr, color = virulence_pcr)
   ) +
   geom_text(size = 4, fontface = "bold") +
   scale_color_manual(
@@ -434,9 +430,9 @@ pt_pcr <- dplyr::select(sampleInfo, Genome, virulence_pcr) %>%
     axis.ticks = element_blank()
   )
 
-pt_sampleYear <- dplyr::select(sampleInfo, Genome, collection_year, source) %>%
+pt_sampleYear <- dplyr::select(sampleInfo, genomeId, collection_year, source) %>%
   ggplot2::ggplot(
-    mapping = aes(x = collection_year, y = Genome, color = source)
+    mapping = aes(x = collection_year, y = genomeId, color = source)
   ) +
   geom_point(size = 1) +
   scale_color_manual(

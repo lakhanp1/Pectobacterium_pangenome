@@ -30,7 +30,7 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 prophageDf <- suppressMessages(
@@ -38,7 +38,7 @@ prophageDf <- suppressMessages(
 ) %>%
   dplyr::rename(prophage_length = length) %>%
   dplyr::filter(viral_genes != 0) %>%
-  dplyr::select(-SpeciesName, -Genome)
+  dplyr::select(-SpeciesName, -genomeId)
 
 hgSummary <- suppressMessages(
   readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
@@ -64,12 +64,12 @@ dplyr::group_by(panProphages, sampleId, SpeciesName) %>%
 
 # get homology groups for each prophage region
 proHgs <- dplyr::filter(panProphages, !is.na(contig_id)) %>%
-  # dplyr::select(sampleId, Genome, chr, start, end, contig_id) %>%
+  # dplyr::select(sampleId, genomeId, chr, start, end, contig_id) %>%
   dplyr::rowwise() %>%
   dplyr::mutate(
     hgs = list(
       region_homology_groups(
-        pandb = orgDb, genome = Genome, chr = chr, start = start, end = end
+        pandb = orgDb, genome = genomeId, chr = chr, start = start, end = end
       )
     )
   )

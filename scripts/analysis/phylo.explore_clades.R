@@ -33,7 +33,7 @@ treeConf <- confs$analysis$phylogeny[[phyMethod]]
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 ## read tree
@@ -41,7 +41,7 @@ rawTree <- ape::read.tree(treeConf$files$tree_rooted)
 
 ## add data to tree
 treeTbl <- as_tibble(rawTree) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
   treeio::as.treedata()
 
 ################################################################################

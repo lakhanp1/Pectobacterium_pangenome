@@ -95,11 +95,16 @@ if (!dir.exists(outDir)) {
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 ## read tree
 rawTree <- ape::read.tree(file = opts$tree)
+
+# add a 'g_' prefix if tree tips are numeric
+if(any(grepl(pattern = "^\\d+$", rawTree$tip.label))){
+  rawTree$tip.label <- paste("g_", rawTree$tip.label, sep = "")
+}
 
 ## set negative length edges => 0
 rawTree$edge.length[rawTree$edge.length < 0] <- 0
@@ -114,7 +119,7 @@ ape::write.tree(
 
 
 rootedTr <- ape::root(
-  phy = rawTree, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE
+  phy = rawTree, outgroup = sampleInfoList[[outGroup]]$genomeId, edgelabel = TRUE
 ) %>%
   ape::ladderize()
 
@@ -125,7 +130,7 @@ ape::write.tree(
 
 ## add data to tree
 treeTbl <- as_tibble(rootedTr) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "Genome")) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
   treeio::as.treedata()
 
 ################################################################################
@@ -195,21 +200,19 @@ if(opts$save_leaf_order){
   nodePathCol <- paste('nodepath.', opts$name, sep = "")
   nodePaths <- nodepath_df(phy = rootedTr) %>% 
     dplyr::rename(
-      Genome = tip,
+      genomeId = tip,
       !!nodePathCol := nodepath
-    ) %>% 
-    dplyr::mutate(Genome = as.numeric(Genome))
+    )
   
-  panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata))
-  
-  if(tibble::has_name(panMeta, nodePathCol)){
-    panMeta %<>% dplyr::select(-!!nodePathCol) 
+  if(tibble::has_name(sampleInfo, nodePathCol)){
+    sampleInfo %<>% dplyr::select(-!!nodePathCol)
   }
   
-  panMeta %<>% dplyr::left_join(nodePaths, by = "Genome")
+  sampleInfo %<>% dplyr::left_join(nodePaths, by = "genomeId") %>% 
+    dplyr::select(Genome, -genomeId, everything())
   
   readr::write_csv(
-    x = panMeta, file = panConf$files$metadata
+    x = sampleInfo, file = panConf$files$metadata
   )
   
   ## write metadata to excel
@@ -219,7 +222,7 @@ if(opts$save_leaf_order){
   openxlsx::writeDataTable(
     wb = wb, sheet = currentSheet, withFilter = TRUE, keepNA = TRUE,
     na.string = "NA",
-    x = panMeta
+    x = sampleInfo
   )
   openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
   

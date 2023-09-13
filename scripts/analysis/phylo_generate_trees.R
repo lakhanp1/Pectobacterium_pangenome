@@ -25,9 +25,14 @@ panConf <- confs$data$pangenomes[[pangenome]]
 # kmer distance UPGMA tree
 df <- suppressMessages(
   readr::read_csv(panConf$db$kmer_classification$KC.100.0$files$mash_dist)
-)
+) %>% 
+  dplyr::mutate(
+    genomeId = paste("g_", Genomes, sep = ""), .before = Genomes
+  ) %>% 
+  dplyr::select(-Genomes) %>% 
+  dplyr::rename_with(.fn = ~ paste("g_", .x, sep = ""), .cols = -genomeId)
 
-distMat <- tibble::column_to_rownames(df, var = "Genomes") %>%
+distMat <- tibble::column_to_rownames(df, var = "genomeId") %>%
   as.matrix() %>%
   as.dist()
 

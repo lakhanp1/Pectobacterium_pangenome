@@ -31,7 +31,7 @@ get_metadata <- function(file, genus){
   sampleInfo %<>% dplyr::mutate(
     ## very IMP for converting Genome to a char. Int Genome will create many problems in downstream steps
     Genome = as.character(Genome),
-    genomeId = paste("g", Genome, sep = ""),
+    genomeId = paste("g_", Genome, sep = ""),
     SpeciesName = stringi::stri_replace(
       str = SpeciesName, regex = genusPattern, replacement = "P. "
     ),

@@ -15,7 +15,6 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
@@ -31,23 +30,28 @@ allHgs <- suppressMessages(
     col_select = 1, col_types = "c"
   )
 ) %>%
-  dplyr::rename(hg_id = "Homology group id")
+  dplyr::rename(hg_id = "Homology group id") %>% 
+  dplyr::mutate(hg_id = paste("hg_", hg_id, sep = ""))
 
 # pangenome GO infor
 panDf <- suppressMessages(
   readr::read_tsv(file = panConf$files$go_data, na = "None")
 ) %>%
-  dplyr::rename(GID = hg_id) %>%
-  dplyr::mutate(GID = as.character(GID))
+  dplyr::mutate(
+    GID = paste("hg_", hg_id, sep = "")
+  ) %>% 
+  dplyr::select(-hg_id)
 
 # chr info
 chrInfo <- suppressMessages(
   readr::read_tsv(file = panConf$files$chr_info)
-)
+) %>% 
+  dplyr::mutate(
+    genomeId = paste("g_", genome, sep = "")
+  )
 
 # pangenome gene - mRNA - COG - Pfam info
 geneInfo <- suppressMessages(readr::read_tsv(panConf$files$gene_info))
-
 
 ################################################################################
 ## combine data to make annotation tables
@@ -109,7 +113,7 @@ hgMeta <- suppressMessages(
   )
 ) %>%
   dplyr::select(GID = "Homology group id", class) %>%
-  dplyr::mutate(GID = as.character(GID))
+  dplyr::mutate(GID = paste("hg_", GID, sep = ""))
 
 # sed -n '1,/##FASTA/p' interproscan/GCF_024506455.1_ASM2450645v1.interProScan.gff3 | grep -v '^#' | cut -f1 | sort | uniq | wc -l
 # sed -n '1,/##FASTA/p' interproscan/GCF_024506455.1_ASM2450645v1.interProScan.gff3 | grep -v '^#' | grep 'GO:' | cut -f1 | sort | uniq | wc -l

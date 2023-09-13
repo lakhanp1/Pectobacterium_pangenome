@@ -1,5 +1,23 @@
-suppressPackageStartupMessages(library(tidyverse))
+---
+title: "Intra and inter-species ANI score comparison"
+date: "`r Sys.time()`"
+format: 
+  html:
+    embed-resources: true
+fig-height: 8
+---
+  
+Average nucleotide identity (ANI) score distribution within species and between species is
+compared and visualized in this script.
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
 suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(here))
 
 ## intra-species and inter-species ANI score distribution
@@ -20,14 +38,18 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
 outDir <- confs$analysis$phylogeny$ani$dir
 
-################################################################################
+```
+
+## Import data
+
+```{r}
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId
 )
 
-genomeIds <- dplyr::pull(sampleInfo, Genome, name = sampleId)
+genomeIds <- dplyr::pull(sampleInfo, genomeId, name = sampleId)
 
 speciesOrd <- names(sort(table(sampleInfo$SpeciesName), decreasing = T))
 
@@ -46,12 +68,12 @@ typeStrainAni <- as.data.frame(aniMat) %>%
     values_to = "ani"
   ) %>%
   dplyr::left_join(
-    y = dplyr::select(sampleInfo, Genome, sp1 = SpeciesName, type1 = type_material),
-    by = c("g1" = "Genome")
+    y = dplyr::select(sampleInfo, genomeId, sp1 = SpeciesName, type1 = type_material),
+    by = c("g1" = "genomeId")
   ) %>%
   dplyr::left_join(
-    y = dplyr::select(sampleInfo, Genome, sp2 = SpeciesName, type2 = type_material),
-    by = c("g2" = "Genome")
+    y = dplyr::select(sampleInfo, genomeId, sp2 = SpeciesName, type2 = type_material),
+    by = c("g2" = "genomeId")
   ) %>%
   dplyr::filter(g1 != g2, sp1 != sp2, !is.na(type2)) %>%
   dplyr::mutate(
@@ -71,12 +93,12 @@ intraSpAni <- as.data.frame(aniMat) %>%
   ) %>%
   dplyr::filter(!is.na(ani), g1 != g2) %>%
   dplyr::left_join(
-    y = dplyr::select(sampleInfo, Genome, sp1 = SpeciesName, type1 = type_material),
-    by = c("g1" = "Genome")
+    y = dplyr::select(sampleInfo, genomeId, sp1 = SpeciesName, type1 = type_material),
+    by = c("g1" = "genomeId")
   ) %>%
   dplyr::left_join(
-    y = dplyr::select(sampleInfo, Genome, sp2 = SpeciesName, type2 = type_material),
-    by = c("g2" = "Genome")
+    y = dplyr::select(sampleInfo, genomeId, sp2 = SpeciesName, type2 = type_material),
+    by = c("g2" = "genomeId")
   ) %>%
   dplyr::filter(sp1 == sp2) %>%
   dplyr::mutate(
@@ -90,7 +112,11 @@ aniCmp <- dplyr::bind_rows(intraSpAni, typeStrainAni) %>%
     aniType = forcats::fct_relevel(aniType, "intra-species", "inter-species")
   )
 
-################################################################################
+```
+
+## Plot the ANI score distributions
+
+```{r}
 
 pt_aniDistr <- ggplot2::ggplot(
   data = aniCmp,
@@ -117,9 +143,19 @@ pt_aniDistr <- ggplot2::ggplot(
     strip.text.x = element_text(face = "italic")
   )
 
-pt_aniDistr
 
 ggsave(
   filename = file.path(outDir, "species_ANI_distribution.png"),
   plot = pt_aniDistr, width = 16, height = 12
 )
+
+```
+
+```{r echo=FALSE}
+#| column: page
+#| fig-width: 14
+#| fig-height: 10
+#| out-width: 100%
+
+pt_aniDistr
+```

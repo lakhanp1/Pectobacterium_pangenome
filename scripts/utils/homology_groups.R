@@ -82,7 +82,7 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
   )
   
   hgs <- AnnotationDbi::select(
-    x = pandb, keys = keys(pandb), columns = c("genome", "mRNA_key")
+    x = pandb, keys = keys(pandb), columns = c("genomeId", "mRNA_key")
   )
   
   if (type == "cnv") {
@@ -100,10 +100,10 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
   }
   
   if (!is.null(groups)) {
-    hgWide %<>% dplyr::select(genome, tidyselect::all_of(groups))
+    hgWide %<>% dplyr::select(genomeId, tidyselect::all_of(groups))
   }
   
-  hgMat <- tibble::column_to_rownames(hgWide, var = "genome") %>% 
+  hgMat <- tibble::column_to_rownames(hgWide, var = "genomeId") %>%
     as.matrix()
   
   return(hgMat)
@@ -135,7 +135,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     ## ensure the row order is same: this is because of a bug in ComplexHeatmap
     # https://github.com/jokergoo/ComplexHeatmap/issues/949
     all(rownames(mat) == phy$tip.label),
-    is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$Genome)),
+    is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$genomeId)),
     is.null(hgAn) | all(colnames(mat) == hgAn$hg_id),
     any(class(phy) == "phylo"),
     is.null(markGenomes) | 
@@ -178,8 +178,8 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
   # optional species key heatmap
   if (!is.null(speciesInfo)) {
     stopifnot(
-      all(rownames(mat) %in% speciesInfo$Genome),
-      has_name(speciesInfo, "Genome"),
+      all(rownames(mat) %in% speciesInfo$genomeId),
+      has_name(speciesInfo, "genomeId"),
       has_name(speciesInfo, "SpeciesName")
     )
     
@@ -199,7 +199,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
 #' Get homology groups for a genomic region
 #'
 #' @param pandb org.db pangenome object
-#' @param genome genome number in pangenome
+#' @param genome genome identifier in pangenome
 #' @param chr chromosome name
 #' @param start start. default: `1` i.e. start of chromosome
 #' @param end end position. default: `Inf` end of chromosome
@@ -217,7 +217,7 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
   end <- ifelse(is.na(end), Inf, end)
   
   df <- suppressMessages(AnnotationDbi::select(
-    x = pandb, keys = genome, keytype = "genome",
+    x = pandb, keys = genome, keytype = "genomeId",
     columns = c("GID", "chr_name", "start", "end")
   )) %>% 
     dplyr::mutate(
@@ -248,10 +248,10 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
   hgInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = hgs,
-      columns = c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+      columns = c("genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
     ) 
   ) %>% 
-    dplyr::filter(genome == !!genome, chr_name == !!chr) %>% 
+    dplyr::filter(genomeId == !!genome, chr_name == !!chr) %>%
     dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
     dplyr::arrange(start)
   
@@ -259,8 +259,8 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
   
   chrInfo <- suppressMessages(
     AnnotationDbi::select(
-      x = pandb, keys = genome, keytype = "genome",
-      columns = c("GID", "genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+      x = pandb, keys = genome, keytype = "genomeId",
+      columns = c("GID", "genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
     ) 
   ) %>% 
     dplyr::filter(chr_id == !!hgInfo$chr_id[1]) %>% 
@@ -307,23 +307,21 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
 #'
 #' @param hgs A vector of homology group ids
 #' @param pandb org.db pangenome object
-#' @param genome Find tandem match against a specific genome
+#' @param genomeId Find tandem match against a specific genome
 #'
 #' @return A list of homology groups where each element is a tandem group set
 #' @export
 #'
 #' @examples
-tandem_hg_match <- function(hgs, pandb, genome = NULL){
+tandem_hg_match <- function(hgs, pandb, genomeId = NULL) {
   hgInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = hgs,
-      columns =  c("genome", "chr", "chr_id", "chr_name", "start", "end", "strand")
+      columns = c("genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
     ) 
   ) %>% 
     dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
     dplyr::arrange(start)
-  
-  
 }
 
 

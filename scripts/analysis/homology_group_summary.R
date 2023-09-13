@@ -24,6 +24,7 @@ source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/uti
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/GO_enrichment/enrichment_functions.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
@@ -38,60 +39,37 @@ panConf <- confs$data$pangenomes[[pangenome]]
 analysisName <- "homology_groups"
 outDir <- confs$analysis$homology_groups$dir
 outPrefix <- file.path(outDir, analysisName)
-orgDb <- org.Pectobacterium.spp.pan.eg.db
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ################################################################################
 
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 spOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
 )
 
-hgs <- suppressMessages(
-  readr::read_csv(
-    file = panConf$db$gene_classification$GC.100.0$files$groups
-  )
-) %>%
-  dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "( |-)", "_")) %>%
-  dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "Genome_", "")) %>%
-  dplyr::rename_with(.fn = ~ tolower(.x)) %>%
-  dplyr::mutate(homology_group_id = as.character(homology_group_id))
+hgTable <- AnnotationDbi::select(
+  x = panOrgDb, keys = keys(panOrgDb),
+  columns = c("GID", "genomeId", "class")
+) %>% 
+  dplyr::rename(hgId = GID) %>% 
+  dplyr::count(hgId, genomeId, name = "nGenes") 
 
+hgMeta <- AnnotationDbi::select(
+  x = panOrgDb, keys = keys(panOrgDb),
+  columns = c("GID", "class")
+) %>% 
+  dplyr::rename(hgId = GID)
 
-hgTable <- dplyr::select(hgs, hg = homology_group_id, !!!sampleInfo$Genome) %>%
-  tidyr::pivot_longer(
-    cols = -hg, names_to = "Genome", values_to = "nGenes"
-  )
-
-g2hg <- tidyr::pivot_wider(
-  hgTable,
-  id_cols = Genome, names_from = hg, values_from = nGenes
-)
-
-readr::write_tsv(
-  x = g2hg, file = confs$analysis$homology_groups$files$groups
-)
-
-hgMeta <- dplyr::select(hgs, homology_group_id, class)
-
-readr::write_tsv(x = hgMeta, file = confs$analysis$homology_groups$files$groups_meta)
 ################################################################################
 ## GO enrichment for homology groups
 
 ## binary matrix for homology_group PAV
-hgBinaryMat <- dplyr::mutate(
-  hgTable,
-  nGenes = dplyr::if_else(nGenes == 0, 0, 1)
-) %>%
-  tidyr::pivot_wider(
-    id_cols = Genome, names_from = hg, values_from = nGenes
-  ) %>%
-  tibble::column_to_rownames(var = "Genome") %>%
-  as.matrix()
+hgBinaryMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
 
 spNames <- dplyr::count(sampleInfo, SpeciesName) %>%
   # dplyr::filter(n >= 20) %>%
@@ -103,7 +81,7 @@ sppGrpGo <- NULL
 ## get species wise core, accessory, unique group stats and GO
 for (sp in spNames) {
   spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
-    dplyr::pull(Genome)
+    dplyr::pull(genomeId)
 
   cat(sp, length(spGenomes), "\n")
 
@@ -111,7 +89,7 @@ for (sp in spNames) {
     x = hgBinaryMat, useNames = T,
     rows = which(rownames(hgBinaryMat) %in% spGenomes)
   ) %>%
-    tibble::enframe(name = "hg", value = "nGenomes") %>%
+    tibble::enframe(name = "hgId", value = "nGenomes") %>%
     dplyr::filter(nGenomes != 0) %>%
     dplyr::mutate(
       class = dplyr::case_when(
@@ -126,16 +104,15 @@ for (sp in spNames) {
     dplyr::mutate(SpeciesName = .env$sp, fraction = count / !!nrow(hgSum)) %>%
     dplyr::bind_rows(sppGrpStats)
 
-  # ## GO enrichment
-  # sppGrpGo <- dplyr::group_by(hgSum, class) %>%
-  #   dplyr::group_modify(
-  #     .f = ~topGO_enrichment(genes = .x$hg, orgdb = orgDb)
-  #   ) %>%
-  #   dplyr::ungroup() %>%
-  #   dplyr::mutate(SpeciesName = .env$sp) %>%
-  #   dplyr::bind_rows(sppGrpGo)
+  ## GO enrichment
+  sppGrpGo <- dplyr::group_by(hgSum, class) %>%
+    dplyr::group_modify(
+      .f = ~topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(SpeciesName = .env$sp) %>%
+    dplyr::bind_rows(sppGrpGo)
 }
-
 
 ################################################################################
 ## pangenome wide GO enrichment
@@ -148,7 +125,7 @@ panGo <- hgMeta %>%
   ) %>%
   dplyr::group_by(class) %>%
   dplyr::group_modify(
-    .f = ~ topGO_enrichment(genes = .x$homology_group_id, orgdb = orgDb)
+    .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
   ) %>%
   dplyr::ungroup() %>%
   dplyr::mutate(SpeciesName = "pangenome")
