@@ -113,7 +113,7 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL) {
 
   ## add metadata to tree
   treeTbl <- as_tibble(rawTree) %>%
-    dplyr::full_join(y = metadata, by = c("label" = "Genome")) %>%
+    dplyr::full_join(y = metadata, by = c("label" = "genomeId")) %>%
     treeio::as.treedata()
 
   ## draw tree and add annotation
@@ -329,35 +329,35 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
 get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenomes = NULL) {
   stopifnot(
     type %in% c("wide", "long"),
-    all(genomes %in% speciesInfo$Genome),
+    all(genomes %in% speciesInfo$genomeId),
     tibble::has_name(speciesInfo, "SpeciesName")
   )
 
   ## species name key heatmap
-  speciesKey <- tibble::tibble(Genome = genomes) %>%
+  speciesKey <- tibble::tibble(genomeId = genomes) %>%
     {
       if(!is.null(markGenomes)){
         dplyr::left_join(
           x = .,
           y = purrr::map(markGenomes, .f = "genomes") %>%
-            tibble::enframe(name = "species", value = "Genome") %>%
-            tidyr::unnest(cols = Genome),
-          by = "Genome"
+            tibble::enframe(name = "species", value = "genomeId") %>%
+            tidyr::unnest(cols = genomeId),
+          by = "genomeId"
         ) %>% 
           tidyr::replace_na(replace = list(species = "1"))
       } else{
         dplyr::mutate(., species = "1")
       }
     } %>% 
-    dplyr::left_join(y = dplyr::select(speciesInfo, Genome, SpeciesName), by = "Genome")
+    dplyr::left_join(y = dplyr::select(speciesInfo, genomeId, SpeciesName), by = "genomeId")
 
   if (type == "wide") {
     speciesKey %<>%
       tidyr::pivot_wider(
-        id_cols = Genome, names_from = SpeciesName,
+        id_cols = genomeId, names_from = SpeciesName,
         values_from = species, values_fill = "0", names_sort = TRUE
       ) %>%
-      tibble::column_to_rownames(var = "Genome") %>%
+      tibble::column_to_rownames(var = "genomeId") %>%
       as.matrix()
   }
 
@@ -379,7 +379,7 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
 species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL, ...){
   
   stopifnot(
-    all(genomes %in% speciesInfo$Genome),
+    all(genomes %in% speciesInfo$genomeId),
     tibble::has_name(speciesInfo, "SpeciesName")
   )
   

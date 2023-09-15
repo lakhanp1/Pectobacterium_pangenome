@@ -25,14 +25,17 @@ panConf <- confs$data$pangenomes[[pangenome]]
 
 outDir <- confs$analysis$prophages$dir
 
-orgDb <- org.Pectobacterium.spp.pan.eg.db
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 logger::log_threshold(DEBUG)
-file_log <- "logs/prophage_correction.log"
-unlink(file_log)
+file_log <- paste(
+  "logs/prophage_correction.", format(Sys.time(), "%Y%m%d.%H%M"), ".log",
+  sep = ""
+)
 logger::log_appender(
   appender = logger::appender_file(file = file_log)
 )
+
 
 ################################################################################
 # sorting by N50 to avoid the circular links. In case of duplicate prophages
@@ -43,7 +46,7 @@ sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %
   dplyr::arrange(N50)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 ################################################################################
@@ -60,10 +63,10 @@ proHgs <- suppressMessages(
   ) %>%
   dplyr::rename(prophage_id = id) %>%
   dplyr::left_join(
-    y = dplyr::select(sampleInfo, sampleId, SpeciesName, Genome, N50), by = "sampleId"
+    y = dplyr::select(sampleInfo, sampleId, SpeciesName, genomeId, N50), by = "sampleId"
   ) %>%
   dplyr::left_join(y = prophageDf, by = "prophage_id") %>%
-  dplyr::filter(prophage_length >= 5000) %>%
+  # dplyr::filter(prophage_length >= 5000) %>%
   dplyr::arrange(desc(nHgs), desc(N50))
 
 proHgL <- purrr::transpose(proHgs) %>%
@@ -74,16 +77,16 @@ childParentList <- list()
 
 # create graph and add vertices to graph
 phageGraph <- igraph::make_empty_graph() +
-  igraph::vertices(proHgs$prophage_id, Genome = proHgs$Genome, nHgs = proHgs$nHgs)
+  igraph::vertices(proHgs$prophage_id, genomeId = proHgs$genomeId, nHgs = proHgs$nHgs)
 
 # g_386.vir_2; g_438.vir_3
 
 # sampleInfo <- dplyr::filter(
 #   sampleInfo,
-#   # Genome %in% "378",
-#   Genome %in% c("93", "218", "3", "391", "438")
+#   # genomeId %in% "g_378",
+#   genomeId %in% c("g_93", "g_218", "g_3", "g_391", "g_438")
 # )
-# gn <- "186"
+# gn <- "g_278"
 # ph <- "g_111.vir_3"
 # ph <- "g_261.vir_5"
 
@@ -91,15 +94,15 @@ phageGraph <- igraph::make_empty_graph() +
 # this is important because a genome can have fragmented prophages because of
 # breaks in assembly. Detecting parent for all prophages in the genome together
 # will ensure that fragmented prophages in genome are assigned a same parent prophage
-for (gn in sampleInfo$Genome) {
+for (gn in sampleInfo$genomeId) {
   logger::log_info("processing phages in genome: ", gn)
 
-  gnPhages <- dplyr::filter(proHgs, Genome == !!gn) %>%
+  gnPhages <- dplyr::filter(proHgs, genomeId == !!gn) %>%
     dplyr::pull(prophage_id)
 
   logger::log_info("prophages in genome: ", paste(gnPhages, collapse = "; "))
 
-  # purrr::keep(.x = proHgL, .p = function(x) x$Genome == gn)
+  # purrr::keep(.x = proHgL, .p = function(x) x$genomeId == gn)
 
   gnChildPhages <- gnPhages
   bestParent <- list()
@@ -108,7 +111,7 @@ for (gn in sampleInfo$Genome) {
   for (ph in proHgs$prophage_id) {
     parentPh <- purrr::pluck(proHgL, !!!ph)
 
-    if (parentPh$Genome == gn) {
+    if (parentPh$genomeId == gn) {
       next
     }
 
@@ -128,6 +131,7 @@ for (gn in sampleInfo$Genome) {
         nUniqHgs, "; nSharedHgs: ", nSharedHgs
       )
 
+      # IMP: child -> parent asignment criteria
       if (nUniqHgs <= 2 && nSharedHgs > nUniqHgs) {
         childPhages <- append(childPhages, gpL$prophage_id)
         logger::log_debug(gp, " --parent--> ", ph, ": significant match found")
@@ -136,7 +140,7 @@ for (gn in sampleInfo$Genome) {
 
     # evaluate if this parent is the best, if not, update the parent
     if (!is.null(childPhages)) {
-      logger::log_debug(
+      logger::log_info(
         paste(childPhages, collapse = "; "), " --parent--> ", ph,
         " : evaulating relationship"
       )
@@ -165,14 +169,17 @@ for (gn in sampleInfo$Genome) {
       childHgs <- purrr::map(proHgL[childPhages], "hgs") %>%
         unlist() %>%
         unique()
+      
+      # additional check for MULTIPLE childPhages --> parent relationship:
+      # these childPhages will be merged to form a single prophage
+      # 1) check that all phages are located on independent contigs or
+      # at 5'/3' ends of large contigs
       contigCheck <- TRUE
 
-      # in case of multiple child-phages mapping to one parent prophage, check that
-      # all phages are located on independent contigs or at 5'/3' ends of large contigs
       if (length(childPhages) > 1) {
         phageContigPos <- purrr::map_dbl(
           proHgL[childPhages],
-          .f = ~ get_hg_sets_location(hgs = .x$hgs, genome = gn, chr = .x$chr, pandb = orgDb)
+          .f = ~ get_hg_sets_location(hgs = .x$hgs, genome = gn, chr = .x$chr, pandb = panOrgDb)
         )
 
         if (any((phageContigPos != 0) & (phageContigPos != 1))) {
@@ -182,10 +189,10 @@ for (gn in sampleInfo$Genome) {
 
       # check for duplicate genome child-parent & parent-child circular links
 
-
+      # collect data and comparison scores for the current childPhages --> parent
       thisParent <- list(
         parent = parentPh$prophage_id,
-        parentGenome = parentPh$Genome,
+        parentGenome = parentPh$genomeId,
         nHgParent = parentPh$nHgs,
         children = childPhages,
         childGenome = gn,
@@ -217,7 +224,7 @@ for (gn in sampleInfo$Genome) {
 
       # compare with previous best parent
       if (contigCheck) {
-        ## if no parent, make current phage as parent
+        # if no parent found until now: make current phage as parent
         if (length(bestParent) == 0) {
           bestParent[1] <- list(thisParent)
           logger::log_info(
@@ -240,6 +247,19 @@ for (gn in sampleInfo$Genome) {
             parentChildSetFound <- TRUE
 
             oldParentPhage <- purrr::pluck(proHgL, !!!bestParent[[i]]$parent)
+          
+          logger::log_debug(
+            "evaluating previous best parent: #", i, ": ", bestParent[[i]]$parent,
+            " <-- ", bestParent[[i]]$childString,
+            " [nHgs ", thisParent$nSharedHgs, "==", bestParent[[i]]$nSharedHgs,
+            ", Len ", thisParent$childPhageLen, "==", bestParent[[i]]$childPhageLen,
+            ", N50: ", parentPh$N50, " > ", oldParentPhage$N50, "]"
+          ) 
+          
+          logger::log_debug(
+            "parentChildSetFound: ", parentChildSetFound,
+            ", betterParentFound: ", betterParentFound
+          )
 
             compSharedHgs <- dplyr::case_when(
               thisParent$nSharedHgs == bestParent[[i]]$nSharedHgs ~ "equal",
@@ -251,13 +271,6 @@ for (gn in sampleInfo$Genome) {
               thisParent$childPhageLen == bestParent[[i]]$childPhageLen ~ "equal",
               thisParent$childPhageLen > bestParent[[i]]$childPhageLen ~ "longer",
               thisParent$childPhageLen < bestParent[[i]]$childPhageLen ~ "smaller"
-            )
-
-            logger::log_debug(
-              "parent: #", i, ": ", bestParent[[i]]$parent,
-              "nHgs ", thisParent$nSharedHgs, "==", bestParent[[i]]$nSharedHgs,
-              ", Len ", thisParent$childPhageLen, "==", bestParent[[i]]$childPhageLen,
-              ", N50: ", parentPh$N50, " > ", oldParentPhage$N50
             )
 
             isBetterParent <- dplyr::case_when(
@@ -300,9 +313,9 @@ for (gn in sampleInfo$Genome) {
             # of the child in this iteration is set to NA
 
             if (any(thisParent$children %in% bestParent[[i]]$children)) {
-              # cannot set to NULL as this will change the for loop index
               logger::log_info(
-                "Removing parent #", i, " : ",
+                "Removing parent #", i,
+                " because betterParentFound =", betterParentFound, " in previous iteration: ",
                 paste(bestParent[[i]]$children, collapse = ";"), " --parent--> ",
                 bestParent[[i]]$parent
               )
@@ -319,7 +332,8 @@ for (gn in sampleInfo$Genome) {
           bestParent <- append(bestParent, list(thisParent))
 
           logger::log_info(
-            "New parent: #", length(bestParent), " : ",
+            "New parent: #", length(bestParent), " because ",
+            "parentChildSetFound = ", parentChildSetFound, ": ",
             paste(thisParent$children, collapse = ";"), " --parent--> ",
             thisParent$parent
           )
@@ -335,8 +349,9 @@ for (gn in sampleInfo$Genome) {
     thisGnParents <- purrr::map_dfr(
       .x = bestParent, .f = `[`,
       c(
-        "childString", "childGenome", "nHgChild", "parent", "parentGenome",
-        "nHgParent", "nSharedHgs", "jaccardIndex", "contentDissimilarity",
+        "childString", "childGenome", "childPhageLen", "nHgChild",
+        "parent", "parentGenome", "nHgParent", "nSharedHgs", 
+        "jaccardIndex", "contentDissimilarity",
         "perSharedParent", "perSharedChild", "relation"
       )
     ) %>%
@@ -379,9 +394,9 @@ for (gn in sampleInfo$Genome) {
   if (length(noParents) > 0) {
     thisGnParents <- purrr::map_dfr(
       .x = proHgL[noParents], .f = `[`,
-      c("prophage_id", "Genome", "nHgs")
+      c("prophage_id", "genomeId", "nHgs")
     ) %>%
-      dplyr::rename(child = prophage_id, childGenome = Genome, nHgChild = nHgs) %>%
+      dplyr::rename(child = prophage_id, childGenome = genomeId, nHgChild = nHgs) %>%
       dplyr::bind_rows(thisGnParents)
   }
 
@@ -392,14 +407,7 @@ for (gn in sampleInfo$Genome) {
 
 readr::write_tsv(
   x = sharedStats,
-  file = confs$analysis$prophages$files$hg_similarity
+  file = confs$analysis$prophages$files$phage_similarity
 )
 
-# rename log file with timestamp
-file.rename(
-  file_log,
-  paste(
-    "logs/prophage_correction.", format(Sys.time(), "%Y%m%d.%H%M"), ".log",
-    sep = ""
-  )
-)
+

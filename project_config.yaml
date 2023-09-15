@@ -230,12 +230,14 @@ analysis:
       files:
         tree: "ANI_NJ.pangenome.newick"
         tree_rooted: "ANI_NJ.pangenome.rooted.newick"
+        species_order: "ANI_NJ.species_order.txt"
     gene_nj:
       name: "gene distance NJ"
       dir: "gene_dist"
       files:
         tree: "gene_dist.newick"
         tree_rooted: "gene_dist.rooted.newick"
+        species_order: "gene_dist.species_order.txt"
     kmer_nj:
       name: "kmer distance NJ"
       dir: kmer_dist
@@ -263,6 +265,7 @@ analysis:
       files:
         tree: "core_snp_nj.newick"
         tree_rooted: "core_snp_nj.rooted.newick"
+        species_order: "core_snp_nj.species_order.txt"
   insilico_assay:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:
@@ -286,7 +289,7 @@ analysis:
       prophages_filtered: "prophages_filtered.tab"
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
-      hg_similarity: "pangenome_phage_similarity.tab"
+      phage_similarity: "pangenome_phage_similarity.tab"
       network: "prophage_network.tab"
       representatives: "unique_prophages.tab"
       ani_distance: "prophage_ani_distance.tab"
