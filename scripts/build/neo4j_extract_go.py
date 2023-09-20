@@ -54,11 +54,12 @@ class QueryPangenome:
         query = (
             "MATCH (chr:sequence) "
             "RETURN chr.genome AS genome, chr.number AS chr_num, "
-            "chr.identifier AS chr_id, chr.title AS chr_name "
+            "chr.identifier AS chr_id, chr.title AS chr_name, "
+            "chr.length as chr_length "
             # "LIMIT 20"
         )
 
-        col_names = ["genome", "chr_num", "chr_id", "chr_name"]
+        col_names = ["genome", "chr_num", "chr_id", "chr_name", "chr_length"]
 
         # run transaction
         with self.driver.session() as session:
