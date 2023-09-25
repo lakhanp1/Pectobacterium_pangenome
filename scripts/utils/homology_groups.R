@@ -15,7 +15,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
   stopifnot(
     groups %in% c("core", "accessory", "unique", "all")
   )
-
+  
   ## homology groups PAV matrix
   hgs <- suppressMessages(readr::read_csv(file)) %>%
     dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "( |-)", "_")) %>%
@@ -23,7 +23,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
     dplyr::rename_with(.fn = ~ tolower(.x)) %>%
     dplyr::mutate(homology_group_id = as.character(homology_group_id)) %>%
     dplyr::select(hg = homology_group_id, tidyselect::all_of(genomes))
-
+  
   ## binary matrix for homology_group PAV
   hgBinaryMat <- dplyr::mutate(
     hgs,
@@ -34,7 +34,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
   ) %>%
     tibble::column_to_rownames(var = "hg") %>%
     as.matrix()
-
+  
   hgSum <- matrixStats::rowSums2(
     x = hgBinaryMat, useNames = T
   ) %>%
@@ -47,24 +47,24 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
         nGenomes < !!nrow(sampleInfo) & nGenomes > 1 ~ "accessory"
       )
     )
-
+  
   if (groups != "all") {
     hgSum %<>% dplyr::filter(class == .env$groups)
   }
-
+  
   if (pav) {
     hgs <- tibble::as_tibble(hgBinaryMat, rownames = "hg")
   }
-
+  
   hgSet <- dplyr::left_join(hgSum, hgs, by = "hg") %>%
     dplyr::select(-nGenomes)
-
+  
   return(hgSet)
 }
 
 ################################################################################
 
-#' prepare homology group PAV matrix from pan.db 
+#' prepare homology group PAV matrix from pan.db
 #'
 #' @param pandb A OrgDb object that store pangenome data
 #' @param type One of c("pav", "cnv")
@@ -127,7 +127,7 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
 #' @export
 #'
 #' @examples
-homology_group_heatmap <- function(mat, phy, speciesInfo = NULL, 
+homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
                                    hgAn = NULL, markGenomes = NULL, ...) {
   ## necessary checks
   stopifnot(
@@ -138,7 +138,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$genomeId)),
     is.null(hgAn) | all(colnames(mat) == hgAn$hg_id),
     any(class(phy) == "phylo"),
-    is.null(markGenomes) | 
+    is.null(markGenomes) |
       (is.list(markGenomes) & all(unlist(markGenomes) %in% rownames(mat)))
   )
   
@@ -219,12 +219,12 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
   df <- suppressMessages(AnnotationDbi::select(
     x = pandb, keys = genome, keytype = "genomeId",
     columns = c("GID", "chr_name", "start", "end")
-  )) %>% 
+  )) %>%
     dplyr::mutate(
       dplyr::across(
         .cols = c(start, end), .fns = as.integer
       )
-    ) %>% 
+    ) %>%
     dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end) %>%
     dplyr::arrange(start)
   
@@ -235,7 +235,7 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
 #' Locate homology group set position on a contig or chromosome
 #'
 #' @param hgs homology groups
-#' @param genome Genome against which to map 
+#' @param genome Genome against which to map
 #' @param pandb org.db pangenome object
 #' @param chr chromosome or contig name to restrict
 #'
@@ -249,10 +249,10 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
     AnnotationDbi::select(
       x = pandb, keys = hgs,
       columns = c("genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
-    ) 
-  ) %>% 
+    )
+  ) %>%
     dplyr::filter(genomeId == !!genome, chr_name == !!chr) %>%
-    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
+    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>%
     dplyr::arrange(start)
   
   stopifnot(length(unique(hgInfo$chr_id)) == 1)
@@ -261,10 +261,10 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
     AnnotationDbi::select(
       x = pandb, keys = genome, keytype = "genomeId",
       columns = c("GID", "genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
-    ) 
-  ) %>% 
-    dplyr::filter(chr_id == !!hgInfo$chr_id[1]) %>% 
-    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
+    )
+  ) %>%
+    dplyr::filter(chr_id == !!hgInfo$chr_id[1]) %>%
+    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>%
     dplyr::arrange(start)
   
   # use RLE structure to check for tandem overlap
@@ -279,11 +279,11 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
       # hgs are on independent contig
       return(0)
     } else if (identical(hgRle$values[1:2], c(TRUE, FALSE)) &
-      hgRle$lengths[1] >= nrow(hgInfo)) {
+               hgRle$lengths[1] >= nrow(hgInfo)) {
       # hgs are at the beginning
       return(0)
     } else if (identical(tail(hgRle$values, 2), c(FALSE, TRUE)) &
-      tail(hgRle$lengths, 1) >= nrow(hgInfo)) {
+               tail(hgRle$lengths, 1) >= nrow(hgInfo)) {
       # hgs are at the beginning
       return(1)
     } else {
@@ -302,7 +302,7 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
 ################################################################################
 
 
-#' From a set of homology groups, detect homology groups that are arranged in 
+#' From a set of homology groups, detect homology groups that are arranged in
 #' tandem in a genome
 #'
 #' @param hgs A vector of homology group ids
@@ -318,12 +318,108 @@ tandem_hg_match <- function(hgs, pandb, genomeId = NULL) {
     AnnotationDbi::select(
       x = pandb, keys = hgs,
       columns = c("genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
-    ) 
-  ) %>% 
-    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>% 
+    )
+  ) %>%
+    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>%
     dplyr::arrange(start)
 }
 
 
 ################################################################################
 
+#' Check if two homology group sets overlap with synteny conserved
+#'
+#' Implement https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1626491/ algorithm
+#'
+#' @param qur homology group set 1
+#' @param qurG genome identifier for set 1
+#' @param ref homology group set 2
+#' @param refG genome identifier for set 2
+#' @param pandb org.db pangenome object
+#'
+#' @return
+#' @export
+#'
+#' @examples NA
+syntenic_hg_overlap <- function(ref, qur) {
+
+  forwardSyn <- longest_local_subsequence(seq1 = ref, seq2 = qur)
+  reverseSyn <- longest_local_subsequence(seq1 = ref, seq2 = rev(qur)) %>% 
+    purrr::map(rev)
+  
+  if(length(forwardSyn$lcs) > length(reverseSyn$lcs)){
+    return(forwardSyn)
+  } else{
+    
+    return(reverseSyn)
+  }
+
+}
+
+################################################################################
+
+#' Find a longest common subsequence
+#'
+#' @param seq1 array 1
+#' @param seq2 array 2
+#'
+#' @return a list with two elements: longest local subsequence between two arrays
+#' and position of this subsequence in seq1
+#' 
+#' @export
+#'
+#' @examples 
+#' seq1 <- c(1, 2, 3, 4, 5, 6)
+#' seq2 <- c(9, 3, 4, 5, 8)
+#' longest_local_subsequence <- longest_local_subsequence(seq1, seq2)
+#' cat("Longest local subsequence:", longest_local_subsequence)
+#' 
+longest_local_subsequence <- function(seq1, seq2) {
+  m <- length(seq1)
+  n <- length(seq2)
+  
+  # Create a matrix to store the length of the longest local subsequence
+  dp <- matrix(0, nrow = m + 1, ncol = n + 1)
+  
+  max_length <- 0  # To keep track of the maximum length of local subsequence
+  end_index <- 0  # To keep track of the ending index of the local subsequence
+  
+  # Populate the matrix using dynamic programming
+  for (i in 1:m) {
+    for (j in 1:n) {
+      if (seq1[i] == seq2[j]) {
+        dp[i + 1, j + 1] <- dp[i, j] + 1
+        
+        if (dp[i + 1, j + 1] > max_length) {
+          # update the max_length and end_index as alignment extends
+          max_length <- dp[i + 1, j + 1]
+          end_index <- i
+        }
+        
+      }
+    }
+  }
+  
+  # Reconstruct the longest local subsequence
+  lcs <- c()
+  lcsPos <- c()
+  
+  i <- end_index
+  j <- n
+  
+  while (i > 0 && j > 0) {
+    # cat("i=", i, "; j=", j, "\n")
+    if (seq1[i] == seq2[j]) {
+      lcs <- c(seq1[i], lcs)
+      lcsPos <- c(i, lcsPos)
+      i <- i - 1
+      j <- j - 1
+    } else {
+      j <- j - 1
+    }
+  }
+  
+  return(list(lcs = lcs, pos = lcsPos))
+}
+
+################################################################################
