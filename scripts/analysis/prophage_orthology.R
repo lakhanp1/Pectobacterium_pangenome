@@ -85,6 +85,7 @@ phageGraph <- igraph::make_empty_graph() +
 #   genomeId %in% c("g_93", "g_218", "g_3", "g_391", "g_438")
 # )
 # gn <- "g_278"
+# gn <- "g_245"
 
 # iterating over genomes to detect parent prophages for each genomes's prophages
 # this is important because a genome can have fragmented prophages because of
@@ -159,7 +160,22 @@ for (gn in sampleInfo$genomeId) {
         next
       }
       
+      # shared HGs between child and parent
       childHgs <- purrr::map(proHgL[childPhages], "hgs") %>%
+        unlist() %>%
+        unique()
+      
+      sharedHgs <- intersect(childHgs, parentPh$hgs)
+      
+      # get the shared syntenic homology groups between child and parent
+      syntenicOverlap <- purrr::map(
+        .x = proHgL[childPhages],
+        .f = ~syntenic_hg_overlap(
+          ref = parentPh$hgs, qur = .x$hgs
+        )
+      )
+      
+      syntenicShared <- purrr::map(syntenicOverlap, "lcs") %>%
         unlist() %>%
         unique()
       
@@ -198,16 +214,17 @@ for (gn in sampleInfo$genomeId) {
         childString = paste(sort(childPhages), collapse = ";"),
         nChild = length(childPhages),
         childHgs = childHgs,
-        nSharedHgs = length(intersect(childHgs, parentPh$hgs)),
-        nUniqParent = length(setdiff(parentPh$hgs, childHgs)),
-        nUniqChild = length(setdiff(childHgs, parentPh$hgs)),
+        nHgChild = length(childHgs),
+        nSharedHgs = length(sharedHgs),
+        nSyntenicSharedHgs = length(syntenicShared),
+        nUniqParent = length(setdiff(parentPh$hgs, syntenicShared)),
+        nUniqChild = length(setdiff(childHgs, syntenicShared)),
         childPhageLen = purrr::map_dbl(proHgL[childPhages], "prophage_length") %>% sum()
       )
       
-      thisParent$nHgChild <- length(thisParent$childHgs)
-      thisParent$perSharedParent <- thisParent$nSharedHgs / thisParent$nHgParent
-      thisParent$perSharedChild <- thisParent$nSharedHgs / thisParent$nHgChild
-      thisParent$jaccardIndex <- thisParent$nSharedHgs / length(union(childHgs, parentPh$hgs))
+      thisParent$perSharedParent <- thisParent$nSyntenicSharedHgs / thisParent$nHgParent
+      thisParent$perSharedChild <- thisParent$nSyntenicSharedHgs / thisParent$nHgChild
+      thisParent$jaccardIndex <- thisParent$nSyntenicSharedHgs / length(union(childHgs, parentPh$hgs))
       thisParent$contentDissimilarity <- 1 - mean(c(thisParent$perSharedParent, thisParent$perSharedChild))
       
       thisParent$relation <- dplyr::case_when(
@@ -218,7 +235,6 @@ for (gn in sampleInfo$genomeId) {
         fragmentedPhageContigs == FALSE ~ "NA",
         TRUE ~ "NA"
       )
-      
       
       # compare with previous best parent
       if (fragmentedPhageContigs) {
@@ -281,7 +297,6 @@ for (gn in sampleInfo$genomeId) {
               betterParentIndex <- append(betterParentIndex, i)
               
             }
-            
           }
           
           parentStatus <- paste("isBetterParent:", isBetterParent)
@@ -377,7 +392,7 @@ for (gn in sampleInfo$genomeId) {
       .x = bestParent, .f = `[`,
       c(
         "childString", "childGenome", "childPhageLen", "nHgChild",
-        "parent", "parentGenome", "nHgParent", "nSharedHgs",
+        "parent", "parentGenome", "nHgParent", "nSharedHgs", "nSyntenicSharedHgs",
         "jaccardIndex", "contentDissimilarity",
         "perSharedParent", "perSharedChild", "relation"
       )
