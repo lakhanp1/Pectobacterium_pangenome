@@ -1,0 +1,90 @@
+---
+title: "Synteny analysis testing"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.Date()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/homology_groups.R")
+################################################################################
+set.seed(124)
+
+```
+
+## Parameters while detecting syntenic overlap
+
+- match score = 5
+- gap penalty = -2
+- maximum gap length = 2
+- minimum chain length = 5
+
+## Testing various use cases for synteny analysis
+
+### Use case 1
+
+```{r}
+seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "r", "s", "t")
+seq2 <- c("p", "q", "a", "b", "c", "d", "t", "f", "g", "h", "i", "l", "m", "n", "x", "y", "z", "i", "j", "k")
+
+lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+
+print_lcs(lcs)
+
+```
+
+### Use case 2
+
+```{r}
+seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
+seq2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "i", "j", "k")
+
+lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+
+print_lcs(lcs)
+
+```
+
+### Use case 3
+
+```{r}
+seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
+seq2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "i", "j", "k", "l", "m")
+
+lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+
+print_lcs(lcs)
+
+```
+
+### Use case 4
+
+```{r}
+seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
+seq2 <- rev(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "i", "j", "k", "l", "m"))
+
+lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2)
+
+print_lcs(lcs)
+
+```
+
+
+
+

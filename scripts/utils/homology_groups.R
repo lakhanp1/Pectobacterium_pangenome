@@ -331,37 +331,37 @@ tandem_hg_match <- function(hgs, pandb, genomeId = NULL) {
 #'
 #' Implement https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1626491/ algorithm
 #'
-#' @param qur homology group set 1
-#' @param qurG genome identifier for set 1
-#' @param ref homology group set 2
-#' @param refG genome identifier for set 2
-#' @param pandb org.db pangenome object
-#'
+#' @param ref reference homology group ids order as per genomic coordinates
+#' @param qur query homology group ids order as per genomic coordinates
+#' @param ... other arguments to `longest_local_subsequence()`
+#' 
 #' @return
 #' @export
 #'
 #' @examples NA
-syntenic_hg_overlap <- function(ref, qur) {
-
-  forwardSyn <- longest_local_subsequence(seq1 = ref, seq2 = qur)
-  reverseSyn <- longest_local_subsequence(seq1 = ref, seq2 = rev(qur)) %>% 
-    purrr::map(rev)
+syntenic_hg_overlap <- function(ref, qur, ...) {
+  
+  forwardSyn <- longest_local_subsequence(seq1 = ref, seq2 = qur, ...)
+  reverseSyn <- longest_local_subsequence(seq1 = ref, seq2 = rev(qur), ...)
   
   if(length(forwardSyn$lcs) > length(reverseSyn$lcs)){
     return(forwardSyn)
   } else{
-    
     return(reverseSyn)
   }
-
+  
 }
 
 ################################################################################
 
-#' Find a longest common subsequence
+#' Find a longest common subsequence between the two arrays
 #'
 #' @param seq1 array 1
 #' @param seq2 array 2
+#' @param matchScore match score. Default: 5
+#' @param gapPenalty gap open penalty. Default: -2
+#' @param maxGapLen longest possible gap. Default: 2
+#' @param minChainLen minimum tandem syntenic matches. Default: 5
 #'
 #' @return a list with two elements: longest local subsequence between two arrays
 #' and position of this subsequence in seq1
@@ -371,55 +371,177 @@ syntenic_hg_overlap <- function(ref, qur) {
 #' @examples 
 #' seq1 <- c(1, 2, 3, 4, 5, 6)
 #' seq2 <- c(9, 3, 4, 5, 8)
-#' longest_local_subsequence <- longest_local_subsequence(seq1, seq2)
-#' cat("Longest local subsequence:", longest_local_subsequence)
+#' lcs <- longest_local_subsequence(seq1, seq2)
+#' cat("Longest local subsequence:", lcs$lcs)
 #' 
-longest_local_subsequence <- function(seq1, seq2) {
-  m <- length(seq1)
-  n <- length(seq2)
+longest_local_subsequence <- function(
+    seq1, seq2, matchScore = 5, gapPenalty = -2, maxGapLen = 2, minChainLen = 5
+) {
+  # matchScore            -Z: a constant match score. can also use E-value
+  # gapPenalty            -o (GAP_OPEN_PENALTY) in DAGchainer 
+  # maxGapLen             -D (MAX_DIST_BETWEEN_MATCHES) in DAGchainer
+  # minChainLen           -A in DAGchainer
   
-  # Create a matrix to store the length of the longest local subsequence
-  dp <- matrix(0, nrow = m + 1, ncol = n + 1)
+  # gapExtPenalty <- -2   # -e (INDEL_SCORE) in DAGchainer 
+  # minAlnScore <- matchScore * minChainLen   # -x (MIN_ALIGNMENT_SCORE) in DAGchainer
   
-  max_length <- 0  # To keep track of the maximum length of local subsequence
-  end_index <- 0  # To keep track of the ending index of the local subsequence
+  # seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "r", "s", "t")
+  # seq2 <- c("p", "q", "a", "b", "c", "d", "t", "f", "g", "h", "i", "l", "m", "n", "x", "y", "z", "i", "j", "k")
   
-  # Populate the matrix using dynamic programming
-  for (i in 1:m) {
-    for (j in 1:n) {
-      if (seq1[i] == seq2[j]) {
-        dp[i + 1, j + 1] <- dp[i, j] + 1
-        
-        if (dp[i + 1, j + 1] > max_length) {
-          # update the max_length and end_index as alignment extends
-          max_length <- dp[i + 1, j + 1]
-          end_index <- i
+  # use the longest sequence as seqA
+  seqA <- seq1
+  seqB <- seq2
+  # if(length(seq1) < length(seq2)){
+  #   seqA <- seq2
+  #   seqB <- seq1
+  # }
+  
+  m <- length(seqA)
+  n <- length(seqB)
+  
+  # empty scoring matrix and traceback matrix
+  dp <- matrix(0, nrow = m + 1, ncol = n + 1, dimnames = list(c(".", seqA), c(".", seqB)))
+  tb <- matrix(0, nrow = m + 1, ncol = n + 1, dimnames = list(c(".", seqA), c(".", seqB)))
+  
+  # populate the matrix using dynamic programming
+  for (i in 1:(m+1)) {
+    for (j in 1:(n+1)) {
+      if(i > 1 && j > 1){
+        if(seqA[i-1] == seqB[j-1]){
+          
+          dp[i, j] <- dp[i-1, j-1] + matchScore
+          tb[i, j] <- 0
+          
+        } else{
+          
+          dp[i, j] <- max(
+            dp[i-1, j] + gapPenalty,
+            dp[i, j-1] + gapPenalty
+          )
+          
+          if(dp[i, j] == dp[i-1, j] + gapPenalty){
+            tb[i, j] <- -1
+          } else{
+            tb[i, j] <- 1
+          }
+          
         }
-        
       }
     }
   }
   
-  # Reconstruct the longest local subsequence
+  # dp
+  
+  # traceback to reconstruct the longest local subsequence
+  lcsList <- list()
   lcs <- c()
-  lcsPos <- c()
+  lcsAln <- list(vector(mode = class(seq1)), vector(mode = class(seq2)))
+  lcsPos <- list(numeric(0L), numeric(0L))
   
-  i <- end_index
-  j <- n
+  i <- m + 1
+  j <- n + 1
+  gapLen <- 0
+  lcsScore <- 0
+  highestScore <- 0
   
-  while (i > 0 && j > 0) {
-    # cat("i=", i, "; j=", j, "\n")
-    if (seq1[i] == seq2[j]) {
-      lcs <- c(seq1[i], lcs)
-      lcsPos <- c(i, lcsPos)
+  while (i > 1 && j > 1) {
+    
+    # if(seqA[i-1] == seqB[j-1]){
+    if(tb[i, j] == 0){
+      lcs <- c(seqA[i-1], lcs)
+      # lcsAln <- c(paste(seqA[i-1], seqB[j-1], sep = "="), lcsAln)
+      lcsAln[[1]] <- c(seqA[i-1], lcsAln[[1]])
+      lcsAln[[2]] <- c(seqB[j-1], lcsAln[[2]])
+      lcsPos[[1]] <- c(i-1, lcsPos[[1]])
+      lcsPos[[2]] <- c(j-1, lcsPos[[2]])
+      
+      gapLen <- 0
+      if(highestScore < dp[i, j]){
+        highestScore <- dp[i, j]
+      }
+      
+      lcsScore <- highestScore - dp[i-1, j-1]
+      
       i <- i - 1
       j <- j - 1
-    } else {
+      
+      # } else if(dp[i, j] == (dp[i-1, j] + gapPenalty)){
+    } else if(tb[i, j] == -1){
+      lcsAln[[1]] <- c(seqA[i-1], lcsAln[[1]])
+      lcsAln[[2]] <- c("-", lcsAln[[2]])
+      gapLen <- gapLen + 1
+      
+      i <- i - 1
+      
+    } else{
+      lcsAln[[1]] <- c("-", lcsAln[[1]])
+      lcsAln[[2]] <- c(seqB[j-1], lcsAln[[2]])
+      gapLen <- gapLen + 1
+      
       j <- j - 1
+      
+    }
+    
+    if(gapLen >= 3){
+      # remove the gaps at the begining
+      lcsAln <- purrr::map(.x = lcsAln, .f = ~ .x[-c(1:gapLen)])
+      
+      if(length(lcs) >= minChainLen){
+        lcsList <- append(
+          lcsList,
+          list(list(lcs = lcs, aln = lcsAln, pos = lcsPos, score = lcsScore))
+        )
+      }
+      lcs <- c()
+      lcsAln <- list(vector(mode = class(seq1)), vector(mode = class(seq2)))
+      lcsPos <- list(numeric(0L), numeric(0L))
+      lcsScore <- 0
+      highestScore <- 0
+      
     }
   }
   
-  return(list(lcs = lcs, pos = lcsPos))
+  if(length(lcs) >= minChainLen){
+    lcsList <- append(
+      lcsList,
+      list(list(lcs = lcs, aln = lcsAln, pos = lcsPos, score = lcsScore))
+    )
+  }
+  
+  # seqA
+  # seqB
+  # lcsList
+  # purrr::map_chr(lcsList$aln, paste, collapse = "|")
+  
+  return(lcsList)
+}
+
+################################################################################
+
+#' Print the `longest_local_subsequence()` results
+#'
+#' @param lcs `longest_local_subsequence()` results
+#'
+#' @return NULL
+#' @export
+#'
+#' @examples NA
+print_lcs <- function(lcs){
+  for (i in 1:length(lcs)) {
+    x <- lcs[[i]]
+    
+    cat(
+      "LCS ", i, ": ", paste(x$lcs, collapse = " "), "\n",
+      "Length: ", length(x$lcs),
+      "\nScore: ", x$score, 
+      "\n", sep = ""
+    )
+    
+    cat("Alignment:\n")
+    purrr::map_chr(x$aln, paste, collapse = " ") %>% cat(sep = "\n")
+    cat("\n")
+  }
+  
 }
 
 ################################################################################
