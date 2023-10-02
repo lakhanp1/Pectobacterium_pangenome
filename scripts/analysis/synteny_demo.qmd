@@ -86,5 +86,26 @@ print_lcs(lcs)
 ```
 
 
+### Use case 5
 
+```{r}
+seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
+seq2 <- c("m", "n")
 
+lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2, minChainLen = 2)
+
+print_lcs(lcs)
+
+```
+
+### Use case 6
+
+```{r}
+seq1 <- c("m", "n")
+seq2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
+
+lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2, minChainLen = 2)
+
+print_lcs(lcs)
+
+```

@@ -344,7 +344,10 @@ syntenic_hg_overlap <- function(ref, qur, ...) {
   forwardSyn <- longest_local_subsequence(seq1 = ref, seq2 = qur, ...)
   reverseSyn <- longest_local_subsequence(seq1 = ref, seq2 = rev(qur), ...)
   
-  if(length(forwardSyn$lcs) > length(reverseSyn$lcs)){
+  fwSynLen <- purrr::map_dbl(forwardSyn, ~length(.x$lcs)) %>% sum()
+  revSynLen <- purrr::map_dbl(reverseSyn, ~length(.x$lcs)) %>% sum()
+  
+  if(fwSynLen > revSynLen){
     return(forwardSyn)
   } else{
     return(reverseSyn)
@@ -402,10 +405,14 @@ longest_local_subsequence <- function(
   # empty scoring matrix and traceback matrix
   dp <- matrix(0, nrow = m + 1, ncol = n + 1, dimnames = list(c(".", seqA), c(".", seqB)))
   tb <- matrix(0, nrow = m + 1, ncol = n + 1, dimnames = list(c(".", seqA), c(".", seqB)))
+  maxDpScore <- 0
+  maxScoreRow <- 0
+  maxScoreCol <- 0
   
   # populate the matrix using dynamic programming
   for (i in 1:(m+1)) {
     for (j in 1:(n+1)) {
+      
       if(i > 1 && j > 1){
         if(seqA[i-1] == seqB[j-1]){
           
@@ -427,6 +434,12 @@ longest_local_subsequence <- function(
           
         }
       }
+      
+      if(dp[i, j] > maxDpScore){
+        maxDpScore <- dp[i, j]
+        maxScoreRow <- i
+        maxScoreCol <- j
+      }
     }
   }
   
@@ -435,7 +448,7 @@ longest_local_subsequence <- function(
   # traceback to reconstruct the longest local subsequence
   lcsList <- list()
   lcs <- c()
-  lcsAln <- list(vector(mode = class(seq1)), vector(mode = class(seq2)))
+  lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
   lcsPos <- list(numeric(0L), numeric(0L))
   
   i <- m + 1
@@ -473,7 +486,7 @@ longest_local_subsequence <- function(
       
       i <- i - 1
       
-    } else{
+    } else if(tb[i, j] == 1){
       lcsAln[[1]] <- c("-", lcsAln[[1]])
       lcsAln[[2]] <- c(seqB[j-1], lcsAln[[2]])
       gapLen <- gapLen + 1
@@ -482,7 +495,8 @@ longest_local_subsequence <- function(
       
     }
     
-    if(gapLen >= 3){
+    # add lcs to lcsList if the gap > maxGapLen
+    if(gapLen > maxGapLen){
       # remove the gaps at the begining
       lcsAln <- purrr::map(.x = lcsAln, .f = ~ .x[-c(1:gapLen)])
       
@@ -493,14 +507,33 @@ longest_local_subsequence <- function(
         )
       }
       lcs <- c()
-      lcsAln <- list(vector(mode = class(seq1)), vector(mode = class(seq2)))
+      lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
       lcsPos <- list(numeric(0L), numeric(0L))
       lcsScore <- 0
       highestScore <- 0
       
     }
+    
+    # cat("i=", i, "; j=", j, "\n")
+    # if traceback never went to the highest scoring address, 
+    # set i and j to explicitly traceback from the highest scoring address
+    if(j == 1 || i == 1){
+      if(i > maxScoreRow || j > maxScoreCol){
+        i <- maxScoreRow
+        j <- maxScoreCol
+        
+        lcs <- c()
+        lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
+        lcsPos <- list(numeric(0L), numeric(0L))
+        lcsScore <- 0
+        highestScore <- 0
+      }
+    }
+
+    
   }
   
+  # add final LCS to lcsList
   if(length(lcs) >= minChainLen){
     lcsList <- append(
       lcsList,
@@ -527,6 +560,9 @@ longest_local_subsequence <- function(
 #'
 #' @examples NA
 print_lcs <- function(lcs){
+  
+  cat("Chains detected: ", length(lcs), "\n")
+  
   for (i in 1:length(lcs)) {
     x <- lcs[[i]]
     
@@ -542,6 +578,10 @@ print_lcs <- function(lcs){
     cat("\n")
   }
   
+  if(length(lcs) > 1){
+    totalLcsLen <- purrr::map_dbl(lcs, ~length(.x$lcs)) %>% sum()
+    cat("Total length: ", totalLcsLen)
+  }
 }
 
 ################################################################################
