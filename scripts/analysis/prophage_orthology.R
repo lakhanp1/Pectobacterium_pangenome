@@ -3,6 +3,7 @@
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(igraph))
 suppressPackageStartupMessages(library(logger))
 
 # build prophage hierarchy tree using the homology groups
@@ -171,11 +172,12 @@ for (gn in sampleInfo$genomeId) {
       syntenicOverlap <- purrr::map(
         .x = proHgL[childPhages],
         .f = ~syntenic_hg_overlap(
-          ref = parentPh$hgs, qur = .x$hgs
+          ref = parentPh$hgs, qur = .x$hgs,
+          minChainLen = min(length(.x$hgs), 5)
         )
       )
       
-      syntenicShared <- purrr::map(syntenicOverlap, "lcs") %>%
+      syntenicShared <- purrr::map(unlist(syntenicOverlap, recursive = F), "lcs") %>%
         unlist() %>%
         unique()
       
