@@ -290,6 +290,7 @@ analysis:
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
       phage_similarity: "pangenome_phage_similarity.tab"
+      phage_relationships: "all_phage_relationships.tab"
       network: "prophage_network.tab"
       representatives: "unique_prophages.tab"
       ani_distance: "prophage_ani_distance.tab"

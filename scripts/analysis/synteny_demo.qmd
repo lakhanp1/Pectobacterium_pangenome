@@ -77,9 +77,9 @@ print_lcs(lcs)
 
 ```{r}
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
-seq2 <- rev(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "i", "j", "k", "l", "m"))
+seq2 <- rev(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "j", "k", "l", "m"))
 
-lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2)
+lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2, maxGapLen = 4)
 
 print_lcs(lcs)
 

@@ -344,8 +344,10 @@ syntenic_hg_overlap <- function(ref, qur, ...) {
   forwardSyn <- longest_local_subsequence(seq1 = ref, seq2 = qur, ...)
   reverseSyn <- longest_local_subsequence(seq1 = ref, seq2 = rev(qur), ...)
   
-  fwSynLen <- purrr::map_dbl(forwardSyn, ~length(.x$lcs)) %>% sum()
-  revSynLen <- purrr::map_dbl(reverseSyn, ~length(.x$lcs)) %>% sum()
+  # fwSynLen <- purrr::map_dbl(forwardSyn, ~length(.x$lcs)) %>% sum()
+  # revSynLen <- purrr::map_dbl(reverseSyn, ~length(.x$lcs)) %>% sum()
+  fwSynLen <- length(forwardSyn$lcs)
+  revSynLen <- length(reverseSyn$lcs)
   
   if(fwSynLen > revSynLen){
     return(forwardSyn)
@@ -447,7 +449,9 @@ longest_local_subsequence <- function(
   
   # traceback to reconstruct the longest local subsequence
   lcsList <- list()
-  lcs <- c()
+  lcs <- list(lcs = c()) 
+  
+  thisLcs <- c()
   lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
   lcsPos <- list(numeric(0L), numeric(0L))
   
@@ -461,8 +465,7 @@ longest_local_subsequence <- function(
     
     # if(seqA[i-1] == seqB[j-1]){
     if(tb[i, j] == 0){
-      lcs <- c(seqA[i-1], lcs)
-      # lcsAln <- c(paste(seqA[i-1], seqB[j-1], sep = "="), lcsAln)
+      thisLcs <- c(seqA[i-1], thisLcs)
       lcsAln[[1]] <- c(seqA[i-1], lcsAln[[1]])
       lcsAln[[2]] <- c(seqB[j-1], lcsAln[[2]])
       lcsPos[[1]] <- c(i-1, lcsPos[[1]])
@@ -495,18 +498,24 @@ longest_local_subsequence <- function(
       
     }
     
-    # add lcs to lcsList if the gap > maxGapLen
+    # add thisLcs to lcsList if the gap > maxGapLen
     if(gapLen > maxGapLen){
       # remove the gaps at the begining
       lcsAln <- purrr::map(.x = lcsAln, .f = ~ .x[-c(1:gapLen)])
       
-      if(length(lcs) >= minChainLen){
+      if(length(thisLcs) >= minChainLen){
+        # update the longest LCS
+        if(length(thisLcs) > length(lcs$lcs)){
+          lcs <- list(lcs = thisLcs, aln = lcsAln, pos = lcsPos, score = lcsScore)
+        }
+        
+        # optionally, save a valid lcs in list
         lcsList <- append(
           lcsList,
-          list(list(lcs = lcs, aln = lcsAln, pos = lcsPos, score = lcsScore))
+          list(list(lcs = thisLcs, aln = lcsAln, pos = lcsPos, score = lcsScore))
         )
       }
-      lcs <- c()
+      thisLcs <- c()
       lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
       lcsPos <- list(numeric(0L), numeric(0L))
       lcsScore <- 0
@@ -522,7 +531,7 @@ longest_local_subsequence <- function(
         i <- maxScoreRow
         j <- maxScoreCol
         
-        lcs <- c()
+        thisLcs <- c()
         lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
         lcsPos <- list(numeric(0L), numeric(0L))
         lcsScore <- 0
@@ -534,19 +543,27 @@ longest_local_subsequence <- function(
   }
   
   # add final LCS to lcsList
-  if(length(lcs) >= minChainLen){
+  if(length(thisLcs) >= minChainLen){
+    # update the longest LCS
+    if(length(thisLcs) > length(lcs$lcs)){
+      lcs <- list(lcs = thisLcs, aln = lcsAln, pos = lcsPos, score = lcsScore)
+    }
+    
+    # optionally, save a valid lcs in list
     lcsList <- append(
       lcsList,
-      list(list(lcs = lcs, aln = lcsAln, pos = lcsPos, score = lcsScore))
+      list(list(lcs = thisLcs, aln = lcsAln, pos = lcsPos, score = lcsScore))
     )
+    
   }
+  
   
   # seqA
   # seqB
   # lcsList
   # purrr::map_chr(lcsList$aln, paste, collapse = "|")
   
-  return(lcsList)
+  return(lcs)
 }
 
 ################################################################################
@@ -560,28 +577,20 @@ longest_local_subsequence <- function(
 #'
 #' @examples NA
 print_lcs <- function(lcs){
-  
-  cat("Chains detected: ", length(lcs), "\n")
-  
-  for (i in 1:length(lcs)) {
-    x <- lcs[[i]]
-    
+
     cat(
-      "LCS ", i, ": ", paste(x$lcs, collapse = " "), "\n",
-      "Length: ", length(x$lcs),
-      "\nScore: ", x$score, 
+      "LCS: ", paste(lcs$lcs, collapse = " "),
+      "\nLength: ", length(lcs$lcs),
+      "\nScore: ", lcs$score, 
       "\n", sep = ""
     )
     
     cat("Alignment:\n")
-    purrr::map_chr(x$aln, paste, collapse = " ") %>% cat(sep = "\n")
+    purrr::map_chr(lcs$aln, paste, collapse = " ") %>% cat(sep = "\n")
     cat("\n")
-  }
+
   
-  if(length(lcs) > 1){
-    totalLcsLen <- purrr::map_dbl(lcs, ~length(.x$lcs)) %>% sum()
-    cat("Total length: ", totalLcsLen)
-  }
+
 }
 
 ################################################################################
