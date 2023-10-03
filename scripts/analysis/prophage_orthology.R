@@ -5,6 +5,7 @@ suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(igraph))
 suppressPackageStartupMessages(library(logger))
+suppressPackageStartupMessages(library(configr))
 
 # build prophage hierarchy tree using the homology groups
 
@@ -75,6 +76,7 @@ proHgL <- purrr::transpose(proHgs) %>%
 
 sharedStats <- tibble::tibble()
 childParentList <- list()
+allRelationships <- tibble::tibble()
 
 # create graph and add vertices to graph
 phageGraph <- igraph::make_empty_graph() +
@@ -173,11 +175,12 @@ for (gn in sampleInfo$genomeId) {
         .x = proHgL[childPhages],
         .f = ~syntenic_hg_overlap(
           ref = parentPh$hgs, qur = .x$hgs,
-          minChainLen = min(length(.x$hgs), 5)
+          minChainLen = min(length(.x$hgs), 5),
+          maxGapLen = 2
         )
       )
       
-      syntenicShared <- purrr::map(unlist(syntenicOverlap, recursive = F), "lcs") %>%
+      syntenicShared <- purrr::map(syntenicOverlap, "lcs") %>%
         unlist() %>%
         unique()
       
@@ -190,7 +193,9 @@ for (gn in sampleInfo$genomeId) {
       if (length(childPhages) > 1) {
         phageContigPos <- purrr::map_dbl(
           proHgL[childPhages],
-          .f = ~ get_hg_sets_location(hgs = .x$hgs, genome = gn, chr = .x$chr, pandb = panOrgDb)
+          .f = ~ get_hg_sets_location(
+            hgs = .x$hgs, genome = gn, chr = .x$chr, pandb = panOrgDb
+          )
         )
         
         logger::log_debug(
@@ -201,10 +206,12 @@ for (gn in sampleInfo$genomeId) {
         if (any((phageContigPos != 0) & (phageContigPos != 1))) {
           fragmentedPhageContigs <- FALSE
         }
+        
       }
       
       logger::log_debug("fragmentedPhageContigs: ", fragmentedPhageContigs)
       
+      childString <- paste(sort(childPhages), collapse = ";")
       
       # collect data and comparison scores for the current childPhages --> parent
       thisParent <- list(
@@ -213,7 +220,7 @@ for (gn in sampleInfo$genomeId) {
         nHgParent = parentPh$nHgs,
         children = childPhages,
         childGenome = gn,
-        childString = paste(sort(childPhages), collapse = ";"),
+        childString = childString,
         nChild = length(childPhages),
         childHgs = childHgs,
         nHgChild = length(childHgs),
@@ -238,7 +245,21 @@ for (gn in sampleInfo$genomeId) {
         TRUE ~ "NA"
       )
       
-      # compare with previous best parent
+      # save current comparison summary
+      allRelationships <- purrr::map_dfr(
+        .x = list(thisParent), .f = `[`,
+        c(
+          "childString", "childGenome", "childPhageLen", "nHgChild",
+          "parent", "parentGenome", "nHgParent", "nSharedHgs", "nSyntenicSharedHgs",
+          "jaccardIndex", "contentDissimilarity",
+          "perSharedParent", "perSharedChild", "relation"
+        )
+      ) %>%
+        dplyr::rename(child = childString) %>% 
+        dplyr::bind_rows(allRelationships)
+      
+      
+      # compare with previous best parent and update if the current one is better match
       if (fragmentedPhageContigs) {
         # if no parent found until now: make current phage as parent
         if (length(bestParent) == 0) {
@@ -436,20 +457,31 @@ for (gn in sampleInfo$genomeId) {
   # for remaining phages where parent was not found
   noParents <- setdiff(gnPhages, unlist(purrr::map(bestParent, "children")))
   if (length(noParents) > 0) {
-    thisGnParents <- purrr::map_dfr(
+    distinctPhages <- purrr::map_dfr(
       .x = proHgL[noParents], .f = `[`,
-      c("prophage_id", "genomeId", "nHgs")
+      c("prophage_id", "genomeId", "nHgs", "prophage_length")
     ) %>%
-      dplyr::rename(child = prophage_id, childGenome = genomeId, nHgChild = nHgs) %>%
-      dplyr::bind_rows(thisGnParents)
+      dplyr::rename(
+        child = prophage_id, childGenome = genomeId,
+        nHgChild = nHgs, childPhageLen = prophage_length)
+    
+    thisGnParents <- dplyr::bind_rows(distinctPhages, thisGnParents)
+    allRelationships <- dplyr::bind_rows(distinctPhages, allRelationships)
   }
   
   # finally merge with sharedStats global data
   sharedStats <- dplyr::bind_rows(sharedStats, thisGnParents)
+  
 }
 
 
 readr::write_tsv(
   x = sharedStats,
   file = confs$analysis$prophages$files$phage_similarity
+)
+
+
+readr::write_tsv(
+  x = allRelationships,
+  file = confs$analysis$prophages$files$phage_relationships
 )
