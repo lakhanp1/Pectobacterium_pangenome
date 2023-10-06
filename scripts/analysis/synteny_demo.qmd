@@ -44,7 +44,13 @@ seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", 
 seq2 <- c("p", "q", "a", "b", "c", "d", "t", "f", "g", "h", "i", "l", "m", "n", "x", "y", "z", "i", "j", "k")
 
 lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+```
 
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
 print_lcs(lcs)
 
 ```
@@ -56,7 +62,13 @@ seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", 
 seq2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "i", "j", "k")
 
 lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+```
 
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
 print_lcs(lcs)
 
 ```
@@ -68,9 +80,14 @@ seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", 
 seq2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "i", "j", "k", "l", "m")
 
 lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+```
 
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
 print_lcs(lcs)
-
 ```
 
 ### Use case 4
@@ -79,8 +96,14 @@ print_lcs(lcs)
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
 seq2 <- rev(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "j", "k", "l", "m"))
 
-lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2, maxGapLen = 4)
+lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2, maxGapLen = 3)
+```
 
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
 print_lcs(lcs)
 
 ```
@@ -94,6 +117,14 @@ seq2 <- c("m", "n")
 
 lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2, minChainLen = 2)
 
+```
+
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
+
 print_lcs(lcs)
 
 ```
@@ -105,7 +136,13 @@ seq1 <- c("m", "n")
 seq2 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
 
 lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2, minChainLen = 2)
+```
 
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
 print_lcs(lcs)
 
 ```
