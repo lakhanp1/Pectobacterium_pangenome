@@ -17,7 +17,7 @@ cat data/reference_data/assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/genomad/{} \
 --joblog logs/genomad/parallel.log \
-scripts/a_preprocessing/genomad_prophage_annotation.sh {} \
+scripts/preprocessing/genomad_prophage_annotation.sh {} \
 >>logs/genomad/nohup.out 2>&1 &
 
 # count of prophage detected in each genome
@@ -27,6 +27,16 @@ do
   tail -n +2 data/prophage_genomad/$i/${i}_summary/${i}_virus_summary.tsv | wc -l
 done | sort -nr -k2
 
+```
+
+Check the checkV contamination.tsv file to see if there is any other contamination
+than the expected `host,viral`, `viral,host` and `host,viral,host` ones.
+ 
+```bash
+for cn in `find -name '*contamination.tsv'`
+do
+cat $cn | awk '$9 != "NA" && NR != 1 && $9 != "host,viral" && $9 != "viral,host" && $9 != "host,viral,host"'
+done
 ```
 
 ### Post processing of prophages 
