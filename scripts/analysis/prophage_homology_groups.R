@@ -36,7 +36,6 @@ sampleInfoList <- as.list_metadata(
 prophageDf <- suppressMessages(
   readr::read_tsv(confs$data$prophages$files$data)
 ) %>%
-  dplyr::rename(prophage_length = length) %>%
   dplyr::filter(viral_genes != 0) %>%
   dplyr::select(-SpeciesName, -genomeId)
 
@@ -64,7 +63,7 @@ dplyr::group_by(panProphages, sampleId, SpeciesName) %>%
 
 # get homology groups for each prophage region
 proHgs <- dplyr::filter(panProphages, !is.na(contig_id)) %>%
-  # dplyr::select(sampleId, genomeId, chr, start, end, contig_id) %>%
+  dplyr::select(sampleId, genomeId, chr, start, end, prophage_id) %>%
   dplyr::rowwise() %>%
   dplyr::mutate(
     hgs = list(
@@ -74,16 +73,16 @@ proHgs <- dplyr::filter(panProphages, !is.na(contig_id)) %>%
     )
   )
 
-# filter to keep high quality prophages
+# filter to remove prophages without any hgs 
 proHgs %>%
   dplyr::mutate(
     nHgs = length(hgs),
     hgs = paste(hgs, collapse = ";")
   ) %>%
   dplyr::filter(nHgs > 0) %>%
-  dplyr::select(contig_id, id = prophage_id, sampleId, nHgs, hgs) %>%
+  dplyr::select(prophage_id, sampleId, nHgs, hgs) %>%
   readr::write_tsv(
-    file = confs$analysis$prophages$files$prophage_hg
+    file = confs$analysis$prophages$preprocessing$files$raw_prophage_hg
   )
 
 ################################################################################

@@ -37,15 +37,15 @@ prophage_igraph <- function(file, nodeAn, key){
     key %in% colnames(nodeAn)
   )
   
-  nodes <- dplyr::select(phageRelations, !!key, nodeType, Genome,
-                         nHgs, perSharedParent) %>% 
+  nodes <- dplyr::select(phageRelations, !!key, nodeType, genomeId,
+                         nHgs, jaccardIndex) %>% 
     dplyr::left_join(y = nodeAn, by = key) %>% 
     dplyr::rename(id = !!key)
   
   edges <- dplyr::filter(phageRelations, !is.na(parent)) %>% 
     dplyr::select(
-      from = !!key, to = parent, weight = perSharedParent,
-      nSharedHgs, starts_with("perShared"), relation
+      from = !!key, to = parent, weight = jaccardIndex,
+      nSharedHgs, nSyntenicSharedHgs, starts_with("perShared"), relation
     )
   
   
