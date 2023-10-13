@@ -344,10 +344,15 @@ syntenic_hg_overlap <- function(ref, qur, ...) {
   forwardSyn <- longest_local_subsequence(seq1 = ref, seq2 = qur, ...)
   reverseSyn <- longest_local_subsequence(seq1 = ref, seq2 = rev(qur), ...)
   
-  # fwSynLen <- purrr::map_dbl(forwardSyn, ~length(.x$lcs)) %>% sum()
-  # revSynLen <- purrr::map_dbl(reverseSyn, ~length(.x$lcs)) %>% sum()
-  fwSynLen <- length(forwardSyn$lcs)
-  revSynLen <- length(reverseSyn$lcs)
+  fwSynLen <- 0
+  revSynLen <- 0
+  if (!is.null(forwardSyn)) {
+    fwSynLen <- length(forwardSyn$lcs)
+  }
+  
+  if (!is.null(reverseSyn)) {
+    revSynLen <- length(reverseSyn$lcs)
+  }
   
   if(fwSynLen > revSynLen){
     return(forwardSyn)
@@ -449,11 +454,12 @@ longest_local_subsequence <- function(
   
   # traceback to reconstruct the longest local subsequence
   lcsList <- list()
-  lcs <- list(lcs = c()) 
+  lcs <- NULL
+  lcsFound <- FALSE
   
   thisLcs <- c()
-  lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
-  lcsPos <- list(numeric(0L), numeric(0L))
+  lcsAln <- list(s1 = vector(mode = class(seqA)), s2 = vector(mode = class(seqB)))
+  lcsPos <- list(s1 = numeric(0L), s2 = numeric(0L))
   
   i <- m + 1
   j <- n + 1
@@ -466,10 +472,10 @@ longest_local_subsequence <- function(
     # if(seqA[i-1] == seqB[j-1]){
     if(tb[i, j] == 0){
       thisLcs <- c(seqA[i-1], thisLcs)
-      lcsAln[[1]] <- c(seqA[i-1], lcsAln[[1]])
-      lcsAln[[2]] <- c(seqB[j-1], lcsAln[[2]])
-      lcsPos[[1]] <- c(i-1, lcsPos[[1]])
-      lcsPos[[2]] <- c(j-1, lcsPos[[2]])
+      lcsAln$s1 <- c(seqA[i-1], lcsAln$s1)
+      lcsAln$s2 <- c(seqB[j-1], lcsAln$s2)
+      lcsPos$s1 <- c(i-1, lcsPos$s1)
+      lcsPos$s2 <- c(j-1, lcsPos$s2)
       
       gapLen <- 0
       if(highestScore < dp[i, j]){
@@ -483,15 +489,15 @@ longest_local_subsequence <- function(
       
       # } else if(dp[i, j] == (dp[i-1, j] + gapPenalty)){
     } else if(tb[i, j] == -1){
-      lcsAln[[1]] <- c(seqA[i-1], lcsAln[[1]])
-      lcsAln[[2]] <- c("-", lcsAln[[2]])
+      lcsAln$s1 <- c(seqA[i-1], lcsAln$s1)
+      lcsAln$s2 <- c("-", lcsAln$s2)
       gapLen <- gapLen + 1
       
       i <- i - 1
       
     } else if(tb[i, j] == 1){
-      lcsAln[[1]] <- c("-", lcsAln[[1]])
-      lcsAln[[2]] <- c(seqB[j-1], lcsAln[[2]])
+      lcsAln$s1 <- c("-", lcsAln$s1)
+      lcsAln$s2 <- c(seqB[j-1], lcsAln$s2)
       gapLen <- gapLen + 1
       
       j <- j - 1
@@ -507,6 +513,7 @@ longest_local_subsequence <- function(
         # update the longest LCS
         if(length(thisLcs) > length(lcs$lcs)){
           lcs <- list(lcs = thisLcs, aln = lcsAln, pos = lcsPos, score = lcsScore)
+          lcsFound <- TRUE
         }
         
         # optionally, save a valid lcs in list
@@ -516,8 +523,8 @@ longest_local_subsequence <- function(
         )
       }
       thisLcs <- c()
-      lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
-      lcsPos <- list(numeric(0L), numeric(0L))
+      lcsAln <-  list(s1 = vector(mode = class(seqA)), s2 = vector(mode = class(seqB)))
+      lcsPos <- list(s1 = numeric(0L), s2 = numeric(0L))
       lcsScore <- 0
       highestScore <- 0
       
@@ -532,8 +539,8 @@ longest_local_subsequence <- function(
         j <- maxScoreCol
         
         thisLcs <- c()
-        lcsAln <- list(vector(mode = class(seqA)), vector(mode = class(seqB)))
-        lcsPos <- list(numeric(0L), numeric(0L))
+        lcsAln <-  list(s1 = vector(mode = class(seqA)), s2 = vector(mode = class(seqB)))
+        lcsPos <- list(s1 = numeric(0L), s2 = numeric(0L))
         lcsScore <- 0
         highestScore <- 0
       }
@@ -547,6 +554,7 @@ longest_local_subsequence <- function(
     # update the longest LCS
     if(length(thisLcs) > length(lcs$lcs)){
       lcs <- list(lcs = thisLcs, aln = lcsAln, pos = lcsPos, score = lcsScore)
+      lcsFound <- TRUE
     }
     
     # optionally, save a valid lcs in list
@@ -563,7 +571,11 @@ longest_local_subsequence <- function(
   # lcsList
   # purrr::map_chr(lcsList$aln, paste, collapse = "|")
   
-  return(lcs)
+  if(lcsFound){
+    return(lcs)
+  } else {
+    return(NULL)
+  }
 }
 
 ################################################################################
