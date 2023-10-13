@@ -283,15 +283,19 @@ analysis:
     files:
       pheno_specific_groups: "phenotype_specific_groups.txt"
   prophages:
+    cutoff_length: 5000
     dir: "04_pangenome_pecto_v2/prophages"
+    preprocessing:
+      dir: "preprocessing"
+      files:
+        raw_prophage_hg: "prophage_hgs.tab"
+        consolidated_phages: "consolidated_phages.tab"
+        phage_relationships: "phage_relationships.tab"
+        merged_prophage_hgs: "merged_prophage_hgs.tab"
+        network: "prophage_network.tab"
     files:
-      prophage_hg: "prophage_hgs.tab"
-      prophages_filtered: "prophages_filtered.tab"
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
-      phage_similarity: "pangenome_phage_similarity.tab"
-      phage_relationships: "all_phage_relationships.tab"
-      network: "prophage_network.tab"
       representatives: "unique_prophages.tab"
       ani_distance: "prophage_ani_distance.tab"
       ani_upgma: "prophage_ani_upgma.newick"
