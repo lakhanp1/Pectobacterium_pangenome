@@ -26,6 +26,7 @@ source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
+useCase <- 1
 ```
 
 ## Parameters while detecting syntenic overlap
@@ -37,7 +38,10 @@ set.seed(124)
 
 ## Testing various use cases for synteny analysis
 
-### Use case 1
+### Use case `r useCase`
+
+Detecting a longest common subsequence (LCS) between two sequence while allowing
+for gaps.
 
 ```{r}
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "r", "s", "t")
@@ -53,9 +57,10 @@ cat(
 )
 print_lcs(lcs)
 
+useCase <- useCase + 1
 ```
 
-### Use case 2
+### Use case `r useCase`
 
 ```{r}
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
@@ -71,9 +76,12 @@ cat(
 )
 print_lcs(lcs)
 
+useCase <- useCase + 1
 ```
 
-### Use case 3
+### Use case `r useCase`
+
+LCS from the 5' end of sequence. A longer LCS can be found if 3 gaps are allowed.
 
 ```{r}
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
@@ -88,13 +96,39 @@ cat(
   "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
 )
 print_lcs(lcs)
+
+useCase <- useCase + 1
 ```
 
-### Use case 4
+### Use case `r useCase`
+
+LCS from the 3' end of the sequence. A longer LCS can be found if 3 gaps are allowed.
 
 ```{r}
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
-seq2 <- rev(c("a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "z", "j", "k", "l", "m"))
+seq2 <- c("a", "b", "c", "d", "e",  "x", "y", "z", "f", "g", "h", "i", "j", "k", "l", "m")
+
+lcs <- longest_local_subsequence(seq1 = seq1, seq2 = seq2)
+```
+
+```{r echo=FALSE}
+cat(
+  "seq1: ", paste(seq1, collapse = " "), "\n",
+  "seq2: ", paste(seq2, collapse = " "), "\n", sep = ""
+)
+print_lcs(lcs)
+
+useCase <- useCase + 1
+```
+
+### Use case `r useCase`
+
+Change `maxGapLen` parameter to increse the syntenic chain length by allowing
+longer gaps than the default of 2.
+
+```{r}
+seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
+seq2 <- rev(c("a", "b", "c", "d", "x", "y", "z", "e", "f", "g", "h", "i", "j", "k", "l", "m"))
 
 lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2, maxGapLen = 3)
 ```
@@ -106,10 +140,13 @@ cat(
 )
 print_lcs(lcs)
 
+useCase <- useCase + 1
 ```
 
 
-### Use case 5
+### Use case `r useCase`
+
+Change `minChainLen` parameter to allow smaller syntenic matches.
 
 ```{r}
 seq1 <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t")
@@ -127,9 +164,10 @@ cat(
 
 print_lcs(lcs)
 
+useCase <- useCase + 1
 ```
 
-### Use case 6
+### Use case `r useCase`
 
 ```{r}
 seq1 <- c("m", "n")
@@ -145,4 +183,5 @@ cat(
 )
 print_lcs(lcs)
 
+useCase <- useCase + 1
 ```
