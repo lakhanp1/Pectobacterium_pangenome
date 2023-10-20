@@ -270,6 +270,7 @@ analysis:
     dir: "04_pangenome_pecto_v2/insilico_assay"
     files:
       blastn: "pcr_primer_blastn.out"
+      insilico_pcr: "bioassay_probe_match.data.tab"
   homology_groups:
     dir: "04_pangenome_pecto_v2/homology_groups"
     files:
@@ -290,8 +291,11 @@ analysis:
       files:
         raw_prophage_hg: "prophage_hgs.tab"
         consolidated_phages: "consolidated_phages.tab"
-        phage_relationships: "phage_relationships.tab"
+        phage_relationships: "phage_pair_relationships.tab"
         merged_prophage_hgs: "merged_prophage_hgs.tab"
+        ap_clusters: "ap_clusters.tab"
+        apc_summary: "ap_cluster_summary.tab"
+        apc_exemplar_phylo: "ap_cluster_exemplar.newick"
         network: "prophage_network.tab"
     files:
       prophage_stats_species: "prophage_stats_species.tab"

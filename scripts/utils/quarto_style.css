@@ -7,7 +7,7 @@
 }
 
 .scrolling_y {
-    max-height: 500px;
+    max-height: 800px;
     overflow-y: scroll;
 }
 

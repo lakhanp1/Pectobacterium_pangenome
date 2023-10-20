@@ -97,35 +97,68 @@ for (i in 1:nrow(phages)) {
     }
     
     phagePair <- c(phages$prophage_id[i], phages$prophage_id[j])
-
+    
     logger::log_debug(
       "prophages[", i, ", ", j, "] = ", phagePair[1], ", ", phagePair[2]
     )
-
+    
     # phagePair <- c("g_84.merged_vir_1", "g_68.vir_2")
     p1 <- phageList[[phagePair[1]]]
     p2 <- phageList[[phagePair[2]]]
-
-
+    
+    
     p1Hgs <- purrr::map(proHgL[p1$fragments], "hgs") %>% unlist(use.names = FALSE)
     p1nHgs <- length(p1Hgs)
-
+    
     p2Hgs <- purrr::map(proHgL[p2$fragments], "hgs") %>% unlist(use.names = FALSE)
     p2nHgs <- length(p2Hgs)
-
+    
     sharedHgs <- intersect(p1Hgs, p2Hgs)
-
+    
+    unionHgs <- union(p1Hgs, p2Hgs)
+    
+    # handle union and intersection calculation for prophages that have duplicated HGs
+    if (any(duplicated(p1Hgs)) || any(duplicated(p2Hgs))) {
+      # p1Hgs <- c("a", "b", "b", "c", "d", "d", "e", "f", "f", "g")
+      # p2Hgs <- c("c", "d", "d", "e", "f", "f", "g", "g", "h", "i", "i", "j")
+      p1Freq <- table(p1Hgs)
+      p2Freq <- table(p2Hgs)
+      
+      # duplicated shared HGs
+      sharedDups <- intersect(names(which(p1Freq > 1)), names(which(p2Freq > 1)))
+      sharedDupFreq <- pmin(p1Freq[sharedDups], p2Freq[sharedDups]) - 1
+      
+      if (length(sharedDupFreq) > 0) {
+        dupSharedHgs <- rep(names(sharedDupFreq), sharedDupFreq)
+        
+        sharedHgs <- append(sharedHgs, dupSharedHgs)
+        unionHgs <- append(unionHgs, dupSharedHgs)
+      }
+      
+      # duplicated unique HGs
+      uniqueDupFreq <- c(p1Freq[setdiff(p1Hgs, sharedHgs)], p2Freq[setdiff(p2Hgs, sharedHgs)]) - 1
+      
+      if (length(uniqueDupFreq) > 0) {
+        dupUniqueHgs <- rep(names(uniqueDupFreq), uniqueDupFreq)
+        
+        unionHgs <- append(unionHgs, dupUniqueHgs)
+      }
+      
+      
+    }
+    
+    
     # calculate syntenic HGs
     pairSyn <- list()
-
+    
     if(length(sharedHgs) > 0){
-
+      
       for (p1f in p1$fragments) {
         for (p2f in p2$fragments) {
-
+          
           # cat(p1f, ":", proHgL[[p1f]]$hgs, "\n")
           # cat(p2f, ":", proHgL[[p2f]]$hgs, "\n\n")
-
+          
           # get the shared syntenic homology groups between child and parent
           synteny <- syntenic_hg_overlap(
             ref = proHgL[[p1f]]$hgs,
@@ -133,19 +166,19 @@ for (i in 1:nrow(phages)) {
             minChainLen = min(proHgL[[p1f]]$nHgs, proHgL[[p2f]]$nHgs, minSyntenyChain),
             maxGapLen = maxSyntenyGap
           )
-
+          
           if(!is.null(synteny)){
             pairSyn <- append(pairSyn, list(synteny))
           }
-
+          
         }
       }
-
+      
     }
-
+    
     syntenicShared <- purrr::map(pairSyn, "lcs") %>%
       unlist()
-
+    
     thisCmp <- list(
       phage1 = p1$prophage_id,
       phage2 = p2$prophage_id,
@@ -154,16 +187,16 @@ for (i in 1:nrow(phages)) {
       nSharedHgs = length(sharedHgs),
       nSyntenicHgs = length(syntenicShared)
     )
-
+    
     thisCmp$phage1Shared <- round(thisCmp$nSyntenicHgs / p1$nHg, digits = 4)
     thisCmp$phage2Shared <- round(thisCmp$nSyntenicHgs / p2$nHg, digits = 4)
     thisCmp$jaccardIndex <- round(
-      thisCmp$nSyntenicHgs / length(union(p1Hgs, p2Hgs)), digits = 4
+      thisCmp$nSyntenicHgs / length(unionHgs), digits = 4
     )
     thisCmp$contentDissimilarity <- round(
       1 - mean(c(thisCmp$phage1Shared, thisCmp$phage2Shared)), digits = 4
     )
-
+    
     phageCmpDf <- dplyr::bind_rows(
       phageCmpDf,
       tibble::as_tibble(thisCmp)
