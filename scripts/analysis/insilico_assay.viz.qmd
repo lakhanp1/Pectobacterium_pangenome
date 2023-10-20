@@ -199,9 +199,6 @@ assayBlastDf <- dplyr::left_join(
     assay, type, assayRegionHits, regionId, assayGenomeGrp, everything()
   )
 
-
-readr::write_tsv(x = assayBlastDf, file = paste(outPrefix, ".data.tab", sep = ""))
-
 ## select only best matching assay
 bestAssaysInGenomes <- dplyr::filter(assayBlastDf, assay != "P_wasabiae_WPP163") %>% 
   dplyr::distinct(
@@ -220,6 +217,8 @@ bestAssaysInGenomes <- dplyr::select(bestAssaysInGenomes, assayGenomeGrp) %>%
     # mismatch = if_else(condition = mismatch == 0, true = "no", false = "yes"),
     primerCov = forcats::as_factor(primerCov)
   )
+
+readr::write_tsv(x = bestAssaysInGenomes, file = paste(outPrefix, ".data.tab", sep = ""))
 
 ## finally select assays only for the Genomes in sampleInfo
 genomeAssayDetails <- dplyr::select(sampleInfo, genomeId) %>% 
