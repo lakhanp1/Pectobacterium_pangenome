@@ -134,6 +134,8 @@ readr::write_tsv(
 aniMat <- tibble::column_to_rownames(aniMat, var = "g1") %>%
   as.matrix()
 
+aniMat <- aniMat[, rownames(aniMat)]
+
 if (!all(rownames(as.matrix(distMat)) == rownames(aniMat))) {
   stop("rownames did not match")
 }
@@ -430,7 +432,9 @@ pt_ani <- dplyr::mutate(
   # scale_fill_viridis_c(name = "% identity", option = "B") +
   scale_fill_stepsn(
     breaks = colorAni$breaks,
-    colors = colorAni$colors
+    values = scales::rescale(x = colorAni$breaks),
+    colours = colorAni$colors,
+    limits = c(85, 100) 
   ) +
   theme_bw() +
   theme(
