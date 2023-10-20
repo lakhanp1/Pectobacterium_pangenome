@@ -1,0 +1,180 @@
+---
+title: "Explore affinity propagation clustering"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(igraph))
+suppressPackageStartupMessages(library(apcluster))
+suppressPackageStartupMessages(library(dendextend))
+suppressPackageStartupMessages(library(logger))
+suppressPackageStartupMessages(library(configr))
+
+# Affinity propagation clustering 
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/homology_groups.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+)
+
+phages <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated_phages)
+) %>% 
+  dplyr::filter(filtered == 0) %>% 
+  dplyr::filter(nFragments == 1) %>% 
+  dplyr::select(
+    prophage_id, fragments, nFragments, prophage_length, nHg, genomeId
+  )
+
+simDf <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$phage_relationships)
+)
+
+phageCmpDf <- dplyr::bind_rows(
+  simDf,
+  dplyr::rename(simDf, p2 = phage1, p1 = phage2) %>% 
+    dplyr::rename(phage1 = p1, phage2 = p2)
+)
+
+simMat <- tidyr::pivot_wider(
+  phageCmpDf,
+  id_cols = phage1,
+  names_from = phage2,
+  values_from = jaccardIndex
+) %>% 
+  tibble::column_to_rownames(var = "phage1") %>% 
+  as.matrix()
+
+# ensure a symmetric matric
+simMat <- simMat[phages$prophage_id, phages$prophage_id]
+
+# diagonal elements to 1
+if (all(is.na(diag(simMat)))) {
+  diag(simMat) <- 1
+}
+
+quantile(simMat, c(0, 0.25, 0.5, 0.75, seq(0.9, 0.99, by = 0.01), 0.995, 1))
+```
+
+## Affinity propagation clustering 
+
+```{r}
+#| column: page 
+#| fig-height: 10
+#| fig-width: 10
+#| out-width: '150%'
+#| layout-valign: top
+
+apcRes <- apcluster::apcluster(s = simMat, seed = 124, p = 0.5, maxits = 10000)
+
+# sort by number of cluster for simplicity
+apcSizeSorted <- sort(apcRes, sortBy = "size")
+
+heatmap(apcSizeSorted, simMat)
+
+```
+
+Number of clusters: `r length(apcRes@exemplars)`
+
+### Save result files for later exploration 
+
+```{r}
+
+phageGrps <- tibble::tibble(
+  prophage_id = rownames(simMat),
+  cluster = labels(apcSizeSorted, "enum"),
+  exemplarId = labels(apcSizeSorted, "exemplars")
+) %>% 
+  dplyr::mutate(
+    exemplar = rownames(simMat)[exemplarId],
+    cluster = paste("Cluster", cluster)
+  )
+
+readr::write_tsv(
+  x = phageGrps,
+  file = confs$analysis$prophages$preprocessing$files$ap_clusters
+)
+
+clusterSummary <- purrr::map2_dfr(
+  .x = 1:length(apcSizeSorted@exemplars),
+  .y = names(apcSizeSorted@exemplars),
+  .f = function(x, y){
+    m <- simMat[apcSizeSorted[[x]], apcSizeSorted[[x]]]
+    lm <- m[lower.tri(m)]
+    
+    return(c(exemplar = y, size = length(apcSizeSorted[[x]]), quantile(lm)))
+  }
+)
+
+readr::write_tsv(
+  x = clusterSummary,
+  file = confs$analysis$prophages$preprocessing$files$apc_summary
+)
+
+```
+
+### Agglomerative clustering of AP clusters 
+
+```{r}
+
+# Exemplar-based Agglomerative Clustering and save clusters
+aggRes <- apcluster::aggExCluster(s = simMat, x = apcSizeSorted)
+
+aggClust <- ape::as.phylo.hclust(as.hclust(aggRes))
+
+ape::write.tree(
+  phy = aggClust,
+  file = confs$analysis$prophages$preprocessing$files$apc_exemplar_phylo
+)
+
+```
+
+:::{.scrolling_y}
+
+```{r}
+#| column: page 
+#| fig-height: 30
+#| fig-width: 8 
+#| out-width: '100%'
+#| layout-valign: top
+
+plot(aggClust, cex = 0.5)
+```
+
+:::
+
