@@ -223,6 +223,7 @@ for (gn in sampleInfo$genomeId) {
         dplyr::arrange(start)
       
       childPos <- dplyr::select(orderedChildPhages, child, start, end) %>% 
+        tidyr::unite(col = "fragmentAlnPos", start, end, sep = ":") %>% 
         dplyr::summarise(
           dplyr::across(
             .cols = everything(),
@@ -265,8 +266,7 @@ for (gn in sampleInfo$genomeId) {
         children = childPhages,
         childGenome = gn,
         childString = childPos$child,
-        hgAlnStart = childPos$start,
-        hgAlnEnd = childPos$end,
+        fragmentAlnPos = childPos$fragmentAlnPos,
         nChildFragments = length(childPhages),
         childHgs = childHgs,
         nHgChild = length(childHgs),
@@ -440,7 +440,7 @@ for (gn in sampleInfo$genomeId) {
       .x = bestParent, .f = `[`,
       c(
         "childString", "nChildFragments", "childGenome", "childPhageLen",
-        "hgAlnStart", "hgAlnEnd", "nHgChild",
+        "fragmentAlnPos", "nHgChild",
         "parent", "parentGenome", "nHgParent", "nSharedHgs", "nSyntenicSharedHgs",
         "jaccardIndex", "contentDissimilarity",
         "perSharedParent", "perSharedChild", "relation"
