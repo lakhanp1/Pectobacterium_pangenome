@@ -167,7 +167,8 @@ plot(gf, layout = lot, vertex.size = 1.5, vertex.label = NA,
 
 ```{r}
 #| column: page 
-#| fig-height: 8
+#| fig-height: 7
+#| fig-width: 10
 #| out-width: '150%'
 #| layout-valign: top
 
@@ -182,16 +183,11 @@ lotc <- igraph::layout_components(graph = gf, layout = layout_with_kk)
       arrow = arrow(length = unit(1, 'mm')),
       end_cap = circle(1, 'mm')
     ) +
-    # scale_colour_viridis_c(option = "A") +
-    # ggnewscale::new_scale_colour() +
-    # geom_node_point(mapping = aes(color = nodeType, size = nodeType), alpha = 0.7) +
     ggraph::geom_node_point(
-      mapping = aes(color = nodeType, size = nodeType),
-      alpha = 0.7
+      mapping = aes(fill = nodeType),
+      alpha = 0.7, shape = 21, color = "black"
     ) +
-    scale_color_manual(
-      values = c("child" = "black", "root" = "#d95f02", "singleton" = "#7570b3")
-    ) +
+    scale_fill_viridis_d() +
     scale_size_manual(
       values = c("child" = 1.5, "root" = 3, "singleton" = 1.5)
     ) +
@@ -202,6 +198,6 @@ lotc <- igraph::layout_components(graph = gf, layout = layout_with_kk)
     ))
 
 ggsave(filename = paste(outDir, "/prophage_clusters.pdf", sep = ""),
-       width = 12, height = 10)
+       width = 10, height = 8)
 
 ```

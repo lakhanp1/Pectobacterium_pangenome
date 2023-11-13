@@ -37,14 +37,13 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
 # get root-leaf node path as string for filtering purpose
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 nodePaths <- nodepath_df(phy = rawTree) %>% 
-  dplyr::rename(Genome = tip) %>% 
-  dplyr::mutate(Genome = as.numeric(Genome))
+  dplyr::rename(genomeId = tip)
 
 prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
   dplyr::mutate(
@@ -69,31 +68,71 @@ proHgs <- suppressMessages(
 #   purrr::set_names(nm = purrr::map(., "prophage_id"))
 
 sharedStats <- suppressMessages(readr::read_tsv(
-  file = confs$analysis$prophages$files$hg_similarity
+  file = confs$analysis$prophages$files$phage_similarity
+  # file = "./analysis/04_pangenome_pecto_v2/prophages/pangenome_phage_similarity.g2.tab"
 ))
+
+# sharedStats <- dplyr::left_join(
+#   sharedStats, dplyr::select(prophageDf, prophage_id, parentLength = prophage_length),
+#   by = c("parent" = "prophage_id")
+# ) %>% 
+#   dplyr::filter(
+#   childPhageLen > 5000, (parentLength > 5000 | is.na(parentLength))
+# )
 
 ################################################################################
 # store network format table
-phageRelations <- dplyr::mutate(sharedStats, child = stringr::str_split(child, ";")) %>%
-  tidyr::unnest(child)
+phageRelations <- dplyr::mutate(
+  sharedStats,
+  mergedNode = dplyr::if_else(
+    condition = grepl(pattern = ";", x = child),
+    true = "merged_child", false = ""
+  )
+)
 
+
+# assign nodetype = root for all nodes that have a child 
 parents <- dplyr::filter(phageRelations, !is.na(parent)) %>%
   dplyr::select(parent) %>%
   dplyr::distinct() %>%
   dplyr::mutate(nodeType = "root")
 
+# all the nodes without a parent are either "singletons" or "root" nodes
 nodeType <- dplyr::filter(phageRelations, is.na(parent)) %>%
   dplyr::select(child) %>%
   dplyr::left_join(y = parents, by = c("child" = "parent")) %>%
   tidyr::replace_na(replace = list(nodeType = "singleton"))
 
-phageRelations %<>%
-  dplyr::left_join(y = nodeType, by = c("child")) %>%
+phageRelations <- dplyr::left_join(
+  x = phageRelations, y = nodeType, by = c("child")
+) %>%
   tidyr::replace_na(replace = list(nodeType = "child")) %>%
   dplyr::mutate(
-    nodeType = forcats::fct_relevel(.f = nodeType, "root", "singleton")
+    nodeType = if_else(mergedNode == "merged_child", mergedNode, nodeType),
+    nodeType = forcats::fct_relevel(
+      .f = nodeType, "root", "singleton", "child", "merged_child"
+    )
+  )
+
+table(phageRelations$nodeType)
+
+ggplot(data = phageRelations) +
+  geom_point(mapping = aes(x = nSharedHgs, y = nSyntenicSharedHgs)) +
+  labs(
+    x = "# shared HGs", y = "# syntenic HGs",
+    title = "prophage similarity: intersect vs synteny"
+  ) +
+  theme_bw(base_size = 20)
+
+
+phageRelations <- dplyr::mutate(
+  phageRelations,
+  child = stringr::str_split(child, ";")
+) %>%
+  tidyr::unnest(child) %>% 
+  dplyr::rename(
+    prophage_id = child, genomeId = childGenome, nHgs = nHgChild
   ) %>%
-  dplyr::rename(prophage_id = child, Genome = childGenome, nHgs = nHgChild) %>%
   dplyr::left_join(
     y = dplyr::select(
       prophageDf, prophage_id, prophage_length, prophage_region,
@@ -101,16 +140,17 @@ phageRelations %<>%
     ),
     by = "prophage_id") %>% 
   dplyr::relocate(
-    nodeType, Genome, sampleId, SpeciesName, prophage_region, prophage_length,
+    nodeType, genomeId, sampleId, SpeciesName, prophage_region, prophage_length,
     .after = prophage_id
   ) %>% 
-  dplyr::left_join(y = nodePaths, by = "Genome") %>% 
+  dplyr::left_join(y = nodePaths, by = "genomeId") %>% 
   dplyr::left_join(y = proHgs, by = c("prophage_id" = "id"))
 
+table(phageRelations$nodeType)
 
 # make igraph
 nodes <- dplyr::select(
-  phageRelations, prophage_id, nodeType, Genome,
+  phageRelations, prophage_id, nodeType, genomeId,
   nHgs, perSharedParent
 ) %>%
   dplyr::left_join(y = prophageDf, by = "prophage_id") %>%
@@ -146,7 +186,7 @@ phageRelations <- dplyr::left_join(
   by = "prophage_id"
 )
 
-compRoots <- dplyr::filter(phageRelations, nodeType != "child") %>%
+compRoots <- dplyr::filter(phageRelations, !(nodeType %in% c("child", "merged_child"))) %>%
   dplyr::select(
     root_id = prophage_id, root_nHgs = nHgs, root_hgs = hgs, graph_component
   ) 
