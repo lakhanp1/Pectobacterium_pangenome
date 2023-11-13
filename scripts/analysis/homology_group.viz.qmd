@@ -37,10 +37,11 @@ source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
-analysisName <- "vir_lineage_prophages"
+analysisName <- "carotovoricin_cluster"
 
 setIds <- c(
-  "g_3.vir_4", "g_189.vir_2", "g_399.vir_2", "g_189.vir_1", "g_172.vir_2"
+  # "g_3.vir_4", "g_189.vir_2", "g_399.vir_2", "g_189.vir_1", "g_172.vir_2"
+  "g_438.vir_2"
 )
 
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
@@ -55,7 +56,7 @@ confs <- prefix_config_paths(
 # `setIds` are searched in these files to identify respective homology groups
 # for plotting
 hgSetFiles <- c(
-  confs$analysis$prophages$files$prophage_hg
+  confs$analysis$prophages$preprocessing$files$raw_prophage_hg
   # confs$analysis$homology_groups$files$hg_sets
 )
 
@@ -105,10 +106,13 @@ for (st in hgSetFiles) {
       hgs = stringr::str_split(hgs, ";"),
       setSource = st
     ) %>% 
-    dplyr::select(tidyselect::all_of(c("id", "hgs", "setSource")))
+    dplyr::select(id = prophage_id, hgs, setSource)
+  
   
   hgSets <- dplyr::bind_rows(hgSets, df)
 }
+
+
 
 if (any(duplicated(hgSets$id))) {
   stop(
@@ -149,8 +153,6 @@ for (id in names(hgL)) {
   )
   
   hgMat <- hgMat[rawTree$tip.label, ]
-  colnames(hgMat) <- paste("hg.", colnames(hgMat), sep = "")
-  
   
   ht <- homology_group_heatmap(
     mat = hgMat, phy = rawTree,
@@ -166,7 +168,7 @@ for (id in names(hgL)) {
 }
 
 
-pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 20, height = 12)
+pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 16, height = 8)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = hgL[[1]]$id,

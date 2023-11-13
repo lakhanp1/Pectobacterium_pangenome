@@ -1,5 +1,5 @@
 ---
-title: "Prophage clustering using ANI and MASH"
+title: "Prophage sequence similarity using ANI and MASH"
 author: "Lakhansing Pardeshi"
 date: "`r Sys.Date()`"
 format: 
@@ -11,8 +11,8 @@ knitr:
     fig.height: 7
 ---
 
-This script process ANI and MASH output for prophages and store the distance
-matrices for consolidated prophages for future use.
+This script process ANI and MASH output for the filtered prophages and stores the
+distance matrices and clustering dendrograms.
 
 ## Initial setup
 
@@ -61,9 +61,8 @@ sampleInfoList <- as.list_metadata(
 )
 
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated_phages)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered_prophages)
 ) %>% 
-  dplyr::filter(filtered == 0, nFragments == 1) %>% 
   dplyr::select(
     prophage_id, fragments, nFragments, prophage_length, nHg, genomeId
   )

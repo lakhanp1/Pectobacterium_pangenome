@@ -283,6 +283,12 @@ ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
     geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
     ggbeeswarm::geom_quasirandom(size = 3) +
     ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
+    scale_x_discrete(
+      labels = c(
+        "virulent" = "blackleg\ncausing",
+        "avirulent" = "blackleg\nnon-causing"
+      )
+    ) +
     scale_y_continuous(labels = scales::label_comma()) +
     facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
     # labs(

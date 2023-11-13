@@ -117,7 +117,7 @@ homology_group_heatmap <- function(mat, phy, hgAn, metadata, width, markGenomes)
     # heatmap_legend_param = list(legend_height = unit(3, "cm")),
     cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
     column_split = hgAn$betaSign,
-    cluster_columns = TRUE, cluster_column_slices = TRUE,
+    cluster_columns = FALSE, cluster_column_slices = TRUE,
     # column_order = hgAn$homology_group_id,
     # column_labels = dplyr::pull(hgAn, label, name = homology_group_id),
     show_column_names = FALSE,
