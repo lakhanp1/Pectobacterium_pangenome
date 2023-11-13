@@ -10,7 +10,7 @@ knitr:
     fig.height: 7
 ---
 
-This script summarizes prophages detected in all the genomes using geNomad pipeline.
+This script summarizes the consolidated prophages in the pangenome.
 The figures and statistics generated in this analysis include all prophages i.e.
 redundant prophages (from identical genomes assemblies). 
 For the summary of unique prophages, please refer to the script
@@ -25,6 +25,7 @@ For the summary of unique prophages, please refer to the script
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(ggdist))
+suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 rm(list = ls())
@@ -32,6 +33,7 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
@@ -45,7 +47,10 @@ panConf <- confs$data$pangenomes[[pangenome]]
 
 outDir <- confs$analysis$prophages$dir
 
-orgDb <- org.Pectobacterium.spp.pan.eg.db
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
+
 ```
 
 ## Import data
@@ -54,20 +59,14 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
-
-prophageDf <- suppressMessages(
-  readr::read_tsv(confs$data$prophages$files$data)
-) %>% 
-  dplyr::rename(prophage_length = length) %>% 
-  dplyr::filter(viral_genes != 0) 
 
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$files$prophage_hg)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>% 
-  dplyr::select(prophage_id = id, nHgs, hgs) %>% 
+  dplyr::select(prophage_id, nHgs, hgs) %>% 
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   )
@@ -85,12 +84,40 @@ hgSummary <- suppressMessages(
     total_hgs = sum(core, accessory, unique, na.rm = T) 
   )
 
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+  dplyr::select(prophage_id, sampleId, taxonomy, completeness, checkv_quality)
+
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
+pt_tree <- ggtree::ggtree(rawTree)
+treeTipOrder <- ggtree::get_taxa_name(pt_tree)
+```
+
+### Import processed prophage data
+
+```{r}
+phages <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated_phages)
+)
+
+selectedPro <- dplyr::filter(phages, filtered == 0, nFragments == 1) %>% 
+  dplyr::left_join(y = prophageDf, by = "prophage_id") %>% 
+  dplyr::left_join(proHgs, by = "prophage_id") %>% 
+  dplyr::relocate(sampleId, taxonomy, completeness, checkv_quality, .after = genomeId)
+
+removedPro <- dplyr::filter(phages, filtered != 0 | nFragments > 1)
+
+# save filtered prophages
+readr::write_tsv(
+  dplyr::select(selectedPro, -hgs, -nHgs),
+  file = confs$analysis$prophages$preprocessing$files$filtered_prophages
+)
+
 ```
 
 ## Prophage summary for deciding filtering
 
 ```{r}
-glimpse(prophageDf)
+glimpse(selectedPro)
 ```
 
 ```{r}
@@ -98,37 +125,48 @@ glimpse(prophageDf)
 #| out-width: '100%'
 #| fig-height: 4
 
-compDf <- dplyr::select(prophageDf, prophage_id, prophage_length, completeness) %>% 
+completenessDf <- dplyr::select(
+  selectedPro, prophage_id, genomeId, prophage_length, completeness
+) %>% 
   dplyr::mutate(
     comp_category = dplyr::case_when(
       completeness == 100 ~ "complete",
-      completeness >= 90 ~ ">= 90%",
-      completeness >= 50 ~ "[50%, 90%)",
-      completeness < 50 ~ "< 50%"
+      completeness >= 90 ~ "gt_90",
+      completeness >= 50 ~ "betn_50_90",
+      completeness < 50 ~ "lt_50"
     ),
-    grp = "prophages"
+    comp_category = forcats::fct_relevel(
+      .f = comp_category, "complete", "gt_90", "betn_50_90", "lt_50"
+    )
   )
 
-shortestCompletePro <- dplyr::filter(compDf, completeness >= 90) %>% 
+shortestCompletePro <- dplyr::filter(completenessDf, completeness >= 90) %>% 
   dplyr::arrange(prophage_length) %>% 
   dplyr::slice(1L)
 
 (
   pt_sizeDens <- ggplot2::ggplot(
-    data = compDf,
+    data = completenessDf,
     mapping = aes(x = prophage_length, color = comp_category, group = NA)
   ) +
     ggdist::geom_dots(layout = "weave", smooth = "bounded", scale = 1, shape = 19) +
-    geom_vline(xintercept = shortestCompletePro$prophage_length, linetype = 2) +
     scale_color_manual(
+      name = "CheckV completeness",
       values = c(
-        "complete" = "#4daf4a", ">= 90%" = "#b2df8a",
-        "[50%, 90%)" = "#ff7f00", "< 50%" = "#ffffb3"
+        "complete" = "#4daf4a", "gt_90" = "#b2df8a",
+        "betn_50_90" = "#ff7f00", "lt_50" = "grey50"
+      ),
+      labels = c(
+        "complete" = "100%", "gt_90" = ">= 90%",
+        "betn_50_90" = "[50%, 90%)", "lt_50" = "< 50%"
       )
     ) +
     scale_x_continuous(
-      labels = scales::label_number(big.mark = ",")
+      labels = scales::label_number(scale_cut = c(0, kb = 10^3, mb = 10^6)),
+      breaks = scales::breaks_extended(6),
+      limits = c(0, NA), expand = expansion(mult = c(0, 0.05))
     ) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
     labs(x = "Prophage length", y = "density") +
     theme_bw(base_size = 18) +
     theme(
@@ -142,35 +180,13 @@ ggsave(filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
        plot = pt_sizeDens, width = 8, height = 5)
 ```
 
-Shortest prophage with completeness \>= 90% has length of `r shortestCompletePro$prophage_length`bp. Therefore, filtering prophages smaller than 5kb for downstream analysis.
-
-```{r}
-filteredPro <- dplyr::filter(
-  prophageDf, prophage_length >= 5000
-)
-
-readr::write_tsv(filteredPro, file = confs$analysis$prophages$files$prophages_filtered)
-
-```
-
-After filtering for low quality prophages, *Pectobacterium* pangenome has `r nrow(filteredPro)` prophages. We will summarize various statistics of these prophages below.
-
-## Pangenome prophage set
-
-```{r}
-# pangenome prophages
-panProphages <- dplyr::left_join(
-  dplyr::select(sampleInfo, sampleId, geo_loc_country), 
-  y = filteredPro, by = "sampleId") %>% 
-  dplyr::left_join(proHgs, by = "prophage_id")
-```
 
 ## Prophage summary
 
 ### Prophage types
 
 ```{r}
-table(filteredPro$taxonomy)
+table(selectedPro$taxonomy)
 ```
 
 ```{r}
@@ -179,13 +195,13 @@ table(filteredPro$taxonomy)
 #| out-width: "50%"
 
 (
-  pt_proTax <- dplyr::select(filteredPro, taxonomy) %>% 
+  pt_proTax <- dplyr::select(selectedPro, taxonomy) %>% 
     dplyr::mutate(
       taxonomy = stringr::str_replace(taxonomy, ".*;", "")
     ) %>% 
     ggplot2::ggplot() +
     geom_bar(mapping = aes(x = taxonomy)) +
-    ggbreak::scale_y_break(breaks = c(10, 1395)) +
+    ggbreak::scale_y_break(breaks = c(10, 1290)) +
     theme_bw(base_size = 24) +
     theme(
       panel.grid = element_blank(),
@@ -198,23 +214,77 @@ ggsave(filename = paste(outDir, "/prophage_taxonomy.pdf", sep = ""),
        plot = pt_proTax, width = 4, height = 7)
 ```
 
-### Prophage summary per sample
+### Prophage summary per genome
 
 ```{r}
-perGenomePhageInfo <- dplyr::group_by(panProphages, sampleId, Genome, SpeciesName) %>% 
+
+# completeness stats
+proCompletenessStats <- dplyr::select(completenessDf, genomeId, comp_category) %>% 
+  dplyr::count(genomeId, comp_category, name = "n") %>% 
+  tidyr::pivot_wider(
+    id_cols = genomeId,
+    names_from = comp_category,
+    values_from = n,
+    values_fill = 0
+  ) %>% 
+  dplyr::select(genomeId, complete, gt_90, betn_50_90, lt_50)
+
+# fragmented or filtered prophages stats
+fragmentStats <- dplyr::select(removedPro, prophage_id, genomeId, nFragments, filtered) %>% 
+  dplyr::mutate(
+    removed = dplyr::case_when(
+      filtered == 1 ~ "filtered",
+      nFragments > 1 ~ "fragmented"
+    )
+  ) %>% 
+  dplyr::count(genomeId, removed, name = "n") %>% 
+  tidyr::pivot_wider(
+    id_cols = genomeId,
+    names_from = removed,
+    values_from = n,
+    values_fill = 0
+  ) %>% 
+  dplyr::mutate(
+    removed = filtered + fragmented
+  )
+
+
+perGenomePhageInfo <- dplyr::group_by(selectedPro, genomeId) %>% 
   dplyr::summarise(
     phage_count = n(),
     longest_phage = max(prophage_length),
     smallest_phage = min(prophage_length),
-    mean_phage_len = mean(prophage_length),
-    longest_nHg = max(nHgs),
-    smallest_nHg = min(nHgs),
-    phage_nHgs = sum(nHgs),
+    total_phage_len = sum(prophage_length),
+    longest_nHg = max(nHg),
+    smallest_nHg = min(nHg),
+    phage_nHgs = sum(nHg),
     hgs = list(unlist(hgs)),
+    nHgsUnique = length(unique(unlist(hgs))),
     .groups = "drop"
   ) %>% 
-  tidyr::replace_na(replace = list(phage_nHgs = 0)) %>% 
-  dplyr::arrange(desc(phage_count))
+  dplyr::arrange(desc(phage_count)) %>% 
+  dplyr::full_join(
+    y = dplyr::select(
+      sampleInfo, sampleId, genomeId, geo_loc_country,
+      nodepath.kmer_nj, SpeciesName
+    ),
+    by = "genomeId"
+  ) %>% 
+  dplyr::left_join(y = proCompletenessStats, by = "genomeId") %>% 
+  dplyr::left_join(y = fragmentStats, by = "genomeId") %>% 
+  tidyr::replace_na(
+    replace = list(phage_nHgs = 0, nHgsUnique = 0, phage_count = 0)
+  ) %>% 
+  dplyr::relocate(
+    sampleId, SpeciesName, geo_loc_country, nodepath.kmer_nj,
+    .after = genomeId
+  ) %>% 
+  dplyr::arrange(nodepath.kmer_nj)
+
+perGenomePhageInfo <- dplyr::full_join(
+  x = tibble(genomeId = treeTipOrder),
+  y = perGenomePhageInfo, by = "genomeId"
+)
 
 readr::write_tsv(
   x = dplyr::select(perGenomePhageInfo, -hgs),
@@ -222,7 +292,7 @@ readr::write_tsv(
 )
 ```
 
-### Prophage summary per species
+### Prophage gene distribution in core, accessory and unique groups
 
 ```{r}
 panVirSummary <- dplyr::summarise(
@@ -235,7 +305,8 @@ panVirSummary <- dplyr::summarise(
   mean_vir_hgs = mean(phage_nHgs),
   median_vir_hgs = median(phage_nHgs),
   total_vir_hgs = sum(phage_nHgs),
-  unique_vir_hgs = length(unique(unlist(hgs)))
+  unique_vir_hgs = length(unique(unlist(hgs))),
+  hgs = list(unique(unlist(hgs)))
 ) %>% 
   dplyr::mutate(SpeciesName = "Pangenome", .before = n_genomes)
 
@@ -246,18 +317,198 @@ spVirSummary <- dplyr::group_by(perGenomePhageInfo, SpeciesName) %>%
     max_vir_per_g = max(phage_count),
     min_vir_per_g = min(phage_count),
     mean_vir_per_g = mean(phage_count),
-    mean_vir_hgs = mean(phage_nHgs),
-    median_vir_hgs = median(phage_nHgs),
     total_vir_hgs = sum(phage_nHgs),
-    unique_vir_hgs = length(unique(unlist(hgs)))
+    unique_vir_hgs = length(unique(unlist(hgs))),
+    hgs = list(unique(unlist(hgs))),
+    .groups = "drop"
   ) %>%
   dplyr::bind_rows(panVirSummary) %>% 
-  dplyr::arrange(desc(n_genomes)) %>% 
-  dplyr::left_join(y = hgSummary, by = "SpeciesName")
+  dplyr::arrange(desc(n_genomes))
 
-readr::write_tsv(x = spVirSummary, file = confs$analysis$prophages$files$prophage_stats_species)
-
-spVirSummary
 ```
 
 
+```{r}
+## binary matrix for homology_group PAV
+hgBinaryMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
+
+sppGrpStats <- NULL
+
+## get species wise core, accessory, unique group stats and GO
+for (sp in c(unique(sampleInfo$SpeciesName), "Pangenome")) {
+  
+  atPangenomeScale <- sp == "Pangenome"
+  
+  if (atPangenomeScale) {
+    spGenomes <- sampleInfo$genomeId
+  } else{
+    spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
+      dplyr::pull(genomeId)
+  }
+  
+  # prophage homology groups: handle special case when HGs for Pangenome are needed
+  spPhagesHgs <- dplyr::filter(
+    perGenomePhageInfo, SpeciesName == !!sp | atPangenomeScale
+  ) %>% 
+    dplyr::select(hgId = hgs) %>% 
+    dplyr::mutate(prophageHgs = "prophage") %>% 
+    tidyr::unnest(cols = c(hgId)) %>% 
+    dplyr::distinct()
+  
+  # pangenome homology groups
+  spHgTypes <- matrixStats::colSums2(
+    x = hgBinaryMat, useNames = T,
+    rows = which(rownames(hgBinaryMat) %in% spGenomes)
+  ) %>%
+    tibble::enframe(name = "hgId", value = "nGenomes") %>%
+    dplyr::filter(nGenomes != 0) %>%
+    dplyr::mutate(
+      class = dplyr::case_when(
+        nGenomes == 1 ~ "unique",
+        nGenomes == !!length(spGenomes) ~ "core",
+        nGenomes < !!length(spGenomes) & nGenomes > 1 ~ "accessory"
+      )
+    ) %>% 
+    dplyr::left_join(y = spPhagesHgs, by = "hgId") %>% 
+    tidyr::replace_na(list(prophageHgs = "non-prophage"))
+  
+  ## group stats
+  proHgSpStats <- dplyr::count(spHgTypes, class, prophageHgs, name = "phage_nHgs") %>%
+    dplyr::filter(prophageHgs == "prophage") %>% 
+    dplyr::left_join(
+      y = as.data.frame(table(spHgTypes$class), responseName = "nHgs"),
+      by = c("class" = "Var1")
+    ) %>% 
+    dplyr::select(-prophageHgs) %>% 
+    dplyr::bind_rows(
+      dplyr::summarise(
+        .,
+        dplyr::across(.cols = -class, .fns = sum),
+        dplyr::across(.cols = class, .fns = ~'total')
+      )
+    ) %>% 
+    dplyr::mutate(
+      SpeciesName = .env$sp,
+      phageRatio = round(phage_nHgs / nHgs, digits = 3)
+    ) %>%
+    dplyr::select(SpeciesName, class, nHgs, phage_nHgs, phageRatio)
+  
+  sppGrpStats <- dplyr::bind_rows(sppGrpStats, proHgSpStats)
+}
+
+
+spec1 <- tidyr::build_wider_spec(
+  data = sppGrpStats,
+  names_from = class,
+  values_from = c(nHgs, phage_nHgs, phageRatio),
+  names_glue = "{.value}.{class}"
+) %>% 
+  dplyr::mutate(
+    .name = dplyr::if_else(
+      .value == "nHgs", true = class, false = .name
+    )
+  )
+
+phageSpeciesStats <- tidyr::pivot_wider_spec(data = sppGrpStats, spec = spec1) %>% 
+  dplyr::left_join(
+    y = spVirSummary, by = "SpeciesName"
+  ) %>% 
+  dplyr::select(-hgs)
+
+stopifnot(
+  all(phageSpeciesStats$phage_nHgs.total == phageSpeciesStats$unique_vir_hgs)
+)
+
+phageSpeciesStats %<>% dplyr::select(
+  SpeciesName, n_genomes, n_vir_sp, mean_vir_per_g, core, accessory, unique, total,
+  phage_nHgs.total, starts_with("phageRatio"),
+) %>% 
+  dplyr::arrange(desc(n_genomes))
+
+phageSpeciesStats %>% 
+  readr::write_tsv(
+    file = confs$analysis$prophages$files$prophage_stats_species
+  )
+
+```
+
+::: {.striped .hover .responsive}
+
+```{r}
+#| echo: false
+#| column: page
+#| label: tbl-planets
+#| tbl-cap: Prophage summary per species
+
+rmarkdown::paged_table(
+  phageSpeciesStats,
+  options = list(
+    paged.print = FALSE, cols.print = 10
+  )
+)
+
+```
+
+:::
+
+### Prophage contribution to the genome size in blackleg-causing and blackleg-non-causing isolates
+
+```{r}
+
+perGenomePhageInfo <- dplyr::left_join(
+  x = perGenomePhageInfo,
+  y = dplyr::select(sampleInfo, genomeId, virulence, virulence_pcr, length, N50),
+  by = "genomeId"
+)
+
+plotDf <- dplyr::select(
+  perGenomePhageInfo, genomeId, sampleId, SpeciesName, geo_loc_country, virulence,
+  virulence_pcr, length, N50, total_phage_len
+) %>%
+  tidyr::pivot_longer(
+    cols = -c(genomeId, sampleId, SpeciesName, geo_loc_country,
+              virulence, virulence_pcr),
+    names_to = "field",
+    values_to = "value"
+  ) %>%
+  dplyr::mutate(
+    field = forcats::fct_relevel(
+      field, "length", "total_phage_len", "N50"
+    )
+  )
+
+
+pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
+  dplyr::filter(field %in% c("length", "total_phage_len", "N50")) %>%
+  ggplot(mapping = aes(x = virulence, y = value))  +
+  geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
+  ggbeeswarm::geom_quasirandom(size = 3) +
+  ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
+  scale_x_discrete(
+    labels = c(
+      "virulent" = "blackleg\ncausing",
+      "avirulent" = "blackleg\nnon-causing"
+    )
+  ) +
+  scale_y_continuous(labels = scales::label_comma()) +
+  facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
+  theme_bw(base_size = 20) +
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    panel.grid = element_blank()
+  )
+
+```
+
+```{r}
+#| echo: false
+#| column: page 
+#| fig-height: 6
+#| fig-width: 10 
+#| out-width: '100%'
+#| layout-valign: top
+
+pt_proLen
+```
