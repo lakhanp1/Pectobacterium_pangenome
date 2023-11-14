@@ -175,7 +175,7 @@ data:
 analysis:
   dir: "analysis"
   qc:
-    dir: "01_QC"
+    dir: "QC"
     files:
       busco_genome: "busco_geno_multiqc_data/multiqc_busco.txt"
       busco_protein: "busco_prot_multiqc_data/multiqc_busco.txt"
@@ -188,24 +188,24 @@ analysis:
       tax_check: "taxonomy_check.tab"
   ANI:
     ## move this inside "qc" block in future
-    dir: "02_fastANI"
+    dir: "fastANI"
     files:
       fastani_out: "ANI_results"
       ani_upgma: "ANI_UPGMA.newick"
       ani_nj: "ANI_NJ.newick"
       ani_rooted_nj: "ANI_NJ_rooted.newick"
   summary:
-    dir: "04_pangenome_pecto_v2/summary"
+    dir: "pangenome_pecto_v2/summary"
     files:
       data: ""
       pangenome: ""
   gouping_optimization:
     name: "grouping"
-    dir: "04_pangenome_pecto_v2/subset_optimal_group"
+    dir: "pangenome_pecto_v2/subset_optimal_group"
   phylogeny:
     name: "phylogeny"
     outgroup: "104326-106-074"
-    dir: "04_pangenome_pecto_v2/phylogeny"
+    dir: "pangenome_pecto_v2/phylogeny"
     default: "kmer_nj"
     files:
       clade_copare: "clade_compare_contrasts.tab"
@@ -267,12 +267,12 @@ analysis:
         tree_rooted: "core_snp_nj.rooted.newick"
         species_order: "core_snp_nj.species_order.txt"
   insilico_assay:
-    dir: "04_pangenome_pecto_v2/insilico_assay"
+    dir: "pangenome_pecto_v2/insilico_assay"
     files:
       blastn: "pcr_primer_blastn.out"
       insilico_pcr: "bioassay_probe_match.data.tab"
   homology_groups:
-    dir: "04_pangenome_pecto_v2/homology_groups"
+    dir: "pangenome_pecto_v2/homology_groups"
     files:
       groups: "genome_to_groups.tab"
       groups_meta: "homology_groups_meta.tab"
@@ -280,12 +280,12 @@ analysis:
       spp_group_stats: "spp_group_stats.tab"
       hg_sets: "hg_sets_of_interest.tab"
   association:
-    dir: "04_pangenome_pecto_v2/pheno_association"
+    dir: "pangenome_pecto_v2/pheno_association"
     files:
       pheno_specific_groups: "phenotype_specific_groups.txt"
   prophages:
     cutoff_length: 5000
-    dir: "04_pangenome_pecto_v2/prophages"
+    dir: "pangenome_pecto_v2/prophages"
     preprocessing:
       dir: "preprocessing"
       files:
@@ -294,6 +294,7 @@ analysis:
         filtered_prophages: "filtered_prophages.tab"
         phage_relationships: "phage_pair_relationships.tab"
         merged_prophage_hgs: "merged_prophage_hgs.tab"
+        dag_clusters: "prophage_DAG_network.tab"
         ap_clusters: "ap_clusters.tab"
         apc_summary: "ap_cluster_summary.tab"
         apc_exemplar_phylo: "ap_cluster_exemplar.newick"
@@ -303,8 +304,7 @@ analysis:
         mash_dist: "prophage_mash_dist.tab"
         mash_upgma: "prophage_mash_upgma.newick"
         mash_nj: "prophage_mash_nj.newick"
-        network: "prophage_network.tab"
     files:
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
-      representatives: "unique_prophages.tab"
+      clusters: "unique_prophages.tab"
