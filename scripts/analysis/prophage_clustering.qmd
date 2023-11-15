@@ -338,7 +338,7 @@ phageGroups <- tibble::enframe(
 
 Cluster representatives are determined based on the mean Jaccard index of cluster
 members against all members. The cluster member with highest mean Jaccard index
-across group is selected as a cluster representative.
+against the cluster members is selected as a cluster representative.
 
 ```{r}
 # get cluster roots
@@ -386,19 +386,34 @@ phageClusters <- dplyr::left_join(
     .after = root_id
   ) 
 
+representatives <- dplyr::filter(phageClusters, is_root == 1)
+
 readr::write_tsv(
   phageClusters, file = confs$analysis$prophages$files$clusters
 )
 
 ```
 
+:::{.callout-note}
 What is the variation in genome ANI of the phages in the same group?
+:::
+
+If the clustering is good, the representatives prophages should not have high
+syntenic Jaccard index against other representative prophages.
+
+```{r}
+repJacMat <- jaccardMat[representatives$prophage_id, representatives$prophage_id]
+
+diag(repJacMat) <- NA
+
+matrixStats::rowMaxs(repJacMat, useNames = TRUE, na.rm = TRUE) %>%
+  sort(decreasing = TRUE) %>%
+  head()
+```
 
 ### Draw figures again with representatives
 
 ```{r}
-representatives <- dplyr::filter(phageClusters, is_root == 1)
-
 repDend <- hclust(
   as.dist(
     jacDistMat[representatives$prophage_id, representatives$prophage_id]
@@ -414,10 +429,10 @@ ht_jaccardRep <- plot_species_ANI_heatmap(
   col = circlize::colorRamp2(
     breaks = colorList$jaccard$breaks, colors = colorList$jaccard$colors
   ),
+  # use_raster = TRUE, raster_quality = 3,
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
-  ),
-  use_raster = TRUE, raster_quality = 3
+  )
 )
 
 ht_mashRep <- plot_species_ANI_heatmap(
@@ -428,10 +443,10 @@ ht_mashRep <- plot_species_ANI_heatmap(
   col = circlize::colorRamp2(
     breaks = colorList$mash$breaks, colors = colorList$mash$colors
   ),
+  # use_raster = TRUE, raster_quality = 3,
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
-  ),
-  use_raster = TRUE, raster_quality = 3
+  )
 )
 
 htListRep <- ht_jaccardRep + ht_mashRep
