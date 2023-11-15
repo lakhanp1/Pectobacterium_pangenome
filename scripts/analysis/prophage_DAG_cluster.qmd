@@ -16,6 +16,11 @@ parent prophage relationships from this file are converted to a directed
 acyclic graph (DAG) and a network in form of table is stored. Additionally, the
 DAG is visualized to show different clusters in the network.
 
+:::{.callout-note}
+This can be a new clustering method where there are a lot of singletons in the
+data, a big cluster and few other small clusters.
+:::
+
 ## Initial setup
 
 ```{r}
