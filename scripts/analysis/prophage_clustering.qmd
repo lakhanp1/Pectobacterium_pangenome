@@ -36,7 +36,7 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/homology_groups.R")
-source("scripts/utils/genome_comparison.R")
+source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
@@ -50,6 +50,18 @@ panConf <- confs$data$pangenomes[[pangenome]]
 prophageLenCutoff <- confs$analysis$prophages$cutoff_length
 
 outDir <- confs$analysis$prophages$preprocessing$dir
+
+colorList <- list(
+  jaccard = list(
+    breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.97, 1),
+    colors = viridisLite::viridis(n = 13, option = "magma")
+  ),
+  mash = list(
+    breaks = c(0, 0.03, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1),
+    colors = viridisLite::viridis(n = 13, option = "magma")
+  )
+)
+
 ```
 
 ## Import data
@@ -110,16 +122,83 @@ if (!isSymmetric(jaccardMat)) {
   stop("pairwise Jaccard index matrix is not symmetric")
 }
 
+# convert to distance matrix
+jacDistMat <- max(jaccardMat)-jaccardMat
+
 quantile(jaccardMat, c(0, 0.25, 0.5, 0.75, seq(0.9, 0.99, by = 0.01), 0.995, 1))
+
 ```
 
 ## Hierarchical clustering of Jaccard similarity
 
-```{r}
-jacDistMat <- max(jaccardMat)-jaccardMat
+:::{.callout-important}
+To remove the noise while clustering, exclude all the prophages that show
+syntenic Jaccard index 0.5 or lower against other prophages.
 
-phageHc <- hclust(as.dist(jacDistMat), method = "complete")
+```{r}
+breakPoint <- 0.5
+tempJcMat <- jaccardMat
+diag(tempJcMat) <- NA
+maxJc <- matrixStats::rowMaxs(tempJcMat, na.rm = TRUE, useNames = TRUE)
+
+noisyNodes <- which(maxJc <= breakPoint)
+trimmedNodes <- which(maxJc > breakPoint)
+trimmedJaccardMat <- jaccardMat[unname(trimmedNodes), unname(trimmedNodes)]
+
+```
+
+:::
+
+A heatmap showing the syntenic Jaccard index between the singleton nodes
+identified above and the remaining nodes that will be used for clustering.
+
+```{r}
+#| column: page
+#| fig-height: 7
+#| fig-width: 13
+#| out-width: '100%'
+#| layout-valign: top
+
+ht_noise <- Heatmap(
+  matrix = jaccardMat[unname(noisyNodes), unname(trimmedNodes)],
+  name = "noisy_jaccard",
+  column_title = "selected nodes for clustering",
+  row_title = "excluded singleton prophages",
+  col = circlize::colorRamp2(
+    breaks = colorList$mash$breaks, colors = colorList$mash$colors
+  ),
+  heatmap_legend_param = list(
+    direction = "horizontal", legend_width = unit(5, "cm")
+  ),
+  use_raster = TRUE, raster_quality = 3,
+  show_row_names = FALSE, show_column_names = FALSE
+)
+
+ComplexHeatmap::draw(
+  ht_noise,
+  column_title = "Syntenic Jaccard index",
+  column_title_gp = gpar(fontsize = 16, fontface = "bold"),
+  heatmap_legend_side = "bottom"
+)
+```
+
+:::{.callout-important}
+Noisy nodes identified above will be excluded from the hierarchical clustering
+of the prophages based on syntenic Jaccard index. Later, these noisy nodes will
+be added as singletons to the clusters identified by `hclust`.
+:::
+
+```{r}
+phageHc <- hclust(
+  as.dist(jacDistMat[unname(trimmedNodes), unname(trimmedNodes)]),
+  method = "complete"
+)
 # plot(phageHc, hang = -1)
+
+# hclust(as.dist(jacDistMat), method = "ward.D2") %>%
+#   as.dendrogram() %>%
+#   dendextend::ladderize() %>%
+#   plot(horiz = TRUE)
 
 phageDend <- as.dendrogram(phageHc) %>% 
   dendextend::ladderize()
@@ -150,18 +229,14 @@ rev(phageDend) %>%
 ### Syntenic Jaccard distance 
 
 ```{r}
-colorJaccard <- list(
-  breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.97, 1),
-  colors = viridisLite::viridis(n = 13, option = "magma")
-)
 
 ht_jaccard <- plot_species_ANI_heatmap(
-  mat = jaccardMat,
+  mat = jaccardMat[phagePhylo$tip.label, phagePhylo$tip.label],
   phy = phagePhylo,
   name = "jaccard",
   column_title = "Syntenic Jaccard index",
   col = circlize::colorRamp2(
-    breaks = colorJaccard$breaks, colors = colorJaccard$colors
+    breaks = colorList$jaccard$breaks, colors = colorList$jaccard$colors
   ),
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
@@ -189,19 +264,13 @@ ComplexHeatmap::draw(
 ### Add MASH distance heatmap
 
 ```{r}
-
-colorMash <- list(
-  breaks = c(0, 0.03, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1),
-  colors = viridisLite::viridis(n = 13, option = "magma")
-)
-
 ht_mash <- plot_species_ANI_heatmap(
-  mat = mashMat,
+  mat = mashMat[phagePhylo$tip.label, phagePhylo$tip.label],
   phy = phagePhylo,
   name = "mash",
   column_title = "MASH distance",
   col = circlize::colorRamp2(
-    breaks = colorMash$breaks, colors = colorMash$colors
+    breaks = colorList$mash$breaks, colors = colorList$mash$colors
   ),
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
@@ -245,42 +314,91 @@ ComplexHeatmap::draw(
 
 ## Cut tree to generate clusters
 
+:::{.callout-important}
+Here, the noisy nodes will be added as singletons to the prophage clusters.
+:::
+
 ```{r}
-phageGroups <- dendextend::cutree(tree = phageDend, h = 0.7) %>% 
-  tibble::enframe(name = "prophage_id", value = "proGrp") %>% 
+treeCut <- dendextend::cutree(tree = phageDend, h = 0.66)
+
+phageGroups <- tibble::enframe(
+  treeCut, name = "prophage_id", value = "phage_grp"
+) %>% 
+  dplyr::bind_rows(
+    tibble::tibble(
+      prophage_id = names(noisyNodes),
+      phage_grp = (1:length(noisyNodes)) + length(unique(treeCut))
+    )
+  ) %>% 
   dplyr::mutate(
-    proGrp = paste("proGrp", proGrp, sep = "")
+    phage_grp = paste("phage_grp_", phage_grp, sep = "")
   ) %>%
   dplyr::left_join(phages, by = "prophage_id")
-
-representatives <- dplyr::group_by(phageGroups, proGrp) %>% 
-  dplyr::add_count(name = "clusterSize") %>% 
-  dplyr::arrange(desc(prophage_length)) %>% 
-  dplyr::slice(1L) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::mutate(clusterCenter = 1) %>% 
-  dplyr::select(prophage_id, clusterCenter, clusterSize) %>% 
-  dplyr::arrange(desc(clusterSize))
-
-phageGroups <- dplyr::left_join(
-  phageGroups, representatives, by = "prophage_id"
-) %>% 
-  tidyr::replace_na(list(clusterCenter = 0)) %>% 
-  dplyr::select(prophage_id, proGrp, clusterCenter) %>% 
-  dplyr::group_by(proGrp) %>% 
-  dplyr::add_count(name = "clusterSize")
-
-
-readr::write_tsv(
-  phageGroups, file = confs$analysis$prophages$files$representatives
-)
 ```
 
-What is the vairation in genome ANI of the phages in the same group?
+Cluster representatives are determined based on the mean Jaccard index of cluster
+members against all members. The cluster member with highest mean Jaccard index
+across group is selected as a cluster representative.
+
+```{r}
+# get cluster roots
+
+clusterRoots <- split(x = phageGroups$prophage_id, f = phageGroups$phage_grp) %>% 
+  # .[c("phage_grp_114", "phage_grp_12", "phage_grp_131", "phage_grp_132", "phage_grp_173", "phage_grp_174")] %>% 
+  purrr::map_dfr(
+    .f = function(x){
+      # root -> highest mean Jaccard index across group
+      if (length(x) == 1) {
+        
+        rm <- setNames(object = 1, nm = x)
+        
+      } else {
+        subJc <- jaccardMat[x, x]
+        diag(subJc) <- NA
+        
+        rm <- matrixStats::rowMeans2(subJc, na.rm = TRUE, useNames = TRUE) %>% 
+          sort(decreasing = TRUE) %>% round(digits = 3)
+        
+      }
+      
+      return(
+        tibble::tibble(
+          prophage_id = names(rm),
+          mean_grp_sim = rm,
+          root_id = names(rm[1]),
+          grp_size = length(x),
+        )
+      )
+    }
+  ) %>% 
+  dplyr::arrange(desc(grp_size))
+
+```
+
+Finally, combine the clusters with cluster roots and save the data.
+
+```{r}
+phageClusters <- dplyr::left_join(
+  phageGroups, clusterRoots, by = "prophage_id"
+) %>% 
+  dplyr::mutate(
+    is_root = dplyr::if_else(prophage_id == root_id, 1, 0),
+    .after = root_id
+  ) 
+
+readr::write_tsv(
+  phageClusters, file = confs$analysis$prophages$files$clusters
+)
+
+```
+
+What is the variation in genome ANI of the phages in the same group?
 
 ### Draw figures again with representatives
 
 ```{r}
+representatives <- dplyr::filter(phageClusters, is_root == 1)
+
 repDend <- hclust(
   as.dist(
     jacDistMat[representatives$prophage_id, representatives$prophage_id]
@@ -294,7 +412,7 @@ ht_jaccardRep <- plot_species_ANI_heatmap(
   name = "jaccard",
   column_title = "Syntenic Jaccard index for representative prophages",
   col = circlize::colorRamp2(
-    breaks = colorJaccard$breaks, colors = colorJaccard$colors
+    breaks = colorList$jaccard$breaks, colors = colorList$jaccard$colors
   ),
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
@@ -308,7 +426,7 @@ ht_mashRep <- plot_species_ANI_heatmap(
   name = "mash",
   column_title = "MASH distance",
   col = circlize::colorRamp2(
-    breaks = colorMash$breaks, colors = colorMash$colors
+    breaks = colorList$mash$breaks, colors = colorList$mash$colors
   ),
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")

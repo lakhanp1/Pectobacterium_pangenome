@@ -307,4 +307,4 @@ analysis:
     files:
       prophage_stats_species: "prophage_stats_species.tab"
       prophage_stats_genome: "prophage_stats_genome.tab"
-      clusters: "unique_prophages.tab"
+      clusters: "prophages_clusters.tab"

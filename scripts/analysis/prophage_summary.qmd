@@ -10,11 +10,7 @@ knitr:
     fig.height: 7
 ---
 
-This script summarizes the consolidated prophages in the pangenome.
-The figures and statistics generated in this analysis include all prophages i.e.
-redundant prophages (from identical genomes assemblies). 
-For the summary of unique prophages, please refer to the script
-`scripts/analysis/prophage_representatives_summary.qmd`.
+This script summarizes the consolidated prophages in the pangenome. The figures and statistics generated in this analysis include all prophages i.e. redundant prophages (from identical genomes assemblies). For the summary of unique prophages, please refer to the script `scripts/analysis/prophage_representatives_summary.qmd`.
 
 ## Initial setup
 
@@ -180,7 +176,6 @@ ggsave(filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
        plot = pt_sizeDens, width = 8, height = 5)
 ```
 
-
 ## Prophage summary
 
 ### Prophage types
@@ -327,7 +322,6 @@ spVirSummary <- dplyr::group_by(perGenomePhageInfo, SpeciesName) %>%
 
 ```
 
-
 ```{r}
 ## binary matrix for homology_group PAV
 hgBinaryMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
@@ -433,7 +427,6 @@ phageSpeciesStats %>%
 ```
 
 ::: {.striped .hover .responsive}
-
 ```{r}
 #| echo: false
 #| column: page
@@ -448,7 +441,6 @@ rmarkdown::paged_table(
 )
 
 ```
-
 :::
 
 ### Prophage contribution to the genome size in blackleg-causing and blackleg-non-causing isolates
