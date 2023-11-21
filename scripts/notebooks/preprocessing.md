@@ -43,6 +43,7 @@ split -a 2 -d -n r/8 data/reference_data/pre_qc_assembly_ids.txt data/reference_
 
 ```
 
+
 ## Check if there are any new assemblies released on NCBI
 
 ``` bash
@@ -59,7 +60,7 @@ done > data/reference_data/temp_assembly_ids.txt
 ## download and unzip the FASTA files
 for sampleId in `cat data/reference_data/temp_assembly_ids.txt`
 do
-    grep $sampleId data/reference_data/ncbi_assembly_ftp.txt
+    grep "/$sampleId/" data/reference_data/ncbi_assembly_ftp.txt
 done | \
 xargs -I {} wget --timestamping {} -P data/genomes/ncbi/
 
@@ -74,7 +75,7 @@ nohup \
 ls data/genomes/?(NCBI|WUR|NVWA|NAK)/*.?(fa|fna|fasta) | \
 parallel --gnu --keep-order --jobs 1 --halt now,fail=1 \
 --results logs/prokka/{/.} --joblog logs/prokka/parallel.log \
-scripts/a_preprocessing/a01_prokka_ann.sh {} \
+scripts/preprocessing/prokka_annotation.sh {} \
 >logs/prokka/nohup_batch00.out 2>&1 &
 
 ```
@@ -98,7 +99,7 @@ done
 ### FASTA file indexing
 
 ``` bash
-printf '' > analysis/01_multiqc/assembly_chr_size.txt
+printf '' > analysis/QC/assembly_chr_size.txt
 printf '' > data/reference_data/pre_qc_genomes_fa.list
 conda activate omics_py37
 
@@ -106,7 +107,7 @@ for i in `cat data/reference_data/pre_qc_assembly_ids.txt`
 do
     samtools faidx data/prokka_annotation/${i}/${i}.fna
     sort -r -n -k 2,2 data/prokka_annotation/${i}/${i}.fna.fai | \
-    awk  -v i=${i} '{print i, "\t", $1, "\t", $2}' >> analysis/01_multiqc/assembly_chr_size.txt
+    awk  -v i=${i} '{print i, "\t", $1, "\t", $2}' >> analysis/QC/assembly_chr_size.txt
     ls data/prokka_annotation/${i}/${i}.fna >> data/reference_data/pre_qc_genomes_fa.list
 
     faToTwoBit data/prokka_annotation/${i}/${i}.fna data/prokka_annotation/${i}/${i}.2bit
@@ -123,7 +124,7 @@ nohup \
 cat data/reference_data/temp_assembly_ids.txt | \
 parallel --jobs 1 --workdir $PWD --halt now,fail=1 --keep-order \
 --results logs/busco/{} --joblog logs/busco/parallel.log \
-$PWD/scripts/a_preprocessing/a03_busco_eval.sh {} \
+$PWD/scripts/preprocessing/qc_busco.sh {} \
 >logs/busco/nohup03.out 2>&1 &
 
 ```
@@ -140,7 +141,7 @@ cat data/reference_data/temp_assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/quast/{} \
 --joblog logs/quast/parallel.log \
-./scripts/a_preprocessing/a04_quast_eval.sh {} \
+./scripts/preprocessing/qc_quast.sh {} \
 >>logs/quast/nohup.out 2>&1 &
 ```
 
@@ -153,7 +154,7 @@ cat data/reference_data/temp_assembly_ids.txt | \
 parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 --keep-order --results logs/interproscan/{} \
 --joblog logs/interproscan/parallel_batch06.log \
-./scripts/a_preprocessing/a02_interproscan.sh {} \
+./scripts/preprocessing/interproscan_annotation.sh {} \
 >>logs/interproscan/nohup_batch07.out 2>&1 &
 
 
@@ -164,7 +165,7 @@ env_parallel --jobs 4 --workdir $PWD --halt now,fail=1 \
 --joblog logs/interproscan/parallel.log \
 --sshlogin 4/waterman.bioinformatics.nl --cleanup \
 --env error_exit --env process_start --env TOOLS_PATH --env LUSTRE_HOME \
-./scripts/a_preprocessing/a02_interproscan.sh {}
+./scripts/preprocessing/interproscan_annotation.sh {}
 
 ```
 
@@ -206,19 +207,19 @@ done
 ## QUAST MultiQC
 nohup \
 multiqc -f --filename quast_multiqc --interactive --title "QUAST report" \
---outdir analysis/01_multiqc/ --module quast data/quast/ \
+--outdir analysis/multiqc/ --module quast data/quast/ \
 >>nohup.out 2>&1 &
 
 ## BUSCO protein MultiQC
 nohup \
 multiqc -f --filename busco_prot_multiqc --interactive --title "BUSCO report" \
---outdir analysis/01_multiqc/ --module busco data/busco.prot/ \
+--outdir analysis/multiqc/ --module busco data/busco.prot/ \
 >>nohup.out 2>&1 &
 
 ## BUSCO genome MultiQC
 nohup \
 multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
---outdir analysis/01_multiqc/ --module busco data/busco.geno/ \
+--outdir analysis/multiqc/ --module busco data/busco.geno/ \
 >>nohup.out 2>&1 &
 
 ```
@@ -227,7 +228,7 @@ multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
 
 ``` bash
 process_start "ANI on all genomes"
-nohup bash scripts/a_preprocessing/a05_fastANI.sh \
+nohup bash scripts/preprocessing/ANI_processing.sh \
 data/reference_data/pre_qc_genomes_fa.list \
 analysis/02_fastANI/ANI_results >logs/fastANI.log 2>&1 &
 error_exit $?

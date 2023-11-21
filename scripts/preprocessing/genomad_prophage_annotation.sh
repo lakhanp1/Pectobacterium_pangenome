@@ -23,7 +23,6 @@ fi
 
 ## Setup
 PROJECT_DIR="$LUSTRE_HOME/projects/03_Pectobacterium"
-ANALYSIS_DIR="$PROJECT_DIR/data/interproscan"
 
 sampleId=$1
 file_fna="$PROJECT_DIR/data/prokka_annotation/$sampleId/$sampleId.fna"

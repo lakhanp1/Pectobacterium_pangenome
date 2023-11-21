@@ -55,10 +55,13 @@ data:
       mash: "mash/prophage_distance.tab"
   busco_db:
     dir: "busco_downloads"
+    lineage: "enterobacterales_odb10"
   busco_genome:
     dir: "busco.geno"
   busco_protein:
     dir: "busco.prot"
+  quast:
+    dir: "quast"
   pangenomes:
     dir: "pangenomes"
     pectobacterium.ts:
