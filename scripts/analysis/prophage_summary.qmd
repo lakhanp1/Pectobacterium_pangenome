@@ -10,6 +10,8 @@ knitr:
     fig.height: 7
 ---
 
+***
+
 This script summarizes the consolidated prophages in the pangenome. The figures and statistics generated in this analysis include all prophages i.e. redundant prophages (from identical genomes assemblies). For the summary of unique prophages, please refer to the script `scripts/analysis/prophage_representatives_summary.qmd`.
 
 ## Initial setup
@@ -23,6 +25,7 @@ suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(ggdist))
 suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+suppressPackageStartupMessages(library(DT))
 
 rm(list = ls())
 
@@ -426,22 +429,31 @@ phageSpeciesStats %>%
 
 ```
 
-::: {.striped .hover .responsive}
 ```{r}
 #| echo: false
 #| column: page
+#| out-height: "400px"
 #| label: tbl-planets
 #| tbl-cap: Prophage summary per species
 
-rmarkdown::paged_table(
-  phageSpeciesStats,
+DT::datatable(
+  data = phageSpeciesStats,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
   options = list(
-    paged.print = FALSE, cols.print = 10
-  )
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
 )
-
 ```
-:::
 
 ### Prophage contribution to the genome size in blackleg-causing and blackleg-non-causing isolates
 

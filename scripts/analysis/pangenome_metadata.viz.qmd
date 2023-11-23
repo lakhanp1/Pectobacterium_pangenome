@@ -24,6 +24,7 @@ suppressPackageStartupMessages(library(ggdist))
 suppressPackageStartupMessages(library(ggpattern))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(DT))
 
 ## pangenome data summary and comparison
 
@@ -78,6 +79,35 @@ panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>%
   )
 
 
+```
+
+
+```{r}
+#| echo: false
+#| column: screen-inset
+#| label: metadata-tbl
+#| tbl-cap: Pangenome metadata table
+#| out-height: "400px"
+
+tmpDf <- suppressMessages(readr::read_csv(panConf$files$metadata))
+
+DT::datatable(
+  data = tmpDf,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 3),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
 ```
 
 ## Explore *P. brasiliense* population metadata

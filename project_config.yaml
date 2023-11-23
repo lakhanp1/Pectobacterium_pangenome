@@ -198,17 +198,17 @@ analysis:
       ani_nj: "ANI_NJ.newick"
       ani_rooted_nj: "ANI_NJ_rooted.newick"
   summary:
-    dir: "pangenome_pecto_v2/summary"
+    dir: "pangenome_v2/summary"
     files:
       data: ""
       pangenome: ""
   gouping_optimization:
     name: "grouping"
-    dir: "pangenome_pecto_v2/subset_optimal_group"
+    dir: "pangenome_v2/subset_optimal_group"
   phylogeny:
     name: "phylogeny"
     outgroup: "104326-106-074"
-    dir: "pangenome_pecto_v2/phylogeny"
+    dir: "pangenome_v2/phylogeny"
     default: "kmer_nj"
     files:
       clade_copare: "clade_compare_contrasts.tab"
@@ -270,12 +270,12 @@ analysis:
         tree_rooted: "core_snp_nj.rooted.newick"
         species_order: "core_snp_nj.species_order.txt"
   insilico_assay:
-    dir: "pangenome_pecto_v2/insilico_assay"
+    dir: "pangenome_v2/insilico_assay"
     files:
       blastn: "pcr_primer_blastn.out"
       insilico_pcr: "bioassay_probe_match.data.tab"
   homology_groups:
-    dir: "pangenome_pecto_v2/homology_groups"
+    dir: "pangenome_v2/homology_groups"
     files:
       groups: "genome_to_groups.tab"
       groups_meta: "homology_groups_meta.tab"
@@ -283,12 +283,12 @@ analysis:
       spp_group_stats: "spp_group_stats.tab"
       hg_sets: "hg_sets_of_interest.tab"
   association:
-    dir: "pangenome_pecto_v2/pheno_association"
+    dir: "pangenome_v2/pheno_association"
     files:
       pheno_specific_groups: "phenotype_specific_groups.txt"
   prophages:
     cutoff_length: 5000
-    dir: "pangenome_pecto_v2/prophages"
+    dir: "pangenome_v2/prophages"
     preprocessing:
       dir: "preprocessing"
       files:
