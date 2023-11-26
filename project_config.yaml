@@ -202,7 +202,7 @@ analysis:
     files:
       data: ""
       pangenome: ""
-  gouping_optimization:
+  grouping_optimization:
     name: "grouping"
     dir: "pangenome_v2/subset_optimal_group"
   phylogeny:

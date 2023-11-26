@@ -32,13 +32,13 @@ export PANTOOLS="$PANTOOLS_4_1"
 
 ### Gene, mRNA and CDS relationships
 
-``` cypher
+```cypher
 MATCH (m:mRNA) RETURN m.id, m.genome, m.protein_ID LIMIT 25
 ```
 
 mRNA to gene relationship
 
-``` cypher
+```cypher
 ## mRNA<-gene
 MATCH (g:gene)-[:codes_for]->(m:mRNA) 
 RETURN g.genome AS genome, g.sequence AS chr_num, g.begin AS start,
@@ -46,7 +46,7 @@ g.end AS end, g.strand AS strand, g.id AS gene_name, m.id as mRNA_id
 LIMIT 20
 ```
 
-``` cypher
+```cypher
 ## CDS->mRNA<-gene
 MATCH (c:CDS)-[:contributes_to]->(m:mRNA)<-[:codes_for]-(g:gene) RETURN c, m, g LIMIT 20
 ```
@@ -55,7 +55,7 @@ MATCH (c:CDS)-[:contributes_to]->(m:mRNA)<-[:codes_for]-(g:gene) RETURN c, m, g 
 > This running for very long time 
 > Need to debug 
 
-``` cypher
+```cypher
 ## 
 MATCH (g:gene)-[:codes_for]->(m:mRNA) 
 WITH * 
@@ -69,7 +69,7 @@ LIMIT 20
 
 ### Chromosome information
 
-``` cypher
+```cypher
 MATCH (chr:sequence)
 RETURN chr.genome AS genome, chr.number AS chrNum, chr.identifier AS chrId,
 chr.title AS chrName
@@ -78,7 +78,7 @@ LIMIT 20
 
 ### Homology groups
 
-``` cypher
+```cypher
 MATCH (m:mRNA)<-[:has_homolog]-(h:homology_group)
 WHERE h.group_version = 1
 RETURN m.id AS mRNA_id, m.genome AS genome, m.sequence AS chr,
@@ -88,7 +88,7 @@ LIMIT 25
 
 ### mRNA - homology_group - GO link data
 
-``` cypher
+```cypher
 ## explore structure
 MATCH (m:mRNA)<-[:has_homolog]-(hg:homology_group) 
 WHERE hg.group_version = 1

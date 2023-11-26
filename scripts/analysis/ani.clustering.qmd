@@ -258,6 +258,28 @@ dev.off()
 #| fig-width: 14
 #| fig-height: 9
 #| out-width: 100%
+#| fig-cap: "Species tree"
+
+ht_species <- htList@ht_list$species_key
+ht_species@row_dend_param$width <- unit(15, "cm")
+ht_species@matrix_param$width <- unit(15, "cm")
+
+ComplexHeatmap::draw(
+  object = ht_species,
+  row_dend_side = "left",
+  merge_legend = TRUE,
+  heatmap_legend_side = "bottom"
+)
+
+```
+
+```{r}
+#| echo: false
+#| column: page
+#| fig-width: 14
+#| fig-height: 9
+#| out-width: 100%
+#| fig-cap: "ANI heatmap for all species"
 
 ComplexHeatmap::draw(
   object = htList,
@@ -311,6 +333,7 @@ dev.off()
 ```
 
 ```{r echo=FALSE}
+#| echo: false
 #| fig-width: 9
 #| fig-height: 8
 #| out-width: 100%
@@ -456,6 +479,8 @@ ggsave(
   filename = file.path(outDir, "ANI_inhouse.heatmap.pdf")
 )
 
+pt_aniTree <-  pt_spKey %>%
+  aplot::insert_left(pt_inhouseTree, width = 1)
 ```
 
 ```{r echo=FALSE}

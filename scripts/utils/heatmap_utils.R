@@ -66,7 +66,8 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
     
     ht_species <- species_key_heatmap(
       genomes = rownames(mat), speciesInfo = speciesInfo,
-      markGenomes = markGenomes
+      markGenomes = markGenomes,
+      cluster_rows = clust
     )
     
     htList <- ht_species + ht_ani
