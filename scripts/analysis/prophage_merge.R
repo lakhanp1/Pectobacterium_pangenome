@@ -17,6 +17,7 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/homology_groups.R")
+source("scripts/utils/compare_hg_sets.R")
 ################################################################################
 set.seed(124)
 

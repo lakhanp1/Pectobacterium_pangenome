@@ -37,7 +37,7 @@ sampleInfoList <- as.list_metadata(
 )
 
 cladeGrps <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$files$clade_copare, comment = "#")
+  readr::read_tsv(confs$analysis$phylogeny$files$clade_compare, comment = "#")
 ) %>%
   dplyr::mutate(
     dplyr::across(

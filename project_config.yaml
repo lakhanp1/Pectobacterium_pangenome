@@ -211,8 +211,7 @@ analysis:
     dir: "pangenome_v2/phylogeny"
     default: "kmer_nj"
     files:
-      clade_copare: "clade_compare_contrasts.tab"
-      # clade_phenotypes: "clade_compare_phenotypes.csv" # moved to pangenome/analysis_confs
+      clade_compare: "clade_compare_contrasts.tab"
     ani:
       dir: "ani"
       files:
