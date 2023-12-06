@@ -4,7 +4,7 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
-# extract homology groups for prophage regions
+# extract homology groups for plasmid regions
 
 rm(list = ls())
 
@@ -31,44 +31,41 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
-prophageDf <- suppressMessages(
-  readr::read_tsv(confs$data$prophages$files$data)
+plasmidDf <- suppressMessages(
+  readr::read_tsv(confs$data$plasmids$files$data)
 ) %>%
-  dplyr::filter(viral_genes != 0) %>%
-  dplyr::select(-SpeciesName, -genomeId)
+  dplyr::select(-SpeciesName, -genomeId, plasmid_length = length)
 
 ################################################################################
-panProphages <- dplyr::left_join(sampleInfo, prophageDf, by = "sampleId")
+panPlasmids <- dplyr::left_join(sampleInfo, plasmidDf, by = "sampleId")
 
-table(panProphages$checkv_quality, panProphages$SpeciesName)
-
-dplyr::group_by(panProphages, sampleId, SpeciesName) %>%
-  dplyr::summarise(n = n_distinct(prophage_id, na.rm = TRUE), .groups = "drop") %>%
+dplyr::group_by(panPlasmids, sampleId, SpeciesName) %>%
+  dplyr::summarise(n = n_distinct(plasmid_id, na.rm = TRUE), .groups = "drop") %>%
   dplyr::group_by(SpeciesName) %>%
   skimr::skim()
 
-# get homology groups for each prophage region
-proHgs <- dplyr::filter(panProphages, !is.na(contig_id)) %>%
-  dplyr::select(sampleId, genomeId, chr, start, end, prophage_id) %>%
+# get homology groups for each plasmid region
+plasmidHgs <- dplyr::filter(panPlasmids, !is.na(plasmid_id)) %>% 
+  dplyr::select(sampleId, genomeId, chr, plasmid_id) %>%
   dplyr::rowwise() %>%
   dplyr::mutate(
     hgs = list(
       region_homology_groups(
-        pandb = orgDb, genome = genomeId, chr = chr, start = start, end = end
+        pandb = orgDb, genome = genomeId, chr = chr
       )
     )
   )
 
 # filter to remove prophages without any hgs 
-proHgs %>%
+plasmidHgs %>%
   dplyr::mutate(
     nHgs = length(hgs),
     hgs = paste(hgs, collapse = ";")
   ) %>%
   dplyr::filter(nHgs > 0) %>%
-  dplyr::select(prophage_id, sampleId, nHgs, hgs) %>%
+  dplyr::select(plasmid_id, sampleId, nHgs, hgs) %>%
   readr::write_tsv(
-    file = confs$analysis$prophages$preprocessing$files$raw_prophage_hg
+    file = confs$analysis$plasmids$preprocessing$files$raw_plasmid_hg
   )
 
 ################################################################################
