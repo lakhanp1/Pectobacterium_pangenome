@@ -53,7 +53,7 @@ sampleInfoList <- as.list_metadata(
 )
 
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated_phages)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
 ) %>% 
   dplyr::filter(filtered == 0) %>% 
   dplyr::filter(nFragments == 1) %>% 
@@ -62,7 +62,7 @@ phages <- suppressMessages(
   )
 
 simDf <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$phage_relationships)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$pair_comparison)
 )
 
 phageCmpDf <- dplyr::bind_rows(

@@ -77,7 +77,7 @@ sampleInfoList <- as.list_metadata(
 )
 
 phages <- suppressMessages(
-    readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered_prophages)
+    readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered)
 ) %>%
     dplyr::select(
         prophage_id, prophage_length, nHg, genomeId, completeness,
@@ -89,7 +89,7 @@ phages <- suppressMessages(
     )
 
 simDf <- suppressMessages(
-    readr::read_tsv(confs$analysis$prophages$preprocessing$files$phage_relationships)
+    readr::read_tsv(confs$analysis$prophages$preprocessing$files$pair_comparison)
 )
 
 mashMat <- suppressMessages(

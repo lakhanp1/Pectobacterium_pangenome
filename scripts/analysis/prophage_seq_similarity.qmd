@@ -61,7 +61,7 @@ sampleInfoList <- as.list_metadata(
 )
 
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered_prophages)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered)
 ) %>% 
   dplyr::select(
     prophage_id, fragments, nFragments, prophage_length, nHg, genomeId

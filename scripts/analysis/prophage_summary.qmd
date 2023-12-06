@@ -95,7 +95,7 @@ treeTipOrder <- ggtree::get_taxa_name(pt_tree)
 
 ```{r}
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated_phages)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
 )
 
 selectedPro <- dplyr::filter(phages, filtered == 0, nFragments == 1) %>% 
@@ -108,7 +108,7 @@ removedPro <- dplyr::filter(phages, filtered != 0 | nFragments > 1)
 # save filtered prophages
 readr::write_tsv(
   dplyr::select(selectedPro, -hgs, -nHgs),
-  file = confs$analysis$prophages$preprocessing$files$filtered_prophages
+  file = confs$analysis$prophages$preprocessing$files$filtered
 )
 
 ```

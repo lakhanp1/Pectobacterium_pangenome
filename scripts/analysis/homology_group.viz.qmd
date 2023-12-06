@@ -7,7 +7,7 @@ format:
 ---
 
 ***
- 
+
 ## Initial setup
 
 ```{r}
@@ -43,16 +43,16 @@ set.seed(124)
 analysisName <- "top_prophage_clusters"
 
 setIds <- c(
-    # "g_3.vir_4", "g_189.vir_2", "g_399.vir_2", "g_189.vir_1", "g_172.vir_2"
-    # "g_438.vir_2"
-    "g_438.vir_2", "g_404.vir_1", "g_302.vir_2", "g_273.vir_3", "g_311.vir_3", "g_389.vir_4", "g_239.vir_3", "g_364.vir_3", "g_142.vir_2", "g_119.vir_2", "g_274.vir_6", "g_419.vir_2", "g_10.vir_3", "g_200.vir_2"
+  # "g_3.vir_4", "g_189.vir_2", "g_399.vir_2", "g_189.vir_1", "g_172.vir_2"
+  # "g_438.vir_2"
+  "g_438.vir_2", "g_404.vir_1", "g_302.vir_2", "g_273.vir_3", "g_311.vir_3", "g_389.vir_4", "g_239.vir_3", "g_364.vir_3", "g_142.vir_2", "g_119.vir_2", "g_274.vir_6", "g_419.vir_2", "g_10.vir_3", "g_200.vir_2"
 )
 
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
 confs <- prefix_config_paths(
-    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-    dir = "."
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
 )
 
 
@@ -60,8 +60,8 @@ confs <- prefix_config_paths(
 # `setIds` are searched in these files to identify respective homology groups
 # for plotting
 hgSetFiles <- c(
-    confs$analysis$prophages$preprocessing$files$raw_prophage_hg
-    # confs$analysis$homology_groups$files$hg_sets
+  confs$analysis$prophages$preprocessing$files$raw_prophage_hg
+  # confs$analysis$homology_groups$files$hg_sets
 )
 
 outDir <- file.path(confs$analysis$prophages$dir)
@@ -81,18 +81,18 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
 speciesOrder <- suppressMessages(
-    readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
-    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 ```
@@ -105,32 +105,32 @@ sampleInfo %<>% dplyr::mutate(
 hgSets <- NULL
 
 for (st in hgSetFiles) {
-    df <- suppressMessages(readr::read_tsv(st)) %>%
-        dplyr::mutate(
-            hgs = stringr::str_split(hgs, ";"),
-            setSource = st
-        ) %>%
-        dplyr::select(id = prophage_id, hgs, setSource)
-
-
-    hgSets <- dplyr::bind_rows(hgSets, df)
+  df <- suppressMessages(readr::read_tsv(st)) %>%
+    dplyr::mutate(
+      hgs = stringr::str_split(hgs, ";"),
+      setSource = st
+    ) %>%
+    dplyr::select(id = prophage_id, hgs, setSource)
+  
+  
+  hgSets <- dplyr::bind_rows(hgSets, df)
 }
 
 
 
 if (any(duplicated(hgSets$id))) {
-    stop(
-        "duplicate homology group set identifiers found in the data:",
-        names(which(table(hgSets$id) > 1))
-    )
+  stop(
+    "duplicate homology group set identifiers found in the data:",
+    names(which(table(hgSets$id) > 1))
+  )
 }
 
 # read prophage HGs stored locally
 hgL <- dplyr::left_join(
-    x = tibble::tibble(id = setIds), y = hgSets, by = "id"
+  x = tibble::tibble(id = setIds), y = hgSets, by = "id"
 ) %>%
-    purrr::transpose() %>%
-    purrr::set_names(nm = purrr::map(., "id"))
+  purrr::transpose() %>%
+  purrr::set_names(nm = purrr::map(., "id"))
 
 ```
 
@@ -144,48 +144,50 @@ hgL <- dplyr::left_join(
 #| layout-valign: top
 
 htList <- species_key_heatmap(
-    genomes = rawTree$tip.label, speciesInfo = sampleInfo
+  genomes = rawTree$tip.label, speciesInfo = sampleInfo
 )
 
 htList@heatmap_param$width <- unit(12, "cm")
 
 for (id in names(hgL)) {
-    # prepare homology group PAV matrix from pan.db
-    hgMat <- homology_groups_mat(
-        pandb = panOrgDb, type = "pav", groups = hgL[[id]]$hgs
-    )
-
-    hgMat <- hgMat[rawTree$tip.label, ]
-
-    ht <- homology_group_heatmap(
-        mat = hgMat, phy = rawTree,
-        # width = unit(10, "cm"),
-        name = id, column_title = id,
-        use_raster = TRUE, raster_quality = 3
-    )
-
-    ht@column_dend_param$cluster <- FALSE
-    ht@column_names_param$show <- FALSE
-
-    htList <- htList + ht
+  # prepare homology group PAV matrix from pan.db
+  hgMat <- homology_groups_mat(
+    pandb = panOrgDb, type = "pav", groups = hgL[[id]]$hgs
+  )
+  
+  hgMat <- hgMat[rawTree$tip.label, ]
+  
+  ht <- homology_group_heatmap(
+    mat = hgMat, phy = rawTree,
+    # width = unit(10, "cm"),
+    name = id, column_title = id,
+    use_raster = TRUE, raster_quality = 3
+  )
+  
+  ht@column_dend_param$cluster <- FALSE
+  ht@column_names_param$show <- FALSE
+  
+  htList <- htList + ht
 }
 
 
 pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 16, height = 8)
 ComplexHeatmap::draw(
-    object = htList,
-    main_heatmap = hgL[[1]]$id,
-    row_dend_side = "left",
-    merge_legends = TRUE
+  object = htList,
+  main_heatmap = hgL[[1]]$id,
+  row_dend_side = "left",
+  merge_legends = TRUE,
+  heatmap_legend_side = "bottom"
+  
 )
 dev.off()
 
 ComplexHeatmap::draw(
-    object = htList,
-    main_heatmap = hgL[[1]]$id,
-    row_dend_side = "left",
-    merge_legends = TRUE,
-    heatmap_legend_side = "bottom"
+  object = htList,
+  main_heatmap = hgL[[1]]$id,
+  row_dend_side = "left",
+  merge_legends = TRUE,
+  heatmap_legend_side = "bottom"
 )
 ```
 

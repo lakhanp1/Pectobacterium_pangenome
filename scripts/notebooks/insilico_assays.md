@@ -39,6 +39,9 @@ export PANTOOLS="$PANTOOLS_4_1"
 - location fna: NAK238_contig_10_consensus:140994-141296(+)
 - homology group: 22434221
 - COG description: 4-amino-4-deoxy-alpha-L-arabinopyranosyl undecaprenyl phosphate biosynthetic process
+- This gene seems to be part of prophage. However, this region was not marked as prophage
+  by the genomad pipeline.
+
 
 ### TIR assay
 
@@ -49,6 +52,8 @@ export PANTOOLS="$PANTOOLS_4_1"
 - location fna: NAK238_contig_8_consensus:166700-167047(-)
 - homology group: 22434077
 - COG description: MTH538 TIR-like domain (DUF1863)
+- This is a loss of gene event. No prophage nearby.
+
 
 ## PCR primer sequence BLAST against the genomes
 

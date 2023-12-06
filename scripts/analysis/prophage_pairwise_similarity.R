@@ -62,7 +62,7 @@ proHgs <- suppressMessages(
   )
 
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated_phages)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
 ) %>% 
   dplyr::filter(filtered == 0) %>% 
   dplyr::mutate(
@@ -83,7 +83,7 @@ proHgL <- purrr::transpose(proHgs) %>%
 # all vs all comparison
 
 tmpFile <- paste(
-  confs$analysis$prophages$preprocessing$files$phage_relationships,
+  confs$analysis$prophages$preprocessing$files$pair_comparison,
   ".tmp", sep = ""
 )
 
@@ -214,7 +214,7 @@ for (i in 1:nrow(phages)) {
 }
 
 file.copy(
-  tmpFile, confs$analysis$prophages$preprocessing$files$phage_relationships,
+  tmpFile, confs$analysis$prophages$preprocessing$files$pair_comparison,
   overwrite = TRUE
 )
 

@@ -549,7 +549,7 @@ for (gn in sampleInfo$genomeId) {
 
 readr::write_tsv(
   x = sharedStats,
-  file = confs$analysis$prophages$preprocessing$files$consolidated_phages
+  file = confs$analysis$prophages$preprocessing$files$consolidated
 )
 
 
