@@ -53,6 +53,12 @@ data:
       data: "prophage_summary.tab"
       ani: "prophage_ANI"
       mash: "mash/prophage_distance.tab"
+  plasmids:
+    dir: "prophage_genomad"
+    files:
+      data: "plasmid_summary.tab"
+      ani: "plasmid_ANI"
+      mash: "mash/plasmid_distance.tab"
   busco_db:
     dir: "busco_downloads"
     lineage: "enterobacterales_odb10"

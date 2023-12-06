@@ -25,20 +25,22 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
-# sampleInfo %<>% dplyr::filter(sampleId %in% c("GCF_009931535.1_ASM993153v1", "JGAR-100719-1")) 
+# sampleInfo %<>% dplyr::filter(sampleId %in% c("GCF_004296765.1_ASM429676v1", "JGAR-100719-1"))
 # sampleId <- "GCF_009931535.1_ASM993153v1"
 prophageDf <- NULL
-
+plasmidDf <- NULL
 
 for (sampleId in sampleInfo$sampleId) {
-  virPathPrefix <- paste(confs$data$prophages$dir, "/", sampleId, "/", sampleId, sep = "")
+  genomadPath <- paste(confs$data$prophages$dir, "/", sampleId, "/", sampleId, sep = "")
   
-  cat(virPathPrefix, "...\n")
+  cat(genomadPath, "...\n")
+  
+  ## prophage data
   virSummary <- NULL
   
   virSummary <- suppressMessages(
     readr::read_tsv(
-      file = paste(virPathPrefix, "_summary/", sampleId, "_virus_summary.tsv", sep = "")
+      file = paste(genomadPath, "_summary/", sampleId, "_virus_summary.tsv", sep = "")
     )
   ) %>%
     dplyr::select(-n_genes) %>%
@@ -62,7 +64,7 @@ for (sampleId in sampleInfo$sampleId) {
     # import checkv contamination and summary
     vContamination <- suppressMessages(
       readr::read_tsv(
-        file = paste(virPathPrefix, "_checkv/contamination.tsv", sep = "")
+        file = paste(genomadPath, "_checkv/contamination.tsv", sep = "")
       )
     ) %>% 
       dplyr::select(
@@ -91,7 +93,7 @@ for (sampleId in sampleInfo$sampleId) {
       tidyr::separate(
         col = contamination_regions, into = c("vStart", "vEnd"),
         sep = "-", convert = TRUE
-        ) %>% 
+      ) %>% 
       dplyr::select(contig_id, vStart, vEnd)
     
     vContamination %<>% dplyr::left_join(
@@ -100,7 +102,7 @@ for (sampleId in sampleInfo$sampleId) {
     
     checkv <- suppressMessages(
       readr::read_tsv(
-        file = paste(virPathPrefix, "_checkv/quality_summary.tsv", sep = "")
+        file = paste(genomadPath, "_checkv/quality_summary.tsv", sep = "")
       )
     ) %>%
       dplyr::left_join(vContamination, by = "contig_id") %>% 
@@ -132,10 +134,36 @@ for (sampleId in sampleInfo$sampleId) {
       dplyr::select(-length)
     
     prophageDf <- dplyr::bind_rows(prophageDf, virSummary)
+    
+  }
+  
+  ## plasmid data
+  plasmidSummary <- NULL
+  
+  plasmidSummary <- suppressMessages(
+    readr::read_tsv(
+      file = paste(genomadPath, "_summary/", sampleId, "_plasmid_summary.tsv", sep = "")
+    )
+  ) %>% 
+    dplyr::rename(chr = seq_name) %>% 
+    dplyr::mutate(
+      sampleId = !!sampleId,
+      genomeId = !!sampleInfoList[[sampleId]]$genomeId,
+      SpeciesName = !!sampleInfoList[[sampleId]]$SpeciesName,
+      .before = chr
+    )
+  
+  if (nrow(plasmidSummary) > 0) {
+    plasmidSummary %<>%  dplyr::mutate(
+      plasmid_id = paste(genomeId, ".pmd_", 1:n(), sep = "")
+    )
+    
+    plasmidDf <- dplyr::bind_rows(plasmidDf, plasmidSummary)
   }
   
 }
 
+## save prophage data
 prophageDf <- dplyr::select(
   prophageDf, contig_id = seq_name, prophage_id, sampleId, SpeciesName, chr, start, end,
   prophage_length, topology, taxonomy, starts_with("genomad."), everything(),
@@ -156,5 +184,27 @@ dplyr::select(prophageDf, sampleId, chr, start, end, prophage_id) %>%
   dplyr::select(faidx) %>%
   readr::write_tsv(
     file = "./scripts/preprocessing/prophage_genomes_extract.sh",
-    col_names = F
+    col_names = FALSE
   )
+
+plasmidDf <- dplyr::select(
+  plasmidDf, plasmid_id, everything()
+)
+
+## save plasmid data
+readr::write_tsv(plasmidDf, file = confs$data$plasmids$files$data)
+
+dplyr::select(plasmidDf, sampleId, chr, plasmid_id) %>%
+  dplyr::mutate(
+    fna = paste(confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""),
+    region = chr,
+    out = paste(confs$data$plasmids$dir, "/plasmid_seqs/", plasmid_id, ".fna", sep = ""),
+    faidx = paste("samtools faidx", fna, region, ">", out)
+  ) %>%
+  dplyr::select(faidx) %>%
+  readr::write_tsv(
+    file = "./scripts/preprocessing/plasmid_genomes_extract.sh",
+    col_names = FALSE
+  )
+
+
