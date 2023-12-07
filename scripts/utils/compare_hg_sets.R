@@ -132,6 +132,7 @@ longest_local_subsequence <- function(
   thisLcs <- c()
   lcsAln <- list(s1 = vector(mode = class(seqA)), s2 = vector(mode = class(seqB)))
   lcsPos <- list(s1 = numeric(0L), s2 = numeric(0L))
+  cigar <- c()
   
   i <- m + 1
   j <- n + 1
@@ -236,6 +237,17 @@ longest_local_subsequence <- function(
     )
     
   }
+  
+  # include the CIGAR string in LCS results
+  # M: alignment match (can be a sequence match or mismatch)
+  # I: insertion to the reference
+  # D: deletion from the reference
+  # N: skipped region from the reference
+  # S: soft clipping (clipped sequences present in SEQ)
+  # H: hard clipping (clipped sequencesT present in SEQ)
+  # P: padding (silent deletion from padded reference)
+  # =: sequence match
+  # X: sequence mismatch
   
   
   # seqA
