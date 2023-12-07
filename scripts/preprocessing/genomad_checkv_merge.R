@@ -145,7 +145,7 @@ for (sampleId in sampleInfo$sampleId) {
       file = paste(genomadPath, "_summary/", sampleId, "_plasmid_summary.tsv", sep = "")
     )
   ) %>% 
-    dplyr::rename(chr = seq_name) %>% 
+    dplyr::rename(chr = seq_name, plasmid_length = length) %>% 
     dplyr::mutate(
       sampleId = !!sampleId,
       genomeId = !!sampleInfoList[[sampleId]]$genomeId,

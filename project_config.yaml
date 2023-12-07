@@ -317,6 +317,7 @@ analysis:
       prophage_stats_genome: "prophage_stats_genome.tab"
       clusters: "prophages_clusters.tab"
   plasmids:
+    cutoff_length: 0
     dir: "pangenome_v2/plasmids"
     preprocessing:
       dir: "preprocessing"

@@ -8,9 +8,9 @@ suppressPackageStartupMessages(library(igraph))
 suppressPackageStartupMessages(library(logger))
 suppressPackageStartupMessages(library(configr))
 
-# for all prophage fragments in a genome, find a best parent prophage
-# if two or more prophage fragments in genome can be linked to a single larger
-# prophage, use this to merge prophages
+# for all plasmid fragments in a genome, find a best parent plasmid
+# if two or more plasmid fragments in genome can be linked to a single larger
+# plasmid, use this to merge plasmid
 
 rm(list = ls())
 
@@ -28,7 +28,9 @@ confs <- prefix_config_paths(
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
-prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+
+regionName <- "plasmid"
+fragLengthCutoff <- confs$analysis$plasmids$cutoff_length
 maxSyntenyGap <- 2
 minSyntenyChain <- 5
 
@@ -36,7 +38,7 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 logger::log_threshold(DEBUG)
 file_log <- paste(
-  "logs/prophage_merge.", format(Sys.time(), "%Y%m%d.%H%M"), ".log",
+  "logs/", regionName, "_merge.", format(Sys.time(), "%Y%m%d.%H%M"), ".log",
   sep = ""
 )
 logger::log_appender(
@@ -55,33 +57,40 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
+regionIdCol <- paste(regionName, "_id", sep = "")
+regionLenCol <- paste(regionName, "_length", sep = "")
 ################################################################################
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
-  dplyr::select(prophage_id, prophage_length, chr)
+rawRegions <- suppressMessages(readr::read_tsv(confs$data$plasmids$files$data)) %>%
+  dplyr::select(
+    region_id = !!regionIdCol,
+    region_length = !!regionLenCol,
+    chr
+  )
 
 # read prophage HGs stored locally
-proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+regionHgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$plasmids$preprocessing$files$raw_plasmid_hg)
 ) %>%
+  dplyr::rename(region_id = !!regionIdCol) %>% 
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   ) %>%
   dplyr::left_join(
     y = dplyr::select(sampleInfo, sampleId, SpeciesName, genomeId, N50), by = "sampleId"
   ) %>%
-  dplyr::left_join(y = prophageDf, by = "prophage_id") %>%
+  dplyr::left_join(y = rawRegions, by = "region_id") %>%
   dplyr::arrange(desc(nHgs), desc(N50))
 
-proHgL <- purrr::transpose(proHgs) %>%
-  purrr::set_names(nm = purrr::map(., "prophage_id"))
+hgList <- purrr::transpose(regionHgs) %>%
+  purrr::set_names(nm = purrr::map(., "region_id"))
 
 sharedStats <- tibble::tibble()
 childParentList <- list()
 
 # create graph and add vertices to graph
-phageGraph <- igraph::make_empty_graph() +
-  igraph::vertices(proHgs$prophage_id, genomeId = proHgs$genomeId, nHgs = proHgs$nHgs)
+regionGraph <- igraph::make_empty_graph() +
+  igraph::vertices(regionHgs$region_id, genomeId = regionHgs$genomeId, nHgs = regionHgs$nHgs)
 
 # sampleInfo <- dplyr::filter(
 #   sampleInfo,
@@ -89,7 +98,7 @@ phageGraph <- igraph::make_empty_graph() +
 #   genomeId %in% c("g_93", "g_218", "g_3", "g_391", "g_438")
 # )
 # gn <- "g_278"
-# gn <- "g_128"
+# gn <- "g_414"
 
 # iterating over genomes to detect parent prophages for each genomes's prophages
 # this is important because a genome can have fragmented prophages because of
@@ -98,67 +107,67 @@ phageGraph <- igraph::make_empty_graph() +
 for (gn in sampleInfo$genomeId) {
   logger::log_info("processing phages in genome: ", gn)
   
-  gnPhages <- dplyr::filter(proHgs, genomeId == !!gn) %>%
-    dplyr::pull(prophage_id)
+  gnRegions <- dplyr::filter(regionHgs, genomeId == !!gn) %>%
+    dplyr::pull(region_id)
   
-  logger::log_info("prophages in genome: ", paste(gnPhages, collapse = "; "))
+  logger::log_info("prophages in genome: ", paste(gnRegions, collapse = "; "))
   
-  gnChildPhages <- gnPhages
+  gnChildRegions <- gnRegions
   bestParent <- list()
   
   # iterate over all phages to find the best parent phage
-  for (ph in proHgs$prophage_id) {
-    parentPh <- purrr::pluck(proHgL, !!!ph)
+  for (reg in regionHgs$region_id) {
+    parentReg <- purrr::pluck(hgList, !!!reg)
     
     # do not compare with very small prophages or prophages from same genome
-    if (parentPh$genomeId == gn || parentPh$prophage_length < prophageLenCutoff) {
+    if (parentReg$genomeId == gn || parentReg$region_length < fragLengthCutoff) {
       next
     }
     
-    childPhages <- NULL
+    childRegions <- NULL
     
     # for each prophage in genome, check for overlap with prophage list
     # this will help to identify a union of prophages in genome that overlap
     # with one parent prophage
-    for (gp in gnChildPhages) {
-      gpL <- purrr::pluck(proHgL, !!!gp)
+    for (gp in gnChildRegions) {
+      gpL <- purrr::pluck(hgList, !!!gp)
       
-      nUniqHgs <- length(setdiff(gpL$hgs, parentPh$hgs))
-      nSharedHgs <- length(intersect(gpL$hgs, parentPh$hgs))
+      nUniqHgs <- length(setdiff(gpL$hgs, parentReg$hgs))
+      nSharedHgs <- length(intersect(gpL$hgs, parentReg$hgs))
       
       logger::log_debug(
-        gp, " --parent--> ", ph, " || nUniqHgs: ",
+        gp, " --parent--> ", reg, " || nUniqHgs: ",
         nUniqHgs, "; nSharedHgs: ", nSharedHgs
       )
       
       # IMP: child -> parent assignment criteria
       if (nUniqHgs <= 5 && nSharedHgs > nUniqHgs) {
-        childPhages <- append(childPhages, gpL$prophage_id)
-        logger::log_debug(gp, " --parent--> ", ph, ": significant match found")
+        childRegions <- append(childRegions, gpL$region_id)
+        logger::log_debug(gp, " --parent--> ", reg, ": significant match found")
       }
     }
     
     # evaluate if this parent is the best, if not, update the parent
-    if (!is.null(childPhages)) {
+    if (!is.null(childRegions)) {
       logger::log_info(
-        paste(childPhages, collapse = "; "), " --parent--> ", ph,
+        paste(childRegions, collapse = "; "), " --parent--> ", reg,
         " : evaulating relationship"
       )
       
       # prevent circular links:
-      # was there a previous link from parentPh-(has_parent)->childPhages
-      # no need to make childPhages-(has_parent)->parentPh link
-      # to the current childPhages
+      # was there a previous link from parentReg-(has_parent)->childRegions
+      # no need to make childRegions-(has_parent)->parentReg link
+      # to the current childRegions
       isLinkedPreviously <- purrr::map_dbl(
-        .x = childPhages,
+        .x = childRegions,
         .f = ~ igraph::edge_connectivity(
-          graph = phageGraph, source = parentPh$prophage_id, target = .x
+          graph = regionGraph, source = parentReg$region_id, target = .x
         )
       )
       
       if (all(isLinkedPreviously == 1)) {
         logger::log_warn(
-          paste(childPhages, collapse = "; "), " --parent--> ", parentPh$prophage_id,
+          paste(childRegions, collapse = "; "), " --parent--> ", parentReg$region_id,
           " : Circular link avoided"
         )
         
@@ -168,9 +177,9 @@ for (gn in sampleInfo$genomeId) {
       
       # get the shared syntenic homology groups between child and parent
       syntenicOverlap <- purrr::map(
-        .x = proHgL[childPhages],
+        .x = hgList[childRegions],
         .f = ~ syntenic_hg_overlap(
-          ref = parentPh$hgs, qur = .x$hgs,
+          ref = parentReg$hgs, qur = .x$hgs,
           minChainLen = min(length(.x$hgs), minSyntenyChain),
           maxGapLen = maxSyntenyGap
         )
@@ -186,7 +195,7 @@ for (gn in sampleInfo$genomeId) {
       # only consider child phages those share syntenic HGs
       # remove child phages that did not share any syntenic HGs
       syntenicOverlap <- purrr::compact(syntenicOverlap)
-      childPhages <- names(syntenicOverlap)
+      childRegions <- names(syntenicOverlap)
       
       # skip child phages if no syntenic shared HGs
       syntenicShared <- purrr::map(syntenicOverlap, "lcs") %>%
@@ -197,18 +206,17 @@ for (gn in sampleInfo$genomeId) {
         next
       }
       
-      childPhageLen <- purrr::map_dbl(proHgL[childPhages], "prophage_length") %>% sum()
-
+      childRegionLen <- purrr::map_dbl(hgList[childRegions], "region_length") %>% sum()
       
       # shared HGs between child and parent
-      childHgs <- purrr::map(proHgL[childPhages], "hgs") %>%
+      childHgs <- purrr::map(hgList[childRegions], "hgs") %>%
         unlist() %>%
         unique()
       
-      sharedHgs <- intersect(childHgs, parentPh$hgs)
+      sharedHgs <- intersect(childHgs, parentReg$hgs)
       
       # order of fragmented phages on the parent phage
-      orderedChildPhages <- purrr::map_dfr(
+      orderedChildRegions <- purrr::map_dfr(
         .x = syntenicOverlap,
         .f = function(x){
           list(
@@ -221,7 +229,7 @@ for (gn in sampleInfo$genomeId) {
       ) %>% 
         dplyr::arrange(start)
       
-      childPos <- dplyr::select(orderedChildPhages, child, start, end) %>% 
+      childPos <- dplyr::select(orderedChildRegions, child, start, end) %>% 
         tidyr::unite(col = "fragmentAlnPos", start, end, sep = ":") %>% 
         dplyr::summarise(
           dplyr::across(
@@ -229,17 +237,17 @@ for (gn in sampleInfo$genomeId) {
             .fns = ~paste(., collapse = ";")
           )
         )
-
       
-      # additional check for MULTIPLE childPhages --> parent relationship:
-      # these childPhages will be merged to form a single prophage
+      
+      # additional check for MULTIPLE childRegions --> parent relationship:
+      # these childRegions will be merged to form a single prophage
       # 1) check that all phages are located on independent contigs or
       # at 5'/3' ends of large contigs
-      fragmentedPhageContigs <- TRUE
+      fragmentedRegionContigs <- TRUE
       
-      if (length(childPhages) > 1) {
-        phageContigPos <- purrr::map_dbl(
-          proHgL[childPhages],
+      if (length(childRegions) > 1) {
+        regionContigPos <- purrr::map_dbl(
+          hgList[childRegions],
           .f = ~ get_hg_sets_location(
             hgs = .x$hgs, genome = gn, chr = .x$chr, pandb = panOrgDb
           )
@@ -247,38 +255,40 @@ for (gn in sampleInfo$genomeId) {
         
         logger::log_debug(
           "Fragmented prophages with positions: ",
-          stringi::stri_join(names(phageContigPos), phageContigPos, collapse = "; ", sep = ": ")
+          stringi::stri_join(
+            names(regionContigPos), regionContigPos, collapse = "; ", sep = ": "
+          )
         )
         
-        if (any((phageContigPos != 0) & (phageContigPos != 1))) {
-          fragmentedPhageContigs <- FALSE
+        if (any((regionContigPos != 0) & (regionContigPos != 1))) {
+          fragmentedRegionContigs <- FALSE
         }
       }
       
-      logger::log_debug("fragmentedPhageContigs: ", fragmentedPhageContigs)
+      logger::log_debug("fragmentedRegionContigs: ", fragmentedRegionContigs)
       
-      # collect data and comparison scores for the current childPhages --> parent
+      # collect data and comparison scores for the current childRegions --> parent
       thisParent <- list(
-        parent = parentPh$prophage_id,
-        parentGenome = parentPh$genomeId,
-        nHgParent = parentPh$nHgs,
-        children = childPhages,
+        parent = parentReg$region_id,
+        parentGenome = parentReg$genomeId,
+        nHgParent = parentReg$nHgs,
+        children = childRegions,
         childGenome = gn,
         childString = childPos$child,
         fragmentAlnPos = childPos$fragmentAlnPos,
-        nChildFragments = length(childPhages),
+        nChildFragments = length(childRegions),
         childHgs = childHgs,
         nHgChild = length(childHgs),
         nSharedHgs = length(sharedHgs),
         nSyntenicSharedHgs = length(syntenicShared),
-        nUniqParent = length(setdiff(parentPh$hgs, syntenicShared)),
+        nUniqParent = length(setdiff(parentReg$hgs, syntenicShared)),
         nUniqChild = length(setdiff(childHgs, syntenicShared)),
-        childPhageLen = childPhageLen
+        childRegionLen = childRegionLen
       )
       
       thisParent$perSharedParent <- thisParent$nSyntenicSharedHgs / thisParent$nHgParent
       thisParent$perSharedChild <- thisParent$nSyntenicSharedHgs / thisParent$nHgChild
-      thisParent$jaccardIndex <- thisParent$nSyntenicSharedHgs / length(union(childHgs, parentPh$hgs))
+      thisParent$jaccardIndex <- thisParent$nSyntenicSharedHgs / length(union(childHgs, parentReg$hgs))
       thisParent$contentDissimilarity <- 1 - mean(c(thisParent$perSharedParent, thisParent$perSharedChild))
       
       thisParent$relation <- dplyr::case_when(
@@ -286,12 +296,12 @@ for (gn in sampleInfo$genomeId) {
         thisParent$jaccardIndex >= 0.9 | thisParent$contentDissimilarity < 0.1 ~ "high_quality",
         thisParent$jaccardIndex >= 0.5 ~ "medium_quality",
         thisParent$jaccardIndex < 0.5 ~ "low_quality",
-        fragmentedPhageContigs == FALSE ~ "NA",
+        fragmentedRegionContigs == FALSE ~ "NA",
         TRUE ~ "NA"
       )
       
       # compare with previous best parent and update if the current one is a better match
-      if (fragmentedPhageContigs) {
+      if (fragmentedRegionContigs) {
         # if no parent found until now: make current phage as parent
         if (length(bestParent) == 0) {
           bestParent[1] <- list(thisParent)
@@ -316,7 +326,7 @@ for (gn in sampleInfo$genomeId) {
         # iterate over parent set and replace the parent element combination
         # if the current one is better
         for (i in 1:length(bestParent)) {
-          oldParentPhage <- purrr::pluck(proHgL, !!!bestParent[[i]]$parent)
+          oldParentRegion <- purrr::pluck(hgList, !!!bestParent[[i]]$parent)
           parentStatus <- NULL
           
           compSharedHgs <- dplyr::case_when(
@@ -326,15 +336,15 @@ for (gn in sampleInfo$genomeId) {
           )
           
           compLen <- dplyr::case_when(
-            thisParent$childPhageLen == bestParent[[i]]$childPhageLen ~ "equal",
-            thisParent$childPhageLen > bestParent[[i]]$childPhageLen ~ "longer",
-            thisParent$childPhageLen < bestParent[[i]]$childPhageLen ~ "smaller"
+            thisParent$childRegionLen == bestParent[[i]]$childRegionLen ~ "equal",
+            thisParent$childRegionLen > bestParent[[i]]$childRegionLen ~ "longer",
+            thisParent$childRegionLen < bestParent[[i]]$childRegionLen ~ "smaller"
           )
           
           isBetterParent <- dplyr::case_when(
             compSharedHgs == "more" ~ "more_hgs",
             compSharedHgs == "equal" && compLen == "longer" ~ "longer_prophage",
-            compSharedHgs == "equal" && parentPh$N50 > oldParentPhage$N50 ~ "better_N50",
+            compSharedHgs == "equal" && parentReg$N50 > oldParentRegion$N50 ~ "better_N50",
             # compSharedHgs == "less" ~ FALSE,
             TRUE ~ "no"
           )
@@ -357,8 +367,8 @@ for (gn in sampleInfo$genomeId) {
             "Evaluated previous best parent: #", i, ": ", bestParent[[i]]$parent,
             " <--parent-- ", bestParent[[i]]$childString,
             " [nHgs ", thisParent$nSharedHgs, "==", bestParent[[i]]$nSharedHgs,
-            ", Len ", thisParent$childPhageLen, "==", bestParent[[i]]$childPhageLen,
-            ", N50: ", parentPh$N50, " > ", oldParentPhage$N50, "]",
+            ", Len ", thisParent$childRegionLen, "==", bestParent[[i]]$childRegionLen,
+            ", N50: ", parentReg$N50, " > ", oldParentRegion$N50, "]",
             "|| action: ", parentStatus
           )
         }
@@ -438,7 +448,7 @@ for (gn in sampleInfo$genomeId) {
     thisGnParents <- purrr::map_dfr(
       .x = bestParent, .f = `[`,
       c(
-        "childString", "nChildFragments", "childGenome", "childPhageLen",
+        "childString", "nChildFragments", "childGenome", "childRegionLen",
         "fragmentAlnPos", "nHgChild",
         "parent", "parentGenome", "nHgParent", "nSharedHgs", "nSyntenicSharedHgs",
         "jaccardIndex", "contentDissimilarity",
@@ -455,15 +465,15 @@ for (gn in sampleInfo$genomeId) {
       )
     )
     
-    phageEdges <- purrr::map2(
+    regionEdges <- purrr::map2(
       .x = edgesDf$children, .y = edgesDf$parent, .f = c
     ) %>%
       unlist()
     
     # add edges with attributes: direction is child_phage--(has_parent)-->parent_phage
-    phageGraph <- phageGraph +
+    regionGraph <- regionGraph +
       igraph::edges(
-        phageEdges,
+        regionEdges,
         nSharedHgs = edgesDf$nSharedHgs, perSharedChild = edgesDf$perSharedChild,
         perSharedParent = edgesDf$perSharedParent, relation = edgesDf$relation
       )
@@ -480,19 +490,19 @@ for (gn in sampleInfo$genomeId) {
   }
   
   # for remaining phages where parent was not found
-  noParents <- setdiff(gnPhages, unlist(purrr::map(bestParent, "children")))
+  noParents <- setdiff(gnRegions, unlist(purrr::map(bestParent, "children")))
   if (length(noParents) > 0) {
-    distinctPhages <- purrr::map_dfr(
-      .x = proHgL[noParents], .f = `[`,
-      c("prophage_id", "genomeId", "nHgs", "prophage_length")
+    distinctRegions <- purrr::map_dfr(
+      .x = hgList[noParents], .f = `[`,
+      c("region_id", "genomeId", "nHgs", "region_length")
     ) %>%
       dplyr::rename(
-        child = prophage_id, childGenome = genomeId,
-        nHgChild = nHgs, childPhageLen = prophage_length
+        child = region_id, childGenome = genomeId,
+        nHgChild = nHgs, childRegionLen = region_length
       ) %>% 
       dplyr::mutate(nChildFragments = 1)
     
-    thisGnParents <- dplyr::bind_rows(thisGnParents, distinctPhages)
+    thisGnParents <- dplyr::bind_rows(thisGnParents, distinctRegions)
   }
   
   if(!is.null(thisGnParents)){
@@ -504,38 +514,38 @@ for (gn in sampleInfo$genomeId) {
     # give a new identifier to the merged prophage groups
     if (any(thisGnParents$nChildFragments > 1)){
       
-      mergedPhages <- dplyr::filter(
+      mergedRegions <- dplyr::filter(
         thisGnParents, nChildFragments > 1
       ) %>% 
-        dplyr::arrange(desc(childPhageLen)) %>% 
+        dplyr::arrange(desc(childRegionLen)) %>% 
         dplyr::mutate(
-          prophage_id = paste(childGenome, ".merged_vir_", 1:n(), sep = ""),
+          region_id = paste(childGenome, ".merged_reg_", 1:n(), sep = ""),
           .before = child
         ) %>% 
-        dplyr::select(prophage_id, keyCol)
+        dplyr::select(region_id, keyCol)
       
       thisGnParents <- dplyr::full_join(
-        thisGnParents, mergedPhages, by = "keyCol"
+        thisGnParents, mergedRegions, by = "keyCol"
       )
       
     } else {
       thisGnParents %<>%  dplyr::mutate(
-        prophage_id = child
+        region_id = child
       )
     }
     
     # filter flag for very smaller child phages (eg. <5kb)
     thisGnParents <- dplyr::mutate(
       thisGnParents,
-      prophage_id = dplyr::if_else(is.na(prophage_id), child, prophage_id),
+      region_id = dplyr::if_else(is.na(region_id), child, region_id),
       filtered = dplyr::if_else(
-        condition = childPhageLen < prophageLenCutoff, true = 1, false = 0
+        condition = childRegionLen < fragLengthCutoff, true = 1, false = 0
       )
     ) %>% 
-      dplyr::select(prophage_id, filtered, everything(), -keyCol) %>% 
+      dplyr::select(region_id, filtered, everything(), -keyCol) %>% 
       dplyr::rename(
         fragments = child, nFragments = nChildFragments, genomeId = childGenome,
-        nHg = nHgChild, prophage_length = childPhageLen
+        nHg = nHgChild, region_length = childRegionLen
       )
     
     # finally merge with sharedStats global data
@@ -544,10 +554,14 @@ for (gn in sampleInfo$genomeId) {
   
 }
 
+sharedStats %<>% dplyr::rename_with(
+  .fn = ~sub(pattern = "region", replacement = regionName, x = .x, fixed = TRUE),
+  .cols = starts_with("region_")
+)
 
 readr::write_tsv(
   x = sharedStats,
-  file = confs$analysis$prophages$preprocessing$files$consolidated
+  file = confs$analysis$plasmids$preprocessing$files$consolidated
 )
 
 
