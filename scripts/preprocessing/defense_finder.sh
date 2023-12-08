@@ -8,16 +8,19 @@ source ~/.bash_aliases
 set -o pipefail
 
 source $TOOLS_PATH/miniconda3/etc/profile.d/conda.sh
-conda activate eggnog
+conda activate defensefinder
+
 ######################################################################
 
 for id in $(cat data/reference_data/assembly_ids.txt); do
     file_aa="data/prokka_annotation/${id}/${id}.faa"
+    out_dir="data/defense_finder/${id}"
+    mkdir -p ${out_dir}
 
-    emapper.py --cpu 20 -m mmseqs --dbmem --go_evidence all \
-        -i ${file_aa} -o ${id} --output_dir data/prokka_annotation/${id} \
-        --scratch_dir /local_scratch/parde001/ \
-        --temp_dir /local_scratch/parde001/tmp
+    process_start "defense-finder: ${id}"
+
+    defense-finder run --workers 20 -o ${out_dir} \
+        --models-dir $TOOLS_PATH/defense-finder-models ${file_aa}
 
     error_exit $?
 done
