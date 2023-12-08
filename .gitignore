@@ -18,6 +18,7 @@ Rplots.pdf
 sample_info.txt
 /data/*
 /data/pangenomes/**/*.DB*/
+/data/pangenomes/**/org.*.eg.db/
 !/data/pangenomes/
 !/data/pangenomes/
 !/data/reference_data/
