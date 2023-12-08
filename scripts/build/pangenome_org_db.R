@@ -53,6 +53,15 @@ chrInfo <- suppressMessages(
 # pangenome gene - mRNA - COG - Pfam info
 geneInfo <- suppressMessages(readr::read_tsv(panConf$files$gene_info))
 
+geneCoordinates <- dplyr::select(
+  geneInfo, mRNA_id, genome, chr_num, start, end, strand, gene_name
+  ) %>% 
+  dplyr::distinct() %>% 
+  dplyr::group_by(genome, chr_num) %>% 
+  dplyr::arrange(start, .by_group = TRUE) %>% 
+  dplyr::mutate(genePos = 1:n()) %>% 
+  dplyr::ungroup()
+
 ################################################################################
 ## combine data to make annotation tables
 
@@ -67,7 +76,7 @@ hgDf <- dplyr::left_join(
   by = c("genome", "chr" = "chr_num")
 ) %>%
   dplyr::left_join(
-    y = dplyr::select(geneInfo, mRNA_id, genome, chr_num, start, end, strand, gene_name),
+    y = geneCoordinates,
     by = c("genome", "chr" = "chr_num", "mRNA_id")
   ) %>%
   dplyr::mutate(
@@ -144,5 +153,8 @@ devtools::install(
   upgrade = "never"
 )
 
-orgDb <- org.Pectobacterium.spp.pan.eg.db
-keys(orgDb)
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+columns(panOrgDb)
+keys(panOrgDb)
+
+
