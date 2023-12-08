@@ -38,7 +38,7 @@ gn <- AnnotationDbi::select(
 ) %>%
   dplyr::group_by(mRNA_id, GID) %>%
   dplyr::mutate(
-    COG_description = paste(COG_description, collapse = "; ")
+    COG_description = paste(COG_description, collapse = "%59 ")
   ) %>%
   dplyr::slice(1L) %>%
   dplyr::ungroup()
