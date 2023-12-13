@@ -20,10 +20,12 @@ syntenic_hg_overlap <- function(ref, qur, ...) {
   revSynLen <- 0
   if (!is.null(forwardSyn)) {
     fwSynLen <- length(forwardSyn$lcs)
+    forwardSyn$strand <- list(s1 = "+", s2 = "+")
   }
   
   if (!is.null(reverseSyn)) {
     revSynLen <- length(reverseSyn$lcs)
+    reverseSyn$strand <- list(s1 = "+", s2 = "-")
   }
   
   if(fwSynLen > revSynLen){
