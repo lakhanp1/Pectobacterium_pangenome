@@ -70,20 +70,7 @@ proHgs <- suppressMessages(
     hgs = stringr::str_split(hgs, ";")
   )
 
-hgSummary <- suppressMessages(
-  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
-) %>% 
-  tidyr::pivot_wider(
-    id_cols = c(SpeciesName),
-    names_from = class,
-    values_from = count
-  ) %>% 
-  dplyr::rowwise() %>% 
-  dplyr::mutate(
-    total_hgs = sum(core, accessory, unique, na.rm = T) 
-  )
-
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
   dplyr::select(prophage_id, sampleId, taxonomy, completeness, checkv_quality)
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
@@ -94,20 +81,21 @@ treeTipOrder <- ggtree::get_taxa_name(pt_tree)
 ### Import processed prophage data
 
 ```{r}
-phages <- suppressMessages(
+mergedPhages <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
 )
 
-selectedPro <- dplyr::filter(phages, filtered == 0, nFragments == 1) %>% 
-  dplyr::left_join(y = prophageDf, by = "prophage_id") %>% 
+fragmented <- dplyr::filter(mergedPhages, nFragments > 1)
+removedPro <- dplyr::filter(mergedPhages, filtered != 0 | nFragments > 1)
+
+phages <- dplyr::filter(mergedPhages, filtered == 0, nFragments == 1) %>% 
+  dplyr::left_join(y = phagesRaw, by = "prophage_id") %>% 
   dplyr::left_join(proHgs, by = "prophage_id") %>% 
   dplyr::relocate(sampleId, taxonomy, completeness, checkv_quality, .after = genomeId)
 
-removedPro <- dplyr::filter(phages, filtered != 0 | nFragments > 1)
-
 # save filtered prophages
 readr::write_tsv(
-  dplyr::select(selectedPro, -hgs, -nHgs),
+  dplyr::select(phages, -hgs, -nHgs),
   file = confs$analysis$prophages$preprocessing$files$filtered
 )
 
@@ -116,8 +104,25 @@ readr::write_tsv(
 ## Prophage summary for deciding filtering
 
 ```{r}
-glimpse(selectedPro)
+glimpse(phages)
 ```
+
+Prophages identified by geNomad pipeline: `r nrow(phagesRaw)`
+
+Prophages with at least 1 homology group: `r nrow(proHgs)`
+
+Total homology groups of raw prophages: `r unlist(proHgs$hgs) %>% unique() %>% length()`
+
+Consolidated prophages: `r nrow(mergedPhages)`
+
+Fragmented prophages: `r nrow(fragmented)`
+
+Total fragments in fragmented prophages: `r sum(fragmented$nFragments)`
+
+Prophages after filtering fragmented prophages and length smaller than `r confs$analysis$prophages$cutoff_length`bp: `r nrow(phages)`
+
+Total homology groups of the filtered prophage set: 
+`r unlist(phages$hgs) %>% unique() %>% length()`
 
 ```{r}
 #| fig-cap: Prophage length distribution
@@ -125,7 +130,7 @@ glimpse(selectedPro)
 #| fig-height: 4
 
 completenessDf <- dplyr::select(
-  selectedPro, prophage_id, genomeId, prophage_length, completeness
+  phages, prophage_id, genomeId, prophage_length, completeness
 ) %>% 
   dplyr::mutate(
     comp_category = dplyr::case_when(
@@ -184,7 +189,7 @@ ggsave(filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
 ### Prophage types
 
 ```{r}
-table(selectedPro$taxonomy)
+table(phages$taxonomy)
 ```
 
 ```{r}
@@ -193,7 +198,7 @@ table(selectedPro$taxonomy)
 #| out-width: "50%"
 
 (
-  pt_proTax <- dplyr::select(selectedPro, taxonomy) %>% 
+  pt_proTax <- dplyr::select(phages, taxonomy) %>% 
     dplyr::mutate(
       taxonomy = stringr::str_replace(taxonomy, ".*;", "")
     ) %>% 
@@ -247,7 +252,7 @@ fragmentStats <- dplyr::select(removedPro, prophage_id, genomeId, nFragments, fi
   )
 
 
-perGenomePhageInfo <- dplyr::group_by(selectedPro, genomeId) %>% 
+perGenomePhageInfo <- dplyr::group_by(phages, genomeId) %>% 
   dplyr::summarise(
     phage_count = n(),
     longest_phage = max(prophage_length),
@@ -418,7 +423,7 @@ stopifnot(
 
 phageSpeciesStats %<>% dplyr::select(
   SpeciesName, n_genomes, n_vir_sp, mean_vir_per_g, core, accessory, unique, total,
-  phage_nHgs.total, starts_with("phageRatio"),
+  ends_with(c(".total", ".core", ".accessory", ".unique"))
 ) %>% 
   dplyr::arrange(desc(n_genomes))
 
