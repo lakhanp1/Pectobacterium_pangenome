@@ -93,6 +93,8 @@ phages <- dplyr::filter(mergedPhages, filtered == 0, nFragments == 1) %>%
   dplyr::left_join(proHgs, by = "prophage_id") %>% 
   dplyr::relocate(sampleId, taxonomy, completeness, checkv_quality, .after = genomeId)
 
+phageHgDf <- tibble::tibble(hgId = unlist(phages$hgs) %>% unique())
+
 # save filtered prophages
 readr::write_tsv(
   dplyr::select(phages, -hgs, -nHgs),
@@ -122,7 +124,7 @@ Total fragments in fragmented prophages: `r sum(fragmented$nFragments)`
 Prophages after filtering fragmented prophages and length smaller than `r confs$analysis$prophages$cutoff_length`bp: `r nrow(phages)`
 
 Total homology groups of the filtered prophage set: 
-`r unlist(phages$hgs) %>% unique() %>% length()`
+`r length(phageHgDf$hgId)`
 
 ```{r}
 #| fig-cap: Prophage length distribution
@@ -298,6 +300,10 @@ readr::write_tsv(
 ### Prophage gene distribution in core, accessory and unique groups
 
 ```{r}
+# dplyr::select(perGenomePhageInfo, SpeciesName, hgs) %>% 
+#   tidyr::unnest(cols = hgs) %>% 
+#   dplyr::distinct()
+
 panVirSummary <- dplyr::summarise(
   perGenomePhageInfo,
   n_genomes = n(),
@@ -353,9 +359,12 @@ for (sp in c(unique(sampleInfo$SpeciesName), "Pangenome")) {
     perGenomePhageInfo, SpeciesName == !!sp | atPangenomeScale
   ) %>% 
     dplyr::select(hgId = hgs) %>% 
-    dplyr::mutate(prophageHgs = "prophage") %>% 
     tidyr::unnest(cols = c(hgId)) %>% 
-    dplyr::distinct()
+    dplyr::distinct() %>%
+    dplyr::mutate(
+      prophageHgs = "prophage",
+      SpeciesName = .env$sp
+    )
   
   # pangenome homology groups
   spHgTypes <- matrixStats::colSums2(
@@ -372,7 +381,16 @@ for (sp in c(unique(sampleInfo$SpeciesName), "Pangenome")) {
       )
     ) %>% 
     dplyr::left_join(y = spPhagesHgs, by = "hgId") %>% 
-    tidyr::replace_na(list(prophageHgs = "non-prophage"))
+    tidyr::replace_na(list(prophageHgs = "non-prophage", SpeciesName = sp))
+  
+  # if only one genome for species, all HGs should be assigned to "core"
+  if(length(spGenomes) == 1){
+    spHgTypes$class <- "core"
+  }
+  
+  phageHgDf <- dplyr::filter(spHgTypes, prophageHgs == "prophage") %>% 
+    dplyr::select(hgId, !!sp := class) %>% 
+    dplyr::full_join(phageHgDf, by = "hgId")
   
   ## group stats
   proHgSpStats <- dplyr::count(spHgTypes, class, prophageHgs, name = "phage_nHgs") %>%
@@ -460,7 +478,58 @@ DT::datatable(
 )
 ```
 
-### Prophage contribution to the genome size in blackleg-causing and blackleg-non-causing isolates
+### Prophage homology groups with annotation table for exploration
+
+```{r}
+hgCog <- suppressMessages(
+  AnnotationDbi::select(
+    x = panOrgDb, keys = phageHgDf$hgId,
+    columns = c("GID", "COG_id", "COG_description")
+  )
+) %>% 
+  dplyr::filter(COG_id != "None") %>% 
+  dplyr::distinct() %>% 
+  dplyr::group_by(GID) %>% 
+  dplyr::reframe(
+    dplyr::across(
+      .cols = starts_with("COG_"),
+      .fns = ~paste(.x, collapse = ";")
+    )
+  )
+
+hgPfam <- suppressMessages(
+  AnnotationDbi::select(
+    x = panOrgDb, keys = phageHgDf$hgId,
+    columns = c("GID", "pfam_id", "pfam_description")
+  )
+) %>% 
+  dplyr::filter(!is.na(pfam_id)) %>% 
+  dplyr::distinct() %>% 
+  dplyr::group_by(GID) %>% 
+  dplyr::reframe(
+    dplyr::across(
+      .cols = starts_with("pfam_"),
+      .fns = ~paste(.x, collapse = ";")
+    )
+  )
+
+phageHgDf <- dplyr::left_join(
+  phageHgDf, hgCog, by = c("hgId" = "GID")
+) %>% 
+  dplyr::left_join(hgPfam, by = c("hgId" = "GID")) %>% 
+  dplyr::select(
+    hgId, starts_with("COG"), starts_with("pfam"),
+    Pangenome, phageSpeciesStats$SpeciesName
+  )
+
+readr::write_tsv(
+  x = phageHgDf,
+  file = confs$analysis$prophages$files$prophage_hg_info
+)
+```
+
+
+## Prophage contribution to the genome size in blackleg-causing and blackleg-non-causing isolates
 
 ```{r}
 
@@ -521,3 +590,14 @@ pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>
 
 pt_proLen
 ```
+
+
+
+
+
+
+
+
+
+
+
