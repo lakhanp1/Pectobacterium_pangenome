@@ -109,13 +109,15 @@ slotNum <- 0
 for (reg in slots) {
   
   # regionList[[reg]]
-  genomeHgs <- AnnotationDbi::select(
+  genomeHgs <- suppressMessages(
+    AnnotationDbi::select(
     x = panOrgDb, keys = regionList[[reg]]$genomeId,
     columns = c(
       "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
       "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
     ),
     keytype = "genomeId"
+    )
   )
   
   regHgs <- dplyr::left_join(
@@ -157,7 +159,7 @@ for (reg in slots) {
   # names should be a tibble type as it needs to be an {object} in JSON 
   # and not a [list of {objects}]
   regGenes$names <- dplyr::select(
-    regHgs, COG, PFAM, genePos, genomeId, hg
+    regHgs, COG, PFAM, hg, genePos, genomeId
   )
   
   ## save groups information for making groups JSON
@@ -176,7 +178,7 @@ for (reg in slots) {
     lociEnd = max(end)
   ) %>% 
     tidyr::nest(
-      genes = c(uid, label, chr, start, end, strand, names)
+      genes = c(uid, label, names, chr, start, end, strand)
     ) %>% 
     dplyr::select(
       uid = lociUid, name = lociName, start = lociStart, end = lociEnd,
@@ -186,43 +188,13 @@ for (reg in slots) {
   clusterJsonDf <- dplyr::bind_rows(
     clusterJsonDf,
     tibble::tibble(
-      uid = reg, name = reg, slot = slotNum,
+      uid = stringr::str_replace_all(reg, pattern = "\\.", replacement = "_"),
+      name = reg, slot = slotNum,
+      regionId = reg,
       loci = list(lociDf)
     )
   )
   
-  # add the links with previous cluster
-  if(slotNum > 0){
-    target <- clusterJsonDf$loci[slotNum] %>%
-      purrr::map_dfr(.f = function(.x){.x$genes}) %>%
-      tidyr::unnest(cols = names) %>%
-      dplyr::rename_with(
-        .fn = ~paste("target_", .x, sep = ""), .cols = -hg
-      )
-
-    query <- clusterJsonDf$loci[slotNum + 1] %>%
-      purrr::map_dfr(.f = function(.x){.x$genes}) %>%
-      tidyr::unnest(cols = names) %>%
-      dplyr::rename_with(
-        .fn = ~paste("query_", .x, sep = ""), .cols = -hg
-      )
-    
-    ## IMPROVEMENT: replace this with end-to-end alignment of region HG sets
-    hgMatches <- dplyr::left_join(
-      x = target, y = query, by = "hg"
-    ) %>% 
-      tidyr::unite(col = uid, target_uid, query_uid, sep = "_link_", remove = FALSE)
-    
-    regLinks <- tibble::tibble(
-      uid = hgMatches$uid,
-      identity = 1, similarity = 1,
-      target = dplyr::select(hgMatches, uid = target_uid, label = target_label),
-      query = dplyr::select(hgMatches, uid = query_uid, label = query_label)
-    )
-    
-    linksJsonDf <- dplyr::bind_rows(linksJsonDf, regLinks)
-
-  }
   
   slotNum <- slotNum + 1
 }
@@ -232,18 +204,59 @@ groupsJsonDf <- dplyr::group_by(geneToGroup, hg) %>%
   dplyr::summarise(
     genes = list(genes),
     groupFreq = n(),
-    hidden = "false"
+    hidden = FALSE
   ) %>% 
   dplyr::arrange(desc(groupFreq)) %>% 
   dplyr::select(uid = hg, label = hg, everything())
 
+groupColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma") %>% 
+  col2rgb() %>%
+  as.data.frame() %>% 
+  purrr::map2_dfr(
+    .y = 1:max(groupsJsonDf$groupFreq),
+    .f = function(x, y){
+      list(
+        groupFreq = y,
+        colour = paste("rgb(", paste(x, collapse = ", "), ")", sep = "")
+      )
+    }
+  )
+
 groupsJsonDf <- dplyr::left_join(
-  groupsJsonDf,
-  y = tibble::tibble(
-    groupFreq = 1:max(groupsJsonDf$groupFreq),
-    colour = viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma")
-  ),
+  groupsJsonDf, groupColors,
   by = "groupFreq"
+)
+
+## make links JSON
+linksJsonDf <- purrr::map2_dfr(
+  .x = groupsJsonDf$uid,
+  .y = groupsJsonDf$genes,
+  .f = function(h, g){
+    if(length(g) > 1){
+      linkCombs <- combn(x = g, m = 2) %>% 
+        t() %>% 
+        tibble::as_tibble() %>% 
+        dplyr::rename(
+          query = V1, target = V2
+        ) %>% 
+        tidyr::unite(col = uid, query, target, sep = "_link_", remove = F) %>% 
+        dplyr::mutate(
+          identity = 1,
+          similarity = 1,
+          hg = h
+        )
+      
+      regLinks <- dplyr::select(
+        linkCombs, uid, identity, similarity
+      ) %>% 
+        dplyr::mutate(
+          target = dplyr::select(linkCombs, uid = target),
+          query = dplyr::select(linkCombs, uid = query)
+        )
+      
+      return(regLinks)
+    }
+  }
 )
 
 
@@ -253,11 +266,15 @@ mergedJsonDf <- tibble::tibble(
   groups = list(groupsJsonDf)
 )
 
-jsonlite::toJSON(
+mergedJson <- jsonlite::toJSON(
   mergedJsonDf,
-  dataframe = "rows", pretty = TRUE
+  dataframe = "rows"
 )
 
+jsonlite::write_json(
+  x = mergedJsonDf,
+  path = "prophage_clusters.json"
+)
 
 ################################################################################
 
