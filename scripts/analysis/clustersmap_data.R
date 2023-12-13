@@ -2,6 +2,7 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(ggdist))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+suppressPackageStartupMessages(library(jsonlite))
 
 rm(list = ls())
 
@@ -96,9 +97,11 @@ grpDnd <- ape::keep.tip(phy = mashTree, tip = grp$members) %>%
 
 slots <- labels(grpDnd)[order.dendrogram(grpDnd)]
 
-grpHgUnion <- regionList[grp$members] %>%
-  purrr::map("hgs") %>% unlist() %>% unique()
+grpHgFreq <- regionList[grp$members] %>%
+  purrr::map("hgs") %>% unlist() %>% table() %>% 
+  sort(decreasing = T)
 
+hgStrand <- NULL
 clusterJsonDf <- NULL
 linksJsonDf <- NULL
 geneToGroup <- NULL
@@ -111,14 +114,14 @@ for (reg in slots) {
   # regionList[[reg]]
   genomeHgs <- suppressMessages(
     AnnotationDbi::select(
-    x = panOrgDb, keys = regionList[[reg]]$genomeId,
-    columns = c(
-      "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
-      "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
-    ),
-    keytype = "genomeId"
+      x = panOrgDb, keys = regionList[[reg]]$genomeId,
+      columns = c(
+        "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
+        "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
+      ),
+      keytype = "genomeId"
     )
-  )
+  ) 
   
   regHgs <- dplyr::left_join(
     x = tibble::tibble(hg = regionList[[reg]]$hgs, chr_name = regionList[[reg]]$chr),
@@ -151,6 +154,39 @@ for (reg in slots) {
     dplyr::rename(
       uid = mRNA_key, label = mRNA_id, chr = chr_id
     )
+  
+  # # change the orientation of gene strand for better visualization
+  # thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>% 
+  #   as.list()
+  # 
+  # cat(unlist(hgStrand), "\n")
+  # 
+  # if(!is.null(hgStrand)){
+  #   
+  #   for (h in names(grpHgFreq)) {
+  #     cat("checking strand for ", reg, "\n")
+  #     
+  #     if(!is.null(thisRegHgStrand[[h]])){
+  #       if((thisRegHgStrand[[h]] != hgStrand[[h]])){
+  #         regHgs$strand <- regHgs$strand * -1
+  #         cat("changing strand for ", reg,"using HG ", h,
+  #             "old = (", hgStrand[[h]], ") new = (", thisRegHgStrand[[h]], ")\n")
+  #        
+  #         # update this region strands backup record after changing orientation 
+  #         thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>% 
+  #           as.list(thisRegHgStrand)
+  #         
+  #         cat(unlist(thisRegHgStrand), "\n\n")
+  #         
+  #       }
+  #       break
+  #     }
+  #   }
+  # }
+  # 
+  # hgStrand <- thisRegHgStrand
+  
+  # regHgs <- regHgs[1:5, ]
   
   regGenes <- dplyr::select(
     regHgs, uid, label, chr_name, chr, start, end, strand
@@ -195,7 +231,7 @@ for (reg in slots) {
     )
   )
   
-  
+
   slotNum <- slotNum + 1
 }
 
