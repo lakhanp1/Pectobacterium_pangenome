@@ -69,21 +69,9 @@ mashTree <- ape::read.tree(
   file = confs$analysis$prophages$preprocessing$files$mash_upgma
 )
 
-################################################################################
-# # homology group annotations
-# hgs <- unique(unlist(regionHgs$hgs))
-# hgCog <- AnnotationDbi::select(
-#   x = panOrgDb, keys = hgs,
-#   columns = c("COG_id", "COG_description")
-# ) %>% 
-#   unique()
-# 
-# hgPfam <- AnnotationDbi::select(
-#   x = panOrgDb, keys = hgs,
-#   columns = c("pfam_description")
-# ) %>% 
-#   unique()
-
+phageHgTypes <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
+)
 
 ################################################################################
 # prepare clusterjs JSON for a cluster/grp
@@ -143,6 +131,7 @@ for (reg in slots) {
     dplyr::distinct() %>% 
     dplyr::left_join(y = cog, by = "mRNA_key") %>% 
     dplyr::left_join(y = pfam, by = "mRNA_key") %>%
+    dplyr::left_join(y = phageHgTypes, by = c("hg" = "hgId")) %>% 
     tidyr::replace_na(replace = list(COG = "-", PFAM = "-")) %>% 
     dplyr::mutate(
       strand = dplyr::if_else(strand == "-", -1, 1, 1),
@@ -156,26 +145,26 @@ for (reg in slots) {
   # change the orientation of gene strand for better visualization
   thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
     as.list()
-
+  
   if(!is.null(hgStrand)){
-
+    
     for (h in names(grpHgFreq)) {
-
+      
       if(!is.null(thisRegHgStrand[[h]])){
         if((thisRegHgStrand[[h]] != hgStrand[[h]])){
-
+          
           regHgs <- invert_coordinates(regHgs)
-
+          
           # update this region strands backup record after changing orientation
           thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
             as.list(thisRegHgStrand)
-
+          
         }
         break
       }
     }
   }
-
+  
   hgStrand <- thisRegHgStrand
   
   # regHgs <- regHgs[1:5, ]
@@ -187,7 +176,7 @@ for (reg in slots) {
   # names should be a tibble type as it needs to be an {object} in JSON 
   # and not a [list of {objects}]
   regGenes$names <- dplyr::select(
-    regHgs, COG, PFAM, hg, genePos, genomeId
+    regHgs, COG, PFAM, function_category, hg, genePos, genomeId
   )
   
   ## save groups information for making groups JSON
@@ -235,9 +224,43 @@ groupsJsonDf <- dplyr::group_by(geneToGroup, hg) %>%
     hidden = FALSE
   ) %>% 
   dplyr::arrange(desc(groupFreq)) %>% 
-  dplyr::select(uid = hg, label = hg, everything())
+  dplyr::select(uid = hg, label = hg, everything()) %>% 
+  dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId"))
 
-groupColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1) %>% 
+funcTypes <- list(
+  DNA = c("nuclease", "helicase", "terminase", "DNA function"),
+  integrase = "integrase",
+  mixed = c("CI repressor", "hydrolase", "holin", "portal protein",
+            "VRR-NUC domain", "other"),
+  replication = c("DNA polymerase", "reverse transcriptase"),
+  tail = c("tail fibre", "tail tube", "tail", "tail collar", "baseplate",
+           "tail sheath", "tail tape"),
+  capsid = c("capsid", "head"),
+  defense = c("colicin", "toxin-antitoxin"),
+  unknown = c("unknown", "uncharacterized conserved")
+)
+
+hgFuncColors <- viridis::viridis(n = length(funcTypes), option = "plasma") %>% 
+  setNames(names(funcTypes)) %>% 
+  col2rgb() %>%
+  as.data.frame() %>% 
+  purrr::map2(
+    .y = funcTypes,
+    .f = function(x, y){
+      tibble::tibble(
+        function_category = y,
+        function_color = paste("rgb(", paste(x, collapse = ", "), ")", sep = "")
+      )
+    }
+  ) %>% 
+  purrr::list_rbind(names_to = "broad_function") %>% 
+  dplyr::mutate(
+    function_color = if_else(
+      broad_function == "unknown", "rgb(190, 190, 190)", function_color
+    )
+  )
+
+hgFreqColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1) %>% 
   col2rgb() %>%
   as.data.frame() %>% 
   purrr::map2_dfr(
@@ -245,15 +268,17 @@ groupColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma
     .f = function(x, y){
       list(
         groupFreq = y,
-        colour = paste("rgb(", paste(x, collapse = ", "), ")", sep = "")
+        freq_colour = paste("rgb(", paste(x, collapse = ", "), ")", sep = "")
       )
     }
   )
 
 groupsJsonDf <- dplyr::left_join(
-  groupsJsonDf, groupColors,
-  by = "groupFreq"
-)
+  groupsJsonDf, hgFreqColors, by = "groupFreq"
+) %>% 
+  dplyr::left_join(hgFuncColors, by = "function_category") %>% 
+  dplyr::rename(colour = function_color) %>% 
+  dplyr::arrange(broad_function)
 
 ## make links JSON
 linksJsonDf <- purrr::map2_dfr(
