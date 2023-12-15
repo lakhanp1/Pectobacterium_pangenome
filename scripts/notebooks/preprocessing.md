@@ -233,3 +233,23 @@ data/reference_data/pre_qc_genomes_fa.list \
 analysis/02_fastANI/ANI_results >logs/fastANI.log 2>&1 &
 error_exit $?
 ```
+
+## Defense-finder
+
+```bash
+conda activate defensefinder
+
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+    file_aa="data/prokka_annotation/${i}/${i}.faa"
+    out_dir="data/defense_finder/${i}"
+    mkdir -p ${out_dir}
+
+    process_start "defense-finder: ${i}"
+
+    defense-finder run --workers 20 -o ${out_dir} \
+    --models-dir $TOOLS_PATH/defense-finder-models ${file_aa}
+
+    error_exit $?
+done
+```
