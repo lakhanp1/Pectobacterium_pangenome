@@ -8,8 +8,7 @@ rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
-source("scripts/utils/phylogeny_functions.R")
-source("scripts/utils/compare_hg_sets.R")
+source("scripts/utils/genome_scale_utils.R")
 ################################################################################
 set.seed(124)
 
@@ -127,8 +126,7 @@ for (reg in slots) {
     x = tibble::tibble(hg = regionList[[reg]]$hgs, chr_name = regionList[[reg]]$chr),
     y = genomeHgs,
     by = c("hg" = "GID", "chr_name")
-  ) %>%
-    dplyr::arrange(chr_id, genePos)
+  )
   
   cog <- dplyr::select(regHgs, mRNA_key, COG_description) %>% 
     dplyr::distinct() %>% 
@@ -148,43 +146,37 @@ for (reg in slots) {
     tidyr::replace_na(replace = list(COG = "-", PFAM = "-")) %>% 
     dplyr::mutate(
       strand = dplyr::if_else(strand == "-", -1, 1, 1),
-      start = as.integer(start),
-      end = as.integer(end)
+      dplyr::across(.cols = c(start, end, genePos), .fns = as.integer)
     ) %>% 
     dplyr::rename(
       uid = mRNA_key, label = mRNA_id, chr = chr_id
-    )
+    ) %>%
+    dplyr::arrange(start)
   
-  # # change the orientation of gene strand for better visualization
-  # thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>% 
-  #   as.list()
-  # 
-  # cat(unlist(hgStrand), "\n")
-  # 
-  # if(!is.null(hgStrand)){
-  #   
-  #   for (h in names(grpHgFreq)) {
-  #     cat("checking strand for ", reg, "\n")
-  #     
-  #     if(!is.null(thisRegHgStrand[[h]])){
-  #       if((thisRegHgStrand[[h]] != hgStrand[[h]])){
-  #         regHgs$strand <- regHgs$strand * -1
-  #         cat("changing strand for ", reg,"using HG ", h,
-  #             "old = (", hgStrand[[h]], ") new = (", thisRegHgStrand[[h]], ")\n")
-  #        
-  #         # update this region strands backup record after changing orientation 
-  #         thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>% 
-  #           as.list(thisRegHgStrand)
-  #         
-  #         cat(unlist(thisRegHgStrand), "\n\n")
-  #         
-  #       }
-  #       break
-  #     }
-  #   }
-  # }
-  # 
-  # hgStrand <- thisRegHgStrand
+  # change the orientation of gene strand for better visualization
+  thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+    as.list()
+
+  if(!is.null(hgStrand)){
+
+    for (h in names(grpHgFreq)) {
+
+      if(!is.null(thisRegHgStrand[[h]])){
+        if((thisRegHgStrand[[h]] != hgStrand[[h]])){
+
+          regHgs <- invert_coordinates(regHgs)
+
+          # update this region strands backup record after changing orientation
+          thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+            as.list(thisRegHgStrand)
+
+        }
+        break
+      }
+    }
+  }
+
+  hgStrand <- thisRegHgStrand
   
   # regHgs <- regHgs[1:5, ]
   
@@ -231,7 +223,7 @@ for (reg in slots) {
     )
   )
   
-
+  
   slotNum <- slotNum + 1
 }
 
@@ -245,7 +237,7 @@ groupsJsonDf <- dplyr::group_by(geneToGroup, hg) %>%
   dplyr::arrange(desc(groupFreq)) %>% 
   dplyr::select(uid = hg, label = hg, everything())
 
-groupColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma") %>% 
+groupColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1) %>% 
   col2rgb() %>%
   as.data.frame() %>% 
   purrr::map2_dfr(
@@ -271,7 +263,7 @@ linksJsonDf <- purrr::map2_dfr(
     if(length(g) > 1){
       linkCombs <- combn(x = g, m = 2) %>% 
         t() %>% 
-        tibble::as_tibble() %>% 
+        as.data.frame.matrix() %>% 
         dplyr::rename(
           query = V1, target = V2
         ) %>% 
@@ -302,14 +294,20 @@ mergedJsonDf <- tibble::tibble(
   groups = list(groupsJsonDf)
 )
 
+mergedJsonList <- list(
+  clusters = clusterJsonDf,
+  links = linksJsonDf,
+  groups = groupsJsonDf
+)
+
 mergedJson <- jsonlite::toJSON(
-  mergedJsonDf,
+  mergedJsonList,
   dataframe = "rows"
 )
 
 jsonlite::write_json(
-  x = mergedJsonDf,
-  path = "prophage_clusters.json"
+  x = mergedJsonList,
+  path = paste(outDir, "/cluster_viz/prophage_clusters.json", sep = "")
 )
 
 ################################################################################
