@@ -80,7 +80,7 @@ aniDf <- suppressMessages(readr::read_tsv(
   dplyr::mutate(
     dplyr::across(
       .cols = c(id1, id2),
-      .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
+      .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1")
     ),
     dist = 1 - (ani / 100)
   )
@@ -108,13 +108,13 @@ aniDistMat <- tibble::column_to_rownames(aniDist, var = "prophage_id") %>%
 
 ## store UPGMA and NJ trees
 # plot(hclust(distMat))
-aniUpgma <- ape::as.phylo(hclust(d = aniDistMat, method = "average")) %>%
+aniUpgma <- ape::as.phylo(hclust(d = aniDistMat, method = "complete")) %>%
   ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
-  phy = aniUpgma, tree.names = "ani_upgma",
-  file = confs$analysis$prophages$preprocessing$files$ani_upgma
+  phy = aniUpgma, tree.names = "ani_hclust",
+  file = confs$analysis$prophages$preprocessing$files$ani_hclust
 )
 
 # plot(ape::root(phy = treeUpgma, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE))
@@ -146,7 +146,7 @@ mashDf <- suppressMessages(readr::read_tsv(
       .cols = c(id1, id2),
       .fns = ~ stringr::str_replace(
         string = .x, pattern = ".*/(.*).fna", replacement = "\\1"
-      ),
+      )
     )
   )
 
@@ -188,13 +188,13 @@ mashDistMat <- tibble::column_to_rownames(mashDist, var = "prophage_id") %>%
 
 ## store UPGMA and NJ trees
 # plot(hclust(distMat))
-mashUpgma <- ape::as.phylo(hclust(d = mashDistMat, method = "average")) %>%
+mashUpgma <- ape::as.phylo(hclust(d = mashDistMat, method = "complete")) %>%
   ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
-  phy = mashUpgma, tree.names = "mash_upgma",
-  file = confs$analysis$prophages$preprocessing$files$mash_upgma
+  phy = mashUpgma, tree.names = "mash_hclust",
+  file = confs$analysis$prophages$preprocessing$files$mash_hclust
 )
 
 

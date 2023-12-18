@@ -67,7 +67,7 @@ clusterList <- dplyr::group_by(regionClusters, phage_grp) %>%
   purrr::set_names(nm = purrr::map(., "phage_grp"))
 
 mashTree <- ape::read.tree(
-  file = confs$analysis$prophages$preprocessing$files$mash_upgma
+  file = confs$analysis$prophages$preprocessing$files$mash_hclust
 )
 
 phageHgTypes <- suppressMessages(
@@ -76,7 +76,7 @@ phageHgTypes <- suppressMessages(
 
 ################################################################################
 # prepare clusterjs JSON for a cluster/grp
-grp <- clusterList$phage_grp_36
+grp <- clusterList$phage_grp_1
 
 grpDnd <- ape::keep.tip(phy = mashTree, tip = grp$members) %>% 
   ape::as.hclust.phylo() %>% 

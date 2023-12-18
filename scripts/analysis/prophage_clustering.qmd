@@ -100,7 +100,7 @@ mashMat <- suppressMessages(
 
 mashMat <- mashMat[phages$prophage_id, phages$prophage_id]
 
-mashUpgma <- ape::read.tree(confs$analysis$prophages$preprocessing$files$mash_upgma)
+mashUpgma <- ape::read.tree(confs$analysis$prophages$preprocessing$files$mash_hclust)
 ```
 
 ## Process syntenic Jaccard similarity and MASH distance data 

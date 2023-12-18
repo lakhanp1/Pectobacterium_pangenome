@@ -120,7 +120,7 @@ clusterList <- dplyr::group_by(phageClusters, phage_grp) %>%
   purrr::set_names(nm = purrr::map(., "phage_grp"))
 
 mashTree <- ape::read.tree(
-  file = confs$analysis$prophages$preprocessing$files$mash_upgma
+  file = confs$analysis$prophages$preprocessing$files$mash_hclust
 )
 ```
 

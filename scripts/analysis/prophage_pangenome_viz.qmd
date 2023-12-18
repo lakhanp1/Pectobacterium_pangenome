@@ -62,7 +62,7 @@ sampleInfoList <- as.list_metadata(
 
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$files$prophage_hg)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>% 
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
@@ -72,7 +72,7 @@ proHgs <- suppressMessages(
   ) 
 
 prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
-  dplyr::select(prophage_id, prophage_length = length, completeness)
+  dplyr::select(prophage_id, prophage_length, completeness)
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
@@ -90,7 +90,7 @@ phageRelations <- suppressMessages(
 ) %>% 
   dplyr::left_join(y = prophageDf, by = c("prophage_id"))
 
-phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_upgma)
+phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_hclust)
 
 ```
 
