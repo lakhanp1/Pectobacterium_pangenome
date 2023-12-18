@@ -119,12 +119,13 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
 #' @param chr chromosome name
 #' @param start start. default: `1` i.e. start of chromosome
 #' @param end end position. default: `Inf` end of chromosome
+#' @param cols Optionally, columns from `pandb` object to return
 #'
 #' @return A vector of homology group identifiers
 #' @export
 #'
 #' @examples
-region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
+region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf, cols = NULL) {
   stopifnot(
     !is.na(chr)
   )
@@ -134,7 +135,7 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
   
   df <- suppressMessages(AnnotationDbi::select(
     x = pandb, keys = genome, keytype = "genomeId",
-    columns = c("GID", "chr_name", "start", "end")
+    columns = union(c("GID", "chr_name", "start", "end"), cols)
   )) %>%
     dplyr::mutate(
       dplyr::across(
@@ -142,9 +143,14 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf) {
       )
     ) %>%
     dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end) %>%
-    dplyr::arrange(start)
+    dplyr::arrange(start) %>% 
+    tibble::as_tibble()
   
-  return(df$GID)
+  if(is.null(cols)){
+    return(df$GID)
+  } else{
+    return(df)
+  }
 }
 ################################################################################
 

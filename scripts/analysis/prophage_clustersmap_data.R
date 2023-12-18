@@ -8,6 +8,7 @@ rm(list = ls())
 
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
+source("scripts/utils/homology_groups.R")
 source("scripts/utils/genome_scale_utils.R")
 ################################################################################
 set.seed(124)
@@ -98,23 +99,16 @@ slotNum <- 0
 
 for (reg in slots) {
   
-  # regionList[[reg]]
-  genomeHgs <- suppressMessages(
-    AnnotationDbi::select(
-      x = panOrgDb, keys = regionList[[reg]]$genomeId,
-      columns = c(
-        "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
-        "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
-      ),
-      keytype = "genomeId"
+  regObj <- regionList[[reg]]
+  regHgs <- region_homology_groups(
+    pandb = panOrgDb, genome = regObj$genomeId,
+    chr = regObj$chr, start = regObj$start, end = regObj$end,
+    cols = c(
+      "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
+      "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
     )
-  ) 
-  
-  regHgs <- dplyr::left_join(
-    x = tibble::tibble(hg = regionList[[reg]]$hgs, chr_name = regionList[[reg]]$chr),
-    y = genomeHgs,
-    by = c("hg" = "GID", "chr_name")
-  )
+  ) %>% 
+    dplyr::rename(hg = GID)
   
   cog <- dplyr::select(regHgs, mRNA_key, COG_description) %>% 
     dplyr::distinct() %>% 
