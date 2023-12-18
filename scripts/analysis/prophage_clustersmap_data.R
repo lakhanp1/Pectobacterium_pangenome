@@ -306,26 +306,39 @@ linksJsonDf <- purrr::map2_dfr(
   }
 )
 
-
-mergedJsonDf <- tibble::tibble(
-  clusters = list(clusterJsonDf),
-  links = list(linksJsonDf),
-  groups = list(groupsJsonDf)
-)
-
 mergedJsonList <- list(
   clusters = clusterJsonDf,
   links = linksJsonDf,
   groups = groupsJsonDf
 )
 
-mergedJson <- jsonlite::toJSON(
-  mergedJsonList,
-  dataframe = "rows"
+confJson <- jsonlite::read_json(
+  path = paste(outDir, "/cluster_viz/clustermap_config.json", sep = ""),
+  # simplifyVector = TRUE,
+  flatten = TRUE
 )
 
+# unbox the json for correct format
+unbox_list_json <- function(x){
+  purrr::map(
+    .x = x,
+    .f = function(y){
+      if(is.list(y)){
+        y <- unbox_list_json(y)
+      } else{
+        return(jsonlite::unbox(y))
+      }
+      
+    }
+  )
+}
+
+confJson <- unbox_list_json(confJson)
+
 jsonlite::write_json(
+  # x = list(config = confJson$config, data = mergedJsonList),
   x = mergedJsonList,
+  # pretty = 2,
   path = paste(outDir, "/cluster_viz/prophage_clusters.json", sep = "")
 )
 
