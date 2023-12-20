@@ -76,20 +76,43 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
-phages <- suppressMessages(
+phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+  dplyr::select(prophage_id, taxonomy, completeness, checkv_quality, genomeId)
+
+mergedPhages <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
+) %>% 
+  dplyr::filter(filtered != 1)
+
+# get aditional information for fragmented prophages
+fragmented <- dplyr::filter(mergedPhages, nFragments > 1) %>% 
+  dplyr::filter(jaccardIndex >= 0.5 & perSharedChild >= 0.8) %>% 
+  dplyr::select(prophage_id, fragments, nFragments, prophage_length, nHg, parent) %>% 
+  dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>% 
+  tidyr::unnest(fragments) %>% 
+  dplyr::left_join(
+    y = phagesRaw, by = c("fragments" = "prophage_id")
+  ) %>% 
+  dplyr::group_by(prophage_id, nFragments, prophage_length, nHg, parent) %>% 
+  dplyr::summarize(
+    fragments = paste(fragments, collapse = ";"),
+    taxonomy = paste(unique(taxonomy), collapse = "&"),
+    completeness = sum(completeness),
+    checkv_quality = paste("merged:", checkv_quality, collapse = ",", sep = " "),
+    genomeId = unique(genomeId),
+    .groups = "drop"
+  ) %>% 
+  dplyr::mutate(
+    completeness = pmin(98, completeness)
+  )
+
+unfragPhages <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered)
 ) %>%
   dplyr::select(
     prophage_id, prophage_length, nHg, genomeId, completeness,
     checkv_quality, taxonomy
-  ) %>%
-  dplyr::left_join(
-    y = dplyr::select(
-      sampleInfo, genomeId, sampleId, SpeciesName, nodepath.kmer_nj,
-      geo_loc_country, host, isolation_source, env_broad_scale, collection_year
-    ),
-    by = "genomeId"
-  )
+  ) 
 
 simDf <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$pair_comparison)
@@ -101,7 +124,7 @@ mashMat <- suppressMessages(
   tibble::column_to_rownames(var = "prophage_id") %>%
   as.matrix()
 
-mashMat <- mashMat[phages$prophage_id, phages$prophage_id]
+mashMat <- mashMat[unfragPhages$prophage_id, unfragPhages$prophage_id]
 
 mashUpgma <- ape::read.tree(confs$analysis$prophages$preprocessing$files$mash_hclust)
 ```
@@ -116,7 +139,7 @@ phageCmpDf <- dplyr::bind_rows(
     dplyr::rename(phage1 = p1, phage2 = p2)
 )
 
-jaccardMat <- tidyr::pivot_wider(
+allPhageJaccardMat <- tidyr::pivot_wider(
   phageCmpDf,
   id_cols = phage1,
   names_from = phage2,
@@ -125,7 +148,7 @@ jaccardMat <- tidyr::pivot_wider(
   tibble::column_to_rownames(var = "phage1") %>%
   as.matrix()
 
-jaccardMat <- jaccardMat[phages$prophage_id, phages$prophage_id]
+jaccardMat <- allPhageJaccardMat[unfragPhages$prophage_id, unfragPhages$prophage_id]
 
 if (all(is.na(diag(jaccardMat)))) {
   diag(jaccardMat) <- 1
@@ -349,8 +372,31 @@ phageGroups <- tibble::enframe(
   dplyr::mutate(
     phage_grp = paste("phage_grp_", phage_grp, sep = "")
   ) %>%
-  dplyr::left_join(phages, by = "prophage_id")
+  dplyr::left_join(unfragPhages, by = "prophage_id")
 ```
+
+Finally, add the fragmented prophages which could be mapped to a prophage in the
+pool with high quality (syntenic-Jaccard index >= 0.5 & perSharedChild >= 0.8)
+to the respective clusters of their best matching parent prophage.
+
+```{r}
+
+fragmentsToAdd <- dplyr::left_join(
+  x = fragmented,
+  y = dplyr::select(phageGroups, prophage_id, phage_grp),
+  by = c("parent" = "prophage_id")
+) %>% 
+  dplyr::select(-parent)
+
+phageGroups <- dplyr::bind_rows(phageGroups, fragmentsToAdd) %>% 
+  tidyr::replace_na(list(nFragments = 1)) %>% 
+  dplyr::mutate(
+    fragments = dplyr::if_else(is.na(fragments), prophage_id, fragments)
+  ) %>% 
+  dplyr::select(prophage_id, phage_grp, fragments, nFragments, everything())
+
+```
+
 
 Cluster representatives are determined based on the mean Jaccard index of cluster
 members against all members. The cluster member with highest mean Jaccard index
@@ -374,7 +420,7 @@ clusterRoots <- split(x = phageGroups$prophage_id, f = phageGroups$phage_grp) %>
       if (length(x) == 1) {
         rm <- setNames(object = 1, nm = x)
       } else {
-        subJc <- jaccardMat[x, x]
+        subJc <- allPhageJaccardMat[x, x]
         diag(subJc) <- NA
         
         rm <- matrixStats::rowMeans2(subJc, na.rm = TRUE, useNames = TRUE) %>%
@@ -394,10 +440,10 @@ clusterRoots <- split(x = phageGroups$prophage_id, f = phageGroups$phage_grp) %>
 
 ```
 
-Finally, combine the clusters with cluster roots and save the data.
+Combine the clusters with cluster roots.
 
 ```{r}
-phageClusters <- dplyr::left_join(
+rootedClusters <- dplyr::left_join(
   phageGroups, clusterRoots,
   by = "prophage_id"
 ) %>%
@@ -414,21 +460,37 @@ phageClusters <- dplyr::left_join(
     is_root = dplyr::if_else(is_root == 1, 1, 0)
   )
 
-representatives <- dplyr::filter(phageClusters, is_root == 1)
+representatives <- dplyr::filter(rootedClusters, is_root == 1)
 
-phageClusters %<>% dplyr::left_join(
+rootedClusters %<>% dplyr::left_join(
   y = dplyr::select(representatives, phage_grp, root_id = prophage_id),
   by = "phage_grp"
+)
+
+```
+
+Save the cluster data
+
+```{r}
+
+phageClusters <- dplyr::arrange(
+  rootedClusters,
+  dplyr::desc(grp_size), phage_grp, desc(completeness), desc(mean_grp_sim)
 ) %>%
-  dplyr::arrange(
-    dplyr::desc(grp_size), phage_grp, desc(completeness), desc(mean_grp_sim)
+  dplyr::left_join(
+    y = dplyr::select(
+      sampleInfo, genomeId, sampleId, SpeciesName, nodepath.kmer_nj,
+      geo_loc_country, host, isolation_source, env_broad_scale, collection_year
+    ),
+    by = "genomeId"
   )
+
+# add group counts
 
 readr::write_tsv(
   phageClusters,
   file = confs$analysis$prophages$files$clusters
 )
-
 ```
 
 :::{.callout-note}
@@ -456,7 +518,9 @@ repDend <- hclust(
     jacDistMat[representatives$prophage_id, representatives$prophage_id]
   ),
   method = "complete"
-)
+) %>% 
+  as.dendrogram() %>% 
+  dendextend::ladderize()
 
 ht_jaccardRep <- plot_species_ANI_heatmap(
   mat = jaccardMat[representatives$prophage_id, representatives$prophage_id],
@@ -466,7 +530,7 @@ ht_jaccardRep <- plot_species_ANI_heatmap(
   col = circlize::colorRamp2(
     breaks = colorList$jaccard$breaks, colors = colorList$jaccard$colors
   ),
-  # use_raster = TRUE, raster_quality = 3,
+  use_raster = TRUE, raster_quality = 2,
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
   )
@@ -480,7 +544,7 @@ ht_mashRep <- plot_species_ANI_heatmap(
   col = circlize::colorRamp2(
     breaks = colorList$mash$breaks, colors = colorList$mash$colors
   ),
-  # use_raster = TRUE, raster_quality = 3,
+  use_raster = TRUE, raster_quality = 2,
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
   )
@@ -521,8 +585,7 @@ dendrogram. The later `r max(treeCut)` nodes are colored in red.
 #| out-width: '100%'
 #| layout-valign: top
 
-as.dendrogram(repDend) %>%
-  rev() %>% 
+rev(repDend) %>% 
   dendextend::set(
     what = "by_labels_branches_col",
     value = setdiff(representatives$prophage_id, names(noisyNodes))
