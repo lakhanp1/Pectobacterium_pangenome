@@ -84,7 +84,10 @@ phages <- suppressMessages(
     checkv_quality, taxonomy
   ) %>%
   dplyr::left_join(
-    y = dplyr::select(sampleInfo, genomeId, SpeciesName, nodepath.kmer_nj),
+    y = dplyr::select(
+      sampleInfo, genomeId, sampleId, SpeciesName, nodepath.kmer_nj,
+      geo_loc_country, host, isolation_source, env_broad_scale, collection_year
+    ),
     by = "genomeId"
   )
 
@@ -253,7 +256,7 @@ ht_jaccard <- plot_species_ANI_heatmap(
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
   ),
-  use_raster = TRUE, raster_quality = 3
+  use_raster = TRUE, raster_quality = 2
 )
 
 
@@ -409,9 +412,6 @@ phageClusters <- dplyr::left_join(
   dplyr::ungroup() %>%
   dplyr::mutate(
     is_root = dplyr::if_else(is_root == 1, 1, 0)
-  ) %>%
-  dplyr::arrange(
-    dplyr::desc(grp_size), desc(completeness), desc(mean_grp_sim), phage_grp
   )
 
 representatives <- dplyr::filter(phageClusters, is_root == 1)
@@ -419,7 +419,10 @@ representatives <- dplyr::filter(phageClusters, is_root == 1)
 phageClusters %<>% dplyr::left_join(
   y = dplyr::select(representatives, phage_grp, root_id = prophage_id),
   by = "phage_grp"
-)
+) %>%
+  dplyr::arrange(
+    dplyr::desc(grp_size), phage_grp, desc(completeness), desc(mean_grp_sim)
+  )
 
 readr::write_tsv(
   phageClusters,
@@ -512,7 +515,6 @@ obtained by clustering `r length(trimmedNodes)` prophages, are visualized in thi
 dendrogram. The later `r max(treeCut)` nodes are colored in red.
 
 ```{r}
-#| echo: false
 #| column: page 
 #| fig-height: 30
 #| fig-width: 10 
