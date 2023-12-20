@@ -3,6 +3,8 @@ suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(ggdist))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(jsonlite))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(circlize))
 
 rm(list = ls())
 
@@ -10,6 +12,7 @@ source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/uti
 source("scripts/utils/config_functions.R")
 source("scripts/utils/homology_groups.R")
 source("scripts/utils/genome_scale_utils.R")
+source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
@@ -20,6 +23,7 @@ confs <- prefix_config_paths(
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
 outDir <- confs$analysis$prophages$dir
 
@@ -33,6 +37,12 @@ sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
+
+rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
@@ -412,6 +422,109 @@ jsonlite::write_json(
 )
 
 ################################################################################
+# prepare homology group PAV matrix from pan.db
+htSpecies <- species_key_heatmap(
+  genomes = rawTree$tip.label, speciesInfo = sampleInfo,
+  markGenomes = list(
+    prophages = list(
+      genomes = purrr::map_chr(.x = regionList[grp$members], .f = "genomeId") %>% 
+        unname(),
+      color = "red"
+    )
+  )
+)
+
+htSpecies@heatmap_param$width <- unit(12, "cm")
+
+hgMat <- homology_groups_mat(
+  pandb = panOrgDb, type = "pav", groups = grpHgFreq$hgId
+)
+
+hgMat <- hgMat[rawTree$tip.label, ]
+
+funcTypeColors <- dplyr::select(
+  hgFuncColors, at = broad_function, fill = function_color_hex
+) %>%
+  dplyr::distinct()
+
+hgLengths <- AnnotationDbi::select(
+  x = panOrgDb, keys = grpHgFreq$hgId,
+  columns = c("start", "end")
+) %>%
+  dplyr::mutate(
+    dplyr::across(.cols = c(start, end), .fns = as.numeric)
+  ) %>% 
+  dplyr::mutate(length = end - start)
+
+hgLengths <- split(x = hgLengths$length, f = hgLengths$GID)
+hgLengths <- hgLengths[grpHgFreq$hgId]
+
+# HG frequency barplot annotation
+anFreq <- ComplexHeatmap::HeatmapAnnotation(
+  length = ComplexHeatmap::anno_boxplot(
+    x = hgLengths, which = "column"
+  ),
+  freq = ComplexHeatmap::anno_barplot(
+    x = grpHgFreq$freq, which = "column"
+  ),
+  func = grpHgFreq$broad_function,
+  col = list(
+    func = deframe(funcTypeColors)
+  ),
+  gp = gpar(col = "black"),
+  annotation_height = c(4, 4, 1), height = unit(3, "cm"),
+  gap = unit(1, "mm"),
+  border = c(length = TRUE, freq = TRUE, func = TRUE)
+)
+
+# HG PAV heatmap using PAV data for clustering
+ht <- homology_group_heatmap(
+  mat = hgMat, phy = TRUE,
+  # width = unit(10, "cm"),
+  name = "hgs",
+  top_annotation = anFreq,
+  use_raster = TRUE, raster_quality = 3
+)
+
+ht@column_dend_param$cluster <- FALSE
+ht@column_names_param$show <- TRUE
+
+htList <- htSpecies + ht
+
+pdf(file = paste(outDir, "/cluster_viz/", grpToView, ".hg_heatmap.pdf", sep = ""),
+    width = 16, height = 10)
+
+ComplexHeatmap::draw(
+  object = htList,
+  column_title = paste(
+    nrow(grpHgFreq), "homology groups for prophages in cluster:", grpToView
+  ),
+  column_title_gp = gpar(fontsize = 14, fontface = "bold"),
+  main_heatmap = "hgs",
+  row_dend_side = "left",
+  merge_legends = TRUE,
+  heatmap_legend_side = "right"
+)
+
+# use the phylogeny for clustering genomes
+ComplexHeatmap::draw(
+  object = htList,
+  column_title = paste(
+    nrow(grpHgFreq), "homology groups for prophages in cluster:", grpToView
+  ),
+  column_title_gp = gpar(fontsize = 14, fontface = "bold"),
+  main_heatmap = "hgs",
+  row_dend_side = "left",
+  merge_legends = TRUE,
+  cluster_rows = as.dendrogram_ordered.phylo(
+    phy = rawTree, sourceOrder = rawTree$tip.label
+  ),
+  heatmap_legend_side = "right"
+)
+
+dev.off()
+################################################################################
+
 
 ## progressive alignment test
 # masterHgs <- proHgL[[slotOrder[1]]]$hgs
