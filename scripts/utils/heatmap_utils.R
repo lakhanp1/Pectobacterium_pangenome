@@ -18,7 +18,7 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
   ## necessary checks
   stopifnot(
     setequal(rownames(mat), colnames(mat)),
-    any(isa(phy, c("phylo", "dendrogram", "hclust")))
+    any(isa(phy, c("phylo", "dendrogram", "hclust", "logical")))
   )
   
   if (isa(phy, "phylo")) {
@@ -140,8 +140,12 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
 #'
 #' @param genomes genomes to select
 #' @param speciesInfo a dataframe with two columns: `Genome` and `SpeciesName`
-#' @param markGenomes A list with two elements named `list(compare = c(),
-#' against = c())`. Default: `NULL`
+#' @param markGenomes A named list of list with following structure:
+#' `list(
+#' vir = list(genomes = c("12", "2", "9"), color = "red"),
+#' avir = list(genomes = c("1", "11", "4", "19"), color = "green")
+#' )`
+#' Default: `NULL`
 #' 
 #' @return A heatmap
 #' @export
@@ -241,16 +245,30 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
                                    hgAn = NULL, markGenomes = NULL, ...) {
   ## necessary checks
   stopifnot(
-    setequal(rownames(mat), phy$tip.label),
-    ## ensure the row order is same: this is because of a bug in ComplexHeatmap
-    # https://github.com/jokergoo/ComplexHeatmap/issues/949
-    all(rownames(mat) == phy$tip.label),
     is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$genomeId)),
     is.null(hgAn) | all(colnames(mat) == hgAn$hg_id),
-    any(class(phy) == "phylo"),
+    any(isa(phy, c("phylo", "dendrogram", "hclust", "logical"))),
     is.null(markGenomes) |
       (is.list(markGenomes) & all(unlist(markGenomes) %in% rownames(mat)))
   )
+  
+  if (isa(phy, "phylo")) {
+    clust <- as.dendrogram_ordered.phylo(phy = phy, sourceOrder = rownames(mat))
+  } else if (isa(phy, "hclust")) {
+    clust <- as.dendrogram(phy)
+  } else {
+    clust <- phy
+  }
+  
+  if(isa(clust, "dendrogram")){
+    ## ensure the row order is same: this is because of a bug in ComplexHeatmap
+    # https://github.com/jokergoo/ComplexHeatmap/issues/949
+    stopifnot(
+      # all(rownames(mat) == labels(clust)),
+      setequal(rownames(mat), labels(clust))
+    )
+  }
+
   
   ## homology groups heatmap arguments
   ht_args <- list(
@@ -259,7 +277,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
       viridisLite::viridis(n = max(3, min(max(mat), 6)) + 1, option = "B"),
       names = seq(0, max(3, min(max(mat), 7)))
     ),
-    cluster_rows = ape::as.hclust.phylo(phy), row_dend_reorder = FALSE,
+    cluster_rows = clust, row_dend_reorder = FALSE,
     show_row_names = FALSE,
     cluster_columns = TRUE, cluster_column_slices = FALSE,
     show_column_names = TRUE, column_names_side = "bottom",
