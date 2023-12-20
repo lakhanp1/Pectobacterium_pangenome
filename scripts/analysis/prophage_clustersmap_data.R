@@ -24,11 +24,18 @@ panConf <- confs$data$pangenomes[[pangenome]]
 outDir <- confs$analysis$prophages$dir
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+
+grpToView <- "phage_grp_1"
+subSample <- TRUE
 ################################################################################
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+)
+## add species order factor levels to SpeciesName column
+sampleInfo %<>% dplyr::mutate(
+  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 rawRegions <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
@@ -74,20 +81,115 @@ phageHgTypes <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
 )
 
+funcTypes <- list(
+  DNA = c("nuclease", "helicase", "terminase", "DNA function"),
+  integrase = "integrase",
+  mixed = c("CI repressor", "hydrolase", "holin", "portal protein",
+            "VRR-NUC domain", "other"),
+  replication = c("DNA polymerase", "reverse transcriptase"),
+  tail = c("tail fibre", "tail tube", "tail", "tail collar", "baseplate",
+           "tail sheath", "tail tape"),
+  capsid = c("capsid", "head"),
+  defense = c("colicin", "toxin-antitoxin"),
+  unknown = c("unknown", "uncharacterized conserved")
+)
+
+hgFuncColors <- purrr::map2(
+  .x = funcTypes,
+  .y = c(viridis::viridis(n = length(funcTypes) -1, option = "turbo"), "grey"),
+  .f = function(x, y){
+    tibble::tibble(
+      function_category = x,
+      function_color_hex = y,
+      function_color = paste(
+        "rgb(",
+        paste(as.vector(col2rgb(y)), collapse = ", "),
+        ")", sep = "")
+    )
+  }
+) %>% 
+  purrr::list_rbind(names_to = "broad_function")
+
 ################################################################################
 # prepare clusterjs JSON for a cluster/grp
-grp <- clusterList$phage_grp_1
+grp <- clusterList[[grpToView]]
 
+# frequency for all HGs in the prophages in current cluster
+grpHgFreq <- regionList[grp$members] %>%
+  purrr::map("hgs") %>% unlist() %>% table() %>% 
+  tibble::enframe(name = "hgId", value = "freq") %>% 
+  dplyr::mutate(freq = as.numeric(freq)) %>% 
+  dplyr::left_join(phageHgTypes, by = "hgId") %>% 
+  dplyr::left_join(hgFuncColors, by = "function_category") %>% 
+  dplyr::arrange(desc(freq))
+
+# original MASH distance tree
 grpDnd <- ape::keep.tip(phy = mashTree, tip = grp$members) %>% 
   ape::as.hclust.phylo() %>% 
   as.dendrogram() %>% 
   dendextend::ladderize()
 
-slots <- labels(grpDnd)[order.dendrogram(grpDnd)]
+plot(rev(grpDnd), horiz = TRUE)
 
-grpHgFreq <- regionList[grp$members] %>%
-  purrr::map("hgs") %>% unlist() %>% table() %>% 
-  sort(decreasing = T)
+# HG PAV clustering
+hgPavMat <- purrr::map(
+  .x = regionList[labels(grpDnd)],
+  .f = function(x){
+    table(x$hgs) %>% 
+      tibble::enframe(name = "hgs", value = "count") %>% 
+      dplyr::mutate(count = as.numeric(count))
+  }
+) %>% 
+  purrr::list_rbind(names_to = "prophage_id") %>% 
+  tidyr::pivot_wider(
+    id_cols = prophage_id, names_from = hgs,
+    values_from = count, values_fill = 0
+  ) %>% 
+  tibble::column_to_rownames(var = "prophage_id") %>% 
+  as.matrix()
+
+hgPavDnd <- hclust(d = dist(hgPavMat)) %>% as.dendrogram() %>% 
+  dendextend::ladderize()
+
+plot(rev(hgPavDnd), horiz = TRUE)
+# order.dendrogram(hgPavDnd) == sort(hgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev()
+
+
+if(subSample){
+  
+  grpSubset <- dendextend::cutree(tree = hgPavDnd, h = 2) %>% 
+    tibble::enframe(name = "prophage_id", value = "cut") %>% 
+    dplyr::add_count(cut, name = "count") %>% 
+    dplyr::slice_sample(n = 1, by = cut)
+  
+  subHgPavDnd <- dendextend::prune(
+    dend = hgPavDnd,
+    leaves = setdiff(labels(hgPavDnd), grpSubset$prophage_id)
+  ) %>% 
+    dendextend::ladderize()
+  
+  grpSubset <- dplyr::left_join(
+    x = grpSubset,
+    y = tibble::tibble(prophage_id = labels(subHgPavDnd), order = 1:nleaves(subHgPavDnd)),
+    by = "prophage_id"
+  ) %>% 
+    dplyr::arrange(order)
+  
+  plot(subHgPavDnd, horiz = TRUE)
+  
+  # sort(subHgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev() == order.dendrogram(subHgPavDnd)
+  # sort(subHgPavDnd, type = "nodes") %>% labels() %>% rev() == labels(subHgPavDnd)
+  # labels(subHgPavDnd)
+  # labels(subHgPavDnd)[order.dendrogram(subHgPavDnd)]
+  # sort(subHgPavDnd, type = "nodes") %>% labels() %>% rev()
+  # order.dendrogram(subHgPavDnd)
+  # sort(subHgPavDnd, type = "nodes") %>% order.dendrogram()
+  
+  slots <- rev(grpSubset$prophage_id)
+  
+} else {
+  slots <- labels(grpDnd)
+}
 
 hgStrand <- NULL
 clusterJsonDf <- NULL
@@ -110,6 +212,7 @@ for (reg in slots) {
   ) %>% 
     dplyr::rename(hg = GID)
   
+  # summarize COG and PFAM annotations
   cog <- dplyr::select(regHgs, mRNA_key, COG_description) %>% 
     dplyr::distinct() %>% 
     dplyr::group_by(mRNA_key) %>% 
@@ -142,9 +245,9 @@ for (reg in slots) {
   
   if(!is.null(hgStrand)){
     
-    for (h in names(grpHgFreq)) {
+    for (h in grpHgFreq$hgId) {
       
-      if(!is.null(thisRegHgStrand[[h]])){
+      if(!is.null(thisRegHgStrand[[h]]) & !is.null(hgStrand[[h]])){
         if((thisRegHgStrand[[h]] != hgStrand[[h]])){
           
           regHgs <- invert_coordinates(regHgs)
@@ -221,58 +324,26 @@ groupsJsonDf <- dplyr::group_by(geneToGroup, hg) %>%
   dplyr::select(uid = hg, label = hg, everything()) %>% 
   dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId"))
 
-funcTypes <- list(
-  DNA = c("nuclease", "helicase", "terminase", "DNA function"),
-  integrase = "integrase",
-  mixed = c("CI repressor", "hydrolase", "holin", "portal protein",
-            "VRR-NUC domain", "other"),
-  replication = c("DNA polymerase", "reverse transcriptase"),
-  tail = c("tail fibre", "tail tube", "tail", "tail collar", "baseplate",
-           "tail sheath", "tail tape"),
-  capsid = c("capsid", "head"),
-  defense = c("colicin", "toxin-antitoxin"),
-  unknown = c("unknown", "uncharacterized conserved")
-)
-
-hgFuncColors <- viridis::viridis(n = length(funcTypes), option = "plasma") %>% 
-  setNames(names(funcTypes)) %>% 
-  col2rgb() %>%
-  as.data.frame() %>% 
-  purrr::map2(
-    .y = funcTypes,
-    .f = function(x, y){
-      tibble::tibble(
-        function_category = y,
-        function_color = paste("rgb(", paste(x, collapse = ", "), ")", sep = "")
-      )
-    }
-  ) %>% 
-  purrr::list_rbind(names_to = "broad_function") %>% 
-  dplyr::mutate(
-    function_color = if_else(
-      broad_function == "unknown", "rgb(190, 190, 190)", function_color
-    )
+# color HGs by their frequency
+hgFreqColors <- tibble::tibble(
+  groupFreq = 1:max(groupsJsonDf$groupFreq),
+  freq_color_hex = viridis::viridis(
+    n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1
   )
-
-hgFreqColors <- viridis::viridis(n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1) %>% 
-  col2rgb() %>%
-  as.data.frame() %>% 
-  purrr::map2_dfr(
-    .y = 1:max(groupsJsonDf$groupFreq),
-    .f = function(x, y){
-      list(
-        groupFreq = y,
-        freq_colour = paste("rgb(", paste(x, collapse = ", "), ")", sep = "")
-      )
-    }
-  )
+) %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(freq_color = paste(as.vector(col2rgb(freq_color_hex)), collapse = ", ")) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(freq_color = paste("rgb(", freq_color, ")", sep = "")) %>% 
+  dplyr::select(-freq_color_hex)
 
 groupsJsonDf <- dplyr::left_join(
   groupsJsonDf, hgFreqColors, by = "groupFreq"
 ) %>% 
   dplyr::left_join(hgFuncColors, by = "function_category") %>% 
   dplyr::rename(colour = function_color) %>% 
-  dplyr::arrange(broad_function)
+  dplyr::arrange(broad_function) %>% 
+  dplyr::arrange(desc(groupFreq))
 
 ## make links JSON
 linksJsonDf <- purrr::map2_dfr(
@@ -313,9 +384,7 @@ mergedJsonList <- list(
 )
 
 confJson <- jsonlite::read_json(
-  path = paste(outDir, "/cluster_viz/clustermap_config.json", sep = ""),
-  # simplifyVector = TRUE,
-  flatten = TRUE
+  path = paste(outDir, "/cluster_viz/clustermap_config.json", sep = "")
 )
 
 # unbox the json for correct format
@@ -339,7 +408,7 @@ jsonlite::write_json(
   # x = list(config = confJson$config, data = mergedJsonList),
   x = mergedJsonList,
   # pretty = 2,
-  path = paste(outDir, "/cluster_viz/prophage_clusters.json", sep = "")
+  path = paste(outDir, "/cluster_viz/", grpToView, ".json", sep = "")
 )
 
 ################################################################################
