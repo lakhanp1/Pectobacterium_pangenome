@@ -25,12 +25,17 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
-outDir <- confs$analysis$prophages$dir
-
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
-grpToView <- "phage_grp_1"
-subSample <- TRUE
+grpToView <- "phage_grp_71"
+subSample <- FALSE
+
+outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grpToView, sep = "")
+outPrefix <- paste(outDir, "/", grpToView, sep = "")
+
+if(!dir.exists(outDir)){
+  dir.create(outDir)
+}
 ################################################################################
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
@@ -394,7 +399,7 @@ mergedJsonList <- list(
 )
 
 confJson <- jsonlite::read_json(
-  path = paste(outDir, "/cluster_viz/clustermap_config.json", sep = "")
+  path = paste(confs$analysis$prophages$dir, "/cluster_viz/clustermap_config.json", sep = "")
 )
 
 # unbox the json for correct format
@@ -418,7 +423,7 @@ jsonlite::write_json(
   # x = list(config = confJson$config, data = mergedJsonList),
   x = mergedJsonList,
   # pretty = 2,
-  path = paste(outDir, "/cluster_viz/", grpToView, ".json", sep = "")
+  path = paste(outPrefix, ".json", sep = "")
 )
 
 ################################################################################
@@ -447,16 +452,23 @@ funcTypeColors <- dplyr::select(
 ) %>%
   dplyr::distinct()
 
-hgLengths <- AnnotationDbi::select(
+hgsInPan <- AnnotationDbi::select(
   x = panOrgDb, keys = grpHgFreq$hgId,
-  columns = c("start", "end")
+  columns = c("genome", "genomeId", "chr_id", "chr_name", 
+              "start", "end", "strand", "mRNA_id", "genePos")
 ) %>%
   dplyr::mutate(
-    dplyr::across(.cols = c(start, end), .fns = as.numeric)
+    dplyr::across(.cols = c(start, end, genome, genePos), .fns = as.numeric)
   ) %>% 
-  dplyr::mutate(length = end - start)
+  dplyr::mutate(length = end - start) %>% 
+  dplyr::arrange(genome, chr_id, start)
 
-hgLengths <- split(x = hgLengths$length, f = hgLengths$GID)
+readr::write_tsv(
+  hgsInPan,
+  file = paste(outPrefix, ".hgs_pangenome_data.txt", sep = "")
+)
+
+hgLengths <- split(x = hgsInPan$length, f = hgsInPan$GID)
 hgLengths <- hgLengths[grpHgFreq$hgId]
 
 # HG frequency barplot annotation
@@ -491,7 +503,7 @@ ht@column_names_param$show <- TRUE
 
 htList <- htSpecies + ht
 
-pdf(file = paste(outDir, "/cluster_viz/", grpToView, ".hg_heatmap.pdf", sep = ""),
+pdf(file = paste(outPrefix, ".hg_heatmap.pdf", sep = ""),
     width = 16, height = 10)
 
 ComplexHeatmap::draw(
