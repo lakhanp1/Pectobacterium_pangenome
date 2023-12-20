@@ -16,6 +16,9 @@ source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
+grpToView <- "phage_grp_107"
+subSample <- FALSE
+
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
@@ -26,9 +29,6 @@ panConf <- confs$data$pangenomes[[pangenome]]
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
-
-grpToView <- "phage_grp_71"
-subSample <- FALSE
 
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grpToView, sep = "")
 outPrefix <- paste(outDir, "/", grpToView, sep = "")
@@ -68,6 +68,9 @@ regionHgs <- suppressMessages(
 regionClusters <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$clusters)
 ) %>%
+  # handle fragmented regions in the future
+  # dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>% 
+  # tidyr::unnest(fragments) %>% 
   dplyr::left_join(y = rawRegions, by = "prophage_id") %>% 
   dplyr::left_join(y = regionHgs, by = "prophage_id")
 
@@ -80,7 +83,9 @@ clusterList <- dplyr::group_by(regionClusters, phage_grp) %>%
     .f = ~{
       list(
         phage_grp = .x$phage_grp[1],
-        members = .x$prophage_id,
+        members = .x$prophage_id[.x$nFragments == 1],
+        # save fragmented regions separately for now.
+        fragmented = .x$prophage_id[.x$nFragments > 1],
         group_size = nrow(.x)
       )
     },
@@ -428,15 +433,26 @@ jsonlite::write_json(
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
+
+markGenomeColors <- list(
+  prophages = list(
+    genomes = purrr::map_chr(.x = regionList[grp$members], .f = "genomeId") %>% 
+      unname(),
+    color = "#D81B60"
+  )
+)
+
+if(length(grp$fragmented) > 0){
+  markGenomeColors[["fragmented"]] <- list(
+    genomes = purrr::map_chr(.x = regionList[grp$fragmented], .f = "genomeId") %>% 
+      unname(),
+    color = "#FFC107"
+  )
+}
+
 htSpecies <- species_key_heatmap(
   genomes = rawTree$tip.label, speciesInfo = sampleInfo,
-  markGenomes = list(
-    prophages = list(
-      genomes = purrr::map_chr(.x = regionList[grp$members], .f = "genomeId") %>% 
-        unname(),
-      color = "red"
-    )
-  )
+  markGenomes = markGenomeColors
 )
 
 htSpecies@heatmap_param$width <- unit(12, "cm")
