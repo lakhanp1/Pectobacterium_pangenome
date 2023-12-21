@@ -16,8 +16,10 @@ source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
-grpToView <- "phage_grp_107"
+grpToView <- "phage_grp_36"
 subSample <- FALSE
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -111,12 +113,13 @@ funcTypes <- list(
            "tail sheath", "tail tape"),
   capsid = c("capsid", "head"),
   defense = c("colicin", "toxin-antitoxin"),
-  unknown = c("unknown", "uncharacterized conserved")
+  unknown = c("unknown", "uncharacterized conserved"),
+  flanking = c("flanking")
 )
 
 hgFuncColors <- purrr::map2(
   .x = funcTypes,
-  .y = c(viridis::viridis(n = length(funcTypes) -1, option = "turbo"), "grey"),
+  .y = c(viridis::viridis(n = length(funcTypes) - 2, option = "turbo"), "grey50", "white"),
   .f = function(x, y){
     tibble::tibble(
       function_category = x,
@@ -177,7 +180,7 @@ plot(rev(hgPavDnd), horiz = TRUE)
 
 if(subSample){
   
-  grpSubset <- dendextend::cutree(tree = hgPavDnd, h = 2) %>% 
+  grpSubset <- dendextend::cutree(tree = hgPavDnd, h = 0.5) %>% 
     tibble::enframe(name = "prophage_id", value = "cut") %>% 
     dplyr::add_count(cut, name = "count") %>% 
     dplyr::slice_sample(n = 1, by = cut)
@@ -194,6 +197,12 @@ if(subSample){
     by = "prophage_id"
   ) %>% 
     dplyr::arrange(order)
+  
+  hgPavDnd <- dendextend::set(
+    hgPavDnd, what = "labels_col",
+    value = as.numeric(labels(hgPavDnd) %in% grpSubset$prophage_id) + 1
+  ) %>% 
+    set("by_labels_branches_col", value = grpSubset$prophage_id)
   
   plot(subHgPavDnd, horiz = TRUE)
   
@@ -215,13 +224,27 @@ hgStrand <- NULL
 clusterJsonDf <- NULL
 linksJsonDf <- NULL
 geneToGroup <- NULL
-
+flankingHgs <- character(0)
 slotNum <- 0
 # reg <- slots[1]
 
 for (reg in slots) {
   
   regObj <- regionList[[reg]]
+  
+  if(addFlankingRegions){
+    regObj$oldStart <- regObj$start
+    regObj$oldEnd <- regObj$end
+    
+    if(!is.na(regObj$start)){
+      regObj$start <- pmax(regObj$oldStart - flankingRegion, 1)
+    }
+    
+    if(!is.na(regObj$end)){
+      regObj$end <- regObj$end + flankingRegion
+    }
+  }
+  
   regHgs <- region_homology_groups(
     pandb = panOrgDb, genome = regObj$genomeId,
     chr = regObj$chr, start = regObj$start, end = regObj$end,
@@ -252,12 +275,25 @@ for (reg in slots) {
     tidyr::replace_na(replace = list(COG = "-", PFAM = "-")) %>% 
     dplyr::mutate(
       strand = dplyr::if_else(strand == "-", -1, 1, 1),
-      dplyr::across(.cols = c(start, end, genePos), .fns = as.integer)
+      dplyr::across(.cols = c(start, end, genePos), .fns = as.integer),
+      flanking = 0
     ) %>% 
     dplyr::rename(
       uid = mRNA_key, label = mRNA_id, chr = chr_id
     ) %>%
     dplyr::arrange(start)
+  
+  # set function_category = flanking to the flanking genes added
+  if (addFlankingRegions) {
+    flankingGenes <- which(regHgs$start < regObj$oldStart | regHgs$end > regObj$oldEnd)
+    
+    regHgs$function_category[flankingGenes] <- "flanking"
+    # regHgs$hg[flankingGenes] <- paste(
+    #   regHgs$hg[flankingGenes], "_flanking", sep = ""
+    # )
+    
+    regHgs$flanking[flankingGenes] <- 1 
+  }
   
   # change the orientation of gene strand for better visualization
   thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
@@ -299,7 +335,7 @@ for (reg in slots) {
   ## save groups information for making groups JSON
   geneToGroup <- dplyr::bind_rows(
     geneToGroup,
-    dplyr::select(regHgs, hg, genes = uid)
+    dplyr::select(regHgs, hg, genes = uid, flanking)
   )
   
   # for now there is only one loci in each cluster
@@ -334,15 +370,24 @@ for (reg in slots) {
 }
 
 ## make groups JSON
-groupsJsonDf <- dplyr::group_by(geneToGroup, hg) %>% 
+groupsJsonDf <- dplyr::mutate(
+  geneToGroup,
+  hg = dplyr::if_else(flanking == 1, paste(hg, "_flanking", sep = ""), hg)
+) %>% 
   dplyr::summarise(
     genes = list(genes),
     groupFreq = n(),
-    hidden = FALSE
+    hidden = FALSE,
+    .by = c(hg, flanking)
   ) %>% 
   dplyr::arrange(desc(groupFreq)) %>% 
   dplyr::select(uid = hg, label = hg, everything()) %>% 
-  dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId"))
+  dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId")) %>% 
+  dplyr::mutate(
+    function_category = dplyr::if_else(
+      flanking == 1, "flanking", function_category
+    )
+  )
 
 # color HGs by their frequency
 hgFreqColors <- tibble::tibble(
@@ -550,6 +595,15 @@ ComplexHeatmap::draw(
   heatmap_legend_side = "right"
 )
 
+par(mfrow = c(1, 2), mar = c(2, 4, 4, 5) + 0.1)
+plot(rev(grpDnd), horiz = TRUE, main = "MASH distance hclust")
+plot(rev(hgPavDnd), horiz = TRUE, main = "HG PAV hclust")
+
+if(subSample){
+  plot(rev(hgPavDnd), horiz = TRUE, main = "HG PAV hclust")
+  plot(rev(subHgPavDnd), horiz = TRUE, main = "cut and selected HG PAV hclust")
+}
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)
 dev.off()
 ################################################################################
 
@@ -566,5 +620,3 @@ dev.off()
 # if (lcs$strand$s2 == "-") {
 #   seq2 <- rev(seq2)
 # }
-
-
