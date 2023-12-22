@@ -18,8 +18,12 @@ set.seed(124)
 
 grpToView <- "phage_grp_36"
 subSample <- FALSE
-addFlankingRegions <- TRUE
+addFlankingRegions <- TRUE 
 flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "completeness"  # completeness, host, hg_pav, cluster_mash
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -137,6 +141,8 @@ hgFuncColors <- purrr::map2(
 # prepare clusterjs JSON for a cluster/grp
 grp <- clusterList[[grpToView]]
 
+
+
 # frequency for all HGs in the prophages in current cluster
 grpHgFreq <- regionList[grp$members] %>%
   purrr::map("hgs") %>% unlist() %>% table() %>% 
@@ -220,15 +226,31 @@ if(subSample){
   slots <- labels(grpDnd)
 }
 
+# decide the order in which clusters are plotted based on configuration
+grpMemberData <- dplyr::left_join(
+  x = tibble::tibble(prophage_id = slots),
+  y = regionClusters,
+  by = "prophage_id"
+)
+
+viewClusters <- dplyr::case_when(
+  clusterOrder == "completeness" ~
+    grpMemberData$prophage_id[order(grpMemberData$completeness, decreasing = TRUE)],
+  clusterOrder == "host" ~ slots,
+  clusterOrder == "hg_pav" ~ slots,
+  clusterOrder == "cluster_mash" ~ slots,
+  TRUE ~ slots
+)
+
 hgStrand <- NULL
 clusterJsonDf <- NULL
 linksJsonDf <- NULL
 geneToGroup <- NULL
 flankingHgs <- character(0)
 slotNum <- 0
-# reg <- slots[1]
+# reg <- viewClusters[1]
 
-for (reg in slots) {
+for (reg in viewClusters) {
   
   regObj <- regionList[[reg]]
   
@@ -372,16 +394,16 @@ for (reg in slots) {
 ## make groups JSON
 groupsJsonDf <- dplyr::mutate(
   geneToGroup,
-  hg = dplyr::if_else(flanking == 1, paste(hg, "_flanking", sep = ""), hg)
+  uid = dplyr::if_else(flanking == 1, paste(hg, "_flanking", sep = ""), hg)
 ) %>% 
+  dplyr::add_count(hg, name = "groupFreq") %>% 
   dplyr::summarise(
     genes = list(genes),
-    groupFreq = n(),
     hidden = FALSE,
-    .by = c(hg, flanking)
+    .by = c(uid, hg, flanking, groupFreq)
   ) %>% 
   dplyr::arrange(desc(groupFreq)) %>% 
-  dplyr::select(uid = hg, label = hg, everything()) %>% 
+  dplyr::select(uid, label = hg, everything()) %>% 
   dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId")) %>% 
   dplyr::mutate(
     function_category = dplyr::if_else(

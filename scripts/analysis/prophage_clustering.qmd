@@ -479,7 +479,7 @@ phageClusters <- dplyr::arrange(
 ) %>%
   dplyr::left_join(
     y = dplyr::select(
-      sampleInfo, genomeId, sampleId, SpeciesName, nodepath.kmer_nj,
+      sampleInfo, genomeId, sampleId, SpeciesName, nodepath.kmer_upgma,
       geo_loc_country, host, isolation_source, env_broad_scale, collection_year
     ),
     by = "genomeId"
