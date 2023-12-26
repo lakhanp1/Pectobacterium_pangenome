@@ -5,6 +5,7 @@ suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(jsonlite))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
+suppressPackageStartupMessages(library(magrittr))
 
 rm(list = ls())
 
@@ -16,14 +17,15 @@ source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
-grpToView <- "phage_grp_36"
-subSample <- FALSE
-addFlankingRegions <- TRUE 
+grpToView <- "phage_grp_1"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "completeness"  # completeness, host, hg_pav, cluster_mash
+clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -36,12 +38,6 @@ treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grpToView, sep = "")
-outPrefix <- paste(outDir, "/", grpToView, sep = "")
-
-if(!dir.exists(outDir)){
-  dir.create(outDir)
-}
 ################################################################################
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
@@ -50,6 +46,10 @@ sampleInfoList <- as.list_metadata(
 )
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
+
+hostDnd <- as.dendrogram(ape::as.hclust.phylo(rawTree)) %>% 
+  dendextend::ladderize()
+
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
@@ -141,6 +141,30 @@ hgFuncColors <- purrr::map2(
 # prepare clusterjs JSON for a cluster/grp
 grp <- clusterList[[grpToView]]
 
+# optionally, a custom region list can be provided to generate the plot
+# grp <- list(
+#   phage_grp = "custom_group",
+#   members = c("g_418.vir_3", "g_162.vir_3", "g_172.vir_3"),
+#   fragmented = character(),
+#   group_size = 3
+# )
+
+grp <- list(
+  phage_grp = "ctv_pbr",
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1"
+  ) %>% 
+    dplyr::pull(prophage_id)
+)
+
+
+outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grp$phage_grp, sep = "")
+outPrefix <- paste(outDir, "/", grp$phage_grp, sep = "")
+
+if(!dir.exists(outDir)){
+  dir.create(outDir)
+}
 
 
 # frequency for all HGs in the prophages in current cluster
@@ -186,7 +210,7 @@ plot(rev(hgPavDnd), horiz = TRUE)
 
 if(subSample){
   
-  grpSubset <- dendextend::cutree(tree = hgPavDnd, h = 0.5) %>% 
+  grpSubset <- dendextend::cutree(tree = hgPavDnd, h = cutHeight) %>% 
     tibble::enframe(name = "prophage_id", value = "cut") %>% 
     dplyr::add_count(cut, name = "count") %>% 
     dplyr::slice_sample(n = 1, by = cut)
@@ -231,14 +255,36 @@ grpMemberData <- dplyr::left_join(
   x = tibble::tibble(prophage_id = slots),
   y = regionClusters,
   by = "prophage_id"
-)
+) %>% 
+  dplyr::left_join(
+    y = tibble::tibble(
+      genomeId = labels(hostDnd),
+      hostPhyOrder = 1:dendextend::nleaves(hostDnd)
+    ),
+    by = "genomeId" 
+  ) %>% 
+  dplyr::left_join(
+    y = tibble::tibble(
+      prophage_id = labels(grpDnd), mash_order = 1:dendextend::nleaves(grpDnd)
+    ),
+    by = "prophage_id"
+  ) %>% 
+  dplyr::left_join(
+    y = tibble::tibble(
+      prophage_id = labels(hgPavDnd), pav_order = 1:dendextend::nleaves(hgPavDnd)
+    ),
+    by = "prophage_id"
+  )
 
 viewClusters <- dplyr::case_when(
   clusterOrder == "completeness" ~
     grpMemberData$prophage_id[order(grpMemberData$completeness, decreasing = TRUE)],
-  clusterOrder == "host" ~ slots,
-  clusterOrder == "hg_pav" ~ slots,
-  clusterOrder == "cluster_mash" ~ slots,
+  clusterOrder == "host" ~ 
+    grpMemberData$prophage_id[order(grpMemberData$hostPhyOrder)],
+  clusterOrder == "hg_pav" ~ 
+    grpMemberData$prophage_id[order(grpMemberData$pav_order)],
+  clusterOrder == "cluster_mash" ~
+    grpMemberData$prophage_id[order(grpMemberData$mash_order)],
   TRUE ~ slots
 )
 
@@ -335,6 +381,18 @@ for (reg in viewClusters) {
             as.list(thisRegHgStrand)
           
         }
+        break
+      }
+    }
+  } else{
+    for (h in grpHgFreq$hgId) {
+      if(!is.null(thisRegHgStrand[[h]]) & thisRegHgStrand[[h]] == -1){
+        regHgs <- invert_coordinates(regHgs)
+        
+        # update this region strands backup record after changing orientation
+        thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+          as.list(thisRegHgStrand)
+        
         break
       }
     }
