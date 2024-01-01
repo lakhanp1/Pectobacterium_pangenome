@@ -115,9 +115,8 @@ the filtered prophages.
 Rscript scripts/analysis/prophage_seq_similarity.qmd
 ```
 
-## Analysis
 
-### Cluster prophages
+## Cluster prophages
 
 Use shared homology groups between two prophages to establish the child-parent
 relationship between the prophages in pangenome. First, all vs all syntenic
@@ -128,7 +127,7 @@ used to cluster the prophages using two different approaches.
 Rscript scripts/analysis/prophage_pairwise_similarity.R
 ```
 
-#### Approach 1
+### Approach 1
 
 A heuristic DAG construcion is extracted from the output of the script 
 `scripts/analysis/prophage_merge.R`. This output includes a best matching parent
@@ -148,7 +147,7 @@ Visualize the clusters of prophages as directed acyclic graphs:
 knitr::knit("scripts/analysis/prophage_DAG_viz.qmd")
 ```
 
-#### Approach 2
+### Approach 2
 
 We first tried to use the Affinity propagation (AP) clustering to group the
 prophages into clusters and have a set of cluster representatives. However,
@@ -207,11 +206,115 @@ Finally, run the script to generate the plot.
 Rscript scripts/analysis/homology_group_viz.R
 ```
 
-### carotovoricin analysis
+### Individual prophage cluster analysis
 
-#### Incomplete ctv cluster in *P. atrosepticum*
+#### phage_grp_1
 
-- Species: *P. atrosepticum*
-- Genome assembly: GCF_000011605.1
-- Pangenome genome: 396
-- ECA3695-3742
+```r
+grpToView <- "phage_grp_1"
+subSample <- TRUE
+cutHeight <- 2
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+```
+
+#### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
+
+```r
+
+```
+
+#### carotovoricin cluster absent in some *P. brasiliense* isolates
+
+ybiB: hg_22427603
+
+tolC_2: hg_22427641
+
+*P. brasiliense* lacking CTV cluster: g_149, g_177, g_182, g_185, g_236
+
+```r
+grpToView <- "ctv_pbr"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+
+appendRegions <- list(
+  g_177_reg = list(
+    chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
+  ),
+  g_182_reg = list(
+    chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"
+  ),
+  g_185_reg = list(
+    chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"
+  ),
+  g_236_reg = list(
+    chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
+  )
+)
+
+```
+
+Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
+
+#### phage_grp_71
+
+```r
+grpToView <- "phage_grp_71"
+subSample <- FALSE
+addFlankingRegions <- TRUE 
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "hg_pav"  # completeness, host, hg_pav, cluster_mash
+
+```
+
+#### phage_grp_36
+
+```r
+grpToView <- "phage_grp_36"
+subSample <- FALSE
+addFlankingRegions <- TRUE 
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "completeness"  # completeness, host, hg_pav, cluster_mash
+```
+
+#### phage_grp_50
+
+```r
+grpToView <- "phage_grp_50"
+subSample <- FALSE
+addFlankingRegions <- TRUE 
+flankingRegion <- 10000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+```
+
+#### phage_grp_21
+
+```r
+grpToView <- "phage_grp_21"
+subSample <- FALSE
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+```

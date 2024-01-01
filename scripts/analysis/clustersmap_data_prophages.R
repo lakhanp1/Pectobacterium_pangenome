@@ -17,8 +17,8 @@ source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
-grpToView <- "phage_grp_1"
-subSample <- TRUE
+grpToView <- "phage_grp_5"
+subSample <- FALSE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
@@ -26,6 +26,8 @@ flankingRegion <- 5000
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+
+appendRegions <- list()
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -83,6 +85,8 @@ regionClusters <- suppressMessages(
 ################################################################################
 regionList <- purrr::transpose(regionClusters) %>% 
   purrr::set_names(nm = purrr::map(., "prophage_id"))
+
+regionList <- append(regionList, appendRegions)
 
 clusterList <- dplyr::group_by(regionClusters, phage_grp) %>% 
   dplyr::group_map(
@@ -149,14 +153,14 @@ grp <- clusterList[[grpToView]]
 #   group_size = 3
 # )
 
-grp <- list(
-  phage_grp = "ctv_pbr",
-  members = dplyr::filter(
-    regionClusters,
-    SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1"
-  ) %>% 
-    dplyr::pull(prophage_id)
-)
+# grp <- list(
+#   phage_grp = grpToView,
+#   members = dplyr::filter(
+#     regionClusters,
+#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1"
+#   ) %>% 
+#     dplyr::pull(prophage_id)
+# )
 
 
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grp$phage_grp, sep = "")
@@ -288,6 +292,8 @@ viewClusters <- dplyr::case_when(
   TRUE ~ slots
 )
 
+viewClusters <- append(viewClusters, names(appendRegions))
+
 hgStrand <- NULL
 clusterJsonDf <- NULL
 linksJsonDf <- NULL
@@ -386,12 +392,14 @@ for (reg in viewClusters) {
     }
   } else{
     for (h in grpHgFreq$hgId) {
-      if(!is.null(thisRegHgStrand[[h]]) & thisRegHgStrand[[h]] == -1){
-        regHgs <- invert_coordinates(regHgs)
-        
-        # update this region strands backup record after changing orientation
-        thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
-          as.list(thisRegHgStrand)
+      if(!is.null(thisRegHgStrand[[h]])){
+        if(thisRegHgStrand[[h]] == -1){
+          regHgs <- invert_coordinates(regHgs)
+          
+          # update this region strands backup record after changing orientation
+          thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+            as.list(thisRegHgStrand) 
+        }
         
         break
       }
