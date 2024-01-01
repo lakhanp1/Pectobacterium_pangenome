@@ -118,6 +118,15 @@ simDf <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$pair_comparison)
 )
 
+# read prophage HGs stored locally
+proHgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+) %>%
+  dplyr::select(prophage_id, hgs) %>%
+  dplyr::mutate(
+    hgs = stringr::str_split(hgs, ";")
+  )
+
 mashMat <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$mash_dist)
 ) %>%
@@ -375,9 +384,10 @@ phageGroups <- tibble::enframe(
   dplyr::left_join(unfragPhages, by = "prophage_id")
 ```
 
-Finally, add the fragmented prophages which could be mapped to a prophage in the
-pool with high quality (syntenic-Jaccard index >= 0.5 & perSharedChild >= 0.8)
-to the respective clusters of their best matching parent prophage.
+Finally, add the `r `nrow(fragmented)` fragmented prophages which could be mapped
+to a prophage in the pool with high quality 
+(syntenic-Jaccard index >= 0.5 & perSharedChild >= 0.8) to the respective 
+clusters of their best matching parent prophage.
 
 ```{r}
 
@@ -460,7 +470,8 @@ rootedClusters <- dplyr::left_join(
     is_root = dplyr::if_else(is_root == 1, 1, 0)
   )
 
-representatives <- dplyr::filter(rootedClusters, is_root == 1)
+representatives <- dplyr::filter(rootedClusters, is_root == 1) %>% 
+  dplyr::left_join(y = proHgs, by = "prophage_id")
 
 rootedClusters %<>% dplyr::left_join(
   y = dplyr::select(representatives, phage_grp, root_id = prophage_id),
@@ -469,7 +480,13 @@ rootedClusters %<>% dplyr::left_join(
 
 ```
 
-Save the cluster data
+### Clustering statistics
+
+Total prophage clusters: `r nrow(representatives)`
+
+Total homology groups in prophage representatives:
+`r length(unique(unlist(representatives$hgs)))`
+
 
 ```{r}
 
@@ -484,8 +501,6 @@ phageClusters <- dplyr::arrange(
     ),
     by = "genomeId"
   )
-
-# add group counts
 
 readr::write_tsv(
   phageClusters,

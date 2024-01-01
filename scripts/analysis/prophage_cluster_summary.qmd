@@ -89,19 +89,6 @@ hgSummary <- suppressMessages(
 ## Prophage data processing summary
 
 ```{r}
-mergedPhages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
-) %>%
-  dplyr::select(
-    prophage_id, fragments, nFragments, prophage_length, nHg, genomeId
-  )
-
-fragmented <- dplyr::filter(mergedPhages, nFragments > 1)
-
-phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered)
-)
-
 phageClusters <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$clusters)
 )
@@ -122,24 +109,10 @@ clusterList <- dplyr::group_by(phageClusters, phage_grp) %>%
 mashTree <- ape::read.tree(
   file = confs$analysis$prophages$preprocessing$files$mash_hclust
 )
+
 ```
 
 ## Clustering
 
 Number of clusters: `r length(unique(phageClusters$phage_grp))`
 
-```{r}
-hgs <- unique(unlist(proHgs$hgs))
-hgCog <- AnnotationDbi::select(
-  x = panOrgDb, keys = hgs,
-  columns = c("COG_id", "COG_description")
-) %>% 
-  unique()
-
-hgPfam <- AnnotationDbi::select(
-  x = panOrgDb, keys = hgs,
-  columns = c("pfam_description")
-) %>% 
-  unique()
-
-```
