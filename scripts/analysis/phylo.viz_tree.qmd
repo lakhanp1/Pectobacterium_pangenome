@@ -33,6 +33,7 @@ rm(list = ls())
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/heatmap_utils.R")
 ################################################################################
 set.seed(124)
 
@@ -76,7 +77,8 @@ metDf <- suppressMessages(
     Genome, Gene_count, mRNA_count, CDS_count, tRNA_count, rRNA_count,
     Homology_groups, Singletons, GC_content
   ) %>% 
-  dplyr::mutate(genomeId = paste("g_", Genome, sep = ""))
+  dplyr::mutate(genomeId = paste("g_", Genome, sep = "")) %>% 
+  dplyr::select(-Genome)
 
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
@@ -131,17 +133,15 @@ longestBranch <- which(pt_tree$data$x == max(pt_tree$data$x))
 pt_tree$data$x[longestBranch] <- 0.47
 ```
 
-### Circular layout of tree with metadata
+### View tree with metadata
 
 ```{r}
-#| column: page 
-#| fig-height: 12
-#| out-width: '150%'
-#| layout-valign: top
 
 pt_tree2 <- pt_tree +
   theme_tree() +
+  geom_treescale(x=0, y=nrow(sampleInfo)) +
   layout_fan(angle = 10) +
+  # scale_y_continuous(expand=c(0, 10)) +
   ggnewscale::new_scale_color() +
   ggtree::geom_tiplab(
     mapping = aes(label = NA),
@@ -149,85 +149,17 @@ pt_tree2 <- pt_tree +
   )  +
   ggnewscale::new_scale_color()
 
-spKeyDf <- get_species_key_data(sampleInfo$genomeId, sampleInfo, type = 'wide') %>% 
-  tibble::as_tibble() %>% 
-  tibble::rownames_to_column(var = "genomeId") %>% 
+spKeyDf <- get_species_key_data(
+  genomes = sampleInfo$genomeId, speciesInfo = sampleInfo, type = 'wide'
+) %>% 
+  tibble::as_tibble(rownames = "genomeId") %>% 
   tidyr::pivot_longer(
     cols = -genomeId,
     names_to = 'sp', values_to = "spCol"
   ) %>% 
   dplyr::mutate(sp = forcats::fct_relevel(sp, !!!speciesOrder$SpeciesName))
 
-pt_tree2 <- pt_tree2 +
-  # genome size
-  ggtreeExtra::geom_fruit(
-    # mapping = aes(y = id, x = length - 4000000),
-    mapping = aes(y = id, x = genome_size_med_diff),
-    geom = geom_bar,
-    fill = "white", color = "black",
-    offset=0.2, 
-    pwidth=0.15, 
-    orientation="y",
-    stat="identity",
-    grid.params = list(vline = TRUE, color = "grey"),
-    axis.params = list(
-      axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
-    )
-  ) +
-  # mRNA count difference with species median
-  ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, x = mRNA_med_diff),
-    geom = geom_bar,
-    fill = "white", color = "blue",
-    offset = 0.2,
-    pwidth=0.15, 
-    orientation="y",
-    stat="identity",
-    grid.params = list(vline = TRUE, color = "grey"),
-    axis.params = list(
-      axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
-    )
-  ) +
-  # %GC
-  ggtreeExtra::geom_fruit(
-    geom = geom_bar,
-    mapping = aes(y = id, x = GC_content - 50),
-    fill = "white", color = "black",
-    pwidth = 0.15,
-    orientation = "y",
-    stat = "identity",
-    grid.params = list(vline = TRUE, color = "grey"),
-    axis.params = list(
-      axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
-    )
-  ) +
-  # collection year
-  ggtreeExtra::geom_fruit(
-    geom = geom_tile,
-    mapping = aes(fill = collection_year),
-    width = 0.02,
-    offset = 0.04
-  ) +
-  scale_fill_gradientn(
-    colours = viridisLite::viridis(n = 11, option = "A", direction = -1),
-    values = c(0, 0.6, 0.7, 0.8, 0.85, 0.9, 0.92, 0.94, 0.96, 0.98, 1),
-    # breaks = c(1970, 1990, 2010, 2015, 2020),
-    # limits = c(1970, 2020),
-    na.value = alpha("white", 1)
-  ) +
-  ggnewscale::new_scale_fill() +
-  # Netherlands collection
-  ggtreeExtra::geom_fruit(
-    geom = geom_point,
-    mapping = aes(color = geo_loc_country),
-    size = 0.7,
-    offset = 0.08
-  ) +
-  scale_color_manual(
-    values = c("Netherlands" = "black"),
-    na.value = alpha("white", 1)
-  ) +
-  ggnewscale::new_scale_color() +
+pt_tree3 <- pt_tree2 +
   # continent
   ggtreeExtra::geom_fruit(
     geom = geom_tile,
@@ -241,6 +173,76 @@ pt_tree2 <- pt_tree2 +
     na.translate = FALSE
   ) +
   ggnewscale::new_scale_fill() +
+  # # genome size
+  # ggtreeExtra::geom_fruit(
+  #   # mapping = aes(y = id, x = length - 4000000),
+  #   mapping = aes(y = id, x = genome_size_med_diff),
+  #   geom = geom_bar,
+  #   fill = "white", color = "black",
+  #   offset=0.2,
+  #   pwidth=0.15,
+  #   orientation="y",
+  #   stat="identity",
+  #   grid.params = list(vline = TRUE, color = "grey"),
+  #   axis.params = list(
+  #     axis = "x", text.size = 1.5, hjust = 0, nbreak = 2, text.angle = 270
+  #   )
+  # ) +
+  # mRNA count difference with species median
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = mRNA_med_diff),
+    geom = geom_bar,
+    fill = "white", color = "blue",
+    offset = 0.15,
+    pwidth = 0.1,
+    orientation="y",
+    stat="identity",
+    # grid.params = list(vline = TRUE, color = "grey"),
+    axis.params = list(
+      axis = "x", text.size = 2, hjust = 1, nbreak = 2, text.angle = 90
+    )
+  ) +
+  # %GC
+  ggtreeExtra::geom_fruit(
+    geom = geom_bar,
+    mapping = aes(y = id, x = GC_content - 50),
+    fill = "white", color = "black",
+    offset = 0.04,
+    pwidth = 0.1,
+    orientation = "y",
+    stat = "identity",
+    # grid.params = list(vline = TRUE, color = "white"),
+    axis.params = list(
+      axis = "x", text.size = 2, hjust = 1, nbreak = 2, text.angle = 90
+    )
+  ) +
+  # # collection year
+  # ggtreeExtra::geom_fruit(
+  #   geom = geom_tile,
+  #   mapping = aes(fill = collection_year),
+  #   width = 0.02,
+  #   offset = 0.04
+  # ) +
+  # scale_fill_gradientn(
+  #   colours = viridisLite::viridis(n = 11, option = "A", direction = -1),
+  #   values = c(0, 0.6, 0.7, 0.8, 0.85, 0.9, 0.92, 0.94, 0.96, 0.98, 1),
+  #   # breaks = c(1970, 1990, 2010, 2015, 2020),
+  #   # limits = c(1970, 2020),
+  #   na.value = alpha("white", 1)
+  # ) +
+  # ggnewscale::new_scale_fill() +
+  # # Netherlands collection
+  # ggtreeExtra::geom_fruit(
+  #   geom = geom_point,
+  #   mapping = aes(color = geo_loc_country),
+  #   size = 0.7,
+  #   offset = 0.08
+  # ) +
+  # scale_color_manual(
+  #   values = c("Netherlands" = "black"),
+  #   na.value = alpha("white", 1)
+  # ) +
+  # ggnewscale::new_scale_color() +
   # virulence phenotype
   ggtreeExtra::geom_fruit(
     mapping = aes(y = id, x = "virulence", color = virulence),
@@ -263,28 +265,40 @@ pt_tree2 <- pt_tree2 +
     na.value = alpha("white", 0)
   ) +
   ggnewscale::new_scale_color() +
-  # # species key
-  # ggtreeExtra::geom_fruit(
-  #   geom = geom_tile, data = spKeyDf,
-  #   mapping = aes(y = Genome, x = sp, fill = spCol),
-  #   colour = "grey",
-  #   pwidth = 0.4
-  # ) +
-  # scale_fill_manual(
-  #   values = c("0" = "white", "1" = "black")
-  # ) +
+  # species key
+  ggtreeExtra::geom_fruit(
+    geom = geom_tile, data = spKeyDf,
+    mapping = aes(y = genomeId, x = sp, fill = spCol),
+    colour = "white",
+    pwidth = 0.3
+  ) +
+  scale_fill_manual(
+    values = c("0" = "white", "1" = "black")
+  ) +
   theme(
-    legend.position = "bottom",
+    legend.position = "right",
     legend.box = "vertical"
   )
 
 ggsave(
-  filename = paste(outPrefix, ".tree_plot.pdf", sep = ""), plot = pt_tree2,
-  width = 10, height = 14
+  filename = paste(outPrefix, ".tree_plot.pdf", sep = ""), plot = pt_tree3,
+  width = 12, height = 14
 )
 
-pt_tree2
 ```
 
+:::{.scrolling_y}
 
+```{r}
+#| column: page 
+#| fig-height: 14
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+pt_tree3
+
+```
+:::
 
