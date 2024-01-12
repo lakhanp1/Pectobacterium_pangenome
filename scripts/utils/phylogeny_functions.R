@@ -1,4 +1,16 @@
+#' Import a phylogenetic tree
+#'
+#' @param file tree file
+#'
+#' @return A treedata object
+#' @export
+#'
+#' @examples
+import_tree <- function(file){
+  tr <- treeio::read.beast(file)
+}
 
+################################################################################
 
 #' Add generic annotations to a ggtree
 #'

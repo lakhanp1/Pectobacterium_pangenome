@@ -153,7 +153,6 @@ if(opts$bootstrap){
   
 } 
 
-
 # store tree in BEAST format
 treeio::write.beast(
   treedata = treePhyData, tree.name = opts$name,
@@ -161,7 +160,7 @@ treeio::write.beast(
 )
 
 treeio::write.beast(
-  treedata = treePhyData, tree.name = opts$name,
+  treedata = rootedTreeData, tree.name = opts$name,
   file = confs$analysis$phylogeny[[opts$name]]$files$tree_rooted
 )
 
