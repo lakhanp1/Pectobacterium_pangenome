@@ -32,6 +32,17 @@ parser <- optparse::add_option(
   help = "tree file in NEWICK format"
 )
 
+# parser <- optparse::add_option(
+#   parser, default = FALSE,
+#   opt_str = c("-r", "--root"), type = "logical", action = "store_true",
+#   help = "LOGICAL: whether to root the tree"
+# )
+
+parser <- optparse::add_option(
+  parser, default = FALSE,
+  opt_str = c("-b", "--bootstrap"), type = "logical", action = "store_true",
+  help = "LOGICAL: whether to parse the bootstrap values"
+)
 parser <- optparse::add_option(
   parser,
   opt_str = c("-n", "--name"), type = "character", action = "store",
@@ -45,7 +56,7 @@ parser <- optparse::add_option(
 )
 
 parser <- optparse::add_option(
-  parser,
+  parser, default = FALSE,
   opt_str = c("--save_leaf_order"), type = "logical", action = "store_true",
   help = "LOGICAL: Save the order of tip lables from phylogenetic tree"
 )
@@ -63,6 +74,7 @@ if (any(is.null(opts$name), is.null(opts$config), is.null(opts$tree))) {
 # opts$save_leaf_order <- TRUE
 # opts$tree <- "./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile"
 # opts$name <- "core_snp_ml"
+# opts$bootstrap <- TRUE
 # #######
 
 ################################################################################
@@ -98,40 +110,65 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
 )
 
-## read tree
-rawTree <- ape::read.tree(file = opts$tree)
+# read tree
+if(opts$bootstrap){
+  rawTree <- treeio::read.newick(file = opts$tree, node.label = "support")
+  bootstrapData <- dplyr::rename(rawTree@data, bootstrap = support)
+  treePhy <- rawTree@phylo
+  
+} else{
+  treePhy <- ape::read.tree(file = opts$tree)
+}
 
 # add a 'g_' prefix if tree tips are numeric
-if(any(grepl(pattern = "^\\d+$", rawTree$tip.label))){
-  rawTree$tip.label <- paste("g_", rawTree$tip.label, sep = "")
+if(any(grepl(pattern = "^\\d+$", treePhy$tip.label))){
+  treePhy$tip.label <- paste("g_", treePhy$tip.label, sep = "")
 }
 
 ## set negative length edges => 0
-rawTree$edge.length[rawTree$edge.length < 0] <- 0
+treePhy$edge.length[treePhy$edge.length < 0] <- 0
 
-rawTree <- ape::ladderize(rawTree) %>%
+treePhy <- ape::ladderize(treePhy) %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
-ape::write.tree(
-  phy = rawTree, tree.names = opts$name,
+rootedTr <- ape::root(
+  phy = treePhy, outgroup = sampleInfoList[[outGroup]]$genomeId,
+  edgelabel = TRUE, resolve.root = TRUE
+) %>%
+  ape::ladderize() %>% 
+  ape::makeNodeLabel(method = "number", prefix = "n")
+
+# save both trees in BEAST format
+treePhyData <- tidytree::as.treedata(treePhy)
+rootedTreeData <- tidytree::as.treedata(rootedTr)
+
+if(opts$bootstrap){
+  treePhyData <- treeio::full_join(
+    x = treePhy, y = bootstrapData, by = "node"
+  )
+  
+  rootedTreeData <- treeio::full_join(
+    x = rootedTr, y = bootstrapData, by = "node"
+  )
+  
+} 
+
+
+# store tree in BEAST format
+treeio::write.beast(
+  treedata = treePhyData, tree.name = opts$name,
   file = confs$analysis$phylogeny[[opts$name]]$files$tree
 )
 
-
-rootedTr <- ape::root(
-  phy = rawTree, outgroup = sampleInfoList[[outGroup]]$genomeId, edgelabel = TRUE
-) %>%
-  ape::ladderize()
-
-ape::write.tree(
-  phy = rootedTr, tree.names = opts$name,
+treeio::write.beast(
+  treedata = treePhyData, tree.name = opts$name,
   file = confs$analysis$phylogeny[[opts$name]]$files$tree_rooted
 )
 
 ## add data to tree
-treeTbl <- as_tibble(rootedTr) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
-  treeio::as.treedata()
+treeTbl <- dplyr::full_join(
+  x = rootedTr, y = sampleInfo, by = c("label" = "genomeId")
+)
 
 ################################################################################
 ## plotting
@@ -179,15 +216,19 @@ ggsave(
 ################################################################################
 # optionally, save species order for plotting species key heatmap
 if(opts$save_leaf_order){
-  leafOrder <- dplyr::arrange(.data = pt_tree$data, y) %>%
-    dplyr::filter(isTip)
+
+  leafOrder <- tibble:::enframe(
+    ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
+  ) %>% 
+    dplyr::left_join(y = sampleInfo, by = "genomeId")
   
-  speciesOrder <- dplyr::select(leafOrder, SpeciesName, y, type_material) %>%
+  
+  speciesOrder <- dplyr::select(leafOrder, SpeciesName, tipOrder, type_material) %>%
     dplyr::group_by(SpeciesName) %>%
-    dplyr::arrange(type_material, y, .by_group = TRUE) %>%
+    dplyr::arrange(type_material, tipOrder, .by_group = TRUE) %>%
     dplyr::slice(1L) %>%
     dplyr::ungroup() %>%
-    dplyr::arrange(desc(y)) %>%
+    dplyr::arrange(desc(tipOrder)) %>%
     # dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %>%
     dplyr::pull(SpeciesName)
   
@@ -209,7 +250,7 @@ if(opts$save_leaf_order){
   }
   
   sampleInfo %<>% dplyr::left_join(nodePaths, by = "genomeId") %>% 
-    dplyr::select(Genome, -genomeId, everything())
+    dplyr::select(Genome, genomeId, everything(), -nodeLabs)
   
   readr::write_csv(
     x = sampleInfo, file = panConf$files$metadata

@@ -35,12 +35,12 @@ export PANTOOLS="$PANTOOLS_4_1"
 ``` bash
 ## UPGMA tree
 ./scripts/analysis/phylo.process_newicks.R \
---tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick \
+--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick \
 --name "ani_upgma" --config project_config.yaml --save_leaf_order
 
 ## Neighbor joining tree
 ./scripts/analysis/phylo.process_newicks.R \
---tree ./analysis/04_pangenome_pecto_v2/phylogeny/ani/ANI_NJ.pangenome.newick \
+--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_NJ.pangenome.newick \
 --name "ani_nj" --config project_config.yaml --save_leaf_order
 
 ## gene distance NJ tree
@@ -61,7 +61,7 @@ export PANTOOLS="$PANTOOLS_4_1"
 ## core-SNP ML tree
 ./scripts/analysis/phylo.process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile \
---name "core_snp_ml" --config project_config.yaml --save_leaf_order
+--name "core_snp_ml" --config project_config.yaml --save_leaf_order --bootstrap
 
 ## process homology groups
 Rscript scripts/analysis/homology_group_process.R 
