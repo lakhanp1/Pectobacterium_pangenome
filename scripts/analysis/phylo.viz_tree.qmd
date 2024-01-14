@@ -139,8 +139,8 @@ pt_tree <- ggtree::ggtree(tr = treeTbl, color="black") +
     
   ) +
   scale_color_manual(
-    values = c("#f781bf", "#4daf4a", "black"),
-    guide = guide_legend(override.aes = list(size = 5)),
+    values = c("blue", "#f781bf", "black"),
+    guide = guide_legend(override.aes = list(size = 6), order = 1),
     name = 'Bootstrap Percentage(BP)', 
     breaks = c('(0,70]', '(70,90]'), 
     labels = expression(BP < 70, 70 <= BP * " < 90"),
@@ -164,7 +164,10 @@ pt_tree$data$x[longestBranch] <- 0.47
 
 pt_tree2 <- pt_tree +
   theme_tree() +
-  geom_treescale(x=0, y=nrow(sampleInfo)) +
+  geom_treescale(
+    x = 0.01, y = nrow(sampleInfo) * 0.95,
+    fontsize = 8, linesize = 2, offset = 4
+  ) +
   # layout_fan(angle = 10) +
   scale_y_continuous(expand=c(0, 10)) +
   ggnewscale::new_scale_color() +
@@ -193,8 +196,10 @@ pt_tree3 <- pt_tree2 +
     offset = 0.03
   ) +
   scale_fill_manual(
+    name = "Continent of isolation",
     values = c("#E6AC00", "#D12E96", "#5E8B3A", "#AA741D", "#A5E7E1", "#244360"),
     na.value = alpha("white", 1),
+    guide = guide_legend(override.aes = list(size = 6), order = 2),
     na.translate = FALSE
   ) +
   ggnewscale::new_scale_fill() +
@@ -202,8 +207,8 @@ pt_tree3 <- pt_tree2 +
   ggtreeExtra::geom_fruit(
     mapping = aes(y = id, x = mRNA_med_diff),
     geom = geom_bar,
-    fill = "white", color = "blue",
-    offset = 0.1,
+    fill = "white", color = "black",
+    offset = 0.07,
     pwidth = 0.05,
     orientation="y",
     stat="identity",
@@ -217,8 +222,8 @@ pt_tree3 <- pt_tree2 +
     geom = geom_bar,
     mapping = aes(y = id, x = GC_content - 50),
     fill = "white", color = "black",
-    offset = 0.04,
-    pwidth = 0.1,
+    offset = 0.02,
+    pwidth = 0.07,
     orientation = "y",
     stat = "identity",
     # grid.params = list(vline = TRUE, color = "white"),
@@ -229,29 +234,29 @@ pt_tree3 <- pt_tree2 +
   ggtreeExtra::geom_fruit(
     mapping = aes(y = id, x = "virulence", color = virulence),
     geom = geom_point, shape = 17, size = 1,
-    pwidth = 0.02, offset = 0.02
+    pwidth = 0.02, offset = 0.015
   ) +
   scale_color_manual(
     name='Field trial',
     values = c("red", "green", "black"),
     breaks = c("virulent", "avirulent", "inconclusive"),
-    label = c("BL-causing", "BL non-causing", "inconclusive"),
+    label = c("BL-causing", "BL non-causing", "Inconclusive"),
     na.value = alpha("white", 0),
-    guide = guide_legend(override.aes = list(size = 5))
+    guide = guide_legend(override.aes = list(size = 6), order = 3)
   ) +
   ggnewscale::new_scale_color() +
   # virulence PCR result
   ggtreeExtra::geom_fruit(
     geom = geom_point, size = 1,
     mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
-    pwidth = 0.02, offset = 0.02
+    pwidth = 0.02, offset = 0.015
   ) +
   scale_color_manual(
     name = "PCR BL diagnosis",
     values = c("red", "green"),
     breaks = c("positive", "negative"),
     na.value = alpha("white", 0),
-    guide = guide_legend(override.aes = list(size = 5))
+    guide = guide_legend(override.aes = list(size = 6), order = 4)
   ) +
   ggnewscale::new_scale_color() +
   # species key
@@ -259,20 +264,23 @@ pt_tree3 <- pt_tree2 +
     geom = geom_tile, data = spKeyDf,
     mapping = aes(y = genomeId, x = forcats::fct_rev(sp), fill = spCol),
     colour = "transparent",
-    pwidth = 0.2, offset = 0.01
+    pwidth = 0.15, offset = 0.015
   ) +
   scale_fill_manual(
-    values = c("0" = "grey90", "1" = "black")
+    values = c("0" = "grey95", "1" = "black"),
+    guide = "none"
   ) +
   theme(
-    legend.position = c(0, .95),
+    legend.position = c(0.05, 0.90),
     legend.justification = c(0, 1),
-    legend.box = "vertical"
+    legend.box = "vertical",
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 18, face = "bold")
   )
 
 ggsave(
   filename = paste(outPrefix, ".tree_plot.pdf", sep = ""), plot = pt_tree3,
-  width = 14, height = 14
+  width = 12, height = 16
 )
 
 ```
