@@ -6,8 +6,14 @@
 #' @export
 #'
 #' @examples
-import_tree <- function(file){
+import_tree <- function(file, phylo = FALSE){
   tr <- treeio::read.beast(file)
+  
+  if(phylo){
+    return(tr@phylo)
+  } else{
+    return(tr)
+  }
 }
 
 ################################################################################
