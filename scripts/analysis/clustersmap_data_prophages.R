@@ -5,6 +5,7 @@ suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(jsonlite))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
+suppressPackageStartupMessages(library(dendextend))
 suppressPackageStartupMessages(library(magrittr))
 
 rm(list = ls())
@@ -19,7 +20,7 @@ source("scripts/utils/phylogeny_functions.R")
 set.seed(124)
 
 grpToView <- "ctv_pbr"
-subSample <- FALSE
+subSample <- TRUE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
@@ -190,16 +191,16 @@ grpHgFreq <- regionList[grp$members] %>%
   dplyr::arrange(desc(freq))
 
 # original MASH distance tree
-grpDnd <- ape::keep.tip(phy = mashTree, tip = grp$members) %>%
+grpMashDnd <- ape::keep.tip(phy = mashTree, tip = grp$members) %>%
   ape::as.hclust.phylo() %>%
   as.dendrogram() %>%
   dendextend::ladderize()
 
-plot(rev(grpDnd), horiz = TRUE)
+plot(rev(grpMashDnd), horiz = TRUE)
 
 # HG PAV clustering
 hgPavMat <- purrr::map(
-  .x = regionList[labels(grpDnd)],
+  .x = regionList[labels(grpMashDnd)],
   .f = function(x) {
     table(x$hgs) %>%
       tibble::enframe(name = "hgs", value = "count") %>%
@@ -236,7 +237,9 @@ if (subSample) {
 
   grpSubset <- dplyr::left_join(
     x = grpSubset,
-    y = tibble::tibble(prophage_id = labels(subHgPavDnd), order = 1:nleaves(subHgPavDnd)),
+    y = tibble::tibble(
+      prophage_id = labels(subHgPavDnd),
+      order = 1:nleaves(subHgPavDnd)),
     by = "prophage_id"
   ) %>%
     dplyr::arrange(order)
@@ -260,7 +263,7 @@ if (subSample) {
 
   slots <- rev(grpSubset$prophage_id)
 } else {
-  slots <- labels(grpDnd)
+  slots <- labels(grpMashDnd)
 }
 
 # decide the order in which clusters are plotted based on configuration
@@ -278,7 +281,7 @@ grpMemberData <- dplyr::left_join(
   ) %>%
   dplyr::left_join(
     y = tibble::tibble(
-      prophage_id = labels(grpDnd), mash_order = 1:dendextend::nleaves(grpDnd)
+      prophage_id = labels(grpMashDnd), mash_order = 1:dendextend::nleaves(grpMashDnd)
     ),
     by = "prophage_id"
   ) %>%
@@ -693,7 +696,7 @@ ComplexHeatmap::draw(
 )
 
 par(mfrow = c(1, 2), mar = c(2, 4, 4, 5) + 0.1)
-plot(rev(grpDnd), horiz = TRUE, main = "MASH distance hclust")
+plot(rev(grpMashDnd), horiz = TRUE, main = "MASH distance hclust")
 plot(rev(hgPavDnd), horiz = TRUE, main = "HG PAV hclust")
 
 if (subSample) {
