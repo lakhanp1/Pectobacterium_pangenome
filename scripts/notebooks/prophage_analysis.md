@@ -208,6 +208,11 @@ Rscript scripts/analysis/homology_group_viz.R
 
 ### Individual prophage cluster analysis
 
+Script `scripts/analysis/clustersmap_data_prophages.R` is used to combine the
+prophages, homology groups and phylogeny to generate input for `clustermap.js`
+visualization tool and generate a report. Below, some configuration is provided
+for individual prophage clusters.
+
 #### phage_grp_1
 
 ```r
@@ -220,12 +225,6 @@ flankingRegion <- 5000
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
-```
-
-#### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
-
-```r
-
 ```
 
 #### carotovoricin cluster absent in some *P. brasiliense* isolates
@@ -262,9 +261,25 @@ appendRegions <- list(
   )
 )
 
+# insert this block for a custom filtering to the *P. brasiliense* genomes
+# grp <- list(
+#   phage_grp = grpToView,
+#   members = dplyr::filter(
+#     regionClusters,
+#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1"
+#   ) %>%
+#     dplyr::pull(prophage_id)
+# )
+
 ```
 
 Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
+
+#### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
+
+```r
+
+```
 
 #### phage_grp_71
 
@@ -317,4 +332,132 @@ flankingRegion <- 5000
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+```
+
+### Carotovoricin tail fiber variation reion MSA
+
+Extract the region between the two homology groups, `r c("hg_22427604", "hg_22427603")`
+for the carotovoricin cluster. Additionally, generate `GFF3` files with the
+homology group, COG, PFAM and other metadata information to visualize.
+
+```bash
+Rscript scripts/analysis/clustermap_get_regions.R
+```
+
+Extract DNA sequence for these 3' tail fiber regions.
+
+```bash
+mkdir analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/region_fasta
+
+tail -n +2 analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/ctv_pbr.variable_regions.tab |
+  cut -f 1,3-5 |
+  while read name sampleId pos strand; do
+    rc=""
+    if [ ${strand} == "-" ]; then
+        rc="--reverse-complement"
+    fi
+    outFa="analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/region_fasta/${name}.fasta"
+
+    seq=">${name} ${pos}(${strand})\n"
+    seq+=`samtools faidx ${rc} data/prokka_annotation/${sampleId}/${sampleId}.fna $pos | tail -n +2`
+    printf "${seq}\n" > ${outFa}
+    printf "${seq}\n"
+  done >analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/ctv_pbr.variable_regions.fasta
+
+```
+
+Mauve aligns sequences provided in `fasta` and `genbank` format. However, the
+sequence annotation is shown only if the alignment input was in `genbank`
+format. Therefore, we need to combine the homology group annotation in `gff3`
+format with the `fasta` sequences to generate a `genbank` formatted files. To
+do this, Emboss tool `seqret` was used.
+
+```bash
+conda activate omics_py37
+
+cd analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/region_fasta
+
+for vir in `cut -f 1 ../ctv_pbr.variable_regions.tab | tail -n +2`
+do
+  seqret -sequence ${vir}.fasta -feature -fformat gff3 \
+  -fopenfile ${vir}.gff3 -osformat genbank -osextension gbk \
+  -osname_outseq ${vir} -ofdirectory_outseq gbk_file -auto 
+done
+
+sed -i.bak -r -e 's/(^\s+CDS\s+)[^:]+:([[:digit:]]+\.\.[[:digit:]]+).*/\1\2/' \
+  -e 's/\/note="\*([^:]+): /\/\1="/' *.gbk 
+
+```
+
+Align and visualize sequences using Mauve.
+
+```bash
+mauve_out="ctv_pbr"
+
+/Applications/Mauve.app/Contents/MacOS/progressiveMauve \
+--output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+region_fasta/g_302.vir_3.gbk region_fasta/g_364.vir_2.gbk \
+region_fasta/g_337.vir_1.gbk region_fasta/g_439.vir_2.gbk \
+region_fasta/g_403.vir_3.gbk region_fasta/g_138.vir_2.gbk \
+region_fasta/g_368.vir_3.gbk region_fasta/g_345.vir_1.gbk \
+region_fasta/g_366.vir_3.gbk region_fasta/g_308.vir_2.gbk \
+region_fasta/g_191.vir_1.gbk region_fasta/g_173.vir_2.gbk \
+region_fasta/g_155.vir_1.gbk region_fasta/g_166.vir_2.gbk \
+region_fasta/g_299.vir_1.gbk region_fasta/g_438.vir_2.gbk \
+region_fasta/g_263.vir_2.gbk region_fasta/g_43.vir_1.gbk \
+region_fasta/g_391.vir_3.gbk
+
+mauve_out="ctv_pbr.2"
+
+/Applications/Mauve.app/Contents/MacOS/progressiveMauve \
+--output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+region_fasta/g_302.vir_3.gbk region_fasta/g_337.vir_1.gbk \
+region_fasta/g_403.vir_3.gbk region_fasta/g_138.vir_2.gbk \
+region_fasta/g_368.vir_3.gbk region_fasta/g_345.vir_1.gbk \
+region_fasta/g_366.vir_3.gbk region_fasta/g_308.vir_2.gbk \
+region_fasta/g_191.vir_1.gbk region_fasta/g_173.vir_2.gbk \
+region_fasta/g_155.vir_1.gbk region_fasta/g_166.vir_2.gbk \
+region_fasta/g_299.vir_1.gbk region_fasta/g_438.vir_2.gbk \
+region_fasta/g_263.vir_2.gbk region_fasta/g_43.vir_1.gbk \
+region_fasta/g_391.vir_3.gbk
+
+```
+
+Perform MSA using `MAFFT`
+
+```bash
+conda activate pantools_v4_3
+cd analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/
+
+mafft --globalpair --quiet --maxiterate 1000 --treeout ctv_pbr.variable_regions.fasta
+```
+
+Smash++ pairwise sequence comparison
+
+```bash
+conda activate omics_py37
+
+cd analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/region_fasta
+
+function smashpp_compare
+{
+  smashpp -r $1 -t $2
+  smashpp viz -o $(basename $1 .fasta)$(basename $2 .fasta)".svg" "${1}.${2}.pos"
+}
+
+export -f smashpp_compare
+
+smashpp_compare g_345.vir_1.fasta g_345.vir_1.fasta 
+smashpp_compare g_345.vir_1.fasta g_366.vir_3.fasta 
+smashpp_compare g_345.vir_1.fasta g_302.vir_3.fasta
+smashpp_compare g_345.vir_1.fasta g_403.vir_3.fasta
+smashpp_compare g_345.vir_1.fasta g_173.vir_2.fasta
+smashpp_compare g_345.vir_1.fasta g_138.vir_2.fasta
+smashpp_compare g_345.vir_1.fasta g_263.vir_2.fasta
+smashpp_compare g_345.vir_1.fasta g_155.vir_1.fasta
+
 ```
