@@ -30,6 +30,7 @@ flankingRegion <- 5000
 clusterOrder <- "cluster_mash" # completeness, host, hg_pav, cluster_mash
 
 appendRegions <- list()
+appendPhages <- c()
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -229,6 +230,14 @@ if (subSample) {
     dplyr::add_count(cut, name = "count") %>%
     dplyr::slice_sample(n = 1, by = cut)
   
+  if (length(appendPhages) > 0) {
+    grpSubset <- dplyr::bind_rows(
+      grpSubset,
+      tibble::tibble(prophage_id = appendPhages)
+    ) %>%
+      dplyr::distinct(prophage_id, .keep_all = TRUE)
+  }
+  
   subHgPavDnd <- dendextend::prune(
     dend = hgPavDnd,
     leaves = setdiff(labels(hgPavDnd), grpSubset$prophage_id)
@@ -245,7 +254,8 @@ if (subSample) {
     x = grpSubset,
     y = tibble::tibble(
       prophage_id = labels(subHgPavDnd),
-      order = 1:nleaves(subHgPavDnd)),
+      order = 1:nleaves(subHgPavDnd)
+    ),
     by = "prophage_id"
   ) %>%
     dplyr::arrange(order)
