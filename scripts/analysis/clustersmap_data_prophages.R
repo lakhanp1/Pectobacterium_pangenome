@@ -27,9 +27,10 @@ flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "cluster_mash" # completeness, host, hg_pav, cluster_mash
+clusterOrder <- "host" # completeness, host, hg_pav, cluster_mash
 
 appendRegions <- list()
+
 appendPhages <- c()
 
 confs <- prefix_config_paths(
@@ -50,7 +51,10 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
-rawTree <- import_tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree, TRUE)
+rawTree <- import_tree(
+  file = confs$analysis$phylogeny[[treeMethod]]$files$tree,
+  phylo = TRUE
+)
 
 hostDnd <- as.dendrogram(ape::as.hclust.phylo(rawTree)) %>%
   dendextend::ladderize()
@@ -166,11 +170,11 @@ grp <- clusterList[[grpToView]]
 #   phage_grp = grpToView,
 #   members = dplyr::filter(
 #     regionClusters,
-#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1"
+#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
+#     !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
 #   ) %>%
 #     dplyr::pull(prophage_id)
 # )
-
 
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grp$phage_grp, sep = "")
 outPrefix <- paste(outDir, "/", grp$phage_grp, sep = "")
@@ -178,7 +182,6 @@ outPrefix <- paste(outDir, "/", grp$phage_grp, sep = "")
 if (!dir.exists(outDir)) {
   dir.create(outDir)
 }
-
 
 # frequency for all HGs in the prophages in current cluster
 grpHgFreq <- regionList[grp$members] %>%
@@ -223,13 +226,12 @@ hgPavDnd <- hclust(d = dist(hgPavMat)) %>%
 plot(rev(hgPavDnd), horiz = TRUE)
 # order.dendrogram(hgPavDnd) == sort(hgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev()
 
-
 if (subSample) {
   grpSubset <- dendextend::cutree(tree = hgPavDnd, h = cutHeight) %>%
     tibble::enframe(name = "prophage_id", value = "cut") %>%
     dplyr::add_count(cut, name = "count") %>%
     dplyr::slice_sample(n = 1, by = cut)
-  
+
   if (length(appendPhages) > 0) {
     grpSubset <- dplyr::bind_rows(
       grpSubset,
@@ -237,19 +239,19 @@ if (subSample) {
     ) %>%
       dplyr::distinct(prophage_id, .keep_all = TRUE)
   }
-  
+
   subHgPavDnd <- dendextend::prune(
     dend = hgPavDnd,
     leaves = setdiff(labels(hgPavDnd), grpSubset$prophage_id)
   ) %>%
     dendextend::ladderize()
-  
+
   subMashDnd <- dendextend::prune(
     dend = grpMashDnd,
     leaves = setdiff(labels(grpMashDnd), grpSubset$prophage_id)
   ) %>%
     dendextend::ladderize()
-  
+
   grpSubset <- dplyr::left_join(
     x = grpSubset,
     y = tibble::tibble(
@@ -259,21 +261,21 @@ if (subSample) {
     by = "prophage_id"
   ) %>%
     dplyr::arrange(order)
-  
+
   hgPavDnd <- dendextend::set(
     hgPavDnd,
     what = "labels_col",
     value = as.numeric(labels(hgPavDnd) %in% grpSubset$prophage_id) + 1
   )
-  
+
   grpMashDnd <- dendextend::set(
     grpMashDnd,
     what = "labels_col",
     value = as.numeric(labels(grpMashDnd) %in% grpSubset$prophage_id) + 1
   )
-  
+
   plot(subHgPavDnd, horiz = TRUE)
-  
+
   # sort(subHgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev() == order.dendrogram(subHgPavDnd)
   # sort(subHgPavDnd, type = "nodes") %>% labels() %>% rev() == labels(subHgPavDnd)
   # labels(subHgPavDnd)
@@ -281,7 +283,7 @@ if (subSample) {
   # sort(subHgPavDnd, type = "nodes") %>% labels() %>% rev()
   # order.dendrogram(subHgPavDnd)
   # sort(subHgPavDnd, type = "nodes") %>% order.dendrogram()
-  
+
   slots <- rev(grpSubset$prophage_id)
 } else {
   slots <- labels(grpMashDnd)
@@ -337,20 +339,20 @@ slotNum <- 0
 
 for (reg in viewClusters) {
   regObj <- regionList[[reg]]
-  
+
   if (addFlankingRegions) {
     regObj$oldStart <- regObj$start
     regObj$oldEnd <- regObj$end
-    
+
     if (!is.na(regObj$start)) {
       regObj$start <- pmax(regObj$oldStart - flankingRegion, 1)
     }
-    
+
     if (!is.na(regObj$end)) {
       regObj$end <- regObj$end + flankingRegion
     }
   }
-  
+
   regHgs <- region_homology_groups(
     pandb = panOrgDb, genome = regObj$genomeId,
     chr = regObj$chr, start = regObj$start, end = regObj$end,
@@ -360,19 +362,19 @@ for (reg in viewClusters) {
     )
   ) %>%
     dplyr::rename(hg = GID)
-  
+
   # summarize COG and PFAM annotations
   cog <- dplyr::select(regHgs, mRNA_key, COG_description) %>%
     dplyr::distinct() %>%
     dplyr::group_by(mRNA_key) %>%
     dplyr::summarise(COG = paste(COG_description, collapse = ";"))
-  
+
   pfam <- dplyr::select(regHgs, mRNA_key, pfam_description) %>%
     dplyr::filter(!is.na(pfam_description)) %>%
     dplyr::distinct() %>%
     dplyr::group_by(mRNA_key) %>%
     dplyr::summarise(PFAM = paste(pfam_description, collapse = ";"))
-  
+
   regHgs <- dplyr::select(regHgs, -COG_description, -pfam_description) %>%
     dplyr::distinct() %>%
     dplyr::left_join(y = cog, by = "mRNA_key") %>%
@@ -388,29 +390,29 @@ for (reg in viewClusters) {
       uid = mRNA_key, label = mRNA_id, chr = chr_id
     ) %>%
     dplyr::arrange(start)
-  
+
   # set function_category = flanking to the flanking genes added
   if (addFlankingRegions) {
     flankingGenes <- which(regHgs$start < regObj$oldStart | regHgs$end > regObj$oldEnd)
-    
+
     regHgs$function_category[flankingGenes] <- "flanking"
     # regHgs$hg[flankingGenes] <- paste(
     #   regHgs$hg[flankingGenes], "_flanking", sep = ""
     # )
-    
+
     regHgs$flanking[flankingGenes] <- 1
   }
-  
+
   # change the orientation of gene strand for better visualization
   thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
     as.list()
-  
+
   if (!is.null(hgStrand)) {
     for (h in grpHgFreq$hgId) {
       if (!is.null(thisRegHgStrand[[h]]) & !is.null(hgStrand[[h]])) {
         if ((thisRegHgStrand[[h]] != hgStrand[[h]])) {
           regHgs <- invert_coordinates(regHgs)
-          
+
           # update this region strands backup record after changing orientation
           thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
             as.list(thisRegHgStrand)
@@ -423,37 +425,37 @@ for (reg in viewClusters) {
       if (!is.null(thisRegHgStrand[[h]])) {
         if (thisRegHgStrand[[h]] == -1) {
           regHgs <- invert_coordinates(regHgs)
-          
+
           # update this region strands backup record after changing orientation
           thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
             as.list(thisRegHgStrand)
         }
-        
+
         break
       }
     }
   }
-  
+
   hgStrand <- thisRegHgStrand
-  
+
   # regHgs <- regHgs[1:5, ]
-  
+
   regGenes <- dplyr::select(
     regHgs, uid, label, chr_name, chr, start, end, strand
   )
-  
+
   # names should be a tibble type as it needs to be an {object} in JSON
   # and not a [list of {objects}]
   regGenes$names <- dplyr::select(
     regHgs, COG, PFAM, function_category, hg, genePos, genomeId
   )
-  
+
   ## save groups information for making groups JSON
   geneToGroup <- dplyr::bind_rows(
     geneToGroup,
     dplyr::select(regHgs, hg, genes = uid, flanking)
   )
-  
+
   # for now there is only one loci in each cluster
   # in future, there can be multiple loci when a region is combination of
   # multiple fragments
@@ -470,7 +472,7 @@ for (reg in viewClusters) {
       uid = lociUid, name = lociName, start = lociStart, end = lociEnd,
       -chr_name, genes
     )
-  
+
   clusterJsonDf <- dplyr::bind_rows(
     clusterJsonDf,
     tibble::tibble(
@@ -480,8 +482,7 @@ for (reg in viewClusters) {
       loci = list(lociDf)
     )
   )
-  
-  
+
   slotNum <- slotNum + 1
 }
 
@@ -545,7 +546,7 @@ linksJsonDf <- purrr::map2_dfr(
           similarity = 1,
           hg = h
         )
-      
+
       regLinks <- dplyr::select(
         linkCombs, uid, identity, similarity
       ) %>%
@@ -553,7 +554,7 @@ linksJsonDf <- purrr::map2_dfr(
           target = dplyr::select(linkCombs, uid = target),
           query = dplyr::select(linkCombs, uid = query)
         )
-      
+
       return(regLinks)
     }
   }
@@ -737,18 +738,5 @@ if (subSample) {
 }
 
 dev.off()
-################################################################################
 
 
-## progressive alignment test
-# masterHgs <- proHgL[[slotOrder[1]]]$hgs
-#
-# i <- 3
-# seq1 <- masterHgs
-# seq2 <- proHgL[[slotOrder[i]]]$hgs
-#
-# lcs <- syntenic_hg_overlap(ref = seq1, qur = seq2)
-#
-# if (lcs$strand$s2 == "-") {
-#   seq2 <- rev(seq2)
-# }

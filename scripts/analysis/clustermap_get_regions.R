@@ -42,12 +42,12 @@ outPrefix <- paste(outDir, "/", grpToView, sep = "")
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 cmJs <- jsonlite::read_json(
-  path =  paste(outPrefix, ".json", sep = "")
+  path = paste(outPrefix, ".json", sep = "")
 )
 
 genomes <- purrr::map_dfr(
   .x = cmJs$clusters,
-  .f = function(x){
+  .f = function(x) {
     aGene <- x$loci[[1]]$genes[[1]]
     list(
       prophage_id = x$name,
@@ -55,37 +55,37 @@ genomes <- purrr::map_dfr(
       chr = aGene$chr
     )
   }
-) %>% 
+) %>%
   dplyr::mutate(inputOrder = 1:n())
 
 hgPos <- AnnotationDbi::select(
   x = panOrgDb, keys = hgs,
   columns = c("genomeId", "chr_id", "chr_name", "start", "end", "strand")
-) %>% 
+) %>%
   dplyr::mutate(
     dplyr::across(.cols = c(start, end), .fns = as.numeric)
-  ) %>% 
-  dplyr::right_join(y = genomes, by = c("chr_id" = "chr", "genomeId")) %>% 
-  tibble::as_tibble() %>% 
-  dplyr::add_count(genomeId, chr_id) %>% 
-  dplyr::filter(n == 2) %>% 
-  dplyr::arrange(genomeId, start) %>% 
+  ) %>%
+  dplyr::right_join(y = genomes, by = c("chr_id" = "chr", "genomeId")) %>%
+  tibble::as_tibble() %>%
+  dplyr::add_count(genomeId, chr_id) %>%
+  dplyr::filter(n == 2) %>%
+  dplyr::arrange(genomeId, start) %>%
   dplyr::mutate(
     regionStart = min(start),
     regionEnd = max(end),
     regionWidth = regionEnd - regionStart,
     .by = genomeId, chr_id,
-  ) %>% 
+  ) %>%
   dplyr::left_join(
     y = dplyr::select(sampleInfo, genomeId, sampleId),
     by = "genomeId"
-  ) %>% 
+  ) %>%
   dplyr::arrange(inputOrder)
 
-regions <- dplyr::filter(hgPos, GID == hgs[1]) %>% 
+regions <- dplyr::filter(hgPos, GID == hgs[1]) %>%
   dplyr::mutate(
     region = paste(chr_name, ":", regionStart, "-", regionEnd, sep = "")
-  ) %>% 
+  ) %>%
   dplyr::select(
     prophage_id, genomeId, sampleId, chr_name, regionStart, regionEnd, strand, region
   )
@@ -93,7 +93,7 @@ regions <- dplyr::filter(hgPos, GID == hgs[1]) %>%
 # generate GFF3 files for regions to later creation of GenBank files
 for (i in 1:nrow(regions)) {
   regObj <- as.list(regions[i, ])
-  
+
   # get gene annotation from panOrdDb
   regHgs <- region_homology_groups(
     pandb = panOrgDb, genome = regObj$genomeId,
@@ -103,55 +103,52 @@ for (i in 1:nrow(regions)) {
       "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
     )
   ) %>%
-    dplyr::rename(ID = GID) %>% 
+    dplyr::rename(ID = GID) %>%
     dplyr::mutate(
       dplyr::across(.cols = c(start, end), .fns = as.numeric),
       locus_tag = ID,
       type = "CDS"
-    ) %>% 
-    dplyr::group_by(ID, start) %>% 
+    ) %>%
+    dplyr::group_by(ID, start) %>%
     dplyr::mutate(
       cog = paste(unique(COG_description), collapse = " "),
       pfam = paste(unique(pfam_description), collapse = " "),
       dplyr::across(
         .cols = c(cog, pfam),
-        .fns = ~stringr::str_replace_all(string = .x, pattern = ",", replacement = " ::")
-        )
-    ) %>% 
-    dplyr::slice(1L) %>% 
-    dplyr::ungroup() %>% 
+        .fns = ~ stringr::str_replace_all(string = .x, pattern = ",", replacement = " ::")
+      )
+    ) %>%
+    dplyr::slice(1L) %>%
+    dplyr::ungroup() %>%
     dplyr::select(
       chr = chr_name, start, end, strand, type, ID, locus_tag, mRNA_id, mRNA_key, cog, pfam
-    ) %>% 
+    ) %>%
     dplyr::arrange(start)
-  
+
   # flip strand if needed
   if (regObj$strand == "-") {
-    
     regHgs <- dplyr::mutate(
       regHgs,
       strand = dplyr::if_else(strand == "-", -1, 1, 1)
-    ) %>% 
-      invert_coordinates() %>% 
+    ) %>%
+      invert_coordinates() %>%
       dplyr::mutate(
         strand = dplyr::if_else(strand == -1, "-", "+", "+")
-      ) %>% 
+      ) %>%
       dplyr::select(-starts_with("_"))
   }
-  
+
   # store as GFF3
-  regGr <- GenomicRanges::makeGRangesFromDataFrame(regHgs, keep.extra.columns = TRUE) %>% 
+  regGr <- GenomicRanges::makeGRangesFromDataFrame(regHgs, keep.extra.columns = TRUE) %>%
     GenomicRanges::shift(shift = -min(regHgs$start) + 1)
-  
+
   rtracklayer::export.gff3(
     object = regGr,
     con = paste(outDir, "/region_fasta/", regObj$prophage_id, ".gff3", sep = "")
   )
-  
 }
 
-dplyr::select(regions, prophage_id, genomeId, sampleId, region, strand) %>% 
+dplyr::select(regions, prophage_id, genomeId, sampleId, region, strand) %>%
   readr::write_tsv(
     file = paste(outPrefix, ".variable_regions.tab", sep = "")
   )
-

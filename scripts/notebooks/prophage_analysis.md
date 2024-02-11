@@ -261,12 +261,15 @@ appendRegions <- list(
   )
 )
 
-# insert this block for a custom filtering to the *P. brasiliense* genomes
+appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
+
+
 # grp <- list(
 #   phage_grp = grpToView,
 #   members = dplyr::filter(
 #     regionClusters,
-#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1"
+#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
+#     !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
 #   ) %>%
 #     dplyr::pull(prophage_id)
 # )
@@ -384,7 +387,7 @@ do
   -osname_outseq ${vir} -ofdirectory_outseq gbk_file -auto 
 done
 
-sed -i.bak -r -e 's/(^\s+CDS\s+)[^:]+:([[:digit:]]+\.\.[[:digit:]]+).*/\1\2/' \
+sed -i.bak -r -e 's/(^\s+CDS\s+(complement\()?)[^:]+:([[:digit:]]+\.\.[[:digit:]]+\)?).*/\1\3/' \
   -e 's/\/note="\*([^:]+): /\/\1="/' *.gbk 
 
 ```
@@ -400,30 +403,39 @@ mauve_out="ctv_pbr"
 --output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
 region_fasta/g_302.vir_3.gbk region_fasta/g_364.vir_2.gbk \
 region_fasta/g_337.vir_1.gbk region_fasta/g_439.vir_2.gbk \
-region_fasta/g_403.vir_3.gbk region_fasta/g_138.vir_2.gbk \
+region_fasta/g_403.vir_3.gbk region_fasta/g_399.vir_3.gbk \
+region_fasta/g_175.vir_3.gbk region_fasta/g_408.vir_3.gbk \
+region_fasta/g_138.vir_2.gbk \
 region_fasta/g_368.vir_3.gbk region_fasta/g_345.vir_1.gbk \
 region_fasta/g_366.vir_3.gbk region_fasta/g_308.vir_2.gbk \
 region_fasta/g_191.vir_1.gbk region_fasta/g_173.vir_2.gbk \
 region_fasta/g_155.vir_1.gbk region_fasta/g_166.vir_2.gbk \
 region_fasta/g_299.vir_1.gbk region_fasta/g_438.vir_2.gbk \
 region_fasta/g_263.vir_2.gbk region_fasta/g_43.vir_1.gbk \
-region_fasta/g_391.vir_3.gbk
+region_fasta/g_391.vir_3.gbk  > "${mauve_out}".log 2>&1
 
-mauve_out="ctv_pbr.2"
+mauve_out="ctv_pbr.ein"
+
+/Applications/Mauve.app/Contents/MacOS/progressiveMauve \
+--output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+region_fasta/g_345.vir_1.gbk region_fasta/g_366.vir_3.gbk \
+region_fasta/g_308.vir_2.gbk region_fasta/g_191.vir_1.gbk \
+region_fasta/g_173.vir_2.gbk region_fasta/g_155.vir_1.gbk \
+region_fasta/g_166.vir_2.gbk  > "${mauve_out}".log 2>&1
+
+
+mauve_out="ctv_pbr.rep"
 
 /Applications/Mauve.app/Contents/MacOS/progressiveMauve \
 --output="${mauve_out}.mauve.xmfa" \
 --backbone-output="${mauve_out}.mauve.backbone" \
 --output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
 region_fasta/g_302.vir_3.gbk region_fasta/g_337.vir_1.gbk \
-region_fasta/g_403.vir_3.gbk region_fasta/g_138.vir_2.gbk \
-region_fasta/g_368.vir_3.gbk region_fasta/g_345.vir_1.gbk \
-region_fasta/g_366.vir_3.gbk region_fasta/g_308.vir_2.gbk \
-region_fasta/g_191.vir_1.gbk region_fasta/g_173.vir_2.gbk \
-region_fasta/g_155.vir_1.gbk region_fasta/g_166.vir_2.gbk \
+region_fasta/g_175.vir_3.gbk region_fasta/g_173.vir_2.gbk \
 region_fasta/g_299.vir_1.gbk region_fasta/g_438.vir_2.gbk \
-region_fasta/g_263.vir_2.gbk region_fasta/g_43.vir_1.gbk \
-region_fasta/g_391.vir_3.gbk
+region_fasta/g_391.vir_3.gbk  > "${mauve_out}".log 2>&1
 
 ```
 
@@ -461,3 +473,11 @@ smashpp_compare g_345.vir_1.fasta g_263.vir_2.fasta
 smashpp_compare g_345.vir_1.fasta g_155.vir_1.fasta
 
 ```
+
+Left inverted repeat for Ein: CTCCCGCAAACCTCGGTTTTGGGGAC (CTCCCGCAAACCTCGGTTT)
+Left inverted repeat for Ein(rev-com): GTCCCCAAAACCGAGGTTTGCGGGAG (AAACCGAGGTTTGCGGGAG, AAACCGAGGTTTGCG)
+
+Right inverted repeat for Ein: TTCTCGCAAACCTCGGTTTTGGAGAA
+Right inverted repeat for Ein(rev): AAGAGGTTTTGGCTCCAAACGCTCTT
+Right inverted repeat for Ein(rev-com): TTCTCCAAAACCGAGGTTTGCGAGAA (AAACCGAGGTTTGCGAGAA, AAACCGAGGTTTGCG)
+Right inverted repeat for Ein(comp): AAGAGCGTTTGGAGCCAAAACCTCTT
