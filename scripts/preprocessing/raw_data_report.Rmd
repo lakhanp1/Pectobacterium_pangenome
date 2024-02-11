@@ -91,7 +91,7 @@ Additionally, linked BioSample metadata was fetched from NCBI and this combined
 data is summarized in the figures below.
 </div>
 
-## Row1.2 {data-height="200"}
+## Row1.2 {data-height="300"}
 
 ### Assembly source bar plot {.no-title}
 

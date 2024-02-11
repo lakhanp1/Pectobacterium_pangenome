@@ -55,21 +55,18 @@ spOrder <- suppressMessages(
 hgTable <- AnnotationDbi::select(
   x = panOrgDb, keys = keys(panOrgDb),
   columns = c("GID", "genomeId", "class")
-) %>% 
-  dplyr::rename(hgId = GID) %>% 
-  dplyr::count(hgId, genomeId, name = "nGenes") 
+) %>%
+  dplyr::rename(hgId = GID) %>%
+  dplyr::count(hgId, genomeId, name = "nGenes")
 
 hgMeta <- AnnotationDbi::select(
   x = panOrgDb, keys = keys(panOrgDb),
   columns = c("GID", "class")
-) %>% 
+) %>%
   dplyr::rename(hgId = GID)
 
 ################################################################################
 ## GO enrichment for homology groups
-
-## binary matrix for homology_group PAV
-hgBinaryMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
 
 spNames <- dplyr::count(sampleInfo, SpeciesName) %>%
   # dplyr::filter(n >= 20) %>%
@@ -85,19 +82,7 @@ for (sp in spNames) {
 
   cat(sp, length(spGenomes), "\n")
 
-  hgSum <- matrixStats::colSums2(
-    x = hgBinaryMat, useNames = T,
-    rows = which(rownames(hgBinaryMat) %in% spGenomes)
-  ) %>%
-    tibble::enframe(name = "hgId", value = "nGenomes") %>%
-    dplyr::filter(nGenomes != 0) %>%
-    dplyr::mutate(
-      class = dplyr::case_when(
-        nGenomes == 1 ~ "unique",
-        nGenomes == !!length(spGenomes) ~ "core",
-        nGenomes < !!length(spGenomes) & nGenomes > 1 ~ "accessory"
-      )
-    )
+  hgSum <- sub_pangenome_hgs(pandb = panOrgDb, genomes = spGenomes)
 
   ## group stats
   sppGrpStats <- dplyr::count(hgSum, class, name = "count") %>%
@@ -107,7 +92,7 @@ for (sp in spNames) {
   ## GO enrichment
   sppGrpGo <- dplyr::group_by(hgSum, class) %>%
     dplyr::group_modify(
-      .f = ~topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
+      .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
     ) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(SpeciesName = .env$sp) %>%

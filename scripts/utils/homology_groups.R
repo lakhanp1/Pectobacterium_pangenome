@@ -248,3 +248,37 @@ tandem_hg_match <- function(hgs, pandb, genomeId = NULL) {
 
 
 ################################################################################
+
+#' Get homology groups classification for a subset of genomes
+#'
+#' @param pandb org.db pangenome object
+#' @param genomes Genomes for which homology groups needs to be extracted
+#'
+#' @return A data.frame
+#' @export
+#'
+#' @examples
+sub_pangenome_hgs <- function(pandb, genomes){
+  
+  stopifnot(!is.null(genomes))
+  
+  ## binary matrix for homology_group PAV
+  hgBinaryMat <- homology_groups_mat(pandb = pandb, type = "pav")
+  
+  hgSum <- matrixStats::colSums2(
+    x = hgBinaryMat, useNames = T,
+    rows = which(rownames(hgBinaryMat) %in% genomes)
+  ) %>%
+    tibble::enframe(name = "hgId", value = "nGenomes") %>%
+    dplyr::filter(nGenomes != 0) %>%
+    dplyr::mutate(
+      class = dplyr::case_when(
+        nGenomes == 1 ~ "unique",
+        nGenomes == !!length(genomes) ~ "core",
+        nGenomes < !!length(genomes) & nGenomes > 1 ~ "accessory"
+      )
+    )
+}
+
+################################################################################
+
