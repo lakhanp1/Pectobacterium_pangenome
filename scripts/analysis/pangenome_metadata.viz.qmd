@@ -50,18 +50,26 @@ panConf <- confs$data$pangenomes[[pangenome]]
 ## Import data
 
 ```{r}
-metadata <- suppressMessages(
-  readr::read_tsv(confs$data$reference_data$files$metadata)
-) %>%
-  dplyr::select(sampleId, source, SpeciesName, geo_loc_country, length, GC_per,
-                N50, N90, L50, L90, collection_year)
 
-panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>%
-  dplyr::select(Genome, sampleId, virulence, virulence_pcr) %>%
-  dplyr::left_join(y = metadata, by = "sampleId") %>% 
+panMetrix <- suppressMessages(
+  readr::read_csv(panConf$db$metrics$files$per_genome)
+) %>% 
+  dplyr::rename_all(
+    .funs = ~ stringr::str_replace_all(
+      ., c("\\s+" = "_", "%" = "per", "(\\(|\\))" = "")
+    )
+  ) %>%
+  dplyr::select(
+    Genome, Gene_count, mRNA_count, rRNA_count, tRNA_count,
+    Singletons, Homology_groups, GC_per = GC_content_per
+  ) %>% 
+  dplyr::mutate(Genome = as.character(Genome))
+
+panMeta <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>% 
+  dplyr::left_join(y = panMetrix, by = "Genome") %>% 
   dplyr::mutate(
     pbr = dplyr::if_else(
-      SpeciesName == "Pectobacterium brasiliense", "P. brasiliense", "other"
+      SpeciesName == "P. brasiliense", SpeciesName, "other"
     ),
     geo_loc_country = dplyr::if_else(
       geo_loc_country == "Netherlands", geo_loc_country, "other", missing = "other"
@@ -78,7 +86,6 @@ panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>%
     virType = forcats::fct_relevel(virType, "TP", "FN", "TN", "FP", "unknown")
   )
 
-
 ```
 
 
@@ -89,10 +96,8 @@ panMeta <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>%
 #| tbl-cap: Pangenome metadata table
 #| out-height: "400px"
 
-tmpDf <- suppressMessages(readr::read_csv(panConf$files$metadata))
-
 DT::datatable(
-  data = tmpDf,
+  data = panMeta,
   rownames = FALSE,
   filter = "top",
   class = 'compact hover',
@@ -101,7 +106,7 @@ DT::datatable(
     autoWidth = FALSE,
     dom = 'Qlfrtip',
     scrollX = TRUE,
-    fixedColumns = list(leftColumns = 3),
+    fixedColumns = list(leftColumns = 2),
     keys = TRUE,
     scroller = TRUE,
     scrollY = 600
@@ -213,31 +218,13 @@ ggsave(filename = file.path(outDir, "fn_pbr_NL.pdf"), plot = pt_fnPbr, width = 8
 
 ```{r}
 
-metDf <- suppressMessages(readr::read_csv(panConf$db$metrics$files$per_genome, col_names = T)) %>%
-  dplyr::select(-c(N50, N90, L50, L90)) %>%
-  dplyr::rename_all(
-    .funs = ~ stringr::str_replace_all(
-      ., c("\\s+" = "_", "%" = "percent", "(\\(|\\))" = "")
-    )
-  ) %>%
-  dplyr::left_join(y = panMeta, by = "Genome") %>%
-  dplyr::filter(SpeciesName == "Pectobacterium brasiliense")
-
-
-metDf %>%
-  # dplyr::filter(! (source %in% c("NCBI"))) %>%
-  # dplyr::filter(geo_loc_country != "Netherlands") %>%
-  dplyr::filter(virulence == "avirulent") %>%
-  dplyr::select(SpeciesName, mRNA_count, length) %>%
-  dplyr::group_by(SpeciesName) %>%
-  skimr::skim()
-
 plotDf <- dplyr::select(
-  metDf, Genome, source, sampleId, SpeciesName, geo_loc_country, virulence,
-  virulence_pcr, length, GC_per, Median_gene_length, N50, N90, L50, L90,
-  Gene_count, mRNA_count, CDS_count, tRNA_count, rRNA_count,
+  panMeta, Genome, source, sampleId, SpeciesName, geo_loc_country, virulence,
+  virulence_pcr, length, GC_per, N50, L50,
+  Gene_count, mRNA_count, tRNA_count, rRNA_count,
   Homology_groups, Singletons
 ) %>%
+  dplyr::filter(SpeciesName == "P. brasiliense") %>% 
   tidyr::pivot_longer(
     cols = -c(Genome, sampleId, source, SpeciesName, geo_loc_country,
               virulence, virulence_pcr),
@@ -246,7 +233,7 @@ plotDf <- dplyr::select(
   ) %>%
   dplyr::mutate(
     field = forcats::fct_relevel(
-      field, "length", "Gene_count", "mRNA_count", "CDS_count", "tRNA_count"
+      field, "length", "Gene_count", "mRNA_count", "tRNA_count", "rRNA_count"
     )
   )
 
@@ -269,14 +256,16 @@ the N50 values between the same groups.
     # dplyr::filter(field %in% c("length")) %>%
     # dplyr::filter(field %in% c("mRNA_count", "length", "N50", "N90", "L50", "L90")) %>%
     dplyr::filter(field %in% c("mRNA_count", "N50")) %>%
-    # dplyr::filter(field %in% c("tRNA_count", "rRNA_count")) %>% 
+    # dplyr::filter(field %in% c("mRNA_count", "tRNA_count", "rRNA_count", "N50")) %>%
     ggplot2::ggplot(
       mapping = aes(x = forcats::fct_rev(geo_loc_country), y = value)
     ) +
     geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
     ggbeeswarm::geom_quasirandom(size = 3) +
     ggpubr::stat_compare_means(method = "t.test") +
-    scale_y_continuous(labels = scales::label_comma()) +
+    scale_y_continuous(
+      labels = scales::label_comma(scale_cut = c(k = 1000, mb = 1000000, gb = 1000000000))
+      ) +
     facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
     # labs(
     #   title = "Pbr isolates from the Netherlands have more protein coding genes"
@@ -315,11 +304,13 @@ ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
     ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
     scale_x_discrete(
       labels = c(
-        "virulent" = "blackleg\ncausing",
-        "avirulent" = "blackleg\nnon-causing"
+        "virulent" = "BL causing",
+        "avirulent" = "BL non-causing"
       )
     ) +
-    scale_y_continuous(labels = scales::label_comma()) +
+    scale_y_continuous(
+      labels = scales::label_comma(scale_cut = c(k = 1000, mb = 1000000, gb = 1000000000))
+      ) +
     facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
     # labs(
     #   title = "Virulent Pbr isolates have more protein coding genes than avirulent"
@@ -334,6 +325,8 @@ ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
 )
 
 ```
+
 ```{r echo=FALSE}
 ggsave(filename = file.path(outDir, "vir_vs_ngenes.pdf"), plot = pt_vir, width = 8, height = 8)
 ```
+
