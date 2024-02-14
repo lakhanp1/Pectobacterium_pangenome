@@ -9,8 +9,8 @@ source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/uti
 source("scripts/utils/config_functions.R")
 ################################################################################
 set.seed(124)
-orgDb <- org.Pectobacterium.spp.pan.eg.db
-genomeId <- "g_182"
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+genomeId <- "g_195"
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -30,7 +30,7 @@ outPrefix <- sampleInfo$sampleId[which(sampleInfo$genomeId == genomeId)]
 ################################################################################
 # extract data
 gn <- AnnotationDbi::select(
-  x = orgDb, keys = genomeId, keytype = "genomeId",
+  x = panOrgDb, keys = genomeId, keytype = "genomeId",
   columns = c(
     "GID", "class", "chr_name", "start", "end", "strand", "chr", "mRNA_id",
     "COG_description"
