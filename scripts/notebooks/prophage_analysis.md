@@ -206,14 +206,14 @@ Finally, run the script to generate the plot.
 Rscript scripts/analysis/homology_group_viz.R
 ```
 
-### Individual prophage cluster analysis
+## Individual prophage cluster analysis
 
 Script `scripts/analysis/clustersmap_data_prophages.R` is used to combine the
 prophages, homology groups and phylogeny to generate input for `clustermap.js`
 visualization tool and generate a report. Below, some configuration is provided
 for individual prophage clusters.
 
-#### phage_grp_1
+### phage_grp_1 or carotovoricin cluster
 
 ```r
 grpToView <- "phage_grp_1"
@@ -264,27 +264,67 @@ appendRegions <- list(
 appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
 
 
-# grp <- list(
-#   phage_grp = grpToView,
-#   members = dplyr::filter(
-#     regionClusters,
-#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
-#     !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
-#   ) %>%
-#     dplyr::pull(prophage_id)
-# )
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
+    !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
+  ) %>%
+    dplyr::pull(prophage_id)
+)
 
 ```
 
 Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
 
-#### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
+#### Carotovoricin cluster in *P. versatile*
+
+```r
+grpToView <- "ctv_pvs"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1"
+  ) %>%
+    dplyr::pull(prophage_id)
+)
+```
+
+##### CTV cluster in *P. versatile* collected from France
+
+```r
+grpToView <- "ctv_pvs_fr"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1",
+    geo_loc_country == "France"
+  ) %>%
+    dplyr::pull(prophage_id)
+)
+```
+
+### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
 
 ```r
 
 ```
 
-#### phage_grp_71
+### phage_grp_71
 
 ```r
 grpToView <- "phage_grp_71"
@@ -298,20 +338,21 @@ clusterOrder <- "hg_pav"  # completeness, host, hg_pav, cluster_mash
 
 ```
 
-#### phage_grp_36
+### phage_grp_36
 
 ```r
 grpToView <- "phage_grp_36"
 subSample <- FALSE
-addFlankingRegions <- TRUE 
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "completeness"  # completeness, host, hg_pav, cluster_mash
+clusterOrder <- "host" # completeness, host, hg_pav, cluster_mash
 ```
 
-#### phage_grp_50
+### phage_grp_50
 
 ```r
 grpToView <- "phage_grp_50"
@@ -324,7 +365,7 @@ flankingRegion <- 10000
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
 ```
 
-#### phage_grp_21
+### phage_grp_21
 
 ```r
 grpToView <- "phage_grp_21"
@@ -337,7 +378,7 @@ flankingRegion <- 5000
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
 ```
 
-### Carotovoricin tail fiber variation reion MSA
+## Carotovoricin tail fiber variation reion MSA
 
 Extract the region between the two homology groups, `r c("hg_22427604", "hg_22427603")`
 for the carotovoricin cluster. Additionally, generate `GFF3` files with the
