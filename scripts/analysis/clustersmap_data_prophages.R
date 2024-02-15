@@ -226,6 +226,42 @@ hgPavDnd <- hclust(d = dist(hgPavMat)) %>%
 plot(rev(hgPavDnd), horiz = TRUE)
 # order.dendrogram(hgPavDnd) == sort(hgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev()
 
+
+# # plot HG PAV matrix with host taxonomy
+# memberHostData <- tibble::tibble(genomeId = grp$members) %>% 
+#   dplyr::left_join(
+#     y = dplyr::select(regionClusters, genomeId = prophage_id, SpeciesName),
+#     by = "genomeId"
+#   )
+# 
+# spHt <- species_key_heatmap(
+#   genomes = rownames(hgPavMat), speciesInfo = memberHostData
+# )
+# 
+# spHt@heatmap_param$width <- unit(10, "cm")
+# spHt@row_dend_param$width <- unit(6, "cm")
+# 
+# ht <- homology_group_heatmap(
+#   mat = hgPavMat, phy = hgPavDnd,
+#   width = unit(10, "cm"),
+#   name = "HG_PAV", column_title = "HG PAV",
+#   use_raster = TRUE, raster_quality = 3
+# )
+# 
+# # ht@column_dend_param$cluster <- FALSE
+# # ht@column_names_param$show <- FALSE
+# 
+# htList <- spHt + ht
+# 
+# ComplexHeatmap::draw(
+#   object = htList,
+#   main_heatmap = "HG_PAV",
+#   row_dend_side = "left",
+#   merge_legends = TRUE,
+#   heatmap_legend_side = "bottom"
+# 
+# )
+
 if (subSample) {
   grpSubset <- dendextend::cutree(tree = hgPavDnd, h = cutHeight) %>%
     tibble::enframe(name = "prophage_id", value = "cut") %>%
