@@ -175,3 +175,48 @@ Rscript scripts/c_analysis/pheno_association.blastn_viz.R
 flowchart
     region --> hit
 ```
+
+## Extract HGs for a specific genome
+
+Use R script `scripts/other/genome_HGs.R` and change the query as shown below.
+
+Genome g_195: A TP *P. brasiliense* genome that has single contig genome assembly.
+
+```r
+genomeOfInterest <- "g_195"
+
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
+nodeInclude <- "n11"
+nodeExclude <- "n23"
+```
+
+Genome g_182: *P. brasiliense* lacking CTV cluster
+
+```r
+genomeOfInterest <- "g_182"
+
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
+nodeInclude <- "n11"
+nodeExclude <- "n145"
+```
+
+## Build HGs comparison table of multiple genomes
+
+Use R script `scripts/other/genomes_HG_pav.R` and change the query as shown below.
+
+Compare FN-Pbr, TP-Pbr with other non-BL-causing Pbr from the Netherlands
+
+```r
+genomeOfInterest <- c("g_187", "g_399", "g_179", "g_191")
+coreClade <- "n11"
+nodeExclude <- "n22"
+```
+
+
+Compare FN-Pbr, TP-Pbr and CTV lacking Pbr
+
+```r
+genomeOfInterest <- c("g_187", "g_399", "g_182")
+coreClade <- "n11"
+nodeExclude <- NA
+```
