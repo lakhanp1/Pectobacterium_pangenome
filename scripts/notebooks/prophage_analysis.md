@@ -213,18 +213,20 @@ prophages, homology groups and phylogeny to generate input for `clustermap.js`
 visualization tool and generate a report. Below, some configuration is provided
 for individual prophage clusters.
 
-### phage_grp_1 or carotovoricin cluster
+### phage_grp_1 or carotovoricin (CTV) cluster
+
+#### CTV across pangenome
 
 ```r
 grpToView <- "phage_grp_1"
 subSample <- TRUE
-cutHeight <- 2
+cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
 ```
 
 #### carotovoricin cluster absent in some *P. brasiliense* isolates
@@ -246,7 +248,12 @@ flankingRegion <- 5000
 # completeness score
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
 
-appendRegions <- list(
+# a vector of prophage identifiers that will be included in clustermap plot
+appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
   g_177_reg = list(
     chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
   ),
@@ -260,8 +267,6 @@ appendRegions <- list(
     chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
   )
 )
-
-appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
 
 
 grp <- list(
@@ -278,7 +283,7 @@ grp <- list(
 
 Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
 
-#### Carotovoricin cluster in *P. versatile*
+#### CTV in *P. versatile*
 
 ```r
 grpToView <- "ctv_pvs"
@@ -298,7 +303,7 @@ grp <- list(
 )
 ```
 
-##### CTV cluster in *P. versatile* collected from France
+#### CTV cluster in *P. versatile* collected from France
 
 ```r
 grpToView <- "ctv_pvs_fr"
@@ -318,9 +323,70 @@ grp <- list(
 )
 ```
 
+### Inter-species horizontal gene transfer of CTV
+
+```r
+grpToView <- "ctv_hgt"
+subSample <- FALSE 
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "hg_pav" # completeness, host, hg_pav, cluster_mash
+
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_433.vir_1", "g_151.vir_1", "g_150.vir_4", "g_447.vir_1", "g_434.vir_4",
+    "g_158.vir_2", "g_145.vir_1", "g_194.vir_1", "g_426.vir_1", "g_429.vir_1", "g_420.vir_1", "g_442.vir_1", "g_421.vir_1", "g_147.vir_1"
+  ),
+  fragmented = character(),
+  group_size = integer()
+)
+```
+
+```r
+grpToView <- "ctv_hgt_fr"
+subSample <- FALSE 
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "hg_pav" # completeness, host, hg_pav, cluster_mash
+
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_221.vir_3", "g_53.vir_3", "g_106.vir_2", "g_57.vir_1", "g_125.vir_1",
+    "g_219.vir_1", "g_223.vir_1", "g_277.vir_1", "g_281.vir_1", "g_77.vir_1", "g_56.vir_1", "g_102.vir_1", "g_234.vir_2", "g_58.vir_1", "g_123.vir_1"
+  ),
+  fragmented = character(),
+  group_size = integer()
+)
+```
+
 ### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
 
 ```r
+
+```
+
+### phage_grp_45: prophage present in all BL-causing isolates
+
+```r
+grpToView <- "phage_grp_45"
+subSample <- TRUE 
+cutHeight <- 0.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host" # completeness, host, hg_pav, cluster_mash
 
 ```
 
@@ -522,3 +588,4 @@ Right inverted repeat for Ein: TTCTCGCAAACCTCGGTTTTGGAGAA
 Right inverted repeat for Ein(rev): AAGAGGTTTTGGCTCCAAACGCTCTT
 Right inverted repeat for Ein(rev-com): TTCTCCAAAACCGAGGTTTGCGAGAA (AAACCGAGGTTTGCGAGAA, AAACCGAGGTTTGCG)
 Right inverted repeat for Ein(comp): AAGAGCGTTTGGAGCCAAAACCTCTT
+
