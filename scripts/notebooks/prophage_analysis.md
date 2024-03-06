@@ -229,6 +229,47 @@ flankingRegion <- 5000
 clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
 ```
 
+#### CTV in type strains
+
+Include *P. atrosepticum* (g_385), *P. betavasculorum* (g_386) and *P. cacticida*
+(g_451) genomes that lack CTV cluster.
+
+```r
+grpToView <- "typeStrains"
+subSample <- FALSE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 6000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_385_reg = list(
+    chr = "NZ_JQHK01000003.1", start = 202783, end = 208572, genomeId = "g_385"
+  ),
+  g_386_reg = list(
+    chr = "NZ_JQHM01000001.1", start = 551867, end = 556583, genomeId = "g_386"
+  ),
+  g_451_reg = list(
+    chr = "Contig_2_668.636", start = 190088, end = 192512, genomeId = "g_451"
+  )
+)
+
+
+
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(regionClusters, phage_grp == "phage_grp_1", nFragments == 1) %>%
+    dplyr::slice_sample(n = 1L, by = "SpeciesName") %>%
+    dplyr::pull(prophage_id)
+)
+
+```
+
 #### carotovoricin cluster absent in some *P. brasiliense* isolates
 
 ybiB: hg_22427603
