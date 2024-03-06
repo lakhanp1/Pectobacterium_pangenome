@@ -11,7 +11,9 @@ source("scripts/utils/homology_groups.R")
 
 ################################################################################
 
-genomeOfInterest <- c("g_187", "g_399", "g_179", "g_191")
+genomeOfInterest <- c("g_187", "g_385", "g_386", "g_451")
+
+# use phylogenetic tree nodes to categorize HGs into core, accessory and unique
 coreClade <- "n11"
 nodeExclude <- "n22"
 
@@ -30,37 +32,31 @@ panConf <- confs$data$pangenomes[[pangenome]]
 
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
-subGenomes <- dplyr::filter(
-  sampleInfo,
-  stringr::str_detect(
-    string = !!sym(column_nodepath), pattern = paste(";", coreClade, ";", sep = "")
-  )
-)
+subGenomes <- sampleInfo
 
-subGenomes <- dplyr::filter(
-  sampleInfo,
-  stringr::str_detect(
-    string = !!sym(column_nodepath), pattern = paste(";", coreClade, ";", sep = "")
-  ),
-  stringr::str_detect(
-    string = !!sym(column_nodepath), pattern = paste(";", nodeExclude, ";", sep = ""),
-    negate = TRUE
+if(!is.null(coreClade)){
+  subGenomes <- dplyr::filter(
+    sampleInfo,
+    stringr::str_detect(
+      string = !!sym(column_nodepath), pattern = paste(";", coreClade, ";", sep = "")
+    )
   )
-)
+}
+
+if(!is.null(nodeExclude)){
+  subGenomes <- dplyr::filter(
+    subGenomes,
+    # stringr::str_detect(
+    #   string = !!sym(column_nodepath), pattern = paste(";", coreClade, ";", sep = "")
+    # ),
+    stringr::str_detect(
+      string = !!sym(column_nodepath), pattern = paste(";", nodeExclude, ";", sep = ""),
+      negate = TRUE
+    )
+  )
+}
 
 ################################################################################
-# get HG PAV for genomes under a node 
-subPanHgs <- sub_pangenome_hgs(
-  pandb = panOrgDb,
-  genomes = union(genomeOfInterest, subGenomes$genomeId)
-) %>% 
-  dplyr::rename(subset_class = class, subset_nGenomes = nGenomes)
-
-# HG PAV for pangenome
-panHgs <- sub_pangenome_hgs(
-  pandb = panOrgDb, genomes = sampleInfo$genomeId
-) %>% 
-  dplyr::rename(pan_class = class, pan_nGenomes = nGenomes)
 
 # HG PAV for genomes of interest
 genomeHgsPav <- sub_pangenome_hgs(pandb = panOrgDb, genomes = genomeOfInterest)
@@ -129,9 +125,30 @@ hgAn <- AnnotationDbi::select(
 
 # combine data
 df <- dplyr::left_join(x = hgPos, y = genomeHgsPav, by = "hgId") %>% 
-  dplyr::left_join(y = hgAn, by = c("hgId" = "GID")) %>% 
-  dplyr::left_join(y = panHgs, by = "hgId") %>% 
-  dplyr::left_join(y = subPanHgs, by = "hgId") 
+  dplyr::left_join(y = hgAn, by = c("hgId" = "GID"))
+
+################################################################################
+# add pangenome level and a sub-pangenome level core, accessory, unique annotation
+
+# HG PAV for pangenome
+panHgs <- sub_pangenome_hgs(
+  pandb = panOrgDb, genomes = sampleInfo$genomeId
+) %>% 
+  dplyr::rename(pan_class = class, pan_nGenomes = nGenomes)
+
+df <- dplyr::left_join(x = df, y = panHgs, by = "hgId")
+
+if(!identical(sampleInfo, subGenomes)){
+  # get HG PAV for genomes under a node 
+  subPanHgs <- sub_pangenome_hgs(
+    pandb = panOrgDb,
+    genomes = union(genomeOfInterest, subGenomes$genomeId)
+  ) %>% 
+    dplyr::rename(subset_class = class, subset_nGenomes = nGenomes)
+  
+  df <- dplyr::left_join(x = df, y = subPanHgs, by = "hgId")
+
+}
 
 clipr::write_clip(df)
 
