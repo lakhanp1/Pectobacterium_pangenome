@@ -65,6 +65,8 @@ Run ANI on prophage genomes to identify the representative prophages in the
 pangenome.
 
 ```bash
+conda activate pantools_v4_3
+
 # list prophage FASTA files
 ls data/prophage_genomad/phage_seqs/*.fna  > data/prophage_genomad/prophage_fasta.list
 
@@ -235,7 +237,7 @@ Include *P. atrosepticum* (g_385), *P. betavasculorum* (g_386) and *P. cacticida
 (g_451) genomes that lack CTV cluster.
 
 ```r
-grpToView <- "typeStrains"
+grpToView <- "ctv_typeStrains"
 subSample <- FALSE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
@@ -244,6 +246,9 @@ flankingRegion <- 6000
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+
+# a vector of prophage identifiers that will be included in clustermap plot
+appendPhages <- c()
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
@@ -263,9 +268,12 @@ customRegions <- list(
 
 grp <- list(
   phage_grp = grpToView,
-  members = dplyr::filter(regionClusters, phage_grp == "phage_grp_1", nFragments == 1) %>%
-    dplyr::slice_sample(n = 1L, by = "SpeciesName") %>%
-    dplyr::pull(prophage_id)
+  members = c(
+    "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
+    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
+    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+  )
 )
 
 ```
@@ -366,6 +374,8 @@ grp <- list(
 
 ### Inter-species horizontal gene transfer of CTV
 
+Clustermap visualization for some manually selected candidates.
+
 ```r
 grpToView <- "ctv_hgt"
 subSample <- FALSE 
@@ -377,37 +387,137 @@ flankingRegion <- 5000
 # completeness score
 clusterOrder <- "hg_pav" # completeness, host, hg_pav, cluster_mash
 
+
+# optionally, a custom region list can be provided to generate the plot
 grp <- list(
   phage_grp = grpToView,
   members = c(
-    "g_433.vir_1", "g_151.vir_1", "g_150.vir_4", "g_447.vir_1", "g_434.vir_4",
-    "g_158.vir_2", "g_145.vir_1", "g_194.vir_1", "g_426.vir_1", "g_429.vir_1", "g_420.vir_1", "g_442.vir_1", "g_421.vir_1", "g_147.vir_1"
-  ),
-  fragmented = character(),
-  group_size = integer()
+    "g_145.vir_1", "g_194.vir_1", "g_429.vir_1", "g_442.vir_1", "g_421.vir_1", 
+    "g_150.vir_4", "g_447.vir_1", "g_434.vir_4",
+    "g_221.vir_3", "g_53.vir_3", "g_106.vir_2", "g_57.vir_1", "g_125.vir_1"
+  )
 )
 ```
 
+Run script `scripts/analysis/HG_range_coordinates.R` to extract genomic coordinates
+for CTV region in selected genomes.
+
 ```r
-grpToView <- "ctv_hgt_fr"
-subSample <- FALSE 
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
+grpName <- "ctv_region"
 
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "hg_pav" # completeness, host, hg_pav, cluster_mash
+hgs <- c("hg_22427643", "hg_22427599")      # ctv + flanking 3 genes
+# hgs <- c("hg_22427640", "hg_22427604")    # ctv conserved loci
+# hgs <- c("hg_22427604", "hg_22427603")    # ctv tail loci
 
-grp <- list(
-  phage_grp = grpToView,
-  members = c(
-    "g_221.vir_3", "g_53.vir_3", "g_106.vir_2", "g_57.vir_1", "g_125.vir_1",
-    "g_219.vir_1", "g_223.vir_1", "g_277.vir_1", "g_281.vir_1", "g_77.vir_1", "g_56.vir_1", "g_102.vir_1", "g_234.vir_2", "g_58.vir_1", "g_123.vir_1"
-  ),
-  fragmented = character(),
-  group_size = integer()
+genomes <- c(
+  "g_145", "g_194", "g_429", "g_442", "g_421", "g_426",
+  "g_150", "g_447", "g_434",
+  "g_57", "g_53", "g_221", "g_125",
+  "g_183", "g_423", "g_277", "g_375", "g_116", "g_449", "g_446", "g_378", "g_296",
+  "g_428", "g_259", "g_66", "g_337", "g_442", "g_305", "g_381", "g_8", "g_273", "g_38"
 )
+```
+
+#### Extract DNA sequence for these regions
+
+```bash
+dir_path="analysis/pangenome_v2/prophages/cluster_viz/ctv_hgt/ctv_conserved"
+
+tail -n +2 ${dir_path}/hg_regions.tab |
+  cut -f 1,3-5 |
+  while read name sampleId pos strand; do
+    rc=""
+    if [ ${strand} == "-" ]; then
+        rc="--reverse-complement"
+    fi
+    outFa="${dir_path}/${name}.fasta"
+
+    seq=">${name} ${pos}(${strand})\n"
+    seq+=`samtools faidx ${rc} data/prokka_annotation/${sampleId}/${sampleId}.fna $pos | tail -n +2`
+
+    # printf "${seq}\n" > ${outFa}
+    printf "${seq}\n"
+  done > ${dir_path}/hg_regions.fasta
+
+cd ${dir_path}
+
+```
+
+#### Run ANI
+
+```bash
+conda activate pantools_v4_3
+
+fastANI -ql fasta.list -rl fasta.list -k 11 -t 8 
+```
+
+```bash
+cd ctv_tail
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
+
+cd ctv_conserved
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
+
+grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/ctv_dist.tab
+grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/ctv_dist.tab
+grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
+
+```
+
+#### Perform MSA using `MAFFT`
+
+```bash
+
+mafft --globalpair --quiet --maxiterate 1000 --treeout tail_region.msa.fasta
+```
+
+#### Use Mauve to detect the structural variation and consevation
+
+Mauve aligns sequences provided in `fasta` and `genbank` format. However, the
+sequence annotation is shown only if the alignment input was in `genbank`
+format. Therefore, we need to combine the homology group annotation in `gff3`
+format with the `fasta` sequences to generate a `genbank` formatted files. To
+do this, Emboss tool `seqret` was used.
+
+```bash
+conda activate omics_py37
+
+for vir in `cut -f 1 hg_regions.tab | tail -n +2`
+do
+  seqret -sequence ${vir}.fasta -feature -fformat gff3 \
+  -fopenfile ${vir}.gff3 -osformat genbank -osextension gbk \
+  -osname_outseq ${vir} -ofdirectory_outseq gbk_file -auto 
+done
+```
+
+Correct GenBank file as per Mauve requirement
+
+```bash
+sed -i.bak -r -e 's/(^\s+CDS\s+(complement\()?)[^:]+:([[:digit:]]+\.\.[[:digit:]]+\)?).*/\1\3/' \
+  -e 's/\/note="\*([^:]+): /\/\1="/' *.gbk
+```
+
+Align and visualize sequences using Mauve.
+
+```bash
+mauve_out="ctv_hgt.defaults"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+*.gbk  > "${mauve_out}".mauve.log 2>&1
+
+# mauve with custom settings
+mauve_out="ctv_hgt.opt"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--seed-weight 10 \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+*.gbk  > "${mauve_out}".mauve.log 2>&1
+
+# --seed-weight 5 \
+
 ```
 
 ### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
