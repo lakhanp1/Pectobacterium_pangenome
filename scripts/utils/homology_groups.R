@@ -229,22 +229,72 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
 #'
 #' @param hgs A vector of homology group ids
 #' @param pandb org.db pangenome object
-#' @param genomeId Find tandem match against a specific genome
+#' @param genomes Find tandem match against a specific genomes
 #'
 #' @return A list of homology groups where each element is a tandem group set
 #' @export
 #'
 #' @examples
-tandem_hg_match <- function(hgs, pandb, genomeId = NULL) {
+
+tandem_hg_match <- function(hgs, pandb, genomes = NULL) {
+  
   hgInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = hgs,
-      columns = c("genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand")
+      columns = c("genomeId", "chr_id", "start", "end", "strand", "genePos")
     )
-  ) %>%
-    dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>%
-    dplyr::arrange(start)
+  )%>% 
+    dplyr::mutate(
+      dplyr::across(.cols = c(start, end, genePos), .fns = as.integer),
+    ) %>% 
+    dplyr::arrange(start) %>% 
+    dplyr::add_count(genomeId, chr_id) %>% 
+    dplyr::filter(n >= length(hgs)) %>% 
+    tidyr::nest(data = c(GID, genePos), .by = genomeId)
+  
+  dl <- purrr::map2(
+    .x = purrr::set_names(hgInfo$genomeId), .y = hgInfo$data,
+    .f = function(g, d){
+      split(d$genePos, d$GID)
+    }
+  )
+  
+  if(!is.null(genomes)){
+    genomes <- intersect(genomes, names(dl))
+    stopifnot(length(genomes) > 0)
+    
+    dl <- dl[genomes]
+  }
+  
+  stopifnot(length(dl) > 0)
+  
+  tandemMatches <- purrr::map(
+    .x = dl,
+    .f = function(chrHgs){
+      
+      currentHgPos <- -1
+      tandem <- TRUE
+      
+      for (hg in hgs) {
+        if (currentHgPos == -1) {
+          currentHgPos <- chrHgs[[hg]]
+          next
+        }
+        
+        if(all(abs(currentHgPos - chrHgs[[hg]])) > 1){
+          tandem <- FALSE
+          break
+        }
+      }
+      return(tandem)
+    }
+  )
+  
+  return(
+    purrr::discard(.x = tandemMatches, .p = isFALSE) %>% names()
+  )
 }
+
 
 
 ################################################################################
