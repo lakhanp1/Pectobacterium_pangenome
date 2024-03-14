@@ -81,11 +81,6 @@ confs <- prefix_config_paths(
 
 hgs <- stringr::str_split_1(string = opts$hgs, pattern = ",")
 
-# grpName <- "ctv_tail"
-# excludeHgs <- TRUE     # TRUE: use the outer boundry of region, othewise use inner boundry
-# genomes <- NULL
-# outDir <- paste(confs$analysis$ctv$dir, "/ctv_hgt/", grpName, sep = "")
-
 if(!dir.exists(opts$dir)){
   dir.create(opts$dir)
 }
@@ -163,7 +158,8 @@ hgRegions <- as.data.frame(hgRegionGr) %>%
     regionId, genomeId, sampleId, chr_name, start, end, strand, region
   )
 
-outCols <- c("regionId", "genomeId", "sampleId", "region", "strand")
+outCols <- c("regionId", "genomeId", "sampleId", "region", "strand",
+             "chr_name", "start", "end")
 
 # optionally, extract HGs and save the column
 if(opts$get_hgs){
