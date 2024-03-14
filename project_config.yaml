@@ -329,6 +329,8 @@ analysis:
       clusters: "prophages_clusters.tab"
       prophage_hg_info: "prophage_HG_info.tab"
       hg_broad_functions: "prophage_HG_broad_functions.tab"
+  ctv:
+    dir: "pangenome_v2/carotovoricin"
   plasmids:
     cutoff_length: 0
     dir: "pangenome_v2/plasmids"

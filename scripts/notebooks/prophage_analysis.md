@@ -215,311 +215,6 @@ prophages, homology groups and phylogeny to generate input for `clustermap.js`
 visualization tool and generate a report. Below, some configuration is provided
 for individual prophage clusters.
 
-### phage_grp_1 or carotovoricin (CTV) cluster
-
-#### CTV across pangenome
-
-```r
-grpToView <- "phage_grp_1"
-subSample <- TRUE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
-
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
-```
-
-#### CTV in type strains
-
-Include *P. atrosepticum* (g_385), *P. betavasculorum* (g_386) and *P. cacticida*
-(g_451) genomes that lack CTV cluster.
-
-```r
-grpToView <- "ctv_typeStrains"
-subSample <- FALSE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 6000
-
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
-
-# a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c()
-
-# regions to append as list of list with following structure
-# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list(
-  g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 202783, end = 208572, genomeId = "g_385"
-  ),
-  g_386_reg = list(
-    chr = "NZ_JQHM01000001.1", start = 551867, end = 556583, genomeId = "g_386"
-  ),
-  g_451_reg = list(
-    chr = "Contig_2_668.636", start = 190088, end = 192512, genomeId = "g_451"
-  )
-)
-
-
-
-grp <- list(
-  phage_grp = grpToView,
-  members = c(
-    "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
-    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
-    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
-    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
-  )
-)
-
-```
-
-#### carotovoricin cluster absent in some *P. brasiliense* isolates
-
-ybiB: hg_22427603
-
-tolC_2: hg_22427641
-
-*P. brasiliense* lacking CTV cluster: g_149, g_177, g_182, g_185, g_236
-
-```r
-grpToView <- "ctv_pbr"
-subSample <- TRUE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
-
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
-
-# a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
-
-# regions to append as list of list with following structure
-# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list(
-  g_177_reg = list(
-    chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
-  ),
-  g_182_reg = list(
-    chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"
-  ),
-  g_185_reg = list(
-    chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"
-  ),
-  g_236_reg = list(
-    chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
-  )
-)
-
-
-grp <- list(
-  phage_grp = grpToView,
-  members = dplyr::filter(
-    regionClusters,
-    SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
-    !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
-  ) %>%
-    dplyr::pull(prophage_id)
-)
-
-```
-
-Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
-
-#### CTV in *P. versatile*
-
-```r
-grpToView <- "ctv_pvs"
-subSample <- TRUE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
-
-
-grp <- list(
-  phage_grp = grpToView,
-  members = dplyr::filter(
-    regionClusters,
-    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1"
-  ) %>%
-    dplyr::pull(prophage_id)
-)
-```
-
-#### CTV cluster in *P. versatile* collected from France
-
-```r
-grpToView <- "ctv_pvs_fr"
-subSample <- TRUE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
-
-grp <- list(
-  phage_grp = grpToView,
-  members = dplyr::filter(
-    regionClusters,
-    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1",
-    geo_loc_country == "France"
-  ) %>%
-    dplyr::pull(prophage_id)
-)
-```
-
-### Inter-species horizontal gene transfer of CTV
-
-Clustermap visualization for some manually selected candidates.
-
-```r
-grpToView <- "ctv_hgt"
-subSample <- FALSE 
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
-
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "hg_pav" # completeness, host, hg_pav, cluster_mash
-
-
-# optionally, a custom region list can be provided to generate the plot
-grp <- list(
-  phage_grp = grpToView,
-  members = c(
-    "g_145.vir_1", "g_194.vir_1", "g_429.vir_1", "g_442.vir_1", "g_421.vir_1", 
-    "g_150.vir_4", "g_447.vir_1", "g_434.vir_4",
-    "g_221.vir_3", "g_53.vir_3", "g_106.vir_2", "g_57.vir_1", "g_125.vir_1"
-  )
-)
-```
-
-Run script `scripts/analysis/HG_range_coordinates.R` to extract genomic coordinates
-for CTV region in selected genomes.
-
-```r
-grpName <- "ctv_region"
-
-hgs <- c("hg_22427643", "hg_22427599")      # ctv + flanking 3 genes
-# hgs <- c("hg_22427640", "hg_22427604")    # ctv conserved loci
-# hgs <- c("hg_22427604", "hg_22427603")    # ctv tail loci
-
-genomes <- c(
-  "g_145", "g_194", "g_429", "g_442", "g_421", "g_426",
-  "g_150", "g_447", "g_434",
-  "g_57", "g_53", "g_221", "g_125",
-  "g_183", "g_423", "g_277", "g_375", "g_116", "g_449", "g_446", "g_378", "g_296",
-  "g_428", "g_259", "g_66", "g_337", "g_442", "g_305", "g_381", "g_8", "g_273", "g_38"
-)
-```
-
-#### Extract DNA sequence for these regions
-
-```bash
-dir_path="analysis/pangenome_v2/prophages/cluster_viz/ctv_hgt/ctv_conserved"
-
-tail -n +2 ${dir_path}/hg_regions.tab |
-  cut -f 1,3-5 |
-  while read name sampleId pos strand; do
-    rc=""
-    if [ ${strand} == "-" ]; then
-        rc="--reverse-complement"
-    fi
-    outFa="${dir_path}/${name}.fasta"
-
-    seq=">${name} ${pos}(${strand})\n"
-    seq+=`samtools faidx ${rc} data/prokka_annotation/${sampleId}/${sampleId}.fna $pos | tail -n +2`
-
-    # printf "${seq}\n" > ${outFa}
-    printf "${seq}\n"
-  done > ${dir_path}/hg_regions.fasta
-
-cd ${dir_path}
-
-```
-
-#### Run ANI
-
-```bash
-conda activate pantools_v4_3
-
-fastANI -ql fasta.list -rl fasta.list -k 11 -t 8 
-```
-
-```bash
-cd ctv_tail
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
-
-cd ctv_conserved
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
-
-grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/ctv_dist.tab
-grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/ctv_dist.tab
-grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
-
-```
-
-#### Perform MSA using `MAFFT`
-
-```bash
-
-mafft --globalpair --quiet --maxiterate 1000 --treeout tail_region.msa.fasta
-```
-
-#### Use Mauve to detect the structural variation and consevation
-
-Mauve aligns sequences provided in `fasta` and `genbank` format. However, the
-sequence annotation is shown only if the alignment input was in `genbank`
-format. Therefore, we need to combine the homology group annotation in `gff3`
-format with the `fasta` sequences to generate a `genbank` formatted files. To
-do this, Emboss tool `seqret` was used.
-
-```bash
-conda activate omics_py37
-
-for vir in `cut -f 1 hg_regions.tab | tail -n +2`
-do
-  seqret -sequence ${vir}.fasta -feature -fformat gff3 \
-  -fopenfile ${vir}.gff3 -osformat genbank -osextension gbk \
-  -osname_outseq ${vir} -ofdirectory_outseq gbk_file -auto 
-done
-```
-
-Correct GenBank file as per Mauve requirement
-
-```bash
-sed -i.bak -r -e 's/(^\s+CDS\s+(complement\()?)[^:]+:([[:digit:]]+\.\.[[:digit:]]+\)?).*/\1\3/' \
-  -e 's/\/note="\*([^:]+): /\/\1="/' *.gbk
-```
-
-Align and visualize sequences using Mauve.
-
-```bash
-mauve_out="ctv_hgt.defaults"
-
-progressiveMauve --output="${mauve_out}.mauve.xmfa" \
---backbone-output="${mauve_out}.mauve.backbone" \
---output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
-*.gbk  > "${mauve_out}".mauve.log 2>&1
-
-# mauve with custom settings
-mauve_out="ctv_hgt.opt"
-
-progressiveMauve --output="${mauve_out}.mauve.xmfa" \
---seed-weight 10 \
---backbone-output="${mauve_out}.mauve.backbone" \
---output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
-*.gbk  > "${mauve_out}".mauve.log 2>&1
-
-# --seed-weight 5 \
-
-```
-
 ### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
 
 ```r
@@ -595,14 +290,351 @@ flankingRegion <- 5000
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
 ```
 
-## Carotovoricin tail fiber variation reion MSA
+## Carotovoricin (CTV) cluster or phage_grp_1 data analysis
 
-Extract the region between the two homology groups, `r c("hg_22427604", "hg_22427603")`
+### CTV across pangenome
+
+```r
+grpToView <- "phage_grp_1"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+```
+
+### CTV in type strains
+
+Include *P. atrosepticum* (g_385), *P. betavasculorum* (g_386) and *P. cacticida*
+(g_451) genomes that lack CTV cluster.
+
+```r
+grpToView <- "ctv_typeStrains"
+subSample <- FALSE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 6000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+
+# a vector of prophage identifiers that will be included in clustermap plot
+appendPhages <- c()
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_385_reg = list(
+    chr = "NZ_JQHK01000003.1", start = 202783, end = 208572, genomeId = "g_385"
+  ),
+  g_386_reg = list(
+    chr = "NZ_JQHM01000001.1", start = 551867, end = 556583, genomeId = "g_386"
+  ),
+  g_451_reg = list(
+    chr = "Contig_2_668.636", start = 190088, end = 192512, genomeId = "g_451"
+  )
+)
+
+
+
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
+    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
+    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+  )
+)
+
+```
+
+### carotovoricin cluster absent in some *P. brasiliense* isolates
+
+ybiB: hg_22427603
+
+tolC_2: hg_22427641
+
+*P. brasiliense* lacking CTV cluster: g_149, g_177, g_182, g_185, g_236
+
+```r
+grpToView <- "ctv_pbr"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+
+# a vector of prophage identifiers that will be included in clustermap plot
+appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_177_reg = list(
+    chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
+  ),
+  g_182_reg = list(
+    chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"
+  ),
+  g_185_reg = list(
+    chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"
+  ),
+  g_236_reg = list(
+    chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
+  )
+)
+
+
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
+    !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
+  ) %>%
+    dplyr::pull(prophage_id)
+)
+
+```
+
+Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
+
+### CTV in *P. versatile*
+
+```r
+grpToView <- "ctv_pvs"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1"
+  ) %>%
+    dplyr::pull(prophage_id)
+)
+```
+
+### CTV cluster in *P. versatile* collected from France
+
+```r
+grpToView <- "ctv_pvs_fr"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+grp <- list(
+  phage_grp = grpToView,
+  members = dplyr::filter(
+    regionClusters,
+    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1",
+    geo_loc_country == "France"
+  ) %>%
+    dplyr::pull(prophage_id)
+)
+```
+
+### Inter-species horizontal gene transfer of CTV
+
+Clustermap visualization for some manually selected candidates. Change the code
+blocks in the script `scripts/analysis/clustersmap_data_prophages.R` and run.
+
+```r
+grpToView <- "ctv_hgt"
+subSample <- FALSE 
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "hg_pav" # completeness, host, hg_pav, cluster_mash
+
+
+# optionally, a custom region list can be provided to generate the plot
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_145.vir_1", "g_194.vir_1", "g_429.vir_1", "g_442.vir_1", "g_421.vir_1", 
+    "g_150.vir_4", "g_447.vir_1", "g_434.vir_4",
+    "g_221.vir_3", "g_53.vir_3", "g_106.vir_2", "g_57.vir_1", "g_125.vir_1"
+  )
+)
+```
+
+Run script `scripts/other/HG_range_coordinates.R` to extract genomic coordinates
+for CTV region in selected genomes.
+
+Complete CTV region along with 3 flanking genes:
+
+```bash
+Rscript scripts/other/HG_range_coordinates.R --hgs hg_22427643,hg_22427599 \
+--inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_region
+
+# create GFF3 files for CTV regions of interest
+Rscript scripts/other/HGs_gff_from_regions.R \
+--regions analysis/pangenome_v2/carotovoricin/ctv_region/hg_regions.tab \
+--genomes g_145,g_194,g_429,g_442,g_421,g_150,g_447,g_434,g_53,g_106,g_57,g_221,g_125
+
+# create CTV regions GFF3 files for one species representative each
+Rscript scripts/other/HGs_gff_from_regions.R \
+--regions analysis/pangenome_v2/carotovoricin/ctv_region/hg_regions.tab \
+--genomes g_183,g_423,g_277,g_375,g_116,g_449,g_446,g_378,g_296,g_428,g_259,g_66,g_337,g_442,g_305,g_381,g_8,g_273,g_38
+```
+
+CTV conserved loci:
+
+```bash
+Rscript scripts/other/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
+--inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_conserved
+```
+
+CTV variable loci:
+
+```bash
+Rscript scripts/other/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
+--inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail --get_hgs
+```
+
+#### Extract DNA sequence for these regions
+
+```bash
+dir_path="analysis/pangenome_v2/prophages/cluster_viz/ctv_hgt/ctv_conserved"
+
+tail -n +2 ${dir_path}/hg_regions.tab |
+  cut -f 1,3-5 |
+  while read name sampleId pos strand; do
+    rc=""
+    if [ ${strand} == "-" ]; then
+        rc="--reverse-complement"
+    fi
+    outFa="${dir_path}/${name}.fasta"
+
+    seq=">${name} ${pos}(${strand})\n"
+    seq+=`samtools faidx ${rc} data/prokka_annotation/${sampleId}/${sampleId}.fna $pos | tail -n +2`
+
+    # printf "${seq}\n" > ${outFa}
+    printf "${seq}\n"
+  done > ${dir_path}/hg_regions.fasta
+
+cd ${dir_path}
+
+```
+
+#### Run MASH to calculate the distance
+
+```bash
+cd ctv_tail
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
+
+cd ctv_conserved
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
+
+grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/ctv_dist.tab
+grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/ctv_dist.tab
+grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
+
+```
+
+#### Perform MSA using `MAFFT`
+
+```bash
+mafft --globalpair --quiet --maxiterate 1000 --treeout tail_region.msa.fasta
+```
+
+#### Use Mauve to detect the structural variation and consevation
+
+Mauve aligns sequences provided in `fasta` and `genbank` format. However, the
+sequence annotation is shown only if the alignment input was in `genbank`
+format. Therefore, we need to combine the homology group annotation in `gff3`
+format with the `fasta` sequences to generate a `genbank` formatted files. To
+do this, Emboss tool `seqret` was used.
+
+```bash
+conda activate omics_py37
+
+for vir in `cut -f 1 hg_regions.tab | tail -n +2`
+do
+  seqret -sequence ${vir}.fasta -feature -fformat gff3 \
+  -fopenfile ${vir}.gff3 -osformat genbank -osextension gbk \
+  -osname_outseq ${vir} -ofdirectory_outseq gbk_file -auto 
+done
+```
+
+Correct GenBank file as per Mauve requirement
+
+```bash
+sed -i.bak -r -e 's/(^\s+CDS\s+(complement\()?)[^:]+:([[:digit:]]+\.\.[[:digit:]]+\)?).*/\1\3/' \
+  -e 's/\/note="\*([^:]+): /\/\1="/' *.gbk
+```
+
+Align and visualize sequences using Mauve.
+
+```bash
+mauve_out="ctv_hgt.defaults"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+*.gbk  > "${mauve_out}".mauve.log 2>&1
+
+# mauve with custom settings
+mauve_out="ctv_hgt.opt"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--seed-weight 10 \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+*.gbk  > "${mauve_out}".mauve.log 2>&1
+
+# --seed-weight 5 \
+
+```
+
+#### Visualize tail fiber locus HG sets on the pangenome
+
+R script `scripts/analysis/HG_tandem_match.viz.qmd` to plot tail fiber locus HGs
+for a set of genomes from different species.
+
+```r
+hgSets <- list(
+  s1 = c("hg_22427604", "hg_22426828"),
+  s2 = c("hg_22427604", "hg_22426818"),
+  s3 = c("hg_22427604", "hg_22426820", "hg_22426802", "hg_22426815")
+)
+
+outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/ctv_hgt", sep = "")
+```
+
+## Carotovoricin tail fiber variation region MSA
+
+Extract the region between the two homology groups, `hg_22427604` and `hg_22427603`
 for the carotovoricin cluster. Additionally, generate `GFF3` files with the
 homology group, COG, PFAM and other metadata information to visualize.
 
 ```bash
-Rscript scripts/analysis/clustermap_get_regions.R
+# Rscript scripts/analysis/clustermap_get_regions.R
+Rscript scripts/other/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
+--out ctv_pbr.variable_regions.tab --dir analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr
+
+# create CTV regions GFF3 files for one species representative each
+Rscript scripts/other/HGs_gff_from_regions.R \
+--regions analysis/pangenome_v2/carotovoricin/tail_region/hg_regions.tab \
+--genomes "g_302,g_364,g_337,g_439,g_403,g_399,g_408,g_175,g_138,g_368,g_345,\
+g_366,g_308,g_191,g_173,g_155,g_166,g_299,g_438,g_263,g_43,g_391"
 ```
 
 Extract DNA sequence for these 3' tail fiber regions.
