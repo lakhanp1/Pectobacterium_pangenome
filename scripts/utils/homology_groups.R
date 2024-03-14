@@ -120,12 +120,14 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
 #' @param start start. default: `1` i.e. start of chromosome
 #' @param end end position. default: `Inf` end of chromosome
 #' @param cols Optionally, columns from `pandb` object to return
+#' @param strand If -, homology groups are returned in reversed order
 #'
 #' @return A vector of homology group identifiers
 #' @export
 #'
 #' @examples
-region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf, cols = NULL) {
+region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf,
+                                   cols = NULL, strand = "+") {
   stopifnot(
     !is.na(chr)
   )
@@ -145,6 +147,10 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf, col
     dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end) %>%
     dplyr::arrange(start) %>% 
     tibble::as_tibble()
+  
+  if(strand == "-"){
+    df <- dplyr::arrange(df, desc(start))
+  }
   
   if(is.null(cols)){
     return(df$GID)
