@@ -230,8 +230,7 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
 ################################################################################
 
 
-#' From a set of homology groups, detect homology groups that are arranged in
-#' tandem in a genome
+#' Match the HGs in the provided order on the genomes in pangenome
 #'
 #' @param hgs A vector of homology group ids
 #' @param pandb org.db pangenome object
@@ -282,16 +281,22 @@ tandem_hg_match <- function(hgs, pandb, genomes = NULL) {
       tandem <- TRUE
       
       for (hg in hgs) {
+        
         if (currentHgPos == -1) {
           currentHgPos <- chrHgs[[hg]]
           next
         }
         
-        if(all(abs(currentHgPos - chrHgs[[hg]])) > 1){
+        posDiff <- abs(currentHgPos - chrHgs[[hg]])
+        
+        if(all(posDiff) != 1){
           tandem <- FALSE
           break
+        } else{
+          currentHgPos <- chrHgs[[hg]]
         }
       }
+      
       return(tandem)
     }
   )
