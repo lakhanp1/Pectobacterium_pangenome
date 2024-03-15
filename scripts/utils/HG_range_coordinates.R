@@ -41,16 +41,17 @@ parser <- optparse::add_option(
   help = "LOGICAL: TRUE: use the inner boundry of the region, othewise outer"
 )
 
+
+parser <- optparse::add_option(
+  parser, default = FALSE,
+  opt_str = c("--overlapping"), type = "logical", action = "store_true",
+  help = "LOGICAL: If TRUE, include the overlapping gene's HG"
+)
+
 parser <- optparse::add_option(
   parser, default = FALSE,
   opt_str = c("--get_hgs"), type = "logical", action = "store_true",
   help = "LOGICAL: TRUE: optionally include homology groups signatures for all extracted regions"
-)
-
-parser <- optparse::add_option(
-  parser,
-  opt_str = c("-n", "--name"), type = "character", action = "store",
-  help = "name for the region"
 )
 
 parser <- optparse::add_option(
@@ -127,6 +128,7 @@ hgGrl <- GenomicRanges::makeGRangesListFromDataFrame(
 hgRange <- unlist(range(hgGrl, ignore.strand = TRUE))
 hgRegionGr <- hgRange
 
+# use the inner region boundary instead of outer region boundary
 if(opts$inner_region){
   hgRegionGr <- GenomicRanges::psetdiff(
     x = hgRange, y = hgGrl, ignore.strand = TRUE
@@ -167,8 +169,8 @@ if(opts$get_hgs){
     dplyr::mutate(
       hgs = list(
         region_homology_groups(
-          pandb = panOrgDb, genome = genomeId, chr = chr_name,
-          start = start, end = end, strand = strand
+          pandb = panOrgDb, genome = genomeId, chr = chr_name, start = start,
+          end = end, strand = strand, overlapping = opts$overlapping
         )
       )
     )

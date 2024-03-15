@@ -119,15 +119,20 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
 #' @param chr chromosome name
 #' @param start start. default: `1` i.e. start of chromosome
 #' @param end end position. default: `Inf` end of chromosome
-#' @param cols Optionally, columns from `pandb` object to return
+#' @param cols Optionally, vector of columns from `pandb` object to return.
+#' Default: `NULL` which returns columns `"GID", "chr_name", "start", "end", "strand"`
 #' @param strand If -, homology groups are returned in reversed order
+#' @param overlapping Logical: If `TRUE`, include the overlapping genes too.
+#' Default: FALSE 
 #'
 #' @return A vector of homology group identifiers
 #' @export
 #'
 #' @examples
-region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf,
-                                   cols = NULL, strand = "+") {
+region_homology_groups <- function(
+    pandb, genome, chr, start = 1, end = Inf, strand = "+",
+    cols = NULL, overlapping = FALSE
+) {
   stopifnot(
     !is.na(chr)
   )
@@ -137,15 +142,26 @@ region_homology_groups <- function(pandb, genome, chr, start = 1, end = Inf,
   
   df <- suppressMessages(AnnotationDbi::select(
     x = pandb, keys = genome, keytype = "genomeId",
-    columns = union(c("GID", "chr_name", "start", "end"), cols)
+    columns = union(c("GID", "chr_name", "start", "end", "strand"), cols)
   )) %>%
     dplyr::mutate(
       dplyr::across(
         .cols = c(start, end), .fns = as.integer
       )
-    ) %>%
-    dplyr::filter(chr_name == !!chr, start >= !!start, end <= !!end) %>%
-    dplyr::arrange(start) %>% 
+    )
+  
+  # filter for genomic coordinates
+  if (overlapping) {
+    df <- dplyr::filter(
+      df, chr_name == !!chr, end >= .env$start, start <= .env$end
+    )
+  } else{
+    df <- dplyr::filter(
+      df, chr_name == !!chr, start >= .env$start, end <= .env$end
+    )
+  }
+  
+  df <- dplyr::arrange(df, start) %>% 
     tibble::as_tibble()
   
   if(strand == "-"){
