@@ -73,6 +73,10 @@ if (any(is.null(opts$hgs), is.null(opts$dir))) {
   stop(optparse::print_help(parser), call. = TRUE)
 }
 
+# opts$hgs <- "hg_22427604,hg_22427603"
+# opts$dir <- "analysis/pangenome_v2/carotovoricin/ctv_tail"
+# opts$inner_region <- TRUE
+# opts$get_hgs <- TRUE
 ################################################################################
 
 confs <- prefix_config_paths(
@@ -163,6 +167,7 @@ hgRegions <- as.data.frame(hgRegionGr) %>%
 outCols <- c("regionId", "genomeId", "sampleId", "region", "strand",
              "chr_name", "start", "end")
 
+
 # optionally, extract HGs and save the column
 if(opts$get_hgs){
   hgRegions <- dplyr::rowwise(hgRegions) %>%
@@ -173,15 +178,23 @@ if(opts$get_hgs){
           end = end, strand = strand, overlapping = opts$overlapping
         )
       )
-    )
-  
-  hgRegions %<>% 
+    ) %>% 
     dplyr::mutate(
       nHgs = length(hgs),
       hgs = paste(hgs, collapse = ";"),
     )
   
-  outCols <- c(outCols, "hgs")
+  hgRegions %<>% 
+    dplyr::ungroup() %>% 
+    dplyr::add_count(hgs, name = "grp_n") %>% 
+    dplyr::arrange(desc(grp_n)) %>% 
+    dplyr::mutate(
+      hg_comb = paste("hg_comb_", dplyr::cur_group_id(), sep = ""),
+      .by = hgs
+    )
+    
+  
+  outCols <- c(outCols, "hgs", "hg_comb")
 }
 
 

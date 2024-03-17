@@ -331,6 +331,15 @@ analysis:
       hg_broad_functions: "prophage_HG_broad_functions.tab"
   ctv:
     dir: "pangenome_v2/carotovoricin"
+    files:
+      ctv_regions: "ctv_region/hg_regions.tab"
+      ctv_mash: "ctv_region/mash_dist.tab"
+      tail_regions: "ctv_tail/hg_regions.tab"
+      tail_mash: "ctv_tail/mash_dist.tab"
+      conserved_region: "ctv_conserved/hg_regions.tab"
+      conserved_mash: "ctv_conserved/mash_dist.tab"
+      tape_measure_regions: "tape_measure/hg_regions.tab"
+      tape_measure_mash: "tape_measure/mash_dist.tab"
   plasmids:
     cutoff_length: 0
     dir: "pangenome_v2/plasmids"
