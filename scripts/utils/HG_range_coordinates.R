@@ -56,14 +56,14 @@ parser <- optparse::add_option(
 
 parser <- optparse::add_option(
   parser, default = ".",
-  opt_str = c("-o", "--dir"), type = "character", action = "store",
+  opt_str = c("-d", "--dir"), type = "character", action = "store",
   help = "output dir"
 )
 
 
 parser <- optparse::add_option(
   parser, default = "hg_regions.tab",
-  opt_str = c("--out"), type = "character", action = "store",
+  opt_str = c("-o", "--out"), type = "character", action = "store",
   help = "Output file name"
 )
 

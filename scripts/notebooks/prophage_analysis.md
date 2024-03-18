@@ -653,7 +653,7 @@ CTV conserved loci:
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
---inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_conserved
+--dir analysis/pangenome_v2/carotovoricin/ctv_conserved
 ```
 
 CTV variable loci:
@@ -663,12 +663,30 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail --get_hgs
 ```
 
-### Extract DNA sequence for these regions
+CTV tape measure protein gene:
 
 ```bash
-dir_path="analysis/pangenome_v2/prophages/cluster_viz/ctv_hgt/ctv_conserved"
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
+--get_hgs --inner_region --overlapping \
+--dir analysis/pangenome_v2/carotovoricin/tape_measure
+```
 
-tail -n +2 ${dir_path}/hg_regions.tab |
+Run `scripts/analysis/ctv_hgt.qmd` script to perform HGT analysis.
+
+### DNA sequence comparison
+
+#### Extract DNA sequence for the regions
+
+```bash
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/haplotype_regions.tab"
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/haplotype_flanking_regions.tab"
+file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/conserved_example_regions.tab"
+# file_regions="analysis/pangenome_v2/carotovoricin/tape_measure"
+
+dir_path=$(dirname "${file_regions}")
+out_fasta="${file_regions%.*}".fasta
+
+tail -n +2 ${file_regions} |
   cut -f 1,3-5 |
   while read name sampleId pos strand; do
     rc=""
@@ -682,20 +700,21 @@ tail -n +2 ${dir_path}/hg_regions.tab |
 
     # printf "${seq}\n" > ${outFa}
     printf "${seq}\n"
-  done > ${dir_path}/hg_regions.fasta
-
-cd ${dir_path}
+  done > ${out_fasta}
 
 ```
 
-### Run MASH to calculate the distance
+#### Run MASH to calculate the distance
 
 ```bash
-cd ctv_tail
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
+cd analysis/pangenome_v2/carotovoricin/ctv_tail
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_dist.tab
 
-cd ctv_conserved
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > ctv_dist.tab
+cd analysis/pangenome_v2/carotovoricin/ctv_conserved
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_dist.tab
+
+cd analysis/pangenome_v2/carotovoricin/tape_measure
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_dist.tab
 
 grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/ctv_dist.tab
 grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/ctv_dist.tab
@@ -703,11 +722,40 @@ grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
 
 ```
 
-### Perform MSA using `MAFFT`
+#### Perform MSA using `MAFFT`
 
 ```bash
 mafft --globalpair --quiet --maxiterate 1000 --treeout tail_region.msa.fasta
 ```
+
+### Tail fiber haplotype examples
+
+Extract sequences for some example tail fiber loci haplotypes that are present
+in multiple *Pectobacterium* species.
+
+```bash
+# tail fiber locus
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
+--genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,\
+g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
+--dir analysis/pangenome_v2/carotovoricin/ctv_tail \
+--out "haplotype_flanking_regions.tab"
+
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
+--genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,\
+g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
+--inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail \
+--out "haplotype_regions.tab" 
+
+# conserved CTV locus
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
+--genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,\
+g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
+--dir analysis/pangenome_v2/carotovoricin/ctv_conserved \
+--out "conserved_msa_regions.tab"
+```
+
+[DNA sequence comparison of these regions](#dna-sequence-comparison)
 
 ### Use Mauve to detect the structural variation and consevation
 
