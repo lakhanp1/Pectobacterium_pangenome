@@ -269,8 +269,10 @@ tandem_hg_match <- function(hgs, pandb, genomes = NULL) {
       dplyr::across(.cols = c(start, end, genePos), .fns = as.integer),
     ) %>% 
     dplyr::arrange(start) %>% 
-    dplyr::add_count(genomeId, chr_id) %>% 
-    dplyr::filter(n >= length(hgs)) %>% 
+    dplyr::group_by(genomeId, chr_id) %>% 
+    dplyr::mutate(n = length(unique(GID))) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(n >= length(!!hgs)) %>% 
     tidyr::nest(data = c(GID, genePos), .by = genomeId)
   
   dl <- purrr::map2(
@@ -305,7 +307,7 @@ tandem_hg_match <- function(hgs, pandb, genomes = NULL) {
         
         posDiff <- abs(currentHgPos - chrHgs[[hg]])
         
-        if(all(posDiff) != 1){
+        if(all(posDiff != 1)){
           tandem <- FALSE
           break
         } else{
