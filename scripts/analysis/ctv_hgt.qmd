@@ -420,7 +420,7 @@ dplyr::filter(
 ```{r}
 
 egTfl <- dplyr::arrange(combMetadata, desc(n_species)) %>% 
-  dplyr::slice(1:6) %>% 
+  dplyr::slice(1:3) %>% 
   dplyr::pull(haplotype) %>% 
   stringr::str_split(pattern = ";") %>% 
   unlist()
