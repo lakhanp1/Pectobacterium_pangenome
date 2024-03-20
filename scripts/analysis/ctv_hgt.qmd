@@ -1,0 +1,483 @@
+---
+title: "CTV HGT using MASH distance for variable and constant locus"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+Pangenome analysis of the carotovoricin (CTV) region shows a constant and 
+variable loci. The tail fiber loci (TFL) is the most variable locus followed by
+the tail tape measure protein. Below, we explore this variable loci at the 
+pangenome scale.
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
+source("scripts/utils/heatmap_utils.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+outDir <- paste(confs$analysis$ctv$dir)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj
+
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+)
+
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
+  phylo = TRUE
+)
+
+rawTree <- ape::ladderize(rawTree, right = FALSE)
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
+distCophen <- tibble::as_tibble(x = cophenetic.phylo(rawTree), rownames = "r1_genomeId") %>% 
+  tidyr::pivot_longer(
+    cols = -r1_genomeId,
+    names_to = "r2_genomeId", values_to = "cophenetic"
+  )
+
+```
+
+## Import tail regions and MASH distance tables
+
+```{r}
+tailRegions <- suppressMessages(
+  readr::read_tsv(confs$analysis$ctv$files$tail_regions)
+) %>% 
+  dplyr::left_join(
+    y = dplyr::select(
+      sampleInfo, genomeId, SpeciesName, geo_loc_country, collection_year,
+      collection_year, nodepath.kmer_nj, host, isolation_source
+    ),
+    by = "genomeId"
+  )
+
+# make unique combinations for ctv regions
+tailCombs <- tidyr::expand_grid(
+  r1 = tailRegions$regionId, r2 = tailRegions$regionId
+) %>% 
+  dplyr::filter(r1 != r2) %>% 
+  dplyr::mutate(
+    pair = paste(pmin(r1, r2), pmax(r1, r2), sep = ",")
+  ) %>% 
+  dplyr::distinct(pair, .keep_all = TRUE) %>% 
+  dplyr::select(-pair) %>% 
+  dplyr::left_join(
+    y = dplyr::select(tailRegions, regionId, r1_tail = haplotype),
+    by = c("r1" = "regionId")
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(tailRegions, regionId, r2_tail = haplotype),
+    by = c("r2" = "regionId")
+  ) %>% 
+  dplyr::mutate(
+    tail_loci = dplyr::if_else(
+      r1_tail == r2_tail, "same", "different"
+    )
+  )
+
+tailDist <- suppressMessages(
+  readr::read_tsv(
+    file = confs$analysis$ctv$files$tail_mash,
+    col_names = c("r1", "r2", "dist_tail", "pval_tail", "hash_tail")
+  )
+)
+
+conservedDist <- suppressMessages(
+  readr::read_tsv(
+    file =  confs$analysis$ctv$files$conserved_mash,
+    col_names = c("r1", "r2", "dist_conserv", "pval_conserved", "hash_conserved")
+  )
+)
+
+ctvDist <- dplyr::left_join(
+  x = tailCombs, y = tailDist, by = c("r1", "r2")
+) %>% 
+  dplyr::left_join(
+    y = conservedDist, by = c("r1", "r2")
+  ) %>% 
+  tidyr::separate_wider_delim(
+    cols = c(r1, r2), delim = ".",
+    names = c("genomeId", "species"), names_sep = "_"
+  ) %>% 
+  dplyr::filter(dplyr::if_all(.cols = starts_with("dist_"), .fns = ~ !is.na(.x))) %>% 
+  dplyr::select(-starts_with("hash_"))
+
+```
+
+## Are there any tail loci shared between species?
+
+```{r}
+# generate upset plot
+cm <- ComplexHeatmap::make_comb_mat(
+  split(tailRegions$haplotype, f = tailRegions$SpeciesName)
+)
+
+hgCombTable <- table(tailRegions$haplotype)
+combMetadata <- purrr::imap_dfr(
+  .x = ComplexHeatmap::comb_degree(cm),
+  .f = function(d, n){
+    tibble::tibble(
+      comb = n,
+      n_species = d,
+      n_genomes = sum(hgCombTable[extract_comb(m = cm, comb_name = n)]),
+      haplotype = paste(extract_comb(m = cm, comb_name = n), collapse = ";")
+    )
+  }
+)
+
+ht_upset <- ComplexHeatmap::UpSet(
+  m = cm,
+  column_title = "Carotovoricin tail fiber locus similarity across species",
+  row_names_gp = gpar(fontface = "italic"),
+  column_title_gp = gpar(fontface = "bold", fontsize = 16),
+  # comb_order = order(comb_degree(cm), comb_size(cm), decreasing = TRUE),
+  right_annotation = upset_right_annotation(cm, add_numbers = TRUE),
+  top_annotation = ComplexHeatmap::HeatmapAnnotation(
+    "Number of\ngenomes" = anno_barplot(
+      x = combMetadata$n_genomes, border = FALSE, 
+      gp = gpar(fill = "black"), height = unit(1.5, "cm")
+    ),
+    "Number of\nshared tail\nfiber locus" = anno_barplot(
+      x = comb_size(cm), 
+      border = FALSE, 
+      gp = gpar(fill = "black"), 
+      height = unit(1.5, "cm")
+    ),
+    annotation_name_side = "left", 
+    annotation_name_rot = 0,
+    annotation_name_gp = gpar(fontface = "bold"),
+    gap = unit(4, "mm")
+  )
+)
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+pdf(file = paste(outDir, "/tail_fiber_overlap.pdf", sep = ""), width = 8, height = 6)
+ht_upset
+dev.off()
+
+ht_upset
+```
+
+Show the raw combination data:
+
+```{r}
+#| echo: false
+#| tbl-cap: TFL HG combinations across species
+#| out-height: "300px"
+
+DT::datatable(
+  data = combMetadata,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
+## Show the MASH distance matrix for all TFLs
+
+```{r}
+
+combinedDist <- dplyr::left_join(
+  x = ctvDist, y = distCophen, by = c("r1_genomeId", "r2_genomeId")
+) %>% 
+  dplyr::mutate(
+    species_pair = dplyr::if_else(
+      r1_species == r2_species, "intra-species", "inter-species"
+    ),
+    tail_loci = forcats::fct_relevel(tail_loci, "same"),
+    species_pair = forcats::fct_relevel(species_pair, "intra-species") 
+  )
+
+```
+
+Compare the pairwise genomic MASH distance between conserved CTV loci vs TFL loci.
+
+```{r}
+scatter_tailConserved <- ggplot2::ggplot(
+  data = dplyr::arrange(combinedDist, desc(tail_loci), species_pair)
+) +
+  ggplot2::geom_point(
+    mapping = aes(
+      x = dist_conserv, y = dist_tail, color = tail_loci, shape = species_pair
+    ),
+    alpha = 1, size = 2
+  ) +
+  scale_x_continuous(expand = expansion(0.01)) +
+  scale_y_continuous(expand = expansion(0.01)) +
+  # geom_abline(slope = 1, color = "red", linetype = "dashed", linewidth = 1) +
+  ggplot2::labs(
+    x = "dist.MASH (conserved locus)",
+    y = "dist.MASH (tail locus)"
+  ) +
+  ggplot2::scale_shape_manual(
+    values = c("intra-species" = 1, "inter-species" = 17),
+    name = "Species pairs"
+  ) +
+  ggplot2::scale_color_manual(
+    values =  c("same" = '#E69F00', "different" = 'black'),
+    name = "Tail locus pair"
+  ) +
+  ggplot2::theme_bw(base_size = 18) +
+  ggplot2::theme(
+    legend.position = c(0.01, 0.99),
+    legend.justification = c(0, 1),
+    # plot.margin = unit(c(0, 0, 0, 0), units = "cm"),
+    panel.grid = element_blank()
+  )
+
+# sideTheme <- theme_void() +
+#   theme(
+#     legend.position = "none",
+#     # plot.margin = unit(c(0, 0, 0, 0), units = "cm"),
+#     panel.background = element_rect(color = "black", linewidth = 1)
+#   )
+# 
+# xplot <-  ggplot2::ggplot(data = combinedDist) +
+#   ggplot2::geom_density(
+#     mapping = aes(x = dist_conserv, linetype = species_pair), linewidth = 1
+#   ) +
+#   scale_x_continuous(expand = expansion(0.01)) +
+#   scale_linetype_manual(
+#     values = c("intra-species" = 1, "inter-species" = 2)
+#   ) +
+#   sideTheme
+# 
+# yplot <- ggplot2::ggplot(data = combinedDist) +
+#   ggplot2::geom_density(
+#     mapping = aes(y = dist_tail, linetype = species_pair), linewidth = 1
+#   ) +
+#   scale_y_continuous(expand = expansion(0.01)) +
+#   scale_linetype_manual(
+#     values = c("intra-species" = 2, "inter-species" = 1)
+#   ) +
+#   sideTheme
+# 
+# ggpubr::ggarrange(
+#   xplot, NULL, scatter_tailConserved, yplot,
+#   ncol = 2, nrow = 2, align = "hv",
+#   widths = c(5, 1), heights = c(1, 5)
+# )
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggsave(
+  filename = paste(outDir, "/tail_vs_conserved_scatter.pdf", sep = ""),
+  plot = scatter_tailConserved, width = 8, height = 8
+)
+
+scatter_tailConserved
+
+```
+
+Compare cophenetic distances of core SNP tree with tail fiber loci distances.
+
+```{r}
+scatter_ctvPhylo <- ggplot2::ggplot(data = dplyr::arrange(combinedDist, desc(tail_loci), species_pair)) +
+  ggplot2::geom_point(
+    mapping = aes(
+      x = cophenetic, y = dist_tail, color = tail_loci, shape = species_pair
+    ),
+    alpha = 1, size = 2
+  ) +
+  ggplot2::labs(
+    x = "dist.cophenetic (core phylo)",
+    y = "dist.MASH (tail locus)"
+  ) +
+  ggplot2::scale_shape_manual(
+    values = c("intra-species" = 1, "inter-species" = 17),
+    name = "Species pairs"
+  ) +
+  ggplot2::scale_color_manual(
+    values =  c("same" = '#E69F00', "different" = 'black'),
+    name = "Tail locus pair"
+  ) +
+  ggplot2::theme_bw(base_size = 18) +
+  ggplot2::theme(
+    legend.position = c(0.01, 0.99),
+    legend.justification = c(0, 1),
+    panel.grid = element_blank()
+  )
+
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggsave(
+  filename = paste(outDir, "/tail_vs_phy_scatter.pdf", sep = ""),
+  plot = scatter_ctvPhylo, width = 8, height = 8
+)
+
+scatter_ctvPhylo
+
+```
+
+Inter-species TFLs with smaller MASH distance:
+
+```{r}
+#| tbl-cap: Inter-species TFLs with smaller MASH distance
+#| out-height: "200px"
+
+dplyr::filter(
+  combinedDist, dist_tail < 0.1, cophenetic > 0.4,
+  species_pair == "inter-species"
+) %>%
+  dplyr::count(r1_tail, r2_tail) %>% 
+  dplyr::arrange(desc(n)) %>% 
+  DT::datatable(
+    rownames = FALSE,
+    filter = "top",
+    class = 'compact hover',
+    extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+    options = list(
+      autoWidth = FALSE,
+      dom = 'Qlfrtip',
+      scrollX = TRUE,
+      fixedColumns = list(leftColumns = 2),
+      keys = TRUE,
+      scroller = TRUE,
+      scrollY = 600
+    ),
+    selection = 'none'
+  )
+```
+
+## Use the TFL signature present in diverse species to select MSA candidates.
+
+```{r}
+
+egTfl <- dplyr::arrange(combMetadata, desc(n_species)) %>% 
+  dplyr::slice(1:6) %>% 
+  dplyr::pull(haplotype) %>% 
+  stringr::str_split(pattern = ";") %>% 
+  unlist()
+
+msaGenomes <- dplyr::filter(tailRegions, haplotype %in% !!egTfl) %>%
+  dplyr::group_by(haplotype, SpeciesName) %>% 
+  dplyr::slice(1L) %>% 
+  dplyr::select(regionId, genomeId, haplotype, SpeciesName, everything())
+
+
+# # type strain genomes
+# msaGenomes <- union(
+#   msaGenomes,
+#   c("g_158", "g_446", "g_66", "g_222", "g_296", "g_442", "g_8",
+#     "g_38", "g_273", "g_259", "g_305", "g_378", "g_428", "g_248",
+#     "g_449", "g_54", "g_116", "g_423", "g_375", "g_381")
+# )
+
+paste(msaGenomes$genomeId, collapse = ",")
+
+```
+
+```{r}
+#| tbl-cap: representatives used to align and compare tree
+#| out-height: "200px"
+
+DT::datatable(
+  data = msaGenomes,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
+
+```{r}
+egDistDf <- dplyr::filter(
+  combinedDist, 
+  dplyr::if_any(ends_with("_genomeId"), ~ . %in% msaGenomes)
+) %>% 
+  dplyr::select(ends_with("_genomeId"), dist_tail)
+
+tidyr::pivot_wider(
+  egDistDf, id_cols = r1_genomeId, names_from = r2_genomeId,
+  values_from = dist_tail
+)
+```
+
+
