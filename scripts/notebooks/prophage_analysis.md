@@ -660,14 +660,14 @@ CTV variable loci:
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
---inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail --get_hgs
+--inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail --haplotypes
 ```
 
 CTV tape measure protein gene:
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
---get_hgs --inner_region --overlapping \
+--haplotypes --inner_region --overlapping \
 --dir analysis/pangenome_v2/carotovoricin/tape_measure
 ```
 

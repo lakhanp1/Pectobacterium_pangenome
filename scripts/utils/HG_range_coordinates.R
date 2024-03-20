@@ -50,8 +50,9 @@ parser <- optparse::add_option(
 
 parser <- optparse::add_option(
   parser, default = FALSE,
-  opt_str = c("--get_hgs"), type = "logical", action = "store_true",
-  help = "LOGICAL: TRUE: optionally include homology groups signatures for all extracted regions"
+  opt_str = c("--haplotypes"), type = "logical", action = "store_true",
+  help = "LOGICAL: TRUE: optionally create haplotypes based on the homology
+  groups signatures for all extracted regions"
 )
 
 parser <- optparse::add_option(
@@ -76,7 +77,7 @@ if (any(is.null(opts$hgs), is.null(opts$dir))) {
 # opts$hgs <- "hg_22427604,hg_22427603"
 # opts$dir <- "analysis/pangenome_v2/carotovoricin/ctv_tail"
 # opts$inner_region <- TRUE
-# opts$get_hgs <- TRUE
+# opts$haplotypes <- TRUE
 ################################################################################
 
 confs <- prefix_config_paths(
@@ -169,7 +170,7 @@ outCols <- c("regionId", "genomeId", "sampleId", "region", "strand",
 
 
 # optionally, extract HGs and save the column
-if(opts$get_hgs){
+if(opts$haplotypes){
   hgRegions <- dplyr::rowwise(hgRegions) %>%
     dplyr::mutate(
       hgs = list(
@@ -189,12 +190,12 @@ if(opts$get_hgs){
     dplyr::add_count(hgs, name = "grp_n") %>% 
     dplyr::arrange(desc(grp_n)) %>% 
     dplyr::mutate(
-      hg_comb = paste("hg_comb_", dplyr::cur_group_id(), sep = ""),
+      haplotype = paste("hg_comb_", dplyr::cur_group_id(), sep = ""),
       .by = hgs
     )
     
   
-  outCols <- c(outCols, "hgs", "hg_comb")
+  outCols <- c(outCols, "hgs", "haplotype")
 }
 
 
