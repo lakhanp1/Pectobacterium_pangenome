@@ -678,9 +678,9 @@ Run `scripts/analysis/ctv_hgt.qmd` script to perform HGT analysis.
 #### Extract DNA sequence for the regions
 
 ```bash
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/haplotype_regions.tab"
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/haplotype_flanking_regions.tab"
-file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/conserved_example_regions.tab"
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/selected_haplotypes.tab"
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/selected_haplotypes_flanking.tab"
+file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/selected_conserved.tab"
 # file_regions="analysis/pangenome_v2/carotovoricin/tape_measure"
 
 dir_path=$(dirname "${file_regions}")
@@ -728,6 +728,7 @@ grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
 mafft --globalpair --quiet --maxiterate 1000 --treeout tail_region.msa.fasta
 ```
 
+
 ### Tail fiber haplotype examples
 
 Extract sequences for some example tail fiber loci haplotypes that are present
@@ -736,26 +737,40 @@ in multiple *Pectobacterium* species.
 ```bash
 # tail fiber locus
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
---genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,\
-g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
+--genomes "g_435,g_58,g_19,g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,\
+g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
 --dir analysis/pangenome_v2/carotovoricin/ctv_tail \
---out "haplotype_flanking_regions.tab"
+--out "selected_haplotypes_flanking.tab"
 
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
---genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,\
-g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
+--genomes "g_435,g_58,g_19,g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,\
+g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
 --inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail \
---out "haplotype_regions.tab" 
+--out "selected_haplotypes.tab" 
 
 # conserved CTV locus
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
---genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,\
-g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
+--genomes "g_435,g_58,g_19,g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,\
+g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_278,g_324,g_103,g_2,g_147,g_252" \
 --dir analysis/pangenome_v2/carotovoricin/ctv_conserved \
---out "conserved_msa_regions.tab"
+--out "selected_conserved.tab"
 ```
 
 [DNA sequence comparison of these regions](#dna-sequence-comparison)
+
+
+Generate a maximum-likelihood phylogenetic tree for MSAs
+
+```bash
+cd cd analysis/pangenome_v2/carotovoricin/
+
+nohup nice iqtree2 -T 40 -s ctv_tail/selected_haplotypes.msa.fasta -B 1000 \
+--prefix ctv_tail/iqtree/selected_haplotypes.msa.fasta >> iqtree_tree.log 2>&1 &
+
+nohup nice iqtree2 -T 40 -s ctv_conserved/selected_conserved.msa.fasta -B 1000 \
+--prefix ctv_conserved/iqtree/selected_conserved.msa.fasta >> iqtree_tree.log 2>&1 &
+
+```
 
 ### Use Mauve to detect the structural variation and consevation
 
