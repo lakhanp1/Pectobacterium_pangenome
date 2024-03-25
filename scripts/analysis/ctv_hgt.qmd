@@ -72,7 +72,8 @@ rawTree <- ape::ladderize(rawTree, right = FALSE)
 
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
-)
+) %>% 
+  dplyr::mutate(order = n():1)
 
 distCophen <- tibble::as_tibble(x = cophenetic.phylo(rawTree), rownames = "r1_genomeId") %>% 
   tidyr::pivot_longer(
@@ -82,7 +83,9 @@ distCophen <- tibble::as_tibble(x = cophenetic.phylo(rawTree), rownames = "r1_ge
 
 ```
 
-## Import tail regions and MASH distance tables
+## Import tail regions and distance tables
+
+Build a pairwise tail loci comparison table
 
 ```{r}
 tailRegions <- suppressMessages(
@@ -120,26 +123,74 @@ tailCombs <- tidyr::expand_grid(
     )
   )
 
-tailDist <- suppressMessages(
+```
+
+Import MASH distance
+
+```{r}
+tailMash <- suppressMessages(
   readr::read_tsv(
     file = confs$analysis$ctv$files$tail_mash,
-    col_names = c("r1", "r2", "dist_tail", "pval_tail", "hash_tail")
+    col_names = c("r1", "r2", "mash_tail", "mash_pval_tail", "hash_tail")
   )
 )
 
-conservedDist <- suppressMessages(
+conservedMash <- suppressMessages(
   readr::read_tsv(
     file =  confs$analysis$ctv$files$conserved_mash,
-    col_names = c("r1", "r2", "dist_conserv", "pval_conserved", "hash_conserved")
+    col_names = c("r1", "r2", "mash_conserv", "mash_pval_conserved", "hash_conserved")
   )
 )
+```
 
+Import Jaccard distance from `dashing` tool
+
+```{r}
+
+import_dashing_matrix <- function(file){
+  dashingDist <- suppressMessages(readr::read_tsv(file = file)) %>% 
+    dplyr::rename(g1 = "##Names") %>% 
+    dplyr::rename_with(
+      .fn = ~ stringr::str_replace(
+        string = .x, pattern = ".*/(g_\\d+\\..*)\\.fasta", replacement = "\\1"
+      )
+    ) %>% 
+    dplyr::mutate(
+      g1 = stringr::str_replace(
+        string = g1, pattern = ".*/(g_\\d+\\..*)\\.fasta", replacement = "\\1"
+      )
+    ) %>% 
+    tidyr::pivot_longer(cols = -g1, names_to = "g2", values_to = "distance") %>% 
+    dplyr::filter(distance != "-") %>% 
+    dplyr::mutate(
+      distance = as.numeric(distance)
+    )
+  
+  return(
+    dplyr::bind_rows(
+      dplyr::rename(dashingDist, r1 = g1, r2 = g2),
+      dplyr::rename(dashingDist, r1 = g2, r2 = g1)
+    )
+  )
+}
+
+tailDash <- import_dashing_matrix(confs$analysis$ctv$files$tail_dashing) %>% 
+  dplyr::rename(dash_tail = distance)
+
+conservedDash <- import_dashing_matrix(confs$analysis$ctv$files$conserved_dashing) %>% 
+  dplyr::rename(dash_conserv = distance)
+
+```
+
+Combine the data with pairwise tail loci in the pangenome
+
+```{r}
 ctvDist <- dplyr::left_join(
-  x = tailCombs, y = tailDist, by = c("r1", "r2")
+  x = tailCombs, y = tailMash, by = c("r1", "r2")
 ) %>% 
-  dplyr::left_join(
-    y = conservedDist, by = c("r1", "r2")
-  ) %>% 
+  dplyr::left_join(y = conservedMash, by = c("r1", "r2")) %>% 
+  dplyr::left_join(y = tailDash, by = c("r1", "r2")) %>% 
+  dplyr::left_join(y = conservedDash, by = c("r1", "r2")) %>% 
   tidyr::separate_wider_delim(
     cols = c(r1, r2), delim = ".",
     names = c("genomeId", "species"), names_sep = "_"
@@ -175,6 +226,9 @@ ht_upset <- ComplexHeatmap::UpSet(
   column_title = "Carotovoricin tail fiber locus similarity across species",
   row_names_gp = gpar(fontface = "italic"),
   column_title_gp = gpar(fontface = "bold", fontsize = 16),
+  set_order = order(
+    dplyr::pull(speciesOrder, order, name = SpeciesName)[set_name(cm)]
+  ),
   # comb_order = order(comb_degree(cm), comb_size(cm), decreasing = TRUE),
   right_annotation = upset_right_annotation(cm, add_numbers = TRUE),
   top_annotation = ComplexHeatmap::HeatmapAnnotation(
@@ -249,102 +303,28 @@ combinedDist <- dplyr::left_join(
     ),
     tail_loci = forcats::fct_relevel(tail_loci, "same"),
     species_pair = forcats::fct_relevel(species_pair, "intra-species") 
+  ) %>% 
+  dplyr::filter(
+    dplyr::if_all(.cols = c(mash_tail, mash_conserv), .fns = ~! is.na(.x))
   )
 
-```
-
-Compare the pairwise genomic MASH distance between conserved CTV loci vs TFL loci.
-
-```{r}
-scatter_tailConserved <- ggplot2::ggplot(
-  data = dplyr::arrange(combinedDist, desc(tail_loci), species_pair)
-) +
-  ggplot2::geom_point(
-    mapping = aes(
-      x = dist_conserv, y = dist_tail, color = tail_loci, shape = species_pair
-    ),
-    alpha = 1, size = 2
-  ) +
-  scale_x_continuous(expand = expansion(0.01)) +
-  scale_y_continuous(expand = expansion(0.01)) +
-  # geom_abline(slope = 1, color = "red", linetype = "dashed", linewidth = 1) +
-  ggplot2::labs(
-    x = "dist.MASH (conserved locus)",
-    y = "dist.MASH (tail locus)"
-  ) +
-  ggplot2::scale_shape_manual(
-    values = c("intra-species" = 1, "inter-species" = 17),
-    name = "Species pairs"
-  ) +
-  ggplot2::scale_color_manual(
-    values =  c("same" = '#E69F00', "different" = 'black'),
-    name = "Tail locus pair"
-  ) +
-  ggplot2::theme_bw(base_size = 18) +
-  ggplot2::theme(
-    legend.position = c(0.01, 0.99),
-    legend.justification = c(0, 1),
-    # plot.margin = unit(c(0, 0, 0, 0), units = "cm"),
-    panel.grid = element_blank()
-  )
-
-# sideTheme <- theme_void() +
-#   theme(
-#     legend.position = "none",
-#     # plot.margin = unit(c(0, 0, 0, 0), units = "cm"),
-#     panel.background = element_rect(color = "black", linewidth = 1)
-#   )
-# 
-# xplot <-  ggplot2::ggplot(data = combinedDist) +
-#   ggplot2::geom_density(
-#     mapping = aes(x = dist_conserv, linetype = species_pair), linewidth = 1
-#   ) +
-#   scale_x_continuous(expand = expansion(0.01)) +
-#   scale_linetype_manual(
-#     values = c("intra-species" = 1, "inter-species" = 2)
-#   ) +
-#   sideTheme
-# 
-# yplot <- ggplot2::ggplot(data = combinedDist) +
-#   ggplot2::geom_density(
-#     mapping = aes(y = dist_tail, linetype = species_pair), linewidth = 1
-#   ) +
-#   scale_y_continuous(expand = expansion(0.01)) +
-#   scale_linetype_manual(
-#     values = c("intra-species" = 2, "inter-species" = 1)
-#   ) +
-#   sideTheme
-# 
-# ggpubr::ggarrange(
-#   xplot, NULL, scatter_tailConserved, yplot,
-#   ncol = 2, nrow = 2, align = "hv",
-#   widths = c(5, 1), heights = c(1, 5)
-# )
-```
-
-```{r}
-#| fig-height: 8
-#| fig-width: 10
-#| out-width: '100%'
-#| layout-valign: top
-#| echo: false
-
-ggsave(
-  filename = paste(outDir, "/tail_vs_conserved_scatter.pdf", sep = ""),
-  plot = scatter_tailConserved, width = 8, height = 8
+readr::write_tsv(
+  x = combinedDist,
+  file = paste(outDir, "/data/ctv_loci_distances.tab", sep = "")
 )
-
-scatter_tailConserved
-
 ```
 
 Compare cophenetic distances of core SNP tree with tail fiber loci distances.
 
 ```{r}
-scatter_ctvPhylo <- ggplot2::ggplot(data = dplyr::arrange(combinedDist, desc(tail_loci), species_pair)) +
+scatter_ctvPhylo <- ggplot2::ggplot(
+  data = dplyr::arrange(combinedDist, desc(tail_loci), species_pair)
+) +
   ggplot2::geom_point(
     mapping = aes(
-      x = cophenetic, y = dist_tail, color = tail_loci, shape = species_pair
+      x = cophenetic, y = mash_tail,
+      # x = cophenetic, y = dash_conserv,
+      color = tail_loci, shape = species_pair
     ),
     alpha = 1, size = 2
   ) +
@@ -385,6 +365,94 @@ scatter_ctvPhylo
 
 ```
 
+Compare the pairwise genomic MASH distance between conserved CTV loci vs TFL loci.
+
+```{r}
+scatter_tailConserved <- ggplot2::ggplot(
+  data = dplyr::arrange(combinedDist, desc(tail_loci), species_pair)
+) +
+  ggplot2::geom_point(
+    mapping = aes(
+      x = mash_conserv, y = mash_tail,
+      # x = dash_conserv, y = dash_tail,
+      color = tail_loci, shape = species_pair
+    ),
+    alpha = 1, size = 2
+  ) +
+  scale_x_continuous(expand = expansion(0.01)) +
+  scale_y_continuous(expand = expansion(0.01)) +
+  # geom_abline(slope = 1, color = "red", linetype = "dashed", linewidth = 1) +
+  ggplot2::labs(
+    x = "dist.MASH (conserved locus)",
+    y = "dist.MASH (tail locus)"
+  ) +
+  ggplot2::scale_shape_manual(
+    values = c("intra-species" = 1, "inter-species" = 17),
+    name = "Species pairs"
+  ) +
+  ggplot2::scale_color_manual(
+    values =  c("same" = '#E69F00', "different" = 'black'),
+    name = "Tail locus pair"
+  ) +
+  ggplot2::theme_bw(base_size = 18) +
+  ggplot2::theme(
+    legend.position = c(0.01, 0.99),
+    legend.justification = c(0, 1),
+    # plot.margin = unit(c(0, 0, 0, 0), units = "cm"),
+    panel.grid = element_blank()
+  )
+
+# sideTheme <- theme_void() +
+#   theme(
+#     legend.position = "none",
+#     # plot.margin = unit(c(0, 0, 0, 0), units = "cm"),
+#     panel.background = element_rect(color = "black", linewidth = 1)
+#   )
+# 
+# xplot <-  ggplot2::ggplot(data = combinedDist) +
+#   ggplot2::geom_density(
+#     mapping = aes(x = mash_conserv, linetype = species_pair), linewidth = 1
+#   ) +
+#   scale_x_continuous(expand = expansion(0.01)) +
+#   scale_linetype_manual(
+#     values = c("intra-species" = 1, "inter-species" = 2)
+#   ) +
+#   sideTheme
+# 
+# yplot <- ggplot2::ggplot(data = combinedDist) +
+#   ggplot2::geom_density(
+#     mapping = aes(y = mash_tail, linetype = species_pair), linewidth = 1
+#   ) +
+#   scale_y_continuous(expand = expansion(0.01)) +
+#   scale_linetype_manual(
+#     values = c("intra-species" = 2, "inter-species" = 1)
+#   ) +
+#   sideTheme
+# 
+# ggpubr::ggarrange(
+#   xplot, NULL, scatter_tailConserved, yplot,
+#   ncol = 2, nrow = 2, align = "hv",
+#   widths = c(5, 1), heights = c(1, 5)
+# )
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggsave(
+  filename = paste(outDir, "/tail_vs_conserved_scatter.pdf", sep = ""),
+  plot = scatter_tailConserved, width = 8, height = 8
+)
+
+scatter_tailConserved
+
+```
+
+
 Inter-species TFLs with smaller MASH distance:
 
 ```{r}
@@ -392,7 +460,7 @@ Inter-species TFLs with smaller MASH distance:
 #| out-height: "200px"
 
 dplyr::filter(
-  combinedDist, dist_tail < 0.1, cophenetic > 0.4,
+  combinedDist, mash_tail < 0.1, cophenetic > 0.14,
   species_pair == "inter-species"
 ) %>%
   dplyr::count(r1_tail, r2_tail) %>% 
@@ -472,11 +540,11 @@ egDistDf <- dplyr::filter(
   combinedDist, 
   dplyr::if_any(ends_with("_genomeId"), ~ . %in% msaGenomes)
 ) %>% 
-  dplyr::select(ends_with("_genomeId"), dist_tail)
+  dplyr::select(ends_with("_genomeId"), mash_tail)
 
 tidyr::pivot_wider(
   egDistDf, id_cols = r1_genomeId, names_from = r2_genomeId,
-  values_from = dist_tail
+  values_from = mash_tail
 )
 ```
 

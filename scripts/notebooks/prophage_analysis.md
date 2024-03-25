@@ -678,9 +678,11 @@ Run `scripts/analysis/ctv_hgt.qmd` script to perform HGT analysis.
 #### Extract DNA sequence for the regions
 
 ```bash
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/hg_regions.tab"
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab"
 # file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/selected_haplotypes.tab"
 # file_regions="analysis/pangenome_v2/carotovoricin/ctv_tail/selected_haplotypes_flanking.tab"
-file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/selected_conserved.tab"
+# file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/selected_conserved.tab"
 # file_regions="analysis/pangenome_v2/carotovoricin/upstream_core/selected_upstream.tab"
 
 dir_path=$(dirname "${file_regions}")
@@ -693,9 +695,9 @@ tail -n +2 ${file_regions} |
     if [ ${strand} == "-" ]; then
         rc="--reverse-complement"
     fi
-    outFa="${dir_path}/${name}.fasta"
+    outFa="${dir_path}/fasta/${name}.fasta"
 
-    seq=">${name} ${pos}(${strand})\n"
+    seq=">${name}\n"
     seq+=`samtools faidx ${rc} data/prokka_annotation/${sampleId}/${sampleId}.fna $pos | tail -n +2`
 
     # printf "${seq}\n" > ${outFa}
@@ -704,9 +706,7 @@ tail -n +2 ${file_regions} |
 
 ```
 
-
-
-#### Run MASH to calculate the distance
+#### Calculate the distance using `mash`
 
 ```bash
 cd analysis/pangenome_v2/carotovoricin/ctv_tail
@@ -721,6 +721,45 @@ mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_
 grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/ctv_dist.tab
 grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/ctv_dist.tab
 grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
+
+```
+
+#### Calculate Jaccard distance matrix using `sourmash`
+
+MASH distance is low for haplotype pairs where one is subset of the other, eg,
+A-B-C-D and A-B. Therefore, another tool was tried to calculate the Jaccard
+index between sequences.
+
+```bash
+# file_fa="ctv_conserved/hg_regions.fasta"
+# file_fa="ctv_tail/hg_regions.fasta"
+
+file_sig="${file_fa%.*}".sig.zip
+file_dist="${file_fa%.*}".sourmash.csv
+
+# # sketch: scaled=5
+# sourmash sketch dna -f -p k=7,k=9,k=11,scaled=5,abund,seed=124 --singleton \
+# -o ${file_sig} ${file_fa}
+
+# sketch: num=2000
+sourmash sketch dna -f -p k=7,k=9,k=11,k=13,num=2000,abund,seed=124 --singleton \
+-o ${file_sig} ${file_fa}
+
+sourmash compare --ignore-abundance --distance-matrix -p 12 -k 13 --dna \
+--csv ${file_dist} ${file_sig} 
+
+```
+
+#### Calculate Jaccard distance using `dashing`
+
+```bash
+# dir_fa="ctv_conserved/fasta"
+# dir_fa="ctv_tail/fasta"
+
+file_dist="${dir_fa%/*}/"distance.dashing.txt
+
+dashing cmp -k 11 --seed 124 --nthreads 12 --full-mash-dist  \
+-O ${file_dist} ${dir_fa}/*.fasta
 
 ```
 
@@ -763,17 +802,17 @@ g_221,g_53,g_395,g_108,g_444,g_160" \
 #### Perform MSA using `MAFFT`
 
 ```bash
-mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
+nohup mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
 --maxiterate 0 --globalpair ctv_tail/selected_haplotypes.fasta \
-> ctv_tail/selected_haplotypes.msa.fasta
+> ctv_tail/selected_haplotypes.msa.fasta 2>nohup.out &
 
-mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
+nohup mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
 --maxiterate 0 --globalpair ctv_conserved/selected_conserved.fasta \
-> ctv_conserved/selected_conserved.msa.fasta
+> ctv_conserved/selected_conserved.msa.fasta 2>nohup.out &
 
-mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
+nohup mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
 --maxiterate 0 --globalpair upstream_core/selected_upstream.fasta \
-> upstream_core/selected_upstream.msa.fasta
+> upstream_core/selected_upstream.msa.fasta 2>nohup.out &
 ```
 
 Generate a maximum-likelihood phylogenetic tree for MSAs
@@ -791,6 +830,8 @@ nohup nice iqtree2 -T 40 -s upstream_core/selected_upstream.msa.fasta -B 1000 \
 --prefix upstream_core/iqtree/selected_upstream.msa.fasta >> iqtree_tree.log 2>&1 &
 
 ```
+
+
 
 ### Use Mauve to detect the structural variation and consevation
 
