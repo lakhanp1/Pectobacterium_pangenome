@@ -16,14 +16,15 @@ source("scripts/utils/homology_groups.R")
 source("scripts/utils/genome_scale_utils.R")
 source("scripts/utils/heatmap_utils.R")
 source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/clustermap_utils.R")
 ################################################################################
 set.seed(124)
 
-grpToView <- "phage_grp_1"
-subSample <- TRUE
+grpToView <- "ctv_typeStrains"
+subSample <- FALSE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
-flankingRegion <- 5000
+flankingRegion <- 6000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
@@ -34,7 +35,17 @@ appendPhages <- c()
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list()
+customRegions <- list(
+  g_385_reg = list(
+    chr = "NZ_JQHK01000003.1", start = 202783, end = 208572, genomeId = "g_385"
+  ),
+  g_386_reg = list(
+    chr = "NZ_JQHM01000001.1", start = 551867, end = 556583, genomeId = "g_386"
+  ),
+  g_451_reg = list(
+    chr = "Contig_2_668.636", start = 190088, end = 192512, genomeId = "g_451"
+  )
+)
 
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
@@ -161,25 +172,18 @@ hgFuncColors <- purrr::map2(
 # prepare clusterjs JSON for a cluster/grp
 grp <- clusterList[[grpToView]]
 
-# # optionally, a custom region list can be provided to generate the plot
-# grp <- list(
-#   phage_grp = grpToView,
-#   members = c( ),
-#   fragmented = character(),
-#   group_size = integer()
-# )
+# optionally, a custom region list can be provided to generate the plot
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
+    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
+    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+  )
+)
 
-# grp <- list(
-#   phage_grp = grpToView,
-#   members = dplyr::filter(
-#     regionClusters,
-#     SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
-#     !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
-#   ) %>%
-#     dplyr::pull(prophage_id)
-# )
-
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", grp$phage_grp, sep = "")
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz/", grp$phage_grp, sep = "")
 outPrefix <- paste(outDir, "/", grp$phage_grp, sep = "")
 
 if (!dir.exists(outDir)) {
@@ -267,95 +271,85 @@ plot(rev(hgPavDnd), horiz = TRUE)
 
 
 grpMemberData <- dplyr::left_join(
-  x = tibble::tibble(prophage_id = c(grp$members, appendPhages)),
-  y = dplyr::select(
-    regionClusters, prophage_id, phage_grp, genomeId, SpeciesName,
-    isolation_source, geo_loc_country
-  ),
-  by = "prophage_id"
+  x = tibble::tibble(region_id = c(grp$members, appendPhages)),
+  y = dplyr::select(regionClusters, region_id = prophage_id, phage_grp, genomeId),
+  by = "region_id"
 ) %>%
   dplyr::left_join(
     y = tibble::tibble(
-      genomeId = labels(hostDnd),
-      host_order = 1:dendextend::nleaves(hostDnd)
+      region_id = labels(grpMashDnd), mash_order = 1:dendextend::nleaves(grpMashDnd)
     ),
-    by = "genomeId"
+    by = "region_id"
   ) %>%
   dplyr::left_join(
     y = tibble::tibble(
-      prophage_id = labels(grpMashDnd), mash_order = 1:dendextend::nleaves(grpMashDnd)
+      region_id = labels(hgPavDnd), pav_order = 1:dendextend::nleaves(hgPavDnd)
     ),
-    by = "prophage_id"
-  ) %>%
-  dplyr::left_join(
-    y = tibble::tibble(
-      prophage_id = labels(hgPavDnd), pav_order = 1:dendextend::nleaves(hgPavDnd)
-    ),
-    by = "prophage_id"
+    by = "region_id"
   )
 
 
 if (subSample) {
   pavDndCut <- dendextend::cutree(tree = hgPavDnd, h = cutHeight) %>%
-    tibble::enframe(name = "prophage_id", value = "cut") %>%
+    tibble::enframe(name = "region_id", value = "cut") %>%
     dplyr::add_count(cut, name = "count")
-
+  
   grpSubset <- dplyr::slice_sample(pavDndCut, n = 1, by = cut)
-
+  
   if (length(appendPhages) > 0) {
     grpSubset <- dplyr::bind_rows(
       grpSubset,
-      tibble::tibble(prophage_id = appendPhages)
+      tibble::tibble(region_id = appendPhages)
     ) %>%
-      dplyr::distinct(prophage_id, .keep_all = TRUE)
+      dplyr::distinct(region_id, .keep_all = TRUE)
   }
-
+  
   grpMemberData <- dplyr::left_join(
-    x = grpMemberData, y = pavDndCut, by = "prophage_id"
+    x = grpMemberData, y = pavDndCut, by = "region_id"
   ) %>%
     dplyr::left_join(
-      y = tibble::tibble(prophage_id = grpSubset$prophage_id, shown = 1),
-      by = "prophage_id"
+      y = tibble::tibble(region_id = grpSubset$region_id, shown = 1),
+      by = "region_id"
     ) %>%
     tidyr::replace_na(replace = list(shown = 0))
-
-
+  
+  
   subHgPavDnd <- dendextend::prune(
     dend = hgPavDnd,
-    leaves = setdiff(labels(hgPavDnd), grpSubset$prophage_id)
+    leaves = setdiff(labels(hgPavDnd), grpSubset$region_id)
   ) %>%
     dendextend::ladderize()
-
+  
   subMashDnd <- dendextend::prune(
     dend = grpMashDnd,
-    leaves = setdiff(labels(grpMashDnd), grpSubset$prophage_id)
+    leaves = setdiff(labels(grpMashDnd), grpSubset$region_id)
   ) %>%
     dendextend::ladderize()
-
+  
   grpSubset <- dplyr::left_join(
     x = grpSubset,
     y = tibble::tibble(
-      prophage_id = labels(subHgPavDnd),
+      region_id = labels(subHgPavDnd),
       order = 1:nleaves(subHgPavDnd)
     ),
-    by = "prophage_id"
+    by = "region_id"
   ) %>%
     dplyr::arrange(order)
-
+  
   hgPavDnd <- dendextend::set(
     hgPavDnd,
     what = "labels_col",
-    value = as.numeric(labels(hgPavDnd) %in% grpSubset$prophage_id) + 1
+    value = as.numeric(labels(hgPavDnd) %in% grpSubset$region_id) + 1
   )
-
+  
   grpMashDnd <- dendextend::set(
     grpMashDnd,
     what = "labels_col",
-    value = as.numeric(labels(grpMashDnd) %in% grpSubset$prophage_id) + 1
+    value = as.numeric(labels(grpMashDnd) %in% grpSubset$region_id) + 1
   )
-
+  
   plot(subHgPavDnd, horiz = TRUE)
-
+  
   # sort(subHgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev() == order.dendrogram(subHgPavDnd)
   # sort(subHgPavDnd, type = "nodes") %>% labels() %>% rev() == labels(subHgPavDnd)
   # labels(subHgPavDnd)
@@ -363,13 +357,43 @@ if (subSample) {
   # sort(subHgPavDnd, type = "nodes") %>% labels() %>% rev()
   # order.dendrogram(subHgPavDnd)
   # sort(subHgPavDnd, type = "nodes") %>% order.dendrogram()
-
-  slots <- rev(grpSubset$prophage_id)
+  
+  slots <- rev(grpSubset$region_id)
+  grpMemberData <- dplyr::filter(grpMemberData, shown == 1)
 } else {
   slots <- labels(grpMashDnd)
-
+  
   grpMemberData <- dplyr::mutate(grpMemberData, shown = 1)
 }
+
+
+# 
+# add custom region genomeId and metadata
+if(!is.null(customRegions) & is.list(customRegions)){
+  grpMemberData <- dplyr::bind_rows(
+    x = grpMemberData,
+    y = purrr::map(
+      .x = customRegions,
+      .f = function(x){
+        tibble::tibble(genomeId = x$genomeId, phage_grp = "custom_region", shown = 1)
+      }
+    ) %>% 
+      purrr::list_rbind(names_to = "region_id")
+  )
+}
+
+# finally, add the host phylogeny order
+grpMemberData  %<>%  dplyr::left_join(
+  y = tibble::tibble(
+    genomeId = labels(hostDnd),
+    host_order = 1:dendextend::nleaves(hostDnd)
+  ),
+  by = "genomeId"
+) %>%
+  dplyr::left_join(
+    y = dplyr::select(sampleInfo, genomeId, SpeciesName, isolation_source, geo_loc_country),
+    by = "genomeId"
+  )
 
 
 readr::write_tsv(
@@ -377,284 +401,33 @@ readr::write_tsv(
   file = paste(outPrefix, ".shown_clusters.txt", sep = "")
 )
 
-# show only specific groups if subsampled
-grpMemberData <- dplyr::filter(grpMemberData, shown == 1)
-
 viewClusters <- dplyr::case_when(
   clusterOrder == "host" ~
-    grpMemberData$prophage_id[order(grpMemberData$host_order)],
+    grpMemberData$region_id[order(grpMemberData$host_order)],
   clusterOrder == "hg_pav" ~
-    grpMemberData$prophage_id[order(grpMemberData$pav_order)],
+    grpMemberData$region_id[order(grpMemberData$pav_order)],
   clusterOrder == "cluster_mash" ~
-    grpMemberData$prophage_id[order(grpMemberData$mash_order)],
-  TRUE ~ slots
+    grpMemberData$region_id[order(grpMemberData$mash_order)],
+  TRUE ~ grpMemberData$region_id
 )
 
-viewClusters <- append(viewClusters, names(customRegions))
 
-hgStrand <- NULL
-clusterJsonDf <- NULL
-linksJsonDf <- NULL
-geneToGroup <- NULL
-flankingHgs <- character(0)
-slotNum <- 0
-# reg <- viewClusters[1]
-
-for (reg in viewClusters) {
-  regObj <- regionList[[reg]]
-
-  if (addFlankingRegions) {
-    regObj$oldStart <- regObj$start
-    regObj$oldEnd <- regObj$end
-
-    if (!is.na(regObj$start)) {
-      regObj$start <- pmax(regObj$oldStart - flankingRegion, 1)
-    }
-
-    if (!is.na(regObj$end)) {
-      regObj$end <- regObj$end + flankingRegion
-    }
-  }
-
-  regHgs <- region_homology_groups(
-    pandb = panOrgDb, genome = regObj$genomeId,
-    chr = regObj$chr, start = regObj$start, end = regObj$end,
-    cols = c(
-      "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
-      "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
-    )
-  ) %>%
-    dplyr::rename(hg = GID)
-
-  # summarize COG and PFAM annotations
-  cog <- dplyr::select(regHgs, mRNA_key, COG_description) %>%
-    dplyr::distinct() %>%
-    dplyr::group_by(mRNA_key) %>%
-    dplyr::summarise(COG = paste(COG_description, collapse = ";"))
-
-  pfam <- dplyr::select(regHgs, mRNA_key, pfam_description) %>%
-    dplyr::filter(!is.na(pfam_description)) %>%
-    dplyr::distinct() %>%
-    dplyr::group_by(mRNA_key) %>%
-    dplyr::summarise(PFAM = paste(pfam_description, collapse = ";"))
-
-  regHgs <- dplyr::select(regHgs, -COG_description, -pfam_description) %>%
-    dplyr::distinct() %>%
-    dplyr::left_join(y = cog, by = "mRNA_key") %>%
-    dplyr::left_join(y = pfam, by = "mRNA_key") %>%
-    dplyr::left_join(y = phageHgTypes, by = c("hg" = "hgId")) %>%
-    tidyr::replace_na(replace = list(COG = "-", PFAM = "-")) %>%
-    dplyr::mutate(
-      strand = dplyr::if_else(strand == "-", -1, 1, 1),
-      dplyr::across(.cols = c(start, end, genePos), .fns = as.integer),
-      flanking = 0
-    ) %>%
-    dplyr::rename(
-      uid = mRNA_key, label = mRNA_id, chr = chr_id
-    ) %>%
-    dplyr::arrange(start)
-
-  # set function_category = flanking to the flanking genes added
-  if (addFlankingRegions) {
-    flankingGenes <- which(regHgs$start < regObj$oldStart | regHgs$end > regObj$oldEnd)
-
-    regHgs$function_category[flankingGenes] <- "flanking"
-    # regHgs$hg[flankingGenes] <- paste(
-    #   regHgs$hg[flankingGenes], "_flanking", sep = ""
-    # )
-
-    regHgs$flanking[flankingGenes] <- 1
-  }
-
-  # change the orientation of gene strand for better visualization
-  thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
-    as.list()
-
-  if (!is.null(hgStrand)) {
-    for (h in grpHgFreq$hgId) {
-      if (!is.null(thisRegHgStrand[[h]]) & !is.null(hgStrand[[h]])) {
-        if ((thisRegHgStrand[[h]] != hgStrand[[h]])) {
-          regHgs <- invert_coordinates(regHgs)
-
-          # update this region strands backup record after changing orientation
-          thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
-            as.list(thisRegHgStrand)
-        }
-        break
-      }
-    }
-  } else {
-    for (h in grpHgFreq$hgId) {
-      if (!is.null(thisRegHgStrand[[h]])) {
-        if (thisRegHgStrand[[h]] == -1) {
-          regHgs <- invert_coordinates(regHgs)
-
-          # update this region strands backup record after changing orientation
-          thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
-            as.list(thisRegHgStrand)
-        }
-
-        break
-      }
-    }
-  }
-
-  hgStrand <- thisRegHgStrand
-
-  # regHgs <- regHgs[1:5, ]
-
-  regGenes <- dplyr::select(
-    regHgs, uid, label, chr_name, chr, start, end, strand
-  )
-
-  # names should be a tibble type as it needs to be an {object} in JSON
-  # and not a [list of {objects}]
-  regGenes$names <- dplyr::select(
-    regHgs, COG, PFAM, function_category, hg, genePos, genomeId
-  )
-
-  ## save groups information for making groups JSON
-  geneToGroup <- dplyr::bind_rows(
-    geneToGroup,
-    dplyr::select(regHgs, hg, genes = uid, flanking)
-  )
-
-  # for now there is only one loci in each cluster
-  # in future, there can be multiple loci when a region is combination of
-  # multiple fragments
-  lociDf <- dplyr::mutate(
-    regGenes,
-    lociUid = chr, lociName = chr_name,
-    lociStart = min(start),
-    lociEnd = max(end)
-  ) %>%
-    tidyr::nest(
-      genes = c(uid, label, names, chr, start, end, strand)
-    ) %>%
-    dplyr::select(
-      uid = lociUid, name = lociName, start = lociStart, end = lociEnd,
-      -chr_name, genes
-    )
-
-  clusterJsonDf <- dplyr::bind_rows(
-    clusterJsonDf,
+regDf <- purrr::map(
+  .x = regionList[viewClusters],
+  .f = function(x){
     tibble::tibble(
-      uid = stringr::str_replace_all(reg, pattern = "\\.", replacement = "_"),
-      name = reg, slot = slotNum,
-      regionId = reg,
-      loci = list(lociDf)
+      chr = x$chr, start = x$start, end = x$end, genomeId = x$genomeId
     )
-  )
-
-  slotNum <- slotNum + 1
-}
-
-## make groups JSON
-groupsJsonDf <- dplyr::mutate(
-  geneToGroup,
-  uid = dplyr::if_else(flanking == 1, paste(hg, "_flanking", sep = ""), hg)
-) %>%
-  dplyr::add_count(hg, name = "groupFreq") %>%
-  dplyr::summarise(
-    genes = list(genes),
-    hidden = FALSE,
-    .by = c(uid, hg, flanking, groupFreq)
-  ) %>%
-  dplyr::arrange(desc(groupFreq)) %>%
-  dplyr::select(uid, label = hg, everything()) %>%
-  dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId")) %>%
-  dplyr::mutate(
-    function_category = dplyr::if_else(
-      flanking == 1, "flanking", function_category
-    )
-  )
-
-# color HGs by their frequency
-hgFreqColors <- tibble::tibble(
-  groupFreq = 1:max(groupsJsonDf$groupFreq),
-  freq_color_hex = viridis::viridis(
-    n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1
-  )
-) %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(freq_color = paste(as.vector(col2rgb(freq_color_hex)), collapse = ", ")) %>%
-  dplyr::ungroup() %>%
-  dplyr::mutate(freq_color = paste("rgb(", freq_color, ")", sep = "")) %>%
-  dplyr::select(-freq_color_hex)
-
-groupsJsonDf <- dplyr::left_join(
-  groupsJsonDf, hgFreqColors,
-  by = "groupFreq"
-) %>%
-  dplyr::left_join(hgFuncColors, by = "function_category") %>%
-  dplyr::rename(colour = function_color) %>%
-  dplyr::arrange(broad_function) %>%
-  dplyr::arrange(desc(groupFreq))
-
-## make links JSON
-linksJsonDf <- purrr::map2_dfr(
-  .x = groupsJsonDf$uid,
-  .y = groupsJsonDf$genes,
-  .f = function(h, g) {
-    if (length(g) > 1) {
-      linkCombs <- combn(x = g, m = 2) %>%
-        t() %>%
-        as.data.frame.matrix() %>%
-        dplyr::rename(
-          query = V1, target = V2
-        ) %>%
-        tidyr::unite(col = uid, query, target, sep = "_link_", remove = F) %>%
-        dplyr::mutate(
-          identity = 1,
-          similarity = 1,
-          hg = h
-        )
-
-      regLinks <- dplyr::select(
-        linkCombs, uid, identity, similarity
-      ) %>%
-        dplyr::mutate(
-          target = dplyr::select(linkCombs, uid = target),
-          query = dplyr::select(linkCombs, uid = query)
-        )
-
-      return(regLinks)
-    }
   }
+) %>% 
+  purrr::list_rbind(names_to = "region_id")
+
+# create JSON data structure for clustermap.js
+cmJson <- clustermap_data(
+  regions = regDf, flanking_region = flankingRegion, pandb = panOrgDb,
+  file = paste(outPrefix, ".json", sep = "")
 )
 
-mergedJsonList <- list(
-  clusters = clusterJsonDf,
-  links = linksJsonDf,
-  groups = groupsJsonDf
-)
-
-confJson <- jsonlite::read_json(
-  path = paste(confs$analysis$prophages$dir, "/cluster_viz/clustermap_config.json", sep = "")
-)
-
-# unbox the json for correct format
-unbox_list_json <- function(x) {
-  purrr::map(
-    .x = x,
-    .f = function(y) {
-      if (is.list(y)) {
-        y <- unbox_list_json(y)
-      } else {
-        return(jsonlite::unbox(y))
-      }
-    }
-  )
-}
-
-confJson <- unbox_list_json(confJson)
-
-jsonlite::write_json(
-  # x = list(config = confJson$config, data = mergedJsonList),
-  x = mergedJsonList,
-  # pretty = 2,
-  path = paste(outPrefix, ".json", sep = "")
-)
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
