@@ -1,23 +1,30 @@
-
 #' Make clustermap.js input data in JSON format
 #'
 #' @param regions A dataframe with columns: `c("chr", "start", "end", "genomeId", "region_id")`
 #' @param file Optional file name to write the clustermap data JSON string
 #' @param flanking_region INT: length of flanking region around the clusters.
-#' Defaule: 0
-#' @param pandb pan.org.db object 
+#' Default: 0
+#' @param pandb pan.org.db object
+#' @param group_colors Optional dataframe with colors for each homology group.
 #'
-#' @return A list object that can be written as JSON string using 
+#' @return A list object that can be written as JSON string using
 #' `jsonlite::write_json()`
 #' @export
 #'
 #' @examples NA
-clustermap_data <- function(regions, file, flanking_region = 0, pandb){
-  
+clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_colors = NULL) {
   stopifnot(
     all(c("chr", "start", "end", "genomeId", "region_id") %in% names(regions))
   )
-  regionsLs <- split(x = regions, f = regions$region_id, drop = TRUE) %>% 
+  
+  if(!is.null(group_colors)){
+    stopifnot(
+      is.data.frame(group_colors),
+      all(c("hg_id", "colour") %in% names(group_colors))
+    )  
+  }
+  
+  regionsLs <- split(x = regions, f = regions$region_id, drop = TRUE) %>%
     purrr::map(.f = as.list)
   
   hgStrand <- NULL
@@ -25,6 +32,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
   linksJsonDf <- NULL
   geneToGroup <- NULL
   slotNum <- 0
+  hgFrequency <- NULL
   
   for (reg in regions$region_id) {
     regObj <- regionsLs[[reg]]
@@ -68,7 +76,6 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
       dplyr::distinct() %>%
       dplyr::left_join(y = cog, by = "mRNA_key") %>%
       dplyr::left_join(y = pfam, by = "mRNA_key") %>%
-      dplyr::left_join(y = phageHgTypes, by = c("hg" = "hgId")) %>%
       tidyr::replace_na(replace = list(COG = "-", PFAM = "-")) %>%
       dplyr::mutate(
         strand = dplyr::if_else(strand == "-", -1, 1, 1),
@@ -80,14 +87,9 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
       ) %>%
       dplyr::arrange(start)
     
-    # set function_category = flanking to the flanking genes added
+    # set flanking = 1 for the flanking genes
     if (flanking_region > 0) {
       flankingGenes <- which(regHgs$start < regObj$oldStart | regHgs$end > regObj$oldEnd)
-      
-      regHgs$function_category[flankingGenes] <- "flanking"
-      # regHgs$hg[flankingGenes] <- paste(
-      #   regHgs$hg[flankingGenes], "_flanking", sep = ""
-      # )
       
       regHgs$flanking[flankingGenes] <- 1
     }
@@ -97,7 +99,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
       as.list()
     
     if (!is.null(hgStrand)) {
-      for (h in grpHgFreq$hgId) {
+      for (h in hgFrequency$hg) {
         if (!is.null(thisRegHgStrand[[h]]) & !is.null(hgStrand[[h]])) {
           if ((thisRegHgStrand[[h]] != hgStrand[[h]])) {
             regHgs <- invert_coordinates(regHgs)
@@ -110,7 +112,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
         }
       }
     } else {
-      for (h in grpHgFreq$hgId) {
+      for (h in hgFrequency$hg) {
         if (!is.null(thisRegHgStrand[[h]])) {
           if (thisRegHgStrand[[h]] == -1) {
             regHgs <- invert_coordinates(regHgs)
@@ -127,6 +129,14 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
     
     hgStrand <- thisRegHgStrand
     
+    # finally, store the HG frequency information in decreasing order to
+    hgFrequency <- dplyr::bind_rows(
+      hgFrequency,
+      dplyr::count(regHgs, hg)
+    ) %>% 
+      dplyr::count(hg, wt = n) %>% 
+      dplyr::arrange(desc(n))
+    
     # regHgs <- regHgs[1:5, ]
     
     regGenes <- dplyr::select(
@@ -136,13 +146,13 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
     # names should be a tibble type as it needs to be an {object} in JSON
     # and not a [list of {objects}]
     regGenes$names <- dplyr::select(
-      regHgs, COG, PFAM, function_category, hg, genePos, genomeId
+      regHgs, hg, COG, PFAM, genePos, genomeId
     )
     
     ## save groups information for making groups JSON
     geneToGroup <- dplyr::bind_rows(
       geneToGroup,
-      dplyr::select(regHgs, hg, genes = uid, flanking)
+      dplyr::select(regHgs, hg, genes = uid, genomeId, flanking)
     )
     
     # for now there is only one loci in each cluster
@@ -167,6 +177,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
       tibble::tibble(
         uid = stringr::str_replace_all(regObj$region_id, pattern = "\\.", replacement = "_"),
         name = regObj$region_id, slot = slotNum,
+        genomeId = regObj$genomeId,
         region_id = regObj$region_id,
         loci = list(lociDf)
       )
@@ -175,12 +186,13 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
     slotNum <- slotNum + 1
   }
   
-  ## make groups JSON
-  groupsJsonDf <- dplyr::mutate(
+  geneToGroup <- dplyr::mutate(
     geneToGroup,
     uid = dplyr::if_else(flanking == 1, paste(hg, "_flanking", sep = ""), hg)
-  ) %>%
-    dplyr::add_count(hg, name = "groupFreq") %>%
+  ) 
+  
+  ## make groups JSON
+  groupsJsonDf <- dplyr::add_count(geneToGroup, hg, name = "groupFreq") %>%
     dplyr::summarise(
       genes = list(genes),
       hidden = FALSE,
@@ -188,39 +200,73 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
     ) %>%
     dplyr::arrange(desc(groupFreq)) %>%
     dplyr::select(uid, label = hg, everything()) %>%
-    dplyr::left_join(y = phageHgTypes, by = c("uid" = "hgId")) %>%
-    dplyr::mutate(
-      function_category = dplyr::if_else(
-        flanking == 1, "flanking", function_category
-      )
-    )
-  
-  # color HGs by their frequency
-  hgFreqColors <- tibble::tibble(
-    groupFreq = 1:max(groupsJsonDf$groupFreq),
-    freq_color_hex = viridis::viridis(
-      n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1
-    )
-  ) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(freq_color = paste(as.vector(col2rgb(freq_color_hex)), collapse = ", ")) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(freq_color = paste("rgb(", freq_color, ")", sep = "")) %>%
-    dplyr::select(-freq_color_hex)
-  
-  groupsJsonDf <- dplyr::left_join(
-    groupsJsonDf, hgFreqColors,
-    by = "groupFreq"
-  ) %>%
-    dplyr::left_join(hgFuncColors, by = "function_category") %>%
-    dplyr::rename(colour = function_color) %>%
-    dplyr::arrange(broad_function) %>%
     dplyr::arrange(desc(groupFreq))
   
+
+  if(!is.null(group_colors)){
+    # color HGs by provided colors
+    groupsJsonDf <- dplyr::left_join(
+      groupsJsonDf,
+      dplyr::select(group_colors, hg_id, colour),
+      by = c("label" = "hg_id")
+    ) %>% 
+      dplyr::mutate(
+        colour = dplyr::if_else(
+          flanking == 1, "rgb(255, 255, 255)", colour)
+      )
+    
+  } else{
+    
+    # color HGs by their frequency
+    hgFreqColors <- tibble::tibble(
+      groupFreq = 1:max(groupsJsonDf$groupFreq),
+      colour_hex = viridis::viridis(
+        n = max(groupsJsonDf$groupFreq), option = "magma", direction = -1
+      )
+    ) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(colour = paste(as.vector(col2rgb(colour_hex)), collapse = ", ")) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(colour = paste("rgb(", colour, ")", sep = "")) %>%
+      dplyr::select(-colour_hex)
+    
+    groupsJsonDf <- dplyr::left_join(groupsJsonDf, hgFreqColors, by = "groupFreq") %>% 
+      dplyr::mutate(
+        colour = dplyr::if_else(flanking == 1, "rgb(255, 255, 255)", colour)
+      )
+  }
+  
+  ##### **********************
+  # *** use this approach to create links as it only generate necessary links
+  # *** i.e. genome 1 -> genome 2. Links reduced from ~5000 to 500.
+  # *** However, there is a bug in clustermap.js which mix-up HG based coloring of genes.
+  ##### **********************
+  # slotLinks <- dplyr::select(clusterJsonDf, t_slot = slot, t_genome = genomeId) %>%
+  #   dplyr::slice(-1) %>%
+  #   dplyr::mutate(q_slot = t_slot - 1) %>%
+  #   dplyr::left_join(
+  #     y = dplyr::select(clusterJsonDf, q_slot = slot, q_genome = genomeId),
+  #     by = "q_slot"
+  #   ) %>%
+  #   dplyr::left_join(
+  #     y = dplyr::select(geneToGroup, hg, q_genome = genomeId, query = genes),
+  #     by = "q_genome"
+  #   ) %>%
+  #   dplyr::left_join(
+  #     y = dplyr::select(geneToGroup, hg, t_genome = genomeId, target = genes),
+  #     by = c("t_genome", "hg")
+  #   ) %>%
+  #   dplyr::filter(if_all(.cols = c(query, target), ~ !is.na(.))) %>%
+  #   tidyr::unite(col = uid, query, target, sep = "_link_", remove = F) %>%
+  #   dplyr::mutate(identity = 1, similarity = 1)
+  # 
+  # linksJsonDf <- dplyr::select(slotLinks, uid, identity, similarity)
+  # linksJsonDf$query <- dplyr::select(slotLinks, uid = query)
+  # linksJsonDf$target <- dplyr::select(slotLinks, uid = target)
+  
   ## make links JSON
-  linksJsonDf <- purrr::map2_dfr(
-    .x = groupsJsonDf$uid,
-    .y = groupsJsonDf$genes,
+  linksJsonDf <- purrr::pmap(
+    .l = list(groupsJsonDf$uid, groupsJsonDf$genes),
     .f = function(h, g) {
       if (length(g) > 1) {
         linkCombs <- combn(x = g, m = 2) %>%
@@ -235,7 +281,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
             similarity = 1,
             hg = h
           )
-        
+
         regLinks <- dplyr::select(
           linkCombs, uid, identity, similarity
         ) %>%
@@ -243,11 +289,12 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
             target = dplyr::select(linkCombs, uid = target),
             query = dplyr::select(linkCombs, uid = query)
           )
-        
+
         return(regLinks)
       }
     }
-  )
+  ) %>%
+    purrr::list_rbind()
   
   mergedJsonList <- list(
     clusters = clusterJsonDf,
@@ -255,7 +302,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb){
     groups = groupsJsonDf
   )
   
-  if(!is.null(file)){
+  if (!is.null(file)) {
     jsonlite::write_json(
       x = mergedJsonList,
       # pretty = 2,

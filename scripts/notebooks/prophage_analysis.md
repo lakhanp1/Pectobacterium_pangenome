@@ -329,13 +329,13 @@ appendPhages <- c()
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
   g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 202783, end = 208572, genomeId = "g_385"
+    chr = "NZ_JQHK01000003.1", start = 203147, end = 206622, genomeId = "g_385"
   ),
   g_386_reg = list(
-    chr = "NZ_JQHM01000001.1", start = 551867, end = 556583, genomeId = "g_386"
+    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
   ),
   g_451_reg = list(
-    chr = "Contig_2_668.636", start = 190088, end = 192512, genomeId = "g_451"
+    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
   )
 )
 
@@ -371,9 +371,6 @@ flankingRegion <- 5000
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
-
-# a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c("g_408.vir_3", "g_403.vir_3", "g_175.vir_3", "g_399.vir_3")
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))

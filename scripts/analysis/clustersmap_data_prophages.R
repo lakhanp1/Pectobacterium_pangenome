@@ -37,13 +37,13 @@ appendPhages <- c()
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
   g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 202783, end = 208572, genomeId = "g_385"
+    chr = "NZ_JQHK01000003.1", start = 203147, end = 206622, genomeId = "g_385"
   ),
   g_386_reg = list(
-    chr = "NZ_JQHM01000001.1", start = 551867, end = 556583, genomeId = "g_386"
+    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
   ),
   g_451_reg = list(
-    chr = "Contig_2_668.636", start = 190088, end = 192512, genomeId = "g_451"
+    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
   )
 )
 
@@ -128,7 +128,7 @@ mashTree <- ape::read.tree(
   file = confs$analysis$prophages$preprocessing$files$mash_hclust
 )
 
-phageHgTypes <- suppressMessages(
+phageHgTypes2 <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
 )
 
@@ -156,8 +156,8 @@ hgFuncColors <- purrr::map2(
   .f = function(x, y) {
     tibble::tibble(
       function_category = x,
-      function_color_hex = y,
-      function_color = paste(
+      colour_hex = y,
+      colour = paste(
         "rgb(",
         paste(as.vector(col2rgb(y)), collapse = ", "),
         ")",
@@ -168,6 +168,7 @@ hgFuncColors <- purrr::map2(
 ) %>%
   purrr::list_rbind(names_to = "broad_function")
 
+hgColors <- dplyr::left_join(phageHgTypes2, hgFuncColors, by = "function_category")
 ################################################################################
 # prepare clusterjs JSON for a cluster/grp
 grp <- clusterList[[grpToView]]
@@ -195,9 +196,9 @@ grpHgFreq <- regionList[grp$members] %>%
   purrr::map("hgs") %>%
   unlist() %>%
   table() %>%
-  tibble::enframe(name = "hgId", value = "freq") %>%
+  tibble::enframe(name = "hg_id", value = "freq") %>%
   dplyr::mutate(freq = as.numeric(freq)) %>%
-  dplyr::left_join(phageHgTypes, by = "hgId") %>%
+  dplyr::left_join(phageHgTypes2, by = "hg_id") %>%
   dplyr::left_join(hgFuncColors, by = "function_category") %>%
   dplyr::arrange(desc(freq))
 
@@ -422,12 +423,14 @@ regDf <- purrr::map(
 ) %>% 
   purrr::list_rbind(names_to = "region_id")
 
+# regDf %<>% dplyr::filter(genomeId %in% c("g_385", "g_248", "g_305", "g_386"))
+
 # create JSON data structure for clustermap.js
 cmJson <- clustermap_data(
   regions = regDf, flanking_region = flankingRegion, pandb = panOrgDb,
+  group_colors = hgColors,
   file = paste(outPrefix, ".json", sep = "")
 )
-
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
@@ -456,19 +459,19 @@ htSpecies <- species_key_heatmap(
 htSpecies@heatmap_param$width <- unit(12, "cm")
 
 hgMat <- homology_groups_mat(
-  pandb = panOrgDb, type = "pav", groups = grpHgFreq$hgId
+  pandb = panOrgDb, type = "pav", groups = grpHgFreq$hg_id
 )
 
 hgMat <- hgMat[rawTree$tip.label, ]
 
 funcTypeColors <- dplyr::select(
   hgFuncColors,
-  at = broad_function, fill = function_color_hex
+  at = broad_function, fill = colour_hex
 ) %>%
   dplyr::distinct()
 
 hgsInPan <- AnnotationDbi::select(
-  x = panOrgDb, keys = grpHgFreq$hgId,
+  x = panOrgDb, keys = grpHgFreq$hg_id,
   columns = c(
     "genome", "genomeId", "chr_id", "chr_name",
     "start", "end", "strand", "mRNA_id", "genePos"
@@ -486,7 +489,7 @@ readr::write_tsv(
 )
 
 hgLengths <- split(x = hgsInPan$length, f = hgsInPan$GID)
-hgLengths <- hgLengths[grpHgFreq$hgId]
+hgLengths <- hgLengths[grpHgFreq$hg_id]
 
 # HG frequency barplot annotation
 anFreq <- ComplexHeatmap::HeatmapAnnotation(
