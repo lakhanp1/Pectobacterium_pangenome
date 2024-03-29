@@ -274,6 +274,7 @@ analysis:
     core_snp_ml:
       dir: "core_snp"
       name: "core genome SNP ML"
+      cut_branch: 0.47
       files:
         tree: "core_snp_ml.nexus"
         tree_rooted: "core_snp_ml.rooted.nexus"
