@@ -1,0 +1,274 @@
+---
+title: "Analyze HG haplotypes for a region across pangenome"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
+source("scripts/utils/heatmap_utils.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+file_regionHaplotypes <- confs$analysis$ctv$files$tape_measure_regions
+
+outDir <- dirname(file_regionHaplotypes)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj
+
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+)
+
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
+  phylo = TRUE
+)
+
+rawTree <- ape::ladderize(rawTree, right = FALSE)
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+) %>% 
+  dplyr::mutate(order = n():1)
+
+distCophen <- tibble::as_tibble(x = cophenetic.phylo(rawTree), rownames = "r1_genomeId") %>% 
+  tidyr::pivot_longer(
+    cols = -r1_genomeId,
+    names_to = "r2_genomeId", values_to = "cophenetic"
+  )
+
+```
+
+## Import tail regions and distance tables
+
+Build a pairwise tail loci comparison table
+
+```{r}
+regionHaplotypes <- suppressMessages(readr::read_tsv(file_regionHaplotypes)) %>% 
+  dplyr::left_join(
+    y = dplyr::select(
+      sampleInfo, genomeId, SpeciesName, geo_loc_country, collection_year,
+      collection_year, nodepath.kmer_nj, host, isolation_source
+    ),
+    by = "genomeId"
+  )
+
+readr::write_tsv(
+  regionHaplotypes,
+  file = paste(outDir, "/haplotypes_phy_data.tab", sep = "")
+)
+
+haplotypes <- dplyr::distinct(
+  regionHaplotypes, haplotype, hgs
+)
+
+# make unique combinations for ctv regions
+tailCombs <- tidyr::expand_grid(
+  r1 = regionHaplotypes$regionId, r2 = regionHaplotypes$regionId
+) %>% 
+  dplyr::filter(r1 != r2) %>% 
+  dplyr::mutate(
+    pair = paste(pmin(r1, r2), pmax(r1, r2), sep = ",")
+  ) %>% 
+  dplyr::distinct(pair, .keep_all = TRUE) %>% 
+  dplyr::select(-pair) %>% 
+  dplyr::left_join(
+    y = dplyr::select(regionHaplotypes, regionId, r1_tail = haplotype),
+    by = c("r1" = "regionId")
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(regionHaplotypes, regionId, r2_tail = haplotype),
+    by = c("r2" = "regionId")
+  ) %>% 
+  dplyr::mutate(
+    tail_loci = dplyr::if_else(
+      r1_tail == r2_tail, "same", "different"
+    )
+  )
+
+```
+
+
+## Are there any tail loci shared between species?
+
+```{r}
+# generate upset plot
+cm <- ComplexHeatmap::make_comb_mat(
+  split(regionHaplotypes$haplotype, f = regionHaplotypes$SpeciesName)
+)
+
+hgCombTable <- table(regionHaplotypes$haplotype)
+combMetadata <- purrr::imap_dfr(
+  .x = ComplexHeatmap::comb_degree(cm),
+  .f = function(d, n){
+    tibble::tibble(
+      comb = n,
+      n_species = d,
+      n_genomes = sum(hgCombTable[extract_comb(m = cm, comb_name = n)]),
+      haplotype = paste(extract_comb(m = cm, comb_name = n), collapse = ";")
+    )
+  }
+) %>% 
+  dplyr::left_join(haplotypes, by = "haplotype")
+
+ht_upset <- ComplexHeatmap::UpSet(
+  m = cm,
+  column_title = "Carotovoricin tail fiber locus similarity across species",
+  row_names_gp = gpar(fontface = "italic"),
+  column_title_gp = gpar(fontface = "bold", fontsize = 16),
+  set_order = order(
+    dplyr::pull(speciesOrder, order, name = SpeciesName)[set_name(cm)]
+  ),
+  # comb_order = order(comb_degree(cm), comb_size(cm), decreasing = TRUE),
+  right_annotation = upset_right_annotation(cm, add_numbers = TRUE),
+  top_annotation = ComplexHeatmap::HeatmapAnnotation(
+    "Number of\ngenomes" = anno_barplot(
+      x = combMetadata$n_genomes, border = FALSE, add_numbers = TRUE,
+      gp = gpar(fill = "black"), height = unit(1.5, "cm")
+    ),
+    "Number of\nshared tail\nfiber locus" = anno_barplot(
+      x = comb_size(cm), 
+      border = FALSE, 
+      gp = gpar(fill = "black"), 
+      height = unit(1.5, "cm")
+    ),
+    annotation_name_side = "left", 
+    annotation_name_rot = 0,
+    annotation_name_gp = gpar(fontface = "bold"),
+    gap = unit(4, "mm")
+  )
+)
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+pdf(file = paste(outDir, "/haplotype_species_upset.pdf", sep = ""), width = 8, height = 6)
+ht_upset
+dev.off()
+
+ht_upset
+```
+
+Show the raw combination data.
+
+```{r}
+#| echo: false
+#| tbl-cap: TFL HG combinations across species
+
+DT::datatable(
+  data = combMetadata,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 300
+  ),
+  selection = 'none'
+)
+```
+
+## Visualize haplotypes with the phylogeny
+
+```{r}
+pt_phy <- ggtree_with_species(
+  phy = rawTree, metadata = sampleInfo,
+  trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch
+)
+
+pt_hap <- dplyr::select(regionHaplotypes, genomeId, haplotype) %>% 
+  dplyr::mutate(hap = "y") %>% 
+  ggplot2::ggplot(mapping = aes(x = haplotype, y = genomeId)) +
+  geom_tile(mapping = aes(fill = hap), width = 0.9) +
+  scale_fill_manual(
+    name = NULL,
+    values = c("y" = "black"),
+    na.value = alpha("white", 1),
+    guide = NULL,
+    na.translate = FALSE
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_blank(),
+    axis.title = element_blank(),
+    legend.title = element_text(size = 18, face = "bold")
+  )
+
+pt_all <- pt_hap %>% 
+  aplot::insert_left(pt_phy$tree, width = 5)
+
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+#| column: page 
+
+pdf(file = paste(outDir, "/haplotype_phylogeny.pdf", sep = ""), width = 10, height = 10)
+pt_all
+dev.off()
+
+pt_all
+```
+
+Species order from left to right on species key heatmap:
+`r paste(pt_phy$species_order, sep = "; ")`
+

@@ -18,6 +18,114 @@ import_tree <- function(file, phylo = FALSE){
 
 ################################################################################
 
+#' Create ggtree plot with species key heatmap
+#'
+#' @param phy A `phylo` object
+#' @param metadata Metadata dataframe for the genomes with `c("genomeId", "SpeciesName")`
+#' columns
+#' @param genomes Optionally, a selection of genomes for which a pruned tree
+#' will be plotted
+#' @param trim_branch Optionally branch length to trim the long branches
+#'
+#' @return A ggtree object
+#' @export 
+#'
+#' @examples NA
+ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NULL){
+
+  stopifnot(
+    is.data.frame(metadata),
+    isa(phy, "phylo"),
+    all(c("genomeId", "SpeciesName") %in% names(metadata))
+  )
+  
+  if(!is.null(genomes)){
+    phy <- ape::keep.tip(phy = phy, tip = genomesToShow)
+    
+    metadata <- dplyr::left_join(
+      x = tibble::tibble(genomeId = genomes),
+      y = metadata, by = "genomeId"
+    )
+  }
+  
+  ## add data to tree
+  treeTbl <- tidytree::as_tibble(phy) %>%
+    dplyr::full_join(y = metadata, by = c("label" = "genomeId")) %>%
+    treeio::as.treedata()
+  
+  pt_tree <- ggtree::ggtree(phy, ladderize = FALSE)
+
+  species_order <-  tibble:::enframe(
+    ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
+  ) %>% 
+    dplyr::left_join(
+      y = dplyr::select(metadata, genomeId, SpeciesName), by = "genomeId"
+    ) %>%
+    dplyr::mutate(
+      SpeciesName = forcats::as_factor(SpeciesName)
+    ) %>% 
+    dplyr::select(SpeciesName) %>% 
+    dplyr::pull(SpeciesName) %>% 
+    levels()
+  
+  if (!is.null(trim_branch)) {
+    longestBranch <- which(pt_tree$data$x > trim_branch)
+    pt_tree$data$x[longestBranch] <- trim_branch
+  }
+  
+  pt_tree2 <- pt_tree +
+    theme_tree() +
+    geom_treescale(
+      x = 0.01, y = nrow(metadata) * 0.95,
+      fontsize = 8, linesize = 2, offset = 4
+    ) +
+    scale_y_continuous(expand=c(0, 10)) +
+    ggtree::geom_tiplab(
+      mapping = aes(label = NA),
+      align = TRUE, linesize = 0.4
+    )
+
+  # get species key dataframe
+  spKeyDf <- get_species_key_data(
+    genomes = metadata$genomeId, speciesInfo = metadata, type = 'wide'
+  ) %>% 
+    tibble::as_tibble(rownames = "genomeId") %>%
+    tidyr::pivot_longer(
+      cols = -genomeId,
+      names_to = 'SpeciesName', values_to = "species"
+    ) %>%
+    dplyr::mutate(
+      SpeciesName = forcats::fct_relevel(SpeciesName, !!!species_order),
+      SpeciesName = forcats::fct_drop(SpeciesName)
+    )
+  
+  pt_tree3 <- pt_tree2 +
+    # species key
+    ggtreeExtra::geom_fruit(
+      geom = geom_tile, data = spKeyDf,
+      mapping = aes(y = genomeId, x = SpeciesName, fill = species),
+      pwidth = 0.2, offset = 0.03
+    ) +
+    scale_fill_manual(
+      values = c("0" = "grey95", "1" = "black"),
+      na.value = "grey95",
+      guide = "none"
+    ) +
+    theme(
+      legend.position = c(0.05, 0.80),
+      legend.justification = c(0, 1),
+      legend.box = "vertical",
+      legend.text = element_text(size = 16),
+      # axis.title.x = element_text(hjust = 1),
+      legend.title = element_text(size = 18, face = "bold")
+    )
+  
+  return(
+    list(tree = pt_tree3, species_order = species_order)
+  )
+}
+
+################################################################################
 #' Add generic annotations to a ggtree
 #'
 #' @param pt a ggtree plot object

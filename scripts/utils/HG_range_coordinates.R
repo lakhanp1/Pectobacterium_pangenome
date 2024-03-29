@@ -190,7 +190,7 @@ if(opts$haplotypes){
     dplyr::add_count(hgs, name = "grp_n") %>% 
     dplyr::arrange(desc(grp_n)) %>% 
     dplyr::mutate(
-      haplotype = paste("hg_comb_", dplyr::cur_group_id(), sep = ""),
+      haplotype = paste("haplotype_", dplyr::cur_group_id(), sep = ""),
       .by = hgs
     )
     
