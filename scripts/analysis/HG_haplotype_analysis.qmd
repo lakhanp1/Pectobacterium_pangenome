@@ -40,7 +40,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-file_regionHaplotypes <- confs$analysis$ctv$files$tape_measure_regions
+file_regionHaplotypes <- confs$analysis$ctv$files$tail_regions
 
 outDir <- dirname(file_regionHaplotypes)
 
@@ -93,6 +93,11 @@ regionHaplotypes <- suppressMessages(readr::read_tsv(file_regionHaplotypes)) %>%
       collection_year, nodepath.kmer_nj, host, isolation_source
     ),
     by = "genomeId"
+  ) %>% 
+  dplyr::add_count(haplotype) %>% 
+  dplyr::arrange(desc(n), haplotype, SpeciesName) %>% 
+  dplyr::mutate(
+    haplotype = forcats::as_factor(haplotype)
   )
 
 readr::write_tsv(
@@ -100,36 +105,11 @@ readr::write_tsv(
   file = paste(outDir, "/haplotypes_phy_data.tab", sep = "")
 )
 
-haplotypes <- dplyr::distinct(
-  regionHaplotypes, haplotype, hgs
+haplotypes <- dplyr::count(
+  regionHaplotypes, haplotype, hgs, sort = TRUE
 )
 
-# make unique combinations for ctv regions
-tailCombs <- tidyr::expand_grid(
-  r1 = regionHaplotypes$regionId, r2 = regionHaplotypes$regionId
-) %>% 
-  dplyr::filter(r1 != r2) %>% 
-  dplyr::mutate(
-    pair = paste(pmin(r1, r2), pmax(r1, r2), sep = ",")
-  ) %>% 
-  dplyr::distinct(pair, .keep_all = TRUE) %>% 
-  dplyr::select(-pair) %>% 
-  dplyr::left_join(
-    y = dplyr::select(regionHaplotypes, regionId, r1_tail = haplotype),
-    by = c("r1" = "regionId")
-  ) %>% 
-  dplyr::left_join(
-    y = dplyr::select(regionHaplotypes, regionId, r2_tail = haplotype),
-    by = c("r2" = "regionId")
-  ) %>% 
-  dplyr::mutate(
-    tail_loci = dplyr::if_else(
-      r1_tail == r2_tail, "same", "different"
-    )
-  )
-
 ```
-
 
 ## Are there any tail loci shared between species?
 
@@ -151,7 +131,8 @@ combMetadata <- purrr::imap_dfr(
     )
   }
 ) %>% 
-  dplyr::left_join(haplotypes, by = "haplotype")
+  dplyr::left_join(haplotypes, by = "haplotype") %>% 
+  dplyr::arrange(desc(n_genomes))
 
 ht_upset <- ComplexHeatmap::UpSet(
   m = cm,
@@ -229,28 +210,51 @@ pt_phy <- ggtree_with_species(
   trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch
 )
 
-pt_hap <- dplyr::select(regionHaplotypes, genomeId, haplotype) %>% 
-  dplyr::mutate(hap = "y") %>% 
-  ggplot2::ggplot(mapping = aes(x = haplotype, y = genomeId)) +
-  geom_tile(mapping = aes(fill = hap), width = 0.9) +
+hap_df <- dplyr::select(regionHaplotypes, genomeId, haplotype, n) %>% 
+  dplyr::filter(n > 1) %>% 
+  dplyr::mutate(hap = "y")
+
+## *** alignment is not working for this plot + phylogeny 
+# pt_hap <- dplyr::select(regionHaplotypes, genomeId, haplotype, n) %>% 
+#   dplyr::filter(n > 1) %>% 
+#   dplyr::mutate(hap = "y") %>% 
+#   ggplot2::ggplot(mapping = aes(x = haplotype, y = genomeId)) +
+#   geom_tile(mapping = aes(fill = hap), width = 0.9) +
+#   scale_fill_manual(
+#     name = NULL,
+#     values = c("y" = "black"),
+#     na.value = alpha("white", 1),
+#     guide = NULL,
+#     na.translate = FALSE
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     panel.grid = element_blank(),
+#     axis.text.x = element_text(angle = 45, hjust = 1),
+#     axis.text.y = element_blank(),
+#     axis.title = element_blank(),
+#     legend.title = element_text(size = 18, face = "bold")
+#   )
+
+pt_all <- pt_phy$tree +
+  ggnewscale::new_scale_fill() +
+  ggtreeExtra::geom_fruit(
+    geom = geom_tile, data = hap_df,
+    mapping = aes(y = genomeId, x = haplotype, fill = hap),
+    pwidth = 1, width = 0.01,
+    offset = 0.03,
+    axis.params = list(axis = "x", text.size = 1, hjust = 1, text.angle = 45)
+  ) +
   scale_fill_manual(
     name = NULL,
     values = c("y" = "black"),
     na.value = alpha("white", 1),
     guide = NULL,
     na.translate = FALSE
-  ) +
-  theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.text.y = element_blank(),
-    axis.title = element_blank(),
-    legend.title = element_text(size = 18, face = "bold")
-  )
+  ) 
 
-pt_all <- pt_hap %>% 
-  aplot::insert_left(pt_phy$tree, width = 5)
+# pt_all <- pt_hap %>% 
+#   aplot::insert_left(pt_phy$tree, width = 0.5)
 
 ```
 

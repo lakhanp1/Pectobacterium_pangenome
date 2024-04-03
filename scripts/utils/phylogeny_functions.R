@@ -104,7 +104,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
     ggtreeExtra::geom_fruit(
       geom = geom_tile, data = spKeyDf,
       mapping = aes(y = genomeId, x = SpeciesName, fill = species),
-      pwidth = 0.2, offset = 0.03
+      pwidth = 0.5, offset = 0.03
     ) +
     scale_fill_manual(
       values = c("0" = "grey95", "1" = "black"),
