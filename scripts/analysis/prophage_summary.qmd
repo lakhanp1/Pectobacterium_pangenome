@@ -24,6 +24,8 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
 suppressPackageStartupMessages(library(ggdist))
 suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(waffle))
+suppressPackageStartupMessages(library(hrbrthemes))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 suppressPackageStartupMessages(library(DT))
 
@@ -73,7 +75,10 @@ proHgs <- suppressMessages(
 phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
   dplyr::select(prophage_id, sampleId, taxonomy, completeness, checkv_quality)
 
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
+rawTree <- import_tree(
+  file = confs$analysis$phylogeny[[treeMethod]]$files$tree,
+  phylo = TRUE
+)
 pt_tree <- ggtree::ggtree(rawTree)
 treeTipOrder <- ggtree::get_taxa_name(pt_tree)
 ```
@@ -433,7 +438,13 @@ phageSpeciesStats <- tidyr::pivot_wider_spec(data = sppGrpStats, spec = spec1) %
   dplyr::left_join(
     y = spVirSummary, by = "SpeciesName"
   ) %>% 
-  dplyr::select(-hgs)
+  dplyr::select(-hgs) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(mean_vir_per_g),
+      .fns = ~round(x = .x, digits = 3)
+    )
+  )
 
 stopifnot(
   all(phageSpeciesStats$phage_nHgs.total == phageSpeciesStats$unique_vir_hgs)
@@ -452,15 +463,17 @@ phageSpeciesStats %>%
 
 ```
 
+#### Table
+
 ```{r}
 #| echo: false
 #| column: page
 #| out-height: "400px"
 #| label: tbl-planets
-#| tbl-cap: Prophage summary per species
 
 DT::datatable(
   data = phageSpeciesStats,
+  caption = "Prophage summary per species",
   rownames = FALSE,
   filter = "top",
   class = 'compact hover',
@@ -472,10 +485,102 @@ DT::datatable(
     fixedColumns = list(leftColumns = 2),
     keys = TRUE,
     scroller = TRUE,
-    scrollY = 600
+    scrollY = 400
   ),
   selection = 'none'
 )
+```
+
+#### Figure
+
+Visualize the proportion of prophage homology groups in pangenome and various
+HG categories.
+
+```{r}
+df_panPhage <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>% 
+  dplyr::mutate(
+    class = forcats::fct_relevel(class, "total", "core", "accessory", "unique"),
+    nonPhage_ratio = 1 - phageRatio,
+    nonPhage_nHgs = nHgs - phage_nHgs
+  ) %>% 
+  dplyr::rename(phage_ratio = phageRatio, total_hgs = nHgs) %>% 
+  tidyr::pivot_longer(
+    cols = c(starts_with("phage_"), starts_with("nonPhage")),
+    names_to = c("hg_from", ".value"), 
+    names_sep = "_"
+  ) %>% 
+  dplyr::mutate(
+    nHgs_h = nHgs / 38,
+    group = dplyr::if_else(
+      hg_from == "nonPhage", class, hg_from
+    )
+  )
+
+# lables for facets
+phageHgLables <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(phage_nHgs, nHgs), .fns = ~ prettyNum(.x, big.mark = ",")
+    ),
+    label = paste(
+      class, " (", phageRatio * 100, "%)", "\n", phage_nHgs, "/", nHgs, sep = ""
+    )
+  ) %>% 
+  dplyr::pull(var = label, name = class)
+
+# waffle plot
+pt_phage_hgs <- ggplot2::ggplot(
+  data = df_panPhage,
+  mapping = aes(values = nHgs_h, fill = group)
+) +
+  waffle::geom_waffle(
+    color = "white", flip = TRUE,
+    make_proportional = TRUE, n_rows = 10, size = 0.25,
+    height = 1, width = 1
+  ) +
+  ggplot2::labs(
+    title = "Prophage homology groups in pangenome"
+  ) +
+  facet_wrap(
+    facets = ~class, nrow = 1, strip.position = "bottom",
+    labeller = as_labeller(phageHgLables)
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c(
+      "phage"= "black", "core" = confs$colors$core, "total" = "grey",
+      "accessory" = confs$colors$accessory, "unique" = confs$colors$unique
+    ),
+    breaks = c("phage"),
+    labels = c("phage" = "Prophage")
+  ) +
+  coord_equal() +
+  expand_limits(x=c(0,0), y=c(0,0)) +
+  waffle::theme_enhance_waffle() +
+  theme_minimal(base_size = 18) +
+  theme(
+    panel.spacing.x = unit(0, "npc"),
+    # strip.text.x = element_text(hjust = 0.5, size = 16),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    legend.position = "bottom",
+    panel.grid = element_blank()
+  )
+
+
+```
+
+
+```{r}
+#| fig-cap: "Prophage HGs in pangenome"
+#| echo: false
+#| fig-height: 5
+
+ggsave(filename = paste(outDir, "/phage_hgs_in_pangenome.pdf", sep = ""),
+       plot = pt_phage_hgs, width = 8, height = 5)
+
+pt_phage_hgs
 ```
 
 ### Prophage homology groups with annotation table for exploration
