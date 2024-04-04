@@ -89,7 +89,7 @@ rawRegions <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data))
 regionHgs <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>%
-  dplyr::select(prophage_id, hgs) %>%
+  dplyr::select(prophage_id = id, hgs) %>%
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   )

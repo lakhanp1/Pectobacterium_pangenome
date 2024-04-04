@@ -63,7 +63,7 @@ phageAn <- suppressMessages(
 proHgs <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>%
-  dplyr::select(prophage_id, nHgs, hgs) %>%
+  dplyr::select(prophage_id = id, nHgs, hgs) %>%
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   )

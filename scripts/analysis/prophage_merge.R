@@ -64,6 +64,7 @@ prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data))
 proHgs <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>%
+  dplyr::rename(prophage_id = id) %>% 
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   ) %>%
