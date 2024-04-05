@@ -63,7 +63,7 @@ parser <- optparse::add_option(
 
 
 parser <- optparse::add_option(
-  parser, default = "hg_regions.tab",
+  parser, default = NULL,
   opt_str = c("-o", "--out"), type = "character", action = "store",
   help = "Output file name"
 )
@@ -198,9 +198,14 @@ if(opts$haplotypes){
   outCols <- c(outCols, "hgs", "haplotype")
 }
 
-
-dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
-  readr::write_tsv(
-    file = paste(opts$dir, "/", opts$out, sep = "")
-  )
+if(is.null(opts$out)){
+  dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
+    write.table(sep = "\t", quote = FALSE)
+} else {
+  dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
+    readr::write_tsv(
+      file = paste(opts$dir, "/", opts$out, sep = "")
+    )
+  
+}
 
