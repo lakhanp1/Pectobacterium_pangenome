@@ -8,12 +8,28 @@
 #' @examples
 import_tree <- function(file, phylo = FALSE){
   tr <- treeio::read.beast(file)
-  
   if(phylo){
-    return(tr@phylo)
+    return(ape::ladderize(tr@phylo))
   } else{
     return(tr)
   }
+}
+
+################################################################################
+
+#' Get the tip labels sorted by their position in the plot
+#'
+#' @param phy A phylo object
+#'
+#' @return A vector of tip labels
+#' @export
+#'
+#' @examples NA
+ordered_tips_phylo <- function(phy){
+  is_tip <- phy$edge[,2] <= length(phy$tip.label)
+  ordered_tips <- phy$edge[is_tip, 2]
+  
+  return(rev(phy$tip.label[ordered_tips]))
 }
 
 ################################################################################
@@ -26,13 +42,16 @@ import_tree <- function(file, phylo = FALSE){
 #' @param genomes Optionally, a selection of genomes for which a pruned tree
 #' will be plotted
 #' @param trim_branch Optionally branch length to trim the long branches
+#' @param make_species_key Logical: whether to create a species key heatmap.
+#' Default: TRUE
 #'
 #' @return A ggtree object
 #' @export 
 #'
 #' @examples NA
-ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NULL){
-
+ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NULL,
+                                make_species_key = TRUE){
+  
   stopifnot(
     is.data.frame(metadata),
     isa(phy, "phylo"),
@@ -54,7 +73,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
     treeio::as.treedata()
   
   pt_tree <- ggtree::ggtree(phy, ladderize = FALSE)
-
+  
   species_order <-  tibble:::enframe(
     ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
   ) %>% 
@@ -84,7 +103,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
       mapping = aes(label = NA),
       align = TRUE, linesize = 0.4
     )
-
+  
   # get species key dataframe
   spKeyDf <- get_species_key_data(
     genomes = metadata$genomeId, speciesInfo = metadata, type = 'wide'
@@ -99,29 +118,33 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
       SpeciesName = forcats::fct_drop(SpeciesName)
     )
   
-  pt_tree3 <- pt_tree2 +
-    # species key
-    ggtreeExtra::geom_fruit(
-      geom = geom_tile, data = spKeyDf,
-      mapping = aes(y = genomeId, x = SpeciesName, fill = species),
-      pwidth = 0.5, offset = 0.03
-    ) +
-    scale_fill_manual(
-      values = c("0" = "grey95", "1" = "black"),
-      na.value = "grey95",
-      guide = "none"
-    ) +
-    theme(
-      legend.position = c(0.05, 0.80),
-      legend.justification = c(0, 1),
-      legend.box = "vertical",
-      legend.text = element_text(size = 16),
-      # axis.title.x = element_text(hjust = 1),
-      legend.title = element_text(size = 18, face = "bold")
-    )
+  if(make_species_key){
+    
+    pt_tree2 <- pt_tree2 +
+      # species key
+      ggtreeExtra::geom_fruit(
+        geom = geom_tile, data = spKeyDf,
+        mapping = aes(y = genomeId, x = SpeciesName, fill = species),
+        pwidth = 0.5, offset = 0.03
+      ) +
+      scale_fill_manual(
+        values = c("0" = "grey95", "1" = "black"),
+        na.value = "grey95",
+        guide = "none"
+      ) +
+      theme(
+        legend.position = c(0.05, 0.80),
+        legend.justification = c(0, 1),
+        legend.box = "vertical",
+        legend.text = element_text(size = 16),
+        # axis.title.x = element_text(hjust = 1),
+        legend.title = element_text(size = 18, face = "bold")
+      )
+    
+  }
   
   return(
-    list(tree = pt_tree3, species_order = species_order)
+    list(tree = pt_tree2, species_order = species_order)
   )
 }
 
@@ -139,7 +162,7 @@ annotate_ggtree <- function(pt, offset, annotations = NULL) {
   stopifnot(
     inherits(pt, "ggtree")
   )
-
+  
   pt2 <- pt +
     ggtreeExtra::geom_fruit(
       mapping = aes(starshape = type_material),
@@ -224,31 +247,31 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL) {
   stopifnot(
     file.exists(file)
   )
-
+  
   ## import tree
   rawTree <- ape::read.tree(file)
-
+  
   ## set negative length edges => 0
   rawTree$edge.length[rawTree$edge.length < 0] <- 0
-
+  
   ## root the tree
   if (!is.null(outgroup)) {
     rawTree <- ape::root(phy = rawTree, outgroup = outgroup) %>%
       ape::ladderize()
   }
-
+  
   ## add metadata to tree
   treeTbl <- as_tibble(rawTree) %>%
     dplyr::full_join(y = metadata, by = c("label" = "genomeId")) %>%
     treeio::as.treedata()
-
+  
   ## draw tree and add annotation
   pt_tree <- ggtree::ggtree(tr = treeTbl) +
     labs(title = "kmer distance NJ tree")
-
+  
   ## mark outgroup
   pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outgroup, column = "sampleName")
-
+  
   ## mark species of interest
   pt_tree3 <- pt_tree2 +
     ggtree::geom_nodelab(
@@ -272,9 +295,9 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL) {
       na.value = "black"
     ) +
     ggnewscale::new_scale_color()
-
+  
   pt_tree4 <- annotate_ggtree(pt = pt_tree3, offset = 0.25)
-
+  
   return(
     list(ggtree = pt_tree4, rawTree = rawTree)
   )
@@ -296,7 +319,7 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red") {
     tibble::has_name(pt$data, column),
     is.element(otg, pt$data[[column]])
   )
-
+  
   pt2 <- pt +
     geom_point(
       mapping = aes(shape = !!sym(column), color = !!sym(column)),
@@ -305,7 +328,7 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red") {
     scale_shape_manual(name = "outgroup", values = setNames(16, otg)) +
     scale_color_manual(name = "outgroup", values = setNames(color, otg)) +
     ggnewscale::new_scale_color()
-
+  
   return(pt2)
 }
 
@@ -336,7 +359,7 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red") {
 clade_comparison_confs <- function(tree, node, type, against = NA, name, category = "Y",
                                    excludeNode = NA, excludeTips = NA) {
   tr <- ape::read.tree(tree)
-
+  
   stopifnot(
     is.character(node),
     (all(is.element(node, tr$node.label)) | all(is.element(node, tr$tip.label))),
@@ -347,18 +370,18 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
     (is.na(excludeNode) | all(is.element(excludeNode, tr$node.label))),
     (is.na(excludeTips) | all(is.element(excludeTips, tr$tip.label)))
   )
-
+  
   if (type == "node") {
     ## phenotype for genomes of interest
     ## IMP: use tree as tibble for tip labels as output when providing node label
     phenoDf <- tibble::tibble(Genome = character())
-
+    
     for (nd in node) {
       phenoDf <- tidytree::offspring(.data = as_tibble(tr), .node = nd, tiponly = TRUE) %>%
         dplyr::select(Genome = label) %>%
         dplyr::bind_rows(phenoDf)
     }
-
+    
     ## add phenotype
     phenoDf[[name]] <- category
   } else {
@@ -367,16 +390,16 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
       Genome = node, !!name := category
     )
   }
-
+  
   nodeGenomes <- stringr::str_c(phenoDf$Genome, collapse = ",")
-
+  
   includeGenomes <- NA
-
+  
   ## select the background against which comparison will be made
   if (all(!is.na(against))) {
     ## use another clade (either parent or independent clade) as background
     parentSet <- character()
-
+    
     for (nd in against) {
       parentSet <- append(
         parentSet,
@@ -384,19 +407,19 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
           dplyr::pull(label)
       )
     }
-
+    
     negSet <- setdiff(parentSet, phenoDf$Genome)
-
+    
     ## include only genomes from the groups being compared
     includeGenomes <- stringr::str_c(c(nodeGenomes, negSet), collapse = ",")
   } else {
     ## use all tips as background
     negSet <- setdiff(tr$tip.label, phenoDf$Genome)
   }
-
+  
   ## additional exclusion of nodes and/or tips
   filterNeg <- character()
-
+  
   if (all(!is.na(excludeNode))) {
     for (nd in excludeNode) {
       filterNeg <- append(
@@ -406,22 +429,22 @@ clade_comparison_confs <- function(tree, node, type, against = NA, name, categor
       )
     }
   }
-
+  
   if (all(!is.na(excludeTips))) {
     filterNeg <- append(filterNeg, excludeTips)
   }
-
+  
   if (length(filterNeg) > 0) {
     negSet <- setdiff(negSet, filterNeg)
-
+    
     ## update includeGenomes
     includeGenomes <- stringr::str_c(c(nodeGenomes, negSet), collapse = ",")
   }
-
-
+  
+  
   phenoDf %<>%
     dplyr::bind_rows(tibble::tibble(Genome = negSet, !!name := "N"))
-
+  
   return(
     list(
       pheno = phenoDf,
@@ -448,12 +471,12 @@ nodepath_df <- function(phy, ...) {
   stopifnot(
     isa(phy, "phylo")
   )
-
+  
   np <- ape::nodepath(phy, ...)
-
+  
   nlabs <- c(phy$tip.label, phy$node.label)
   names(nlabs) <- c(1:(length(phy$tip.label) + length(phy$node.label)))
-
+  
   np <- purrr::map_dfr(
     .x = np,
     .f = function(x) {
@@ -463,7 +486,7 @@ nodepath_df <- function(phy, ...) {
       )
     }
   )
-
+  
   return(np)
 }
 
