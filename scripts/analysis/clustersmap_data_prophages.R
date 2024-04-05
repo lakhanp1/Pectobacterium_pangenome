@@ -49,6 +49,8 @@ customRegions <- list(
   )
 )
 
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
 regions_phy_ordered <- FALSE
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name

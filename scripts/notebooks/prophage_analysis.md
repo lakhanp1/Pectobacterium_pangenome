@@ -223,6 +223,11 @@ for individual prophage clusters.
 
 ### phage_grp_45: prophage present in all BL-causing isolates
 
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
+--genomes "g_406"
+```
+
 ```r
 grpToView <- "phage_grp_45"
 subSample <- TRUE 
@@ -232,7 +237,22 @@ flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "host" # completeness, host, hg_pav, cluster_mash
+clusterOrder <- "host" # host, hg_pav, cluster_mash
+
+# a vector of prophage identifiers that will be included in clustermap plot
+appendPhages <- c("g_400.vir_2")
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_406_reg = list(
+    chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"
+  )
+)
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- FALSE
 
 ```
 
