@@ -7,6 +7,7 @@ suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(dendextend))
 suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ape))
 
 rm(list = ls())
 
@@ -20,44 +21,49 @@ source("scripts/utils/clustermap_utils.R")
 ################################################################################
 set.seed(124)
 
-grpToView <- "ctv_typeStrains"
-subSample <- FALSE
-cutHeight <- 1.5
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
+
+grpToView <- "phage_grp_45"
+subSample <- TRUE 
+cutHeight <- 0.5
 addFlankingRegions <- TRUE
-flankingRegion <- 6000
+flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "host" # host, hg_pav, cluster_mash
 
 # a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c()
+appendPhages <- c("g_400.vir_2")
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 203147, end = 206622, genomeId = "g_385"
-  ),
-  g_386_reg = list(
-    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
-  ),
-  g_451_reg = list(
-    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
+  g_406_reg = list(
+    chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"
   )
 )
 
-confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
-)
+regions_phy_ordered <- FALSE
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
-treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma, core_snp_ml
+hostPhy <- "kmer_upgma"
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
+outDir <- paste(outDir, "/", grpToView, sep = "")
+outPrefix <- paste(outDir, "/", grpToView, sep = "")
+
+if (!dir.exists(outDir)) {
+  dir.create(outDir)
+}
 ################################################################################
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
@@ -66,12 +72,14 @@ sampleInfoList <- as.list_metadata(
 )
 
 rawTree <- import_tree(
-  file = confs$analysis$phylogeny[[treeMethod]]$files$tree,
+  file = confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
   phylo = TRUE
 )
 
-hostDnd <- as.dendrogram(ape::as.hclust.phylo(rawTree)) %>%
-  dendextend::ladderize()
+coreTree <- import_tree(
+  file = confs$analysis$phylogeny[[hostPhy]]$files$tree_rooted,
+  phylo = TRUE
+)
 
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
@@ -173,23 +181,16 @@ hgColors <- dplyr::left_join(phageHgTypes2, hgFuncColors, by = "function_categor
 # prepare clusterjs JSON for a cluster/grp
 grp <- clusterList[[grpToView]]
 
-# optionally, a custom region list can be provided to generate the plot
-grp <- list(
-  phage_grp = grpToView,
-  members = c(
-    "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
-    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
-    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
-    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
-  )
-)
-
-outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz/", grp$phage_grp, sep = "")
-outPrefix <- paste(outDir, "/", grp$phage_grp, sep = "")
-
-if (!dir.exists(outDir)) {
-  dir.create(outDir)
-}
+# # optionally, a custom region list can be provided to generate the plot
+# grp <- list(
+#   phage_grp = grpToView,
+#   members = c(
+#     "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
+#     "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+#     "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
+#     "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+#   )
+# )
 
 # frequency for all HGs in the prophages in current cluster
 grpHgFreq <- regionList[grp$members] %>%
@@ -386,8 +387,8 @@ if(!is.null(customRegions) & is.list(customRegions)){
 # finally, add the host phylogeny order
 grpMemberData  %<>%  dplyr::left_join(
   y = tibble::tibble(
-    genomeId = labels(hostDnd),
-    host_order = 1:dendextend::nleaves(hostDnd)
+    genomeId = ordered_tips_phylo(phy = coreTree),
+    host_order = ape::Ntip.phylo(coreTree):1
   ),
   by = "genomeId"
 ) %>%
@@ -396,6 +397,13 @@ grpMemberData  %<>%  dplyr::left_join(
     by = "genomeId"
   )
 
+# optionally, do not order appended regions as per phylogeny and keep them at bottom 
+if(!regions_phy_ordered){
+  grpMemberData %<>%
+    dplyr::mutate(
+      host_order = dplyr::if_else(phage_grp == "custom_region", NA, host_order)
+    )
+}
 
 readr::write_tsv(
   dplyr::arrange(grpMemberData, pav_order),
