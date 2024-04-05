@@ -245,6 +245,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
                                    hgAn = NULL, markGenomes = NULL, ...) {
   ## necessary checks
   stopifnot(
+    is.matrix(mat),
     is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$genomeId)),
     is.null(hgAn) | all(colnames(mat) == hgAn$hg_id),
     any(isa(phy, c("phylo", "dendrogram", "hclust", "logical"))),

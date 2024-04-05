@@ -1,0 +1,273 @@
+---
+title: "Visualize diagnostics assay candidates on pangenome"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+---
+
+***
+
+Visualize the homology groups PAV across the pangenome for existing (LZI and TIR) 
+and new blackleg diagnostic assay candidates.
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(circlize))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+## visualize homology groups PAV for given homology group sets
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/heatmap_utils.R")
+source("scripts/utils/homology_groups.R")
+source("scripts/utils/association_analysis.R")
+################################################################################
+set.seed(124)
+
+analysisName <- "assay_HG_pav"
+
+setIds <- c("LZI", "TIR", "assay_FN")
+
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma core_snp_ml
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+outDir <- confs$analysis$insilico_assay$dir
+outPrefix <- file.path(outDir, analysisName)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+
+# add any homology group set file created to this vector
+# `setIds` are searched in these files to identify respective homology groups
+# for plotting
+hgSetFiles <- c(
+  confs$analysis$homology_groups$files$hg_sets,
+  confs$analysis$association$files$pheno_specific_groups,
+  confs$analysis$prophages$preprocessing$files$raw_prophage_hg
+)
+
+```
+
+## Import data
+
+### Sample metadata
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+rawTree <- import_tree(
+  file = confs$analysis$phylogeny[[treeMethod]]$files$tree, phylo = TRUE
+)
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
+## add species order factor levels to SpeciesName column
+sampleInfo %<>% dplyr::mutate(
+  SpeciesName = forcats::fct_relevel(SpeciesName, !!!rev(speciesOrder$SpeciesName))
+)
+
+## genomes that are used for phenotype association analysis
+associatedGenomes <- get_phenotype_association_genomes(
+  phenotype = "assay_FN",
+  confFile = panConf$analysis_confs$files$clade_association
+)
+
+```
+
+### Import homology group information
+
+```{r}
+# prepare homology groups data for plotting
+hgSets <- NULL
+
+for (st in hgSetFiles) {
+  df <- suppressMessages(readr::read_tsv(st)) %>%
+    dplyr::mutate(
+      hgs = stringr::str_split(hgs, ";"),
+      setSource = st
+    ) %>%
+    dplyr::select(setId = id, hgs, setSource)
+  
+  
+  hgSets <- dplyr::bind_rows(hgSets, df)
+}
+
+
+
+if (any(duplicated(hgSets$setId))) {
+  stop(
+    "duplicate homology group set identifiers found in the data:",
+    names(which(table(hgSets$setId) > 1))
+  )
+}
+
+hgSets <- dplyr::right_join(
+  x = hgSets, y = tibble::tibble(setId = setIds), by = "setId"
+)
+
+# read prophage HGs stored locally
+hgL <- dplyr::rowwise(hgSets) %>% 
+  dplyr::group_split() %>% 
+  purrr::map(
+    .f = function(x){
+      as.list(x) %>% purrr::list_flatten()
+    }
+  ) %>%
+  purrr::set_names(nm = purrr::map(., "setId"))
+
+allHgs <-  purrr::map(hgL, "hgs") %>% unlist(use.names = F) %>% unique()
+
+# prepare homology group PAV matrix from pan.db
+hgPavMat <- homology_groups_mat(
+  pandb = panOrgDb, type = "cnv",
+  groups = allHgs
+)
+
+hgPavMat <- hgPavMat[rawTree$tip.label, ]
+```
+
+
+```{r}
+hgMeta <- AnnotationDbi::select(
+  x = panOrgDb, keys = allHgs,
+  columns = c(
+    "GID", "genePos", "chr_id", "chr_name", "start", "end", "strand",
+    "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
+  )
+) %>%
+  dplyr::rename(hg = GID)
+
+# summarize COG and PFAM annotations
+cog <- dplyr::select(hgMeta, hg, COG_description) %>%
+  dplyr::distinct() %>%
+  dplyr::group_by(hg) %>%
+  dplyr::summarise(COG = paste(COG_description, collapse = ";"))
+
+pfam <- dplyr::select(hgMeta, hg, pfam_description) %>%
+  dplyr::filter(!is.na(pfam_description)) %>%
+  dplyr::distinct() %>%
+  dplyr::group_by(hg) %>%
+  dplyr::summarise(PFAM = paste(pfam_description, collapse = ";"))
+
+hgAn <- tidyr::unnest(hgSets, cols = c(hgs)) %>% 
+  dplyr::select(setId, hg = hgs) %>% 
+  dplyr::left_join(y = cog, by = "hg") %>%
+  dplyr::left_join(y = pfam, by = "hg") %>%
+  tidyr::replace_na(replace = list(COG = "-", PFAM = "-"))
+```
+
+```{r}
+#| tbl-cap: Diagnostics assay candidate homology group
+
+DT::datatable(
+  data = hgAn,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 400
+  ),
+  selection = 'none'
+)
+```
+
+## Data visualization
+
+```{r}
+#| column: page
+#| fig-height: 8
+#| fig-width: 16
+#| out-width: '200%'
+#| layout-valign: top
+
+htList <- species_key_heatmap(
+  genomes = rawTree$tip.label, speciesInfo = sampleInfo,
+  markGenomes = associatedGenomes,
+  use_raster = TRUE, raster_quality = 3
+)
+
+htList@heatmap_param$width <- unit(12, "cm")
+
+
+# plot heatmaps
+for (id in names(hgL)) {
+  
+  hgMat <- hgPavMat[, hgL[[id]]$hgs, drop = FALSE]
+  
+  ht <- homology_group_heatmap(
+    mat = hgMat, phy = rawTree,
+    # width = unit(10, "cm"),
+    name = id, column_title = id,
+    use_raster = TRUE, raster_quality = 3
+  )
+  
+  ht@column_dend_param$cluster <- FALSE
+  ht@column_names_param$show <- FALSE
+  
+  htList <- htList + ht
+}
+
+
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
+#| column: page
+#| echo: false
+
+pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 15, height = 8)
+ComplexHeatmap::draw(
+  object = htList,
+  main_heatmap = hgL[[1]]$setId,
+  row_dend_side = "left",
+  merge_legends = TRUE,
+  heatmap_legend_side = "bottom"
+  
+)
+dev.off()
+
+ComplexHeatmap::draw(
+  object = htList,
+  main_heatmap = hgL[[1]]$setId,
+  row_dend_side = "left",
+  merge_legends = TRUE,
+  heatmap_legend_side = "bottom"
+)
+```
+

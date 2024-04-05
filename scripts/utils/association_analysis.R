@@ -17,10 +17,17 @@ get_phenotype_association_genomes <- function(phenotype, confFile){
   assoConf <- suppressMessages(readr::read_tsv(confFile, col_types = "ccccc")) %>% 
     dplyr::filter(name == !!phenotype)
   
-  return(
-    list(compare = assoConf$compare, against = assoConf$against) %>% 
-      purrr::map(.f = ~stringr::str_split_1(.x, pattern = ","))
+  associated <- list(
+    compare = list(
+      genomes = stringr::str_split_1(assoConf$compare, pattern = ","),
+      color = "red"
+    ),
+    against = list(
+      genomes = stringr::str_split_1(assoConf$against, pattern = ","),
+      color = "green")
   )
+  
+  return(associated)
 }
 
 ################################################################################
@@ -78,7 +85,7 @@ phenotype_specific_groups <- function(phenotype, panConf, save = NULL){
         readr::write_tsv(x = phnSpeGrps, file = save, col_names = F)
       }
     }
-
+    
   }
   
   return(phenoSpecific$homology_group_id)

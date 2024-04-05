@@ -2,7 +2,7 @@
 
 ## Setup
 
-``` bash
+```bash
 #!/usr/bin/env bash
 
 shopt -s expand_aliases
@@ -31,13 +31,29 @@ export PANTOOLS="$PANTOOLS_4_1"
 
 ### Phenotype association
 
-``` bash
+A config file of following format will be parsed by the 
+`scripts/c_analysis/phylo.make_clade_cmp_conf.R` to generate a TSV file which
+can be used to run `pantools gene_classification` module.
+
+Input:
+
+| tree     | name | compareType | compare   | background | bgExcludeNode | bgExcludeTip |
+|----------|------|-------------|-----------|------------|---------------|--------------|
+| #kmer_nj | test | node        | n259,n269 | n279,n285  | n291          |           31 |
+
+```bash
 ## prepare clade comparison config and phenotype file
 conda activate r_4.2
 Rscript scripts/c_analysis/phylo.make_clade_cmp_conf.R
 ```
 
-``` bash
+Output:
+
+| name                | phenotypeArg                                                                                                                             | compare | against                                                                                | include                                                                                        |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------|---------|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| polaris_outlier_cmp | --phenotype=polaris_outlier_cmp --include=160,446,41,44,151,252,338,454,349,79,254,300,46,312,103,105,339,122,251,121,253,255,40,443,275 | 160,446 | 41,44,151,252,338,454,349,79,254,300,46,312,103,105,339,122,251,121,253,255,40,443,275 | 160,446,41,44,151,252,338,454,349,79,254,300,46,312,103,105,339,122,251,121,253,255,40,443,275 |
+
+```bash
 conda activate pantools_master
 
 ## add the updated phenotypes for association analysis
@@ -52,7 +68,7 @@ error_exit $?
 mkdir ${pan_db}/gene_classification.pheno
 
 ## Gene classification for each phenotype
-phenotypes=(`awk -F "\t" '{ if (NR!=1) {print $1} }' $PANGENOME_DIR/analysis_configs/pheno_association_config.tab`)
+phenotypes=(`awk -F "\t" '{ if (NR!=1) {print $1} }' $PANGENOME_DIR/analysis_configs/clade_association_config.tab`)
 for phn in ${phenotypes[@]}
 do
     process_start "gene_classification for phenotype $phn"
@@ -70,7 +86,7 @@ done
 rm -r ${pan_db}/gene_classification
 ```
 
-``` bash
+```bash
 conda activate r_4.2
 Rscript scripts/c_analysis/pheno_association_process.R
 Rscript scripts/c_analysis/phenotype_association_summary.R
@@ -79,7 +95,7 @@ Rscript scripts/c_analysis/phenotype_association_summary.R
 
 ### Extract specific information from pangenome
 
-``` bash
+```bash
 ## Extract specific information from pangenome
 ##************
 # Replace the analysis/04_pangenome_pecto_v2/pheno_association/phenotype_specific_groups.txt
@@ -137,7 +153,7 @@ done < <(grep '^assay_FN\b' analysis/04_pangenome_pecto_v2/pheno_association/phe
 
 Run blastn on phenotype specific sequences against pangenome to verify that the homology group based specificity is not because of lack of annotation
 
-``` bash
+```bash
 conda activate omics_py37
 
 # BLAST the assay specific sequence against pangenome
@@ -164,7 +180,7 @@ error_exit $?
 ######################################################################
 ```
 
-``` bash
+```bash
 ## process pangenome blast results and visualize 
 Rscript scripts/c_analysis/pheno_association.blastn_viz.R
 ```
