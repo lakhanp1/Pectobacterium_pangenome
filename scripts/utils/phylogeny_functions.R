@@ -72,7 +72,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
     dplyr::full_join(y = metadata, by = c("label" = "genomeId")) %>%
     treeio::as.treedata()
   
-  pt_tree <- ggtree::ggtree(phy, ladderize = FALSE)
+  pt_tree <- ggtree::ggtree(phy, ladderize = TRUE)
   
   species_order <-  tibble:::enframe(
     ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
@@ -95,8 +95,8 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
   pt_tree2 <- pt_tree +
     theme_tree() +
     geom_treescale(
-      x = 0.01, y = nrow(metadata) * 0.95,
-      fontsize = 8, linesize = 2, offset = 4
+      x = 0.05, y = nrow(metadata) * 0.9,
+      fontsize = 8, linesize = 2, offset = 2
     ) +
     scale_y_continuous(expand=c(0, 10)) +
     ggtree::geom_tiplab(

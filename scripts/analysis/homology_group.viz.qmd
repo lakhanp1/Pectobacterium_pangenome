@@ -4,6 +4,17 @@ date: "`r Sys.time()`"
 format: 
   html: 
     embed-resources: true
+params:
+  tree:
+    label: "Phylogenetic tree"
+    value: kmer_upgma
+    input: select
+    choices: [kmer_upgma, kmer_nj, core_snp_ml, ani_nj]
+  name:
+    label: "Analysis name"
+    input: text
+    value: "HG_pav"
+  
 ---
 
 ***
@@ -40,13 +51,9 @@ source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
-analysisName <- "top_prophage_clusters"
+analysisName <- "assay_HG_pav"
 
-setIds <- c(
-  # "g_3.vir_4", "g_189.vir_2", "g_399.vir_2", "g_189.vir_1", "g_172.vir_2"
-  # "g_438.vir_2"
-  "g_438.vir_2", "g_404.vir_1", "g_302.vir_2", "g_273.vir_3", "g_311.vir_3", "g_389.vir_4", "g_239.vir_3", "g_364.vir_3", "g_142.vir_2", "g_119.vir_2", "g_274.vir_6", "g_419.vir_2", "g_10.vir_3", "g_200.vir_2"
-)
+setIds <- c("LZI", "TIR", "assay_FN")
 
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
@@ -55,22 +62,23 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-
-# add any homology group set file created to this vector
-# `setIds` are searched in these files to identify respective homology groups
-# for plotting
-hgSetFiles <- c(
-  confs$analysis$prophages$preprocessing$files$raw_prophage_hg
-  # confs$analysis$homology_groups$files$hg_sets
-)
-
-outDir <- file.path(confs$analysis$prophages$dir)
+outDir <- confs$analysis$insilico_assay$dir
 outPrefix <- file.path(outDir, analysisName)
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+
+# add any homology group set file created to this vector
+# `setIds` are searched in these files to identify respective homology groups
+# for plotting
+hgSetFiles <- c(
+  confs$analysis$homology_groups$files$hg_sets,
+  confs$analysis$association$files$pheno_specific_groups,
+  confs$analysis$prophages$preprocessing$files$raw_prophage_hg
+)
+
 ```
 
 ## Import data
@@ -80,11 +88,9 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
-sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+rawTree <- import_tree(
+  file = confs$analysis$phylogeny[[treeMethod]]$files$tree, phylo = TRUE
 )
-
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
@@ -92,7 +98,7 @@ speciesOrder <- suppressMessages(
 
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
-  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+  SpeciesName = forcats::fct_relevel(SpeciesName, !!!rev(speciesOrder$SpeciesName))
 )
 
 ```
@@ -110,7 +116,7 @@ for (st in hgSetFiles) {
       hgs = stringr::str_split(hgs, ";"),
       setSource = st
     ) %>%
-    dplyr::select(id = prophage_id, hgs, setSource)
+    dplyr::select(id, hgs, setSource)
   
   
   hgSets <- dplyr::bind_rows(hgSets, df)
@@ -149,13 +155,17 @@ htList <- species_key_heatmap(
 
 htList@heatmap_param$width <- unit(12, "cm")
 
+# prepare homology group PAV matrix from pan.db
+hgPavMat <- homology_groups_mat(
+  pandb = panOrgDb, type = "pav",
+  groups = purrr::map(hgL, "hgs") %>% unlist(use.names = F) %>% unique()
+)
+
+hgPavMat <- hgPavMat[rawTree$tip.label, ]
+
 for (id in names(hgL)) {
-  # prepare homology group PAV matrix from pan.db
-  hgMat <- homology_groups_mat(
-    pandb = panOrgDb, type = "pav", groups = hgL[[id]]$hgs
-  )
   
-  hgMat <- hgMat[rawTree$tip.label, ]
+  hgMat <- hgPavMat[, hgL[[id]]$hgs, drop = FALSE]
   
   ht <- homology_group_heatmap(
     mat = hgMat, phy = rawTree,
@@ -171,7 +181,17 @@ for (id in names(hgL)) {
 }
 
 
-pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 16, height = 8)
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
+#| column: page
+#| echo: false
+
+pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 12, height = 8)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = hgL[[1]]$id,
@@ -190,8 +210,6 @@ ComplexHeatmap::draw(
   heatmap_legend_side = "bottom"
 )
 ```
-
-
 
 
 

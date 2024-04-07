@@ -1,0 +1,138 @@
+---
+title: "Visualize tandem HG matches on pangenome"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
+source("scripts/utils/heatmap_utils.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+prophageGrps <- c(
+  # "phage_grp_71", "phage_grp_21", "phage_grp_12",
+  "phage_grp_343", "phage_grp_107", "phage_grp_46", "phage_grp_45"
+)
+
+
+outDir <- confs$analysis$prophages$dir
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj, kmer_upgma
+
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+)
+
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
+  phylo = TRUE
+)
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
+
+```
+
+### Import prophages cluster data
+
+```{r}
+phageClusters <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$clusters)
+) %>% 
+  dplyr::right_join(
+    y = tibble::tibble(phage_grp = prophageGrps), by = "phage_grp"
+  ) %>% 
+  dplyr::mutate(
+    fragmented = dplyr::if_else(nFragments > 1, "y", "n"),
+    phage_grp = forcats::fct_relevel(phage_grp, !!!prophageGrps)
+  ) %>% 
+  dplyr::select(prophage_id, genomeId, phage_grp, fragmented, fragments, nFragments,
+                prophage_length, nHg, completeness, taxonomy, is_root, root_id)
+```
+
+## Identify the genomes to show for phylogenetic tree
+
+```{r}
+
+# add type strains to provide more context
+typeStrainIds <- dplyr::filter(sampleInfo, !is.na(type_material)) %>%
+  dplyr::slice(1, .by = SpeciesName) %>% 
+  dplyr::pull(genomeId)
+
+genomesToShow <- union(phageClusters$genomeId, typeStrainIds)
+```
+
+## Plot the phylogenetic tree with prophage PAV
+
+```{r}
+
+pt_phy <- ggtree_with_species(
+  phy = rawTree, metadata = sampleInfo, genomes = genomesToShow,
+  trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch,
+  make_species_key = FALSE
+)
+
+pt_all <- pt_phy$tree +
+  ggnewscale::new_scale_fill() +
+  ggtreeExtra::geom_fruit(
+    geom = geom_tile, data = phageClusters,
+    mapping = aes(y = genomeId, x = phage_grp, fill = fragmented),
+    pwidth = 0.2, width = 0.02,
+    offset = 0.03,
+    axis.params = list(axis = "x", text.size = 5, hjust = 1, text.angle = 45)
+  ) +
+  scale_fill_manual(
+    name = NULL,
+    values = c("y" = "black", "n" = "black"),
+    na.value = alpha("white", 1),
+    guide = NULL,
+    na.translate = FALSE
+  )
+
+ggsave(
+  filename = paste(outDir, "/blackleg_clade_prophage_grps.pdf", sep = ""),
+  plot = pt_all, width = 5, height = 10
+)
+```
+
