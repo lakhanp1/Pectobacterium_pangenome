@@ -26,32 +26,38 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
 
-grpToView <- "phage_grp_45"
-subSample <- TRUE 
-cutHeight <- 0.5
+grpToView <- "ctv_typeStrains"
+subSample <- FALSE
+cutHeight <- 1.5
 addFlankingRegions <- TRUE
-flankingRegion <- 5000
+flankingRegion <- 6000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "host" # host, hg_pav, cluster_mash
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
 
 # a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c("g_400.vir_2")
+appendPhages <- c()
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_406_reg = list(
-    chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"
+  g_385_reg = list(
+    chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"
+  ),
+  g_386_reg = list(
+    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
+  ),
+  g_451_reg = list(
+    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
   )
 )
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
-regions_phy_ordered <- FALSE
+regions_phy_ordered <- TRUE
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
@@ -183,16 +189,16 @@ hgColors <- dplyr::left_join(phageHgTypes2, hgFuncColors, by = "function_categor
 # prepare clusterjs JSON for a cluster/grp
 grp <- clusterList[[grpToView]]
 
-# # optionally, a custom region list can be provided to generate the plot
-# grp <- list(
-#   phage_grp = grpToView,
-#   members = c(
-#     "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
-#     "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
-#     "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
-#     "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
-#   )
-# )
+# optionally, a custom region list can be provided to generate the plot
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_345.vir_1", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_365.vir_3",
+    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
+    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+  )
+)
 
 # frequency for all HGs in the prophages in current cluster
 grpHgFreq <- regionList[grp$members] %>%

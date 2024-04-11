@@ -349,7 +349,7 @@ appendPhages <- c()
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
   g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 203147, end = 206622, genomeId = "g_385"
+    chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"
   ),
   g_386_reg = list(
     chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
@@ -359,12 +359,16 @@ customRegions <- list(
   )
 )
 
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- TRUE
+
 
 
 grp <- list(
   phage_grp = grpToView,
   members = c(
-    "g_158.vir_2", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_296.vir_3",
+    "g_345.vir_1", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_365.vir_3",
     "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
     "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
     "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
