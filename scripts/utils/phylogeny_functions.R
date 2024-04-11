@@ -59,7 +59,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
   )
   
   if(!is.null(genomes)){
-    phy <- ape::keep.tip(phy = phy, tip = genomesToShow)
+    phy <- ape::keep.tip(phy = phy, tip = genomes)
     
     metadata <- dplyr::left_join(
       x = tibble::tibble(genomeId = genomes),

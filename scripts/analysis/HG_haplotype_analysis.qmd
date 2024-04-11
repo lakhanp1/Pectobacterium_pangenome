@@ -66,8 +66,6 @@ rawTree <- import_tree(
   phylo = TRUE
 )
 
-rawTree <- ape::ladderize(rawTree, right = FALSE)
-
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 ) %>% 
@@ -161,6 +159,18 @@ ht_upset <- ComplexHeatmap::UpSet(
     gap = unit(4, "mm")
   )
 )
+
+ht_upset <- ht_upset +
+  ComplexHeatmap::rowAnnotation(
+   "Number of\ngenomes" = ComplexHeatmap::anno_barplot(
+      x = dplyr::count(regionHaplotypes, SpeciesName) %>% 
+        dplyr::pull(var = n, name = SpeciesName),
+      border = FALSE,
+      add_numbers = TRUE,
+      gp = gpar(fill = "black"), width = unit(2, "cm")
+    ),
+   gap = unit(3, "mm")
+  )
 ```
 
 ```{r}
@@ -207,6 +217,7 @@ DT::datatable(
 ```{r}
 pt_phy <- ggtree_with_species(
   phy = rawTree, metadata = sampleInfo,
+  genomes = regionHaplotypes$genomeId,
   trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch
 )
 
