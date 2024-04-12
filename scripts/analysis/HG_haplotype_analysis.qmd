@@ -217,7 +217,7 @@ DT::datatable(
 ```{r}
 pt_phy <- ggtree_with_species(
   phy = rawTree, metadata = sampleInfo,
-  genomes = regionHaplotypes$genomeId,
+  genomes = c(regionHaplotypes$genomeId, confs$analysis$phylogeny$outgroup_genome),
   trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch
 )
 
@@ -286,4 +286,58 @@ pt_all
 
 Species order from left to right on species key heatmap:
 `r paste(pt_phy$species_order, sep = "; ")`
+
+
+## Use the TFL signature present in diverse species to select MSA candidates.
+
+```{r}
+
+egTfl <- dplyr::arrange(combMetadata, desc(n_species)) %>% 
+  dplyr::slice(1:3) %>% 
+  dplyr::pull(haplotype) %>% 
+  stringr::str_split(pattern = ";") %>% 
+  unlist()
+
+msaGenomes <- dplyr::filter(regionHaplotypes, haplotype %in% !!egTfl) %>%
+  dplyr::group_by(haplotype, SpeciesName) %>% 
+  dplyr::slice(1L) %>% 
+  dplyr::select(regionId, genomeId, haplotype, SpeciesName, everything())
+
+
+# # type strain genomes
+# msaGenomes <- union(
+#   msaGenomes,
+#   c("g_158", "g_446", "g_66", "g_222", "g_296", "g_442", "g_8",
+#     "g_38", "g_273", "g_259", "g_305", "g_378", "g_428", "g_248",
+#     "g_449", "g_54", "g_116", "g_423", "g_375", "g_381")
+# )
+
+paste(msaGenomes$genomeId, collapse = ",")
+
+```
+
+
+```{r}
+#| tbl-cap: representatives used to align and compare tree
+#| out-height: "200px"
+#| echo: false
+
+DT::datatable(
+  data = msaGenomes,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
 

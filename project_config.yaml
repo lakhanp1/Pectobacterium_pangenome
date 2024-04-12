@@ -225,6 +225,7 @@ analysis:
   phylogeny:
     name: "phylogeny"
     outgroup: "104326-106-074"
+    outgroup_genome: "g_451"
     dir: "pangenome_v2/phylogeny"
     default: "kmer_nj"
     files:
