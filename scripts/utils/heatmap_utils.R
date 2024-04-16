@@ -38,7 +38,7 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
     matrix = mat,
     cluster_rows = clust,
     cluster_columns = clust,
-    show_row_dend = TRUE, show_column_dend = FALSE,
+    show_row_dend = TRUE,
     row_dend_width = unit(3, "cm"),
     show_row_names = FALSE, show_column_names = FALSE,
     ...

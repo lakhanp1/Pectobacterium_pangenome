@@ -285,6 +285,7 @@ ht_jaccard <- plot_species_ANI_heatmap(
   col = circlize::colorRamp2(
     breaks = colorList$jaccard$breaks, colors = colorList$jaccard$colors
   ),
+  show_column_dend = TRUE, column_dend_height = unit(3, "cm"),
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
   ),
@@ -316,6 +317,7 @@ ht_mash <- plot_species_ANI_heatmap(
   phy = phagePhylo,
   name = "mash",
   column_title = "MASH distance",
+  show_column_dend = FALSE,
   col = circlize::colorRamp2(
     breaks = colorList$mash$breaks, colors = colorList$mash$colors
   ),
@@ -340,7 +342,7 @@ htList <- ht_jaccard + ht_mash
 
 pdf(
   file = file.path(outDir, "prophage_jaccard_clustering.pdf"),
-  width = 16, height = 8
+  width = 15, height = 8
 )
 ComplexHeatmap::draw(
   htList,
