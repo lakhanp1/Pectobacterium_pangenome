@@ -413,11 +413,6 @@ if(!regions_phy_ordered){
     )
 }
 
-readr::write_tsv(
-  dplyr::arrange(grpMemberData, pav_order),
-  file = paste(outPrefix, ".shown_clusters.txt", sep = "")
-)
-
 viewClusters <- dplyr::case_when(
   clusterOrder == "host" ~
     grpMemberData$region_id[order(grpMemberData$host_order)],
@@ -433,13 +428,12 @@ regDf <- purrr::map(
   .x = regionList[viewClusters],
   .f = function(x){
     tibble::tibble(
-      chr = x$chr, start = x$start, end = x$end, genomeId = x$genomeId
+      genomeId = x$genomeId, chr = x$chr, start = x$start, end = x$end
     )
   }
 ) %>% 
   purrr::list_rbind(names_to = "region_id")
 
-# regDf %<>% dplyr::filter(genomeId %in% c("g_385", "g_248", "g_305", "g_386"))
 
 # create JSON data structure for clustermap.js
 cmJson <- clustermap_data(
@@ -447,6 +441,13 @@ cmJson <- clustermap_data(
   group_colors = hgColors,
   file = paste(outPrefix, ".json", sep = "")
 )
+
+dplyr::arrange(grpMemberData, pav_order) %>% 
+  dplyr::select(-genomeId) %>% 
+  dplyr::left_join(y = regDf, by = "region_id") %>% 
+  readr::write_tsv(
+    file = paste(outPrefix, ".shown_clusters.txt", sep = "")
+  )
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
