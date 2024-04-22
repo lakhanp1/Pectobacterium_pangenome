@@ -129,21 +129,21 @@ rootNode <- rootnode(treeTbl)
 # ) +
 # ggnewscale::new_scale_color()
 
-pt_tree <- ggtree::ggtree(tr = treeTbl, color="black") +
+pt_tree <- ggtree::ggtree(tr = treeTbl, color="black", size = 0.7) +
   theme_tree2() +
   ggtree::geom_point2(
     mapping = aes(
       subset = !isTip & node != rootNode, 
       color = cut(bootstrap, c(0, 70, 90, 100))),
-    shape = 16, size = 1
+    shape = 16, size = 2
     
   ) +
   scale_color_manual(
     values = c("blue", "#f781bf", "black"),
     guide = guide_legend(override.aes = list(size = 6), order = 1),
-    name = 'Bootstrap Percentage(BP)', 
+    name = 'Bootstrap %', 
     breaks = c('(0,70]', '(70,90]'), 
-    labels = expression(BP < 70, 70 <= BP * " < 90"),
+    labels = expression(BP < "70%", "70%" <= BP * " < 90%"),
     na.value = "transparent"
   ) +
   ggnewscale::new_scale_fill()
@@ -161,11 +161,30 @@ pt_tree$data$x[longestBranch] <- 0.47
 ### View tree with metadata
 
 ```{r}
+# theme for legend adjustment
+theme_legend <- ggplot2::theme(
+  legend.justification = c(0, 1),
+  legend.box = "vertical",
+  legend.text = element_text(size = 16),
+  legend.title = element_text(size = 18, face = "bold")
+)
+
+# theme for ggplot
+pt_theme <- ggplot2::theme_bw() +
+  theme(
+    axis.text.y = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title = element_blank()
+  ) +
+  theme_legend
 
 pt_tree2 <- pt_tree +
   theme_tree() +
   geom_treescale(
-    x = 0.01, y = nrow(sampleInfo) * 0.95,
+    x = 0, y = nrow(sampleInfo) * 0.5,
     fontsize = 8, linesize = 2, offset = 4
   ) +
   # layout_fan(angle = 10) +
@@ -173,9 +192,10 @@ pt_tree2 <- pt_tree +
   ggnewscale::new_scale_color() +
   ggtree::geom_tiplab(
     mapping = aes(label = NA),
-    align = TRUE, linesize = 0.4
+    align = TRUE, linesize = 0.25
   )  +
-  ggnewscale::new_scale_color()
+  ggnewscale::new_scale_color() +
+  theme_legend
 
 spKeyDf <- get_species_key_data(
   genomes = sampleInfo$genomeId, speciesInfo = sampleInfo, type = 'wide'
@@ -187,56 +207,47 @@ spKeyDf <- get_species_key_data(
   ) %>% 
   dplyr::mutate(sp = forcats::fct_relevel(sp, !!!speciesOrder$SpeciesName))
 
-pt_tree3 <- pt_tree2 +
-  # continent
-  ggtreeExtra::geom_fruit(
-    geom = geom_tile,
-    mapping = aes(fill = continent),
-    width = 0.01,
-    offset = 0.03
+
+
+# species key
+pt_spKey <- dplyr::rename(spKeyDf, label = genomeId) %>% 
+  ggplot2::ggplot(mapping = aes(x = sp, y = label)) +
+  ggplot2::geom_tile(
+    mapping = aes(fill = spCol)
   ) +
   scale_fill_manual(
-    name = "Continent of isolation",
-    values = c("#E6AC00", "#D12E96", "#5E8B3A", "#AA741D", "#A5E7E1", "#244360"),
-    na.value = alpha("white", 1),
-    guide = guide_legend(override.aes = list(size = 6), order = 2),
-    na.translate = FALSE
+    values = c("0" = "grey95", "1" = "black"),
+    guide = "none"
   ) +
-  ggnewscale::new_scale_fill() +
-  # mRNA count difference with species median
-  ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, x = mRNA_med_diff),
-    geom = geom_bar,
-    fill = "white", color = "black",
-    offset = 0.07,
-    pwidth = 0.05,
-    orientation="y",
-    stat="identity",
-    # grid.params = list(vline = TRUE, color = "grey"),
-    axis.params = list(
-      axis = "x", text.size = 2, hjust = 1, nbreak = 2, text.angle = 90
-    )
+  pt_theme +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+# blackleg pcr
+pt_pcr <- dplyr::select(sampleInfo, label = genomeId, virulence_pcr) %>% 
+  ggplot2::ggplot(mapping = aes(x = "pcr", y = label)) +
+  ggplot2::geom_tile(mapping = aes(fill = virulence_pcr)) +
+  # ggplot2::geom_point(mapping = aes(color = virulence_pcr), size = 1) +
+  scale_fill_manual(
+    name = "PCR BL diagnosis",
+    values = c("red", "green"),
+    breaks = c("positive", "negative"),
+    na.value = alpha("white", 0),
+    guide = guide_legend(override.aes = list(size = 6), order = 2)
   ) +
-  # %GC
-  ggtreeExtra::geom_fruit(
-    geom = geom_bar,
-    mapping = aes(y = id, x = GC_content - 50),
-    fill = "white", color = "black",
-    offset = 0.02,
-    pwidth = 0.07,
-    orientation = "y",
-    stat = "identity",
-    # grid.params = list(vline = TRUE, color = "white"),
-    axis.params = list(
-      axis = "x", text.size = 2, hjust = 1, nbreak = 2, text.angle = 90
-    )
-  ) +
-  ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, x = "virulence", color = virulence),
-    geom = geom_point, shape = 17, size = 1,
-    pwidth = 0.02, offset = 0.015
-  ) +
-  scale_color_manual(
+  pt_theme +
+  theme(
+    axis.text = element_blank(), axis.ticks = element_blank()
+  )
+
+# blackleg field trial
+pt_bl <- dplyr::select(sampleInfo, label = genomeId, virulence) %>% 
+  ggplot2::ggplot(mapping = aes(x = "pcr", y = label)) +
+  ggplot2::geom_tile(mapping = aes(fill = virulence)) +
+  # ggplot2::geom_point(mapping = aes(color = virulence), size = 1, shape = 17) +
+  scale_fill_manual(
     name='Field trial',
     values = c("red", "green", "black"),
     breaks = c("virulent", "avirulent", "inconclusive"),
@@ -244,43 +255,78 @@ pt_tree3 <- pt_tree2 +
     na.value = alpha("white", 0),
     guide = guide_legend(override.aes = list(size = 6), order = 3)
   ) +
-  ggnewscale::new_scale_color() +
-  # virulence PCR result
-  ggtreeExtra::geom_fruit(
-    geom = geom_point, size = 1,
-    mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
-    pwidth = 0.02, offset = 0.015
-  ) +
-  scale_color_manual(
-    name = "PCR BL diagnosis",
-    values = c("red", "green"),
-    breaks = c("positive", "negative"),
-    na.value = alpha("white", 0),
-    guide = guide_legend(override.aes = list(size = 6), order = 4)
-  ) +
-  ggnewscale::new_scale_color() +
-  # species key
-  ggtreeExtra::geom_fruit(
-    geom = geom_tile, data = spKeyDf,
-    mapping = aes(y = genomeId, x = forcats::fct_rev(sp), fill = spCol),
-    colour = "transparent",
-    pwidth = 0.15, offset = 0.015
-  ) +
-  scale_fill_manual(
-    values = c("0" = "grey95", "1" = "black"),
-    guide = "none"
-  ) +
+  pt_theme +
   theme(
-    legend.position = c(0.05, 0.90),
-    legend.justification = c(0, 1),
-    legend.box = "vertical",
-    legend.text = element_text(size = 16),
-    legend.title = element_text(size = 18, face = "bold")
+    axis.text = element_blank(), axis.ticks = element_blank()
   )
+
+# continent
+pt_loc <- dplyr::select(sampleInfo, label = genomeId, continent) %>% 
+  ggplot2::ggplot(mapping = aes(x = "location", y = label)) +
+  ggplot2::geom_tile(mapping = aes(fill = continent)) +
+  scale_fill_manual(
+    name = "Continent of isolation",
+    values = c("#E6AC00", "#D12E96", "#5E8B3A", "#AA741D", "#A5E7E1", "#244360"),
+    na.value = alpha("white", 1),
+    guide = guide_legend(override.aes = list(size = 6), order = 4),
+    na.translate = FALSE
+  ) +
+  pt_theme +
+  theme(
+    axis.text = element_blank(), axis.ticks = element_blank()
+  )
+
+# genome size
+pt_len <- dplyr::select(sampleInfo, label = genomeId, length) %>% 
+  ggplot2::ggplot(mapping = aes(x = length - median(length), y = label)) +
+  ggplot2::geom_bar(fill = "white", color = "black", stat = "identity") +
+  scale_x_continuous(
+    breaks = scales::breaks_pretty(n = 3),
+    labels = label_number(scale_cut = c(kb = 1000, mb = 1000000))
+  ) +
+  pt_theme +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 16)
+  )
+
+# mRNA count difference with species median
+pt_gene_count <- dplyr::select(sampleInfo, label = genomeId, mRNA_count) %>% 
+  ggplot2::ggplot(mapping = aes(x = mRNA_count - median(mRNA_count), y = label)) +
+  ggplot2::geom_bar(fill = "white", color = "black", stat = "identity") +
+  scale_x_continuous(
+    breaks = scales::breaks_pretty(n = 3)
+  ) +
+  pt_theme +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 16)
+  )
+
+# %GC
+pt_gc <- dplyr::select(sampleInfo, label = genomeId, GC_content) %>% 
+  ggplot2::ggplot(mapping = aes(x = GC_content, y = label)) +
+  ggplot2::geom_bar(fill = "white", color = "black", stat = "identity") +
+  ggplot2::coord_cartesian(xlim = c(50, NA)) +
+  scale_x_continuous(
+    n.breaks = 2,
+    breaks = scales::breaks_pretty(n = 1)
+  ) +
+  pt_theme +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 16)
+  )
+
+
+pt_tree3 <- pt_spKey %>% aplot::insert_left(pt_tree2, width = 6) %>% 
+  aplot::insert_right(pt_pcr, width = 0.2) %>% 
+  aplot::insert_right(pt_bl, width = 0.2) %>% 
+  aplot::insert_right(pt_loc, width = 0.2) %>% 
+  # aplot::insert_right(pt_len, width = 0.8) %>% 
+  aplot::insert_right(pt_gene_count, width = 0.8) %>%
+  aplot::insert_right(pt_gc, width = 0.5)
 
 ggsave(
   filename = paste(outPrefix, ".tree_plot.pdf", sep = ""), plot = pt_tree3,
-  width = 12, height = 16
+  width = 15, height = 16
 )
 
 ```
