@@ -50,7 +50,7 @@ outDir <- confs$analysis$prophages$dir
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 prophageLenCutoff <- confs$analysis$prophages$cutoff_length
-treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
+treeMethod <- "kmer_nj" # ani_upgma, kmer_nj
 
 ```
 
@@ -60,19 +60,19 @@ treeMethod <- "kmer_nj"     #ani_upgma, kmer_nj
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
-) %>% 
-  dplyr::select(prophage_id = id, nHgs, hgs) %>% 
+) %>%
+  dplyr::select(prophage_id = id, nHgs, hgs) %>%
   dplyr::mutate(
     hgs = stringr::str_split(hgs, ";")
   )
 
-phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
   dplyr::select(prophage_id, sampleId, taxonomy, completeness, checkv_quality)
 
 rawTree <- import_tree(
@@ -93,9 +93,9 @@ mergedPhages <- suppressMessages(
 fragmented <- dplyr::filter(mergedPhages, nFragments > 1)
 removedPro <- dplyr::filter(mergedPhages, filtered != 0 | nFragments > 1)
 
-phages <- dplyr::filter(mergedPhages, filtered == 0, nFragments == 1) %>% 
-  dplyr::left_join(y = phagesRaw, by = "prophage_id") %>% 
-  dplyr::left_join(proHgs, by = "prophage_id") %>% 
+phages <- dplyr::filter(mergedPhages, filtered == 0, nFragments == 1) %>%
+  dplyr::left_join(y = phagesRaw, by = "prophage_id") %>%
+  dplyr::left_join(proHgs, by = "prophage_id") %>%
   dplyr::relocate(sampleId, taxonomy, completeness, checkv_quality, .after = genomeId)
 
 phageHgDf <- tibble::tibble(hgId = unlist(phages$hgs) %>% unique())
@@ -138,7 +138,7 @@ Total homology groups of the filtered prophage set:
 
 completenessDf <- dplyr::select(
   phages, prophage_id, genomeId, prophage_length, completeness
-) %>% 
+) %>%
   dplyr::mutate(
     comp_category = dplyr::case_when(
       completeness == 100 ~ "complete",
@@ -149,46 +149,83 @@ completenessDf <- dplyr::select(
     comp_category = forcats::fct_relevel(
       .f = comp_category, "complete", "gt_90", "betn_50_90", "lt_50"
     )
-  )
+  ) %>%
+  dplyr::arrange(comp_category)
 
-shortestCompletePro <- dplyr::filter(completenessDf, completeness >= 90) %>% 
-  dplyr::arrange(prophage_length) %>% 
+shortestCompletePro <- dplyr::filter(completenessDf, completeness >= 90) %>%
+  dplyr::arrange(prophage_length) %>%
   dplyr::slice(1L)
 
-(
-  pt_sizeDens <- ggplot2::ggplot(
-    data = completenessDf,
-    mapping = aes(x = prophage_length, color = comp_category, group = NA)
-  ) +
-    ggdist::geom_dots(layout = "weave", smooth = "bounded", scale = 1, shape = 19) +
-    scale_color_manual(
-      name = "CheckV completeness",
-      values = c(
-        "complete" = "#4daf4a", "gt_90" = "#b2df8a",
-        "betn_50_90" = "#ff7f00", "lt_50" = "grey50"
-      ),
-      labels = c(
-        "complete" = "100%", "gt_90" = ">= 90%",
-        "betn_50_90" = "[50%, 90%)", "lt_50" = "< 50%"
-      )
-    ) +
-    scale_x_continuous(
-      labels = scales::label_number(scale_cut = c(0, kb = 10^3, mb = 10^6)),
-      breaks = scales::breaks_extended(6),
-      limits = c(0, NA), expand = expansion(mult = c(0, 0.05))
-    ) +
-    scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
-    labs(x = "Prophage length", y = "density") +
-    theme_bw(base_size = 18) +
-    theme(
-      panel.grid = element_blank(),
-      legend.position = c(0.95, 0.95),
-      legend.justification = c(1, 1)
+pt_sizeHist <- ggplot2::ggplot(
+  data = completenessDf,
+  mapping = aes(x = prophage_length)
+) +
+  ggplot2::geom_histogram(mapping = aes(fill = comp_category), bins = 40) +
+  scale_fill_manual(
+    name = "CheckV completeness",
+    values = c(
+      "complete" = "#4daf4a", "gt_90" = "#b2df8a",
+      "betn_50_90" = "#ff7f00", "lt_50" = "grey50"
+    ),
+    labels = c(
+      "complete" = "100%", "gt_90" = ">= 90%",
+      "betn_50_90" = "[50%, 90%)", "lt_50" = "< 50%"
     )
+  ) +
+  scale_x_continuous(
+    labels = scales::label_number(scale_cut = c(0, kb = 10^3, mb = 10^6)),
+    breaks = scales::breaks_extended(6),
+    limits = c(0, NA), expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
+  labs(x = "Prophage length", y = "Count") +
+  theme_bw(base_size = 20) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = c(0.95, 0.95),
+    legend.text = element_text(size = 20),
+    legend.title = element_text(size = 20, face = "bold"),
+    legend.justification = c(1, 1),
+    plot.margin = unit(c(1, 1, 1, 1), "cm")
+  )
+
+
+pt_sizeDens <- ggplot2::ggplot(
+  data = completenessDf,
+  mapping = aes(x = prophage_length, color = comp_category, group = NA)
+) +
+  ggdist::geom_dots(layout = "weave", smooth = "bounded", scale = 1, shape = 19) +
+  scale_color_manual(
+    name = "CheckV completeness",
+    values = c(
+      "complete" = "#4daf4a", "gt_90" = "#b2df8a",
+      "betn_50_90" = "#ff7f00", "lt_50" = "grey50"
+    ),
+    labels = c(
+      "complete" = "100%", "gt_90" = ">= 90%",
+      "betn_50_90" = "[50%, 90%)", "lt_50" = "< 50%"
+    )
+  ) +
+  scale_x_continuous(
+    labels = scales::label_number(scale_cut = c(0, kb = 10^3, mb = 10^6)),
+    breaks = scales::breaks_extended(6),
+    limits = c(0, NA), expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
+  labs(x = "Prophage length", y = "density") +
+  theme_bw(base_size = 20) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = c(0.95, 0.95),
+    legend.justification = c(1, 1)
+  )
+
+ggsave(
+  filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
+  plot = pt_sizeHist, width = 8, height = 5
 )
 
-ggsave(filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
-       plot = pt_sizeDens, width = 8, height = 5)
+pt_sizeDens
 ```
 
 ## Prophage summary
@@ -205,10 +242,10 @@ table(phages$taxonomy)
 #| out-width: "50%"
 
 (
-  pt_proTax <- dplyr::select(phages, taxonomy) %>% 
+  pt_proTax <- dplyr::select(phages, taxonomy) %>%
     dplyr::mutate(
       taxonomy = stringr::str_replace(taxonomy, ".*;", "")
-    ) %>% 
+    ) %>%
     ggplot2::ggplot() +
     geom_bar(mapping = aes(x = taxonomy)) +
     ggbreak::scale_y_break(breaks = c(10, 1290)) +
@@ -220,8 +257,10 @@ table(phages$taxonomy)
     )
 )
 
-ggsave(filename = paste(outDir, "/prophage_taxonomy.pdf", sep = ""),
-       plot = pt_proTax, width = 4, height = 7)
+ggsave(
+  filename = paste(outDir, "/prophage_taxonomy.pdf", sep = ""),
+  plot = pt_proTax, width = 4, height = 7
+)
 ```
 
 ### Prophage summary per genome
@@ -229,37 +268,37 @@ ggsave(filename = paste(outDir, "/prophage_taxonomy.pdf", sep = ""),
 ```{r}
 
 # completeness stats
-proCompletenessStats <- dplyr::select(completenessDf, genomeId, comp_category) %>% 
-  dplyr::count(genomeId, comp_category, name = "n") %>% 
+proCompletenessStats <- dplyr::select(completenessDf, genomeId, comp_category) %>%
+  dplyr::count(genomeId, comp_category, name = "n") %>%
   tidyr::pivot_wider(
     id_cols = genomeId,
     names_from = comp_category,
     values_from = n,
     values_fill = 0
-  ) %>% 
+  ) %>%
   dplyr::select(genomeId, complete, gt_90, betn_50_90, lt_50)
 
 # fragmented or filtered prophages stats
-fragmentStats <- dplyr::select(removedPro, prophage_id, genomeId, nFragments, filtered) %>% 
+fragmentStats <- dplyr::select(removedPro, prophage_id, genomeId, nFragments, filtered) %>%
   dplyr::mutate(
     removed = dplyr::case_when(
       filtered == 1 ~ "filtered",
       nFragments > 1 ~ "fragmented"
     )
-  ) %>% 
-  dplyr::count(genomeId, removed, name = "n") %>% 
+  ) %>%
+  dplyr::count(genomeId, removed, name = "n") %>%
   tidyr::pivot_wider(
     id_cols = genomeId,
     names_from = removed,
     values_from = n,
     values_fill = 0
-  ) %>% 
+  ) %>%
   dplyr::mutate(
     removed = filtered + fragmented
   )
 
 
-perGenomePhageInfo <- dplyr::group_by(phages, genomeId) %>% 
+perGenomePhageInfo <- dplyr::group_by(phages, genomeId) %>%
   dplyr::summarise(
     phage_count = n(),
     longest_phage = max(prophage_length),
@@ -271,24 +310,24 @@ perGenomePhageInfo <- dplyr::group_by(phages, genomeId) %>%
     hgs = list(unlist(hgs)),
     nHgsUnique = length(unique(unlist(hgs))),
     .groups = "drop"
-  ) %>% 
-  dplyr::arrange(desc(phage_count)) %>% 
+  ) %>%
+  dplyr::arrange(desc(phage_count)) %>%
   dplyr::full_join(
     y = dplyr::select(
       sampleInfo, sampleId, genomeId, geo_loc_country,
       nodepath.kmer_nj, SpeciesName
     ),
     by = "genomeId"
-  ) %>% 
-  dplyr::left_join(y = proCompletenessStats, by = "genomeId") %>% 
-  dplyr::left_join(y = fragmentStats, by = "genomeId") %>% 
+  ) %>%
+  dplyr::left_join(y = proCompletenessStats, by = "genomeId") %>%
+  dplyr::left_join(y = fragmentStats, by = "genomeId") %>%
   tidyr::replace_na(
     replace = list(phage_nHgs = 0, nHgsUnique = 0, phage_count = 0)
-  ) %>% 
+  ) %>%
   dplyr::relocate(
     sampleId, SpeciesName, geo_loc_country, nodepath.kmer_nj,
     .after = genomeId
-  ) %>% 
+  ) %>%
   dplyr::arrange(nodepath.kmer_nj)
 
 perGenomePhageInfo <- dplyr::full_join(
@@ -305,8 +344,8 @@ readr::write_tsv(
 ### Prophage gene distribution in core, accessory and unique groups
 
 ```{r}
-# dplyr::select(perGenomePhageInfo, SpeciesName, hgs) %>% 
-#   tidyr::unnest(cols = hgs) %>% 
+# dplyr::select(perGenomePhageInfo, SpeciesName, hgs) %>%
+#   tidyr::unnest(cols = hgs) %>%
 #   dplyr::distinct()
 
 panVirSummary <- dplyr::summarise(
@@ -321,10 +360,10 @@ panVirSummary <- dplyr::summarise(
   total_vir_hgs = sum(phage_nHgs),
   unique_vir_hgs = length(unique(unlist(hgs))),
   hgs = list(unique(unlist(hgs)))
-) %>% 
+) %>%
   dplyr::mutate(SpeciesName = "Pangenome", .before = n_genomes)
 
-spVirSummary <- dplyr::group_by(perGenomePhageInfo, SpeciesName) %>% 
+spVirSummary <- dplyr::group_by(perGenomePhageInfo, SpeciesName) %>%
   dplyr::summarise(
     n_genomes = n(),
     n_vir_sp = sum(phage_count),
@@ -336,7 +375,7 @@ spVirSummary <- dplyr::group_by(perGenomePhageInfo, SpeciesName) %>%
     hgs = list(unique(unlist(hgs))),
     .groups = "drop"
   ) %>%
-  dplyr::bind_rows(panVirSummary) %>% 
+  dplyr::bind_rows(panVirSummary) %>%
   dplyr::arrange(desc(n_genomes))
 
 ```
@@ -349,12 +388,11 @@ sppGrpStats <- NULL
 
 ## get species wise core, accessory, unique group stats and GO
 for (sp in c(unique(sampleInfo$SpeciesName), "Pangenome")) {
-  
   atPangenomeScale <- sp == "Pangenome"
   
   if (atPangenomeScale) {
     spGenomes <- sampleInfo$genomeId
-  } else{
+  } else {
     spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
       dplyr::pull(genomeId)
   }
@@ -362,9 +400,9 @@ for (sp in c(unique(sampleInfo$SpeciesName), "Pangenome")) {
   # prophage homology groups: handle special case when HGs for Pangenome are needed
   spPhagesHgs <- dplyr::filter(
     perGenomePhageInfo, SpeciesName == !!sp | atPangenomeScale
-  ) %>% 
-    dplyr::select(hgId = hgs) %>% 
-    tidyr::unnest(cols = c(hgId)) %>% 
+  ) %>%
+    dplyr::select(hgId = hgs) %>%
+    tidyr::unnest(cols = c(hgId)) %>%
     dplyr::distinct() %>%
     dplyr::mutate(
       prophageHgs = "prophage",
@@ -384,34 +422,34 @@ for (sp in c(unique(sampleInfo$SpeciesName), "Pangenome")) {
         nGenomes == !!length(spGenomes) ~ "core",
         nGenomes < !!length(spGenomes) & nGenomes > 1 ~ "accessory"
       )
-    ) %>% 
-    dplyr::left_join(y = spPhagesHgs, by = "hgId") %>% 
+    ) %>%
+    dplyr::left_join(y = spPhagesHgs, by = "hgId") %>%
     tidyr::replace_na(list(prophageHgs = "non-prophage", SpeciesName = sp))
   
   # if only one genome for species, all HGs should be assigned to "core"
-  if(length(spGenomes) == 1){
+  if (length(spGenomes) == 1) {
     spHgTypes$class <- "core"
   }
   
-  phageHgDf <- dplyr::filter(spHgTypes, prophageHgs == "prophage") %>% 
-    dplyr::select(hgId, !!sp := class) %>% 
+  phageHgDf <- dplyr::filter(spHgTypes, prophageHgs == "prophage") %>%
+    dplyr::select(hgId, !!sp := class) %>%
     dplyr::full_join(phageHgDf, by = "hgId")
   
   ## group stats
   proHgSpStats <- dplyr::count(spHgTypes, class, prophageHgs, name = "phage_nHgs") %>%
-    dplyr::filter(prophageHgs == "prophage") %>% 
+    dplyr::filter(prophageHgs == "prophage") %>%
     dplyr::left_join(
       y = as.data.frame(table(spHgTypes$class), responseName = "nHgs"),
       by = c("class" = "Var1")
-    ) %>% 
-    dplyr::select(-prophageHgs) %>% 
+    ) %>%
+    dplyr::select(-prophageHgs) %>%
     dplyr::bind_rows(
       dplyr::summarise(
         .,
         dplyr::across(.cols = -class, .fns = sum),
-        dplyr::across(.cols = class, .fns = ~'total')
+        dplyr::across(.cols = class, .fns = ~"total")
       )
-    ) %>% 
+    ) %>%
     dplyr::mutate(
       SpeciesName = .env$sp,
       phageRatio = round(phage_nHgs / nHgs, digits = 3)
@@ -427,22 +465,22 @@ spec1 <- tidyr::build_wider_spec(
   names_from = class,
   values_from = c(nHgs, phage_nHgs, phageRatio),
   names_glue = "{.value}.{class}"
-) %>% 
+) %>%
   dplyr::mutate(
     .name = dplyr::if_else(
       .value == "nHgs", true = class, false = .name
     )
   )
 
-phageSpeciesStats <- tidyr::pivot_wider_spec(data = sppGrpStats, spec = spec1) %>% 
+phageSpeciesStats <- tidyr::pivot_wider_spec(data = sppGrpStats, spec = spec1) %>%
   dplyr::left_join(
     y = spVirSummary, by = "SpeciesName"
-  ) %>% 
-  dplyr::select(-hgs) %>% 
+  ) %>%
+  dplyr::select(-hgs) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(mean_vir_per_g),
-      .fns = ~round(x = .x, digits = 3)
+      .fns = ~ round(x = .x, digits = 3)
     )
   )
 
@@ -453,10 +491,10 @@ stopifnot(
 phageSpeciesStats %<>% dplyr::select(
   SpeciesName, n_genomes, n_vir_sp, mean_vir_per_g, core, accessory, unique, total,
   ends_with(c(".total", ".core", ".accessory", ".unique"))
-) %>% 
+) %>%
   dplyr::arrange(desc(n_genomes))
 
-phageSpeciesStats %>% 
+phageSpeciesStats %>%
   readr::write_tsv(
     file = confs$analysis$prophages$files$prophage_stats_species
   )
@@ -476,18 +514,18 @@ DT::datatable(
   caption = "Prophage summary per species",
   rownames = FALSE,
   filter = "top",
-  class = 'compact hover',
-  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  class = "compact hover",
+  extensions = c("KeyTable", "Scroller", "Select", "SearchBuilder", "FixedColumns"),
   options = list(
     autoWidth = FALSE,
-    dom = 'Qlfrtip',
+    dom = "Qlfrtip",
     scrollX = TRUE,
     fixedColumns = list(leftColumns = 2),
     keys = TRUE,
     scroller = TRUE,
     scrollY = 400
   ),
-  selection = 'none'
+  selection = "none"
 )
 ```
 
@@ -497,18 +535,18 @@ Visualize the proportion of prophage homology groups in pangenome and various
 HG categories.
 
 ```{r}
-df_panPhage <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>% 
+df_panPhage <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>%
   dplyr::mutate(
     class = forcats::fct_relevel(class, "total", "core", "accessory", "unique"),
     nonPhage_ratio = 1 - phageRatio,
     nonPhage_nHgs = nHgs - phage_nHgs
-  ) %>% 
-  dplyr::rename(phage_ratio = phageRatio, total_hgs = nHgs) %>% 
+  ) %>%
+  dplyr::rename(phage_ratio = phageRatio, total_hgs = nHgs) %>%
   tidyr::pivot_longer(
     cols = c(starts_with("phage_"), starts_with("nonPhage")),
-    names_to = c("hg_from", ".value"), 
+    names_to = c("hg_from", ".value"),
     names_sep = "_"
-  ) %>% 
+  ) %>%
   dplyr::mutate(
     nHgs_h = nHgs / 38,
     group = dplyr::if_else(
@@ -517,15 +555,16 @@ df_panPhage <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>%
   )
 
 # lables for facets
-phageHgLables <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>% 
+phageHgLables <- dplyr::filter(sppGrpStats, SpeciesName == "Pangenome") %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(phage_nHgs, nHgs), .fns = ~ prettyNum(.x, big.mark = ",")
     ),
     label = paste(
-      class, " (", phageRatio * 100, "%)", "\n", phage_nHgs, "/", nHgs, sep = ""
+      class, " (", phageRatio * 100, "%)", "\n", phage_nHgs, "/", nHgs,
+      sep = ""
     )
-  ) %>% 
+  ) %>%
   dplyr::pull(var = label, name = class)
 
 # waffle plot
@@ -548,14 +587,14 @@ pt_phage_hgs <- ggplot2::ggplot(
   scale_fill_manual(
     name = NULL,
     values = c(
-      "phage"= "black", "core" = confs$colors$core, "total" = "grey",
+      "phage" = "black", "core" = confs$colors$core, "total" = "grey",
       "accessory" = confs$colors$accessory, "unique" = confs$colors$unique
     ),
     breaks = c("phage"),
     labels = c("phage" = "Prophage")
   ) +
   coord_equal() +
-  expand_limits(x=c(0,0), y=c(0,0)) +
+  expand_limits(x = c(0, 0), y = c(0, 0)) +
   waffle::theme_enhance_waffle() +
   theme_minimal(base_size = 18) +
   theme(
@@ -577,8 +616,10 @@ pt_phage_hgs <- ggplot2::ggplot(
 #| echo: false
 #| fig-height: 5
 
-ggsave(filename = paste(outDir, "/phage_hgs_in_pangenome.pdf", sep = ""),
-       plot = pt_phage_hgs, width = 8, height = 5)
+ggsave(
+  filename = paste(outDir, "/phage_hgs_in_pangenome.pdf", sep = ""),
+  plot = pt_phage_hgs, width = 8, height = 5
+)
 
 pt_phage_hgs
 ```
@@ -591,14 +632,14 @@ hgCog <- suppressMessages(
     x = panOrgDb, keys = phageHgDf$hgId,
     columns = c("GID", "COG_id", "COG_description")
   )
-) %>% 
-  dplyr::filter(COG_id != "None") %>% 
-  dplyr::distinct() %>% 
-  dplyr::group_by(GID) %>% 
+) %>%
+  dplyr::filter(COG_id != "None") %>%
+  dplyr::distinct() %>%
+  dplyr::group_by(GID) %>%
   dplyr::reframe(
     dplyr::across(
       .cols = starts_with("COG_"),
-      .fns = ~paste(.x, collapse = ";")
+      .fns = ~ paste(.x, collapse = ";")
     )
   )
 
@@ -607,21 +648,22 @@ hgPfam <- suppressMessages(
     x = panOrgDb, keys = phageHgDf$hgId,
     columns = c("GID", "pfam_id", "pfam_description")
   )
-) %>% 
-  dplyr::filter(!is.na(pfam_id)) %>% 
-  dplyr::distinct() %>% 
-  dplyr::group_by(GID) %>% 
+) %>%
+  dplyr::filter(!is.na(pfam_id)) %>%
+  dplyr::distinct() %>%
+  dplyr::group_by(GID) %>%
   dplyr::reframe(
     dplyr::across(
       .cols = starts_with("pfam_"),
-      .fns = ~paste(.x, collapse = ";")
+      .fns = ~ paste(.x, collapse = ";")
     )
   )
 
 phageHgDf <- dplyr::left_join(
-  phageHgDf, hgCog, by = c("hgId" = "GID")
-) %>% 
-  dplyr::left_join(hgPfam, by = c("hgId" = "GID")) %>% 
+  phageHgDf, hgCog,
+  by = c("hgId" = "GID")
+) %>%
+  dplyr::left_join(hgPfam, by = c("hgId" = "GID")) %>%
   dplyr::select(
     hgId, starts_with("COG"), starts_with("pfam"),
     Pangenome, phageSpeciesStats$SpeciesName
@@ -649,8 +691,10 @@ plotDf <- dplyr::select(
   virulence_pcr, length, N50, total_phage_len
 ) %>%
   tidyr::pivot_longer(
-    cols = -c(genomeId, sampleId, SpeciesName, geo_loc_country,
-              virulence, virulence_pcr),
+    cols = -c(
+      genomeId, sampleId, SpeciesName, geo_loc_country,
+      virulence, virulence_pcr
+    ),
     names_to = "field",
     values_to = "value"
   ) %>%
@@ -661,9 +705,9 @@ plotDf <- dplyr::select(
   )
 
 
-pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
+pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>%
   dplyr::filter(field %in% c("length", "total_phage_len", "N50")) %>%
-  ggplot(mapping = aes(x = virulence, y = value))  +
+  ggplot(mapping = aes(x = virulence, y = value)) +
   geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
   ggbeeswarm::geom_quasirandom(size = 3) +
   ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
@@ -687,9 +731,9 @@ pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>
 
 ```{r}
 #| echo: false
-#| column: page 
+#| column: page
 #| fig-height: 6
-#| fig-width: 10 
+#| fig-width: 10
 #| out-width: '100%'
 #| layout-valign: top
 
