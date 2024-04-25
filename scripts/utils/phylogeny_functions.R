@@ -34,6 +34,33 @@ ordered_tips_phylo <- function(phy){
 
 ################################################################################
 
+#' Trim `phylo` object to select for representative species only
+#'
+#' @param phy A `phylo` object
+#' @param metadata Metadata dataframe for the genomes with `c("genomeId", 
+#' "SpeciesName", "type_material)` columns
+#'
+#' @return A trimmed `phylo` object
+#' @export
+#'
+#' @examples NA
+representative_genomes_tree <- function(phy, metadata){
+  
+  stopifnot(
+    is.data.frame(metadata),
+    isa(phy, "phylo"),
+    all(c("genomeId", "SpeciesName") %in% names(metadata))
+  )
+  
+  rep_genomes <- dplyr::slice_sample(metadata, n = 1, by = SpeciesName) %>% 
+    dplyr::pull(genomeId)
+  
+  phy <- ape::keep.tip(phy = phy, tip = rep_genomes)
+  
+  return(phy)
+}
+
+################################################################################
 #' Create ggtree plot with species key heatmap
 #'
 #' @param phy A `phylo` object
@@ -93,8 +120,8 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
   }
   
   pt_tree2 <- pt_tree +
-    theme_tree() +
-    geom_treescale(
+    ggtree::theme_tree() +
+    ggtree::geom_treescale(
       x = 0.05, y = nrow(metadata) * 0.9,
       fontsize = 8, linesize = 2, offset = 2
     ) +
@@ -104,21 +131,22 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
       align = TRUE, linesize = 0.4
     )
   
-  # get species key dataframe
-  spKeyDf <- get_species_key_data(
-    genomes = metadata$genomeId, speciesInfo = metadata, type = 'wide'
-  ) %>% 
-    tibble::as_tibble(rownames = "genomeId") %>%
-    tidyr::pivot_longer(
-      cols = -genomeId,
-      names_to = 'SpeciesName', values_to = "species"
-    ) %>%
-    dplyr::mutate(
-      SpeciesName = forcats::fct_relevel(SpeciesName, !!!species_order),
-      SpeciesName = forcats::fct_drop(SpeciesName)
-    )
   
   if(make_species_key){
+    
+    # get species key dataframe
+    spKeyDf <- get_species_key_data(
+      genomes = metadata$genomeId, speciesInfo = metadata, type = 'wide'
+    ) %>% 
+      tibble::as_tibble(rownames = "genomeId") %>%
+      tidyr::pivot_longer(
+        cols = -genomeId,
+        names_to = 'SpeciesName', values_to = "species"
+      ) %>%
+      dplyr::mutate(
+        SpeciesName = forcats::fct_relevel(SpeciesName, !!!species_order),
+        SpeciesName = forcats::fct_drop(SpeciesName)
+      )
     
     pt_tree2 <- pt_tree2 +
       # species key
