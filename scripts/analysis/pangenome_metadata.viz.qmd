@@ -262,11 +262,17 @@ the N50 values between the same groups.
     ) +
     geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
     ggbeeswarm::geom_quasirandom(size = 3) +
-    ggpubr::stat_compare_means(method = "t.test") +
+    ggpubr::stat_compare_means(label.y.npc = "top", vjust = -1) +
     scale_y_continuous(
-      labels = scales::label_comma(scale_cut = c(k = 1000, mb = 1000000, gb = 1000000000))
-      ) +
-    facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
+      labels = scales::label_comma(scale_cut = c(Mb = 1000000, Gb = 1000000000)),
+      expand = expansion(mult = c(0.1))
+    ) +
+    facet_wrap(
+      facets = ~field, nrow = 1, scales = "free_y",
+      labeller = ggplot2::labeller(
+        field = c("mRNA_count" = "Gene count", "length" = "Genome size", "N50" = "N50")
+      )
+    ) +
     # labs(
     #   title = "Pbr isolates from the Netherlands have more protein coding genes"
     # ) +
@@ -298,27 +304,38 @@ ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
 (
   pt_vir <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
     dplyr::filter(field %in% c("mRNA_count", "length", "N50")) %>%
-    ggplot(mapping = aes(x = virulence, y = value))  +
-    geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
-    ggbeeswarm::geom_quasirandom(size = 3) +
-    ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
-    scale_x_discrete(
-      labels = c(
-        "virulent" = "BL causing",
-        "avirulent" = "BL non-causing"
+    ggplot2::ggplot(mapping = aes(x = virulence, y = value))  +
+    ggplot2::geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
+    ggbeeswarm::geom_quasirandom(
+      mapping = aes(color = virulence),
+      size = 3
+    ) +
+    ggpubr::stat_compare_means(label.y.npc = "top", vjust = -1) +
+    ggplot2::scale_x_discrete(
+      labels = c("virulent" = "BL causing","avirulent" = "BL non-causing")
+    ) +
+    ggplot2::scale_color_manual(
+      name = "Blackleg phenotype",
+      values = c("red", "black"),
+      breaks = c("virulent", "avirulent"),
+      label = c("BL-causing", "BL non-causing"),
+      guide = guide_legend(override.aes = list(size = 6))
+    ) +
+    ggplot2::scale_y_continuous(
+      labels = scales::label_comma(scale_cut = c(Mb = 1000000, Gb = 1000000000)),
+      expand = expansion(mult = c(0.1))
+    ) +
+    ggplot2::facet_wrap(
+      facets = ~field, nrow = 1, scales = "free_y",
+      labeller = ggplot2::labeller(
+        field = c("mRNA_count" = "Gene count", "length" = "Genome size", "N50" = "N50")
       )
     ) +
-    scale_y_continuous(
-      labels = scales::label_comma(scale_cut = c(k = 1000, mb = 1000000, gb = 1000000000))
-      ) +
-    facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
-    # labs(
-    #   title = "Virulent Pbr isolates have more protein coding genes than avirulent"
-    # ) +
-    theme_bw(base_size = 20) +
-    theme(
+    ggplot2::theme_bw(base_size = 22) +
+    ggplot2::theme(
       axis.title = element_blank(),
-      axis.text.x = element_text(angle = 45, hjust = 1),
+      # axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text.x = element_blank(),
       legend.position = "bottom",
       panel.grid = element_blank()
     )
@@ -327,6 +344,6 @@ ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
 ```
 
 ```{r echo=FALSE}
-ggsave(filename = file.path(outDir, "vir_vs_ngenes.pdf"), plot = pt_vir, width = 8, height = 8)
+ggsave(filename = file.path(outDir, "genome_size_vs_blackleg.pdf"), plot = pt_vir, width = 8, height = 6)
 ```
 
