@@ -213,7 +213,7 @@ pt_sizeDens <- ggplot2::ggplot(
   ) +
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
   labs(x = "Prophage length", y = "density") +
-  theme_bw(base_size = 20) +
+  theme_bw(base_size = 16) +
   theme(
     panel.grid = element_blank(),
     legend.position = c(0.95, 0.95),
@@ -241,26 +241,26 @@ table(phages$taxonomy)
 #| fig-height: 7
 #| out-width: "50%"
 
-(
-  pt_proTax <- dplyr::select(phages, taxonomy) %>%
-    dplyr::mutate(
-      taxonomy = stringr::str_replace(taxonomy, ".*;", "")
-    ) %>%
-    ggplot2::ggplot() +
-    geom_bar(mapping = aes(x = taxonomy)) +
-    ggbreak::scale_y_break(breaks = c(10, 1290)) +
-    theme_bw(base_size = 24) +
-    theme(
-      panel.grid = element_blank(),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title.x = element_blank()
-    )
-)
+pt_proTax <- dplyr::select(phages, taxonomy) %>%
+  dplyr::mutate(
+    taxonomy = stringr::str_replace(taxonomy, ".*;", "")
+  ) %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_bar(mapping = aes(y = taxonomy), color = "black", fill = "black") +
+  ggplot2::labs(x = "Count", y = "Taxonomy") +
+  ggbreak::scale_x_break(breaks = c(10, 1290)) +
+  theme_bw(base_size = 24) +
+  theme(
+    panel.grid = element_blank(),
+    axis.title.y = element_blank()
+  )
 
 ggsave(
   filename = paste(outDir, "/prophage_taxonomy.pdf", sep = ""),
-  plot = pt_proTax, width = 4, height = 7
+  plot = pt_proTax, width = 6, height = 3
 )
+
+pt_proTax
 ```
 
 ### Prophage summary per genome
@@ -709,20 +709,37 @@ pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>
   dplyr::filter(field %in% c("length", "total_phage_len", "N50")) %>%
   ggplot(mapping = aes(x = virulence, y = value)) +
   geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
-  ggbeeswarm::geom_quasirandom(size = 3) +
-  ggpubr::stat_compare_means(method = "t.test", label.y.npc = 1) +
-  scale_x_discrete(
-    labels = c(
-      "virulent" = "blackleg\ncausing",
-      "avirulent" = "blackleg\nnon-causing"
+  ggbeeswarm::geom_quasirandom(mapping = aes(color = virulence), size = 3) +
+  ggpubr::stat_compare_means(label.y.npc = "top", vjust = -1) +
+  ggplot2::scale_x_discrete(
+    labels = c("virulent" = "BL causing","avirulent" = "BL non-causing")
+  ) +
+  ggplot2::scale_y_continuous(
+    labels = scales::label_comma(
+      scale_cut = c(Kb = 1000, Mb = 1000000, Gb = 1000000000)
+    ),
+    expand = expansion(mult = c(0.1))
+  ) + 
+  ggplot2::scale_color_manual(
+    name = "Blackleg phenotype",
+    values = c("red", "black"),
+    breaks = c("virulent", "avirulent"),
+    label = c("BL-causing", "BL non-causing"),
+    guide = guide_legend(override.aes = list(size = 6))
+  ) +
+  facet_wrap(
+    facets = ~field, nrow = 1, scales = "free_y",
+    labeller = ggplot2::labeller(
+      field = c(
+        "total_phage_len" = "Prophage length",
+        "length" = "Genome size", "N50" = "N50"
+      )
     )
   ) +
-  scale_y_continuous(labels = scales::label_comma()) +
-  facet_wrap(facets = ~field, nrow = 1, scales = "free_y") +
   theme_bw(base_size = 20) +
   theme(
     axis.title = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.x = element_blank(),
     legend.position = "bottom",
     panel.grid = element_blank()
   )
@@ -736,6 +753,11 @@ pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>
 #| fig-width: 10
 #| out-width: '100%'
 #| layout-valign: top
+
+ggsave(
+  filename = file.path(outDir, "prophage_length_vs_blackleg.pdf"),
+  plot = pt_proLen, width = 8, height = 6
+)
 
 pt_proLen
 ```
