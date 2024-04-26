@@ -23,8 +23,7 @@ suppressPackageStartupMessages(library(treeio))
 suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ggbreak))
 suppressPackageStartupMessages(library(ggtreeExtra))
-suppressPackageStartupMessages(library(ggstar))
-suppressPackageStartupMessages(library(viridisLite))
+suppressPackageStartupMessages(library(scales))
 
 ## visualized phylogenetic tree with metadata
 
@@ -101,7 +100,9 @@ sampleInfo %<>% dplyr::mutate(
 
 ```{r}
 ## read tree
-rawTree <- import_tree(confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted)
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted
+)
 
 ## add data to tree
 treeTbl <- tidytree::as_tibble(rawTree) %>%
@@ -155,7 +156,34 @@ purpose.
 
 ```{r}
 longestBranch <- which(pt_tree$data$x == max(pt_tree$data$x))
-pt_tree$data$x[longestBranch] <- 0.47
+longestBranchTip <- pt_tree$data$label[longestBranch]
+trimLongestBranchTo <- 0.47
+pt_tree$data$x[longestBranch] <- trimLongestBranchTo
+```
+
+### Representative species phylogenetic tree
+
+```{r}
+speciesTree <- representative_genomes_tree(phy = rawTree@phylo, metadata = sampleInfo) %>% 
+  tidytree::as_tibble() %>% 
+  dplyr::left_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
+  treeio::as.treedata() %>% 
+  ggtree::ggtree(size = 2) +
+  ggtree::xlim(NA, 1) +
+  ggtree::geom_tiplab(
+    mapping = aes(label = SpeciesName),
+    align = TRUE, size = 5, fontface = "italic"
+  )
+
+speciesTree$data$x[which(speciesTree$data$label == longestBranchTip)] <- trimLongestBranchTo
+
+ggsave(
+  filename = paste(outPrefix, ".representative_species_tree.pdf", sep = ""),
+  plot = speciesTree,
+  width = 6, height = 8
+)
+
+speciesTree
 ```
 
 ### View tree with metadata
@@ -282,7 +310,7 @@ pt_len <- dplyr::select(sampleInfo, label = genomeId, length) %>%
   ggplot2::geom_bar(fill = "white", color = "black", stat = "identity") +
   scale_x_continuous(
     breaks = scales::breaks_pretty(n = 3),
-    labels = label_number(scale_cut = c(kb = 1000, mb = 1000000))
+    labels = scales::label_number(scale_cut = c(kb = 1000, mb = 1000000))
   ) +
   pt_theme +
   theme(
