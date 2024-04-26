@@ -44,7 +44,7 @@ treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj, core_snp_ml
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- confs$analysis$prophages$dir
+outDir <- confs$analysis$prophages$summary$dir
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ```

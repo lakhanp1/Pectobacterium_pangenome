@@ -46,7 +46,7 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- confs$analysis$prophages$dir
+outDir <- confs$analysis$prophages$summary$dir
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 prophageLenCutoff <- confs$analysis$prophages$cutoff_length
@@ -337,7 +337,7 @@ perGenomePhageInfo <- dplyr::full_join(
 
 readr::write_tsv(
   x = dplyr::select(perGenomePhageInfo, -hgs),
-  file = confs$analysis$prophages$files$prophage_stats_genome
+  file = confs$analysis$prophages$summary$files$prophage_stats_genome
 )
 ```
 
@@ -496,7 +496,7 @@ phageSpeciesStats %<>% dplyr::select(
 
 phageSpeciesStats %>%
   readr::write_tsv(
-    file = confs$analysis$prophages$files$prophage_stats_species
+    file = confs$analysis$prophages$summary$files$prophage_stats_species
   )
 
 ```
@@ -671,7 +671,7 @@ phageHgDf <- dplyr::left_join(
 
 readr::write_tsv(
   x = phageHgDf,
-  file = confs$analysis$prophages$files$prophage_hg_info
+  file = confs$analysis$prophages$summary$files$prophage_hg_info
 )
 ```
 
