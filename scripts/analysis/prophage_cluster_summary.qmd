@@ -20,7 +20,9 @@ knitr:
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(ggdist))
+suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 rm(list = ls())
@@ -36,6 +38,8 @@ confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
+
+treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj, core_snp_ml
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
@@ -54,6 +58,23 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
+## read tree
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
+  phylo = TRUE
+)
+
+rawTree <- representative_genomes_tree(phy = rawTree, metadata = sampleInfo)
+
+```
+
+## Import phage clustering data
+
+```{r}
 phageAn <- suppressMessages(
   readr::read_tsv(confs$data$prophages$files$data)
 ) %>%
@@ -106,13 +127,293 @@ clusterList <- dplyr::group_by(phageClusters, phage_grp) %>%
   ) %>% 
   purrr::set_names(nm = purrr::map(., "phage_grp"))
 
-mashTree <- ape::read.tree(
-  file = confs$analysis$prophages$preprocessing$files$mash_hclust
-)
-
 ```
 
 ## Clustering
 
-Number of clusters: `r length(unique(phageClusters$phage_grp))`
+Number of clusters/prophage signatures: `r length(unique(phageClusters$phage_grp))`
 
+## Prophage overlap between species
+
+```{r}
+n_genomes_phage <- dplyr::distinct(phageClusters, genomeId, SpeciesName) %>%
+  dplyr::count(SpeciesName, name = "n_genomes_phages", sort = TRUE)
+
+clustWiseCounts <- dplyr::group_by(phageClusters, phage_grp, SpeciesName) %>% 
+  dplyr::summarise(n_genomes_clust = n(), .groups = "drop") %>% 
+  dplyr::add_count(phage_grp, name = "n_species_phages", sort = TRUE) %>% 
+  dplyr::left_join(
+    y = n_genomes_phage, by = "SpeciesName"
+  ) %>% 
+  dplyr::mutate(
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName),
+    SpeciesName = forcats::fct_drop(SpeciesName),
+    phage_grp = forcats::as_factor(phage_grp),
+    cluster_per_species = n_genomes_clust / n_genomes_phages
+  )
+
+```
+
+Generalist and specialist prophages statistics:
+
+```{r}
+generalist <- dplyr::filter(clustWiseCounts, n_species_phages > 1) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(phage_grp, SpeciesName), .fns = forcats::fct_drop
+    ),
+    category = "generalist"
+  )
+
+specialist <- dplyr::filter(clustWiseCounts, n_species_phages == 1) %>% 
+  dplyr::arrange(dplyr::desc(n_genomes_clust)) %>% 
+  dplyr::mutate(category = "specialist")
+
+
+```
+
+Generalist prophage signatures: `r length(unique(generalist$phage_grp))`
+
+Specialist prophage signatures: `r length(unique(specialist$phage_grp))`
+
+Distribution of number of species in which prophage signatures are found:
+
+### Prophage target species number histogram
+
+```{r}
+pt_hist <- dplyr::distinct(clustWiseCounts, phage_grp, n_species_phages) %>% 
+  ggplot2::ggplot(
+    mapping = aes(x = n_species_phages)
+  ) +
+  ggplot2::geom_histogram(binwidth = 1, color = "black", fill = "black") +
+  ggbreak::scale_y_break(
+    breaks = c(40, 360),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  ggplot2::labs(
+    x = "Prophage in multiple species",
+    y = "Count"
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  theme_bw(base_size = 24) +
+  theme(
+    panel.grid = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.text.y.right = element_blank()
+  )
+
+```
+
+```{r}
+#| fig-height: 6
+#| fig-width: 8
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggplot2::ggsave(
+  filename = paste(outDir, "/prophage_across_species_hist.pdf", sep = ""),
+  plot = pt_hist, width = 7, height = 5
+)
+
+pt_hist
+
+```
+
+### Species wise generalist and specialist prophage signatures
+
+```{r}
+# sort(table(specialist$SpeciesName), decreasing = TRUE)
+pt_species_count <- dplyr::bind_rows(
+  list(
+    specialist = dplyr::count(specialist, SpeciesName),
+    generalist = dplyr::count(generalist, SpeciesName)
+  ),
+  .id = "category"
+) %>% 
+  dplyr::mutate(
+    category = forcats::fct_relevel(category, "specialist")
+  ) %>% 
+  ggplot2::ggplot(
+    mapping = aes(y = forcats::fct_rev(SpeciesName), x = n, fill = category)
+  ) +
+  ggplot2::labs(
+    x = "Unique prophage signatures", y = NULL
+  ) +
+  ggplot2::geom_col(position = "stack", color = "black") +
+  ggplot2::scale_x_continuous(
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_fill_manual(
+    values = c("black", "white"),
+    breaks = c("generalist", "specialist")
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    legend.position = "bottom",
+    axis.text.y = element_text(face = "italic"),
+    axis.ticks.y = element_blank(),
+    panel.grid = element_blank()
+  )
+
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggplot2::ggsave(
+  filename = paste(outDir, "/species_phage_signatures.pdf", sep = ""),
+  plot = pt_species_count, width = 6, height = 8
+)
+
+pt_species_count
+```
+
+### Number of generalist targeting two species (except carotovoricin)
+
+```{r}
+
+sp_vs_sp_grid <- tidyr::expand_grid(
+  sp1 = speciesOrder$SpeciesName,
+  sp2 = speciesOrder$SpeciesName
+) %>% 
+  dplyr::filter(sp1 != sp2)
+
+phage_common_targets <- split(
+  x = as.character(generalist$SpeciesName),
+  f = as.character(generalist$phage_grp)
+) %>% 
+  purrr::discard_at(at = "phage_grp_1") %>% 
+  purrr::map(
+    .f = function(x){
+      tidyr::expand_grid(sp1 = x, sp2 = x) %>% 
+        dplyr::filter(sp1 != sp2)
+    }
+  ) %>% 
+  purrr::list_rbind() %>% 
+  dplyr::count(sp1, sp2) %>% 
+  dplyr::right_join(y = sp_vs_sp_grid, by = c("sp1", "sp2")) %>% 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(sp1, sp2),
+      .fns = ~forcats::fct_relevel(.x, !!speciesOrder$SpeciesName)
+    )
+  ) %>% 
+  dplyr::filter(sp1 != sp2) %>% 
+  tidyr::replace_na(replace = list(n = 0))
+
+
+pt_phage_overlap <- ggplot2::ggplot(
+  data = phage_common_targets,
+  mapping = aes(x = sp1, y = forcats::fct_rev(sp2), size = n)
+) +
+  ggplot2::geom_point(color = "black", fill = "black", shape = 21) +
+  ggplot2::scale_size_continuous(
+    name = "Shared prophage signatures",
+    range = c(2, 10),
+    limits = c(1, NA),
+    breaks = c(1, 3, 5, 7, 11)
+  ) +
+  theme_bw(base_size = 18) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text = element_text(face = "italic"),
+    legend.position = "bottom",
+    axis.title = element_blank()
+  )
+
+```
+
+
+```{r}
+#| fig-height: 8
+#| fig-width: 8
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggplot2::ggsave(
+  filename = paste(outDir, "/phage_target_overlap.pdf", sep = ""),
+  plot = pt_phage_overlap, width = 10, height = 10
+)
+
+pt_phage_overlap
+```
+
+### Prophage signature overlap across two or more species
+
+```{r}
+pt_dot <- ggplot2::ggplot(data = generalist) + 
+  ggplot2::geom_point(
+    mapping = aes(x = phage_grp, y = forcats::fct_rev(SpeciesName)),
+    size = 3
+  ) +
+  ggplot2::labs(
+    y = NULL, x = "Prophage clusters"
+  ) +
+  theme_bw(base_size = 16) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(face = "italic"),
+    legend.position = "bottom"
+  )
+
+```
+
+```{r}
+#| fig-height: 6
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+ggplot2::ggsave(
+  filename = paste(outDir, "/generalist_phages.pdf", sep = ""),
+  plot = pt_dot, width = 12, height = 6
+)
+
+pt_dot
+
+```
+
+### Generalist prophages target upset plot
+
+```{r}
+
+cm <- ComplexHeatmap::make_comb_mat(
+  split(x = clustWiseCounts$phage_grp, f = clustWiseCounts$SpeciesName)
+)
+
+phage_upset <- ComplexHeatmap::UpSet(
+  m = cm,
+  column_title = "Prophage across species",
+  row_names_gp = gpar(fontface = "italic"),
+  column_title_gp = gpar(fontface = "bold", fontsize = 16),
+  set_order = speciesOrder$SpeciesName,
+  right_annotation = upset_right_annotation(cm, add_numbers = TRUE)
+)
+
+```
+
+```{r}
+#| fig-height: 6
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+pdf(
+  file = paste(outDir, "/generalist_phage_target_upset.pdf", sep = ""),
+  width = 12, height = 6
+)
+phage_upset
+dev.off()
+
+phage_upset
+
+```
