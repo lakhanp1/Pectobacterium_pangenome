@@ -200,7 +200,7 @@ if(opts$haplotypes){
 
 if(is.null(opts$out)){
   dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
-    write.table(sep = "\t", quote = FALSE)
+    write.table(sep = "\t", quote = FALSE, row.names = FALSE)
 } else {
   dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
     readr::write_tsv(

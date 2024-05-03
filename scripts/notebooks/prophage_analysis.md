@@ -1,4 +1,4 @@
-# Prophage analysis in *Pectobacterium* pangenome
+*# Prophage analysis in *Pectobacterium* pangenome
 
 ## Workflow
 
@@ -310,6 +310,42 @@ flankingRegion <- 5000
 clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
 ```
 
+### T3SS missing from 4 P. brasiliense genomes
+
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22430875,hg_22430876 --genomes g_187,g_368,g_182,g_185,g_236,g_177
+```
+
+```r
+grpToView <- "t3ss_regions"
+subSample <- FALSE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 6000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+
+# a vector of prophage identifiers that will be included in clustermap plot
+appendPhages <- c()
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_177_reg  = list(genomeId = "g_177", chr = "NZ_JACGEP010000027.1", start = 56850, end = 59337),
+  g_182_reg = list(genomeId = "g_182", chr = "NZ_JACGZZ010000068.1", start = 116773, end = 119260),
+  g_185_reg = list(genomeId = "g_185", chr = "NZ_JACGEN010000027.1", start = 117747, end = 120234),
+  g_236_reg = list(genomeId = "g_236", chr = "NZ_JACDSF010000026.1", start = 2275, end = 4762),
+  g_187_reg = list(genomeId = "g_187", chr = "NZ_CP059963.1", start = 2603432, end = 2605919),
+  g_368_reg = list(genomeId = "g_368", chr = "NZ_JUJT01000001.1", start = 566617, end = 569104)
+)
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- TRUE
+```
+
 ## Carotovoricin (CTV) cluster or phage_grp_1 data analysis
 
 ### CTV across pangenome
@@ -372,6 +408,55 @@ grp <- list(
     "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
     "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
     "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+  )
+)
+
+```
+
+### Carotovoricin cluster missing from genomes
+
+```r
+grpToView <- "ctv_deletion"
+subSample <- TRUE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_177_reg = list(
+    chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
+  ),
+  g_182_reg = list(
+    chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"
+  ),
+  g_185_reg = list(
+    chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"
+  ),
+  g_236_reg = list(
+    chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
+  ),
+  g_385_reg = list(
+    chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"
+  ),
+  g_386_reg = list(
+    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
+  ),
+  g_451_reg = list(
+    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
+  )
+)
+
+
+grp <- list(
+  phage_grp = grpToView,
+  members = c(
+    "g_345.vir_1", "g_66.vir_3", "g_8.vir_2", "g_381.vir_2"
   )
 )
 
@@ -918,3 +1003,4 @@ hgSets <- list(
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/ctv_hgt", sep = "")
 ```
 
+*
