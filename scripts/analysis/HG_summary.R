@@ -49,7 +49,7 @@ sampleInfoList <- as.list_metadata(
 )
 
 spOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
+  readr::read_tsv(confs$analysis$phylogeny$core_snp_ml$files$species_order)
 )
 
 hgTable <- AnnotationDbi::select(
@@ -63,7 +63,13 @@ hgMeta <- AnnotationDbi::select(
   x = panOrgDb, keys = keys(panOrgDb),
   columns = c("GID", "class")
 ) %>%
-  dplyr::rename(hgId = GID)
+  dplyr::rename(hgId = GID) %>%
+  dplyr::mutate(
+    class = dplyr::if_else(
+      condition = class == "core & single copy orthologous",
+      true = "core", false = class
+    )
+  )
 
 ################################################################################
 ## GO enrichment for homology groups
@@ -79,16 +85,20 @@ sppGrpGo <- NULL
 for (sp in spNames) {
   spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
     dplyr::pull(genomeId)
-
-  cat(sp, length(spGenomes), "\n")
-
-  hgSum <- sub_pangenome_hgs(pandb = panOrgDb, genomes = spGenomes)
-
+  
+  cat(sp, ": ", length(spGenomes), "\n")
+  
+  hgSum <- sub_pangenome_hgs(pandb = panOrgDb, genomes = spGenomes) %>% 
+    dplyr::left_join(
+      y = dplyr::rename(hgMeta, pangenome_class = class),
+      by = "hgId"
+    )
+  
   ## group stats
-  sppGrpStats <- dplyr::count(hgSum, class, name = "count") %>%
-    dplyr::mutate(SpeciesName = .env$sp, fraction = count / !!nrow(hgSum)) %>%
+  sppGrpStats <- dplyr::count(hgSum, pangenome_class, class, name = "count") %>%
+    dplyr::mutate(SpeciesName = .env$sp, nHgs = !!nrow(hgSum)) %>%
     dplyr::bind_rows(sppGrpStats)
-
+  
   ## GO enrichment
   sppGrpGo <- dplyr::group_by(hgSum, class) %>%
     dplyr::group_modify(
@@ -101,13 +111,7 @@ for (sp in spNames) {
 
 ################################################################################
 ## pangenome wide GO enrichment
-panGo <- hgMeta %>%
-  dplyr::mutate(
-    class = dplyr::if_else(
-      condition = class == "core & single copy orthologous",
-      true = "core", false = class
-    )
-  ) %>%
+panGo <- hgMeta  %>%
   dplyr::group_by(class) %>%
   dplyr::group_modify(
     .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
@@ -126,7 +130,7 @@ readr::write_tsv(
 
 ptDf <- dplyr::group_by(panGo, class) %>%
   dplyr::arrange(pvalue, .by_group = TRUE) %>%
-  dplyr::slice(1:7) %>%
+  dplyr::slice(1:8) %>%
   dplyr::ungroup() %>%
   dplyr::mutate(
     class = forcats::fct_relevel(class, "core", "accessory", "unique")
@@ -153,42 +157,47 @@ ggsave(
 
 ################################################################################
 # core-accessory-unique stats for each species
-sppGrpStats <- hgMeta %>%
-  dplyr::mutate(
-    class = dplyr::if_else(
-      condition = class == "core & single copy orthologous",
-      true = "core", false = class
-    )
-  ) %>%
-  dplyr::group_by(class) %>%
-  dplyr::summarise(count = n(), .groups = "drop") %>%
+hgStats <- dplyr::count(hgMeta, class, name = "count") %>%
   dplyr::mutate(
     SpeciesName = "Pangenome",
-    fraction = count / sum(count)
+    nHgs = sum(count),
+    pangenome_class = class
   ) %>%
   dplyr::bind_rows(sppGrpStats) %>%
+  dplyr::select(SpeciesName, pangenome_class, class, count, nHgs) %>% 
   dplyr::mutate(
+    fraction = round(count / nHgs, digits = 3),
     class = forcats::fct_relevel(class, "core", "accessory", "unique"),
     SpeciesName = forcats::fct_relevel(SpeciesName, "Pangenome", !!!spOrder$SpeciesName)
   )
 
 readr::write_tsv(
-  x = sppGrpStats, file = confs$analysis$homology_groups$files$spp_group_stats
+  x = hgStats, file = confs$analysis$homology_groups$files$spp_group_stats
 )
 
-(pt_stats <- ggplot(data = sppGrpStats) +
+species_to_show <- dplyr::count(sampleInfo, SpeciesName) %>%
+  dplyr::filter(n >= 20) %>% 
+  dplyr::arrange(desc(n)) %>% 
+  dplyr::mutate(
+    SpeciesName = forcats::as_factor(SpeciesName)
+  )
+
+pt_stats <- dplyr::left_join(
+  x = species_to_show, y = hgStats, by = "SpeciesName"
+) %>% 
+  ggplot() +
   geom_bar(
     mapping = aes(
-      x = count, y = forcats::fct_rev(SpeciesName),
+      x = count, y = SpeciesName,
       fill = forcats::fct_rev(class)
     ),
-    stat = "identity", position = position_dodge(), width = 0.8
+    stat = "sum", position = position_dodge(), width = 0.8
   ) +
   scale_fill_manual(
     values = c(
-      "core" = confs$colors$core, "accessory" = confs$colors$accessory,
-      "unique" = confs$colors$unique
-    )
+      confs$colors$core, confs$colors$accessory, confs$colors$unique
+    ),
+    breaks = c("core", "accessory", "unique")
   ) +
   scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
   theme_bw(base_size = 16) +
@@ -200,11 +209,11 @@ readr::write_tsv(
     legend.position = "bottom",
     legend.title = element_blank()
   )
-)
+
 
 ggsave(
   plot = pt_stats, filename = file.path(outDir, "pangenome_spp_stats.pdf"),
-  width = 5, height = 4
+  width = 6, height = 4
 )
 
 ################################################################################
@@ -213,22 +222,22 @@ heaps <- suppressMessages(readr::read_tsv(file.path(outDir, "heaps_law.tab"))) %
   dplyr::filter(species != "pangenome") %>%
   dplyr::mutate(
     complete = "complete",
-    species = forcats::fct_relevel(species, !!!spOrder$SpeciesName)
+    species = forcats::fct_relevel(species, !!!levels(species_to_show$SpeciesName))
   )
 
 (pt_alpha <- ggplot(data = heaps) +
-  geom_bar(
-    mapping = aes(y = forcats::fct_rev(species), x = alpha),
-    fill = "black", stat = "identity", width = 0.8
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
-  theme_bw(base_size = 16) +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text = element_text(face = "bold"),
-    axis.text.y = element_text(face = "bold.italic")
-  )
+    geom_bar(
+      mapping = aes(y = species, x = alpha),
+      fill = "black", stat = "identity", width = 0.8
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
+    theme_bw(base_size = 16) +
+    theme(
+      panel.grid = element_blank(),
+      axis.title = element_blank(),
+      axis.text = element_text(face = "bold"),
+      axis.text.y = element_text(face = "bold.italic")
+    )
 )
 
 ggsave(

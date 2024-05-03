@@ -11,13 +11,13 @@ source("scripts/utils/homology_groups.R")
 
 ################################################################################
 
-genomeOfInterest <- c("g_400", "g_406", "g_175", "g_402")
+genomeOfInterest <- c("g_187", "g_404", "g_175")
 
 # use phylogenetic tree nodes to categorize HGs into core, accessory and unique
-coreClade <- "n22"
+coreClade <- "n59"
 nodeExclude <- NULL
 
-treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
+treeMethod <- "kmer_nj" # ani_upgma, kmer_upgma
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 confs <- prefix_config_paths(

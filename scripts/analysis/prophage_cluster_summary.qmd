@@ -92,19 +92,6 @@ proHgs <- suppressMessages(
 proHgL <- purrr::transpose(proHgs) %>%
   purrr::set_names(nm = purrr::map(., "prophage_id"))
 
-hgSummary <- suppressMessages(
-  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
-) %>%
-  tidyr::pivot_wider(
-    id_cols = c(SpeciesName),
-    names_from = class,
-    values_from = count
-  ) %>%
-  dplyr::rowwise() %>%
-  dplyr::mutate(
-    total_hgs = sum(core, accessory, unique, na.rm = T)
-  )
-
 ```
 
 ## Prophage data processing summary

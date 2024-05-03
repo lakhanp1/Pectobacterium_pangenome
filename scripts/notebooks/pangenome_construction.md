@@ -371,7 +371,7 @@ nohup iqtree -T 30 -s ${pan_db}/core_snp_tree/informative.fasta -redo -B 1000 \
 ######################################################################
 ```
 
-## Build `org.db` object
+## Build pangenome `org.db` object
 
 Extract pangenome data from Neo4j database using Python script.
 
