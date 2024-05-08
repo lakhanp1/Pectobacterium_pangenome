@@ -352,8 +352,8 @@ sub_pangenome_hgs <- function(pandb, genomes){
     dplyr::filter(nGenomes != 0) %>%
     dplyr::mutate(
       class = dplyr::case_when(
-        nGenomes == 1 ~ "unique",
         nGenomes == !!length(genomes) ~ "core",
+        nGenomes == 1 ~ "unique",
         nGenomes < !!length(genomes) & nGenomes > 1 ~ "accessory"
       )
     )
