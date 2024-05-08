@@ -4,14 +4,7 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(here))
-suppressPackageStartupMessages(library(ape))
-suppressPackageStartupMessages(library(treeio))
-suppressPackageStartupMessages(library(ggtree))
-suppressPackageStartupMessages(library(ComplexHeatmap))
-suppressPackageStartupMessages(library(circlize))
-suppressPackageStartupMessages(library(viridisLite))
 suppressPackageStartupMessages(library(matrixStats))
-suppressPackageStartupMessages(library(ggnewscale))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 ## 1) process homology groups to transpose the table where
@@ -81,6 +74,20 @@ spNames <- dplyr::count(sampleInfo, SpeciesName) %>%
 sppGrpStats <- NULL
 sppGrpGo <- NULL
 
+## binary matrix for homology_group PAV
+hgBinaryMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
+
+# matrixStats::colSums2(x = hgBinaryMat, useNames = T) %>%
+#   tibble::enframe(name = "hgId", value = "nGenomes") %>%
+#   dplyr::mutate(
+#     class = dplyr::case_when(
+#       nGenomes == !!nrow(hgBinaryMat) ~ "core",
+#       nGenomes == 1 ~ "unique",
+#       nGenomes < !!nrow(hgBinaryMat) & nGenomes > 1 ~ "accessory"
+#     )
+#   ) %>% 
+#   dplyr::count(class)
+
 ## get species wise core, accessory, unique group stats and GO
 for (sp in spNames) {
   spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
@@ -88,19 +95,34 @@ for (sp in spNames) {
   
   cat(sp, ": ", length(spGenomes), "\n")
   
-  hgSum <- sub_pangenome_hgs(pandb = panOrgDb, genomes = spGenomes) %>% 
+  hgSum <- matrixStats::colSums2(
+    x = hgBinaryMat, useNames = T,
+    rows = which(rownames(hgBinaryMat) %in% spGenomes)
+  ) %>%
+    tibble::enframe(name = "hgId", value = "nGenomes") %>%
+    dplyr::filter(nGenomes != 0) %>%
+    dplyr::mutate(
+      subpan_class = dplyr::case_when(
+        nGenomes == !!length(spGenomes) ~ "core",
+        nGenomes == 1 ~ "unique",
+        nGenomes < !!length(spGenomes) & nGenomes > 1 ~ "accessory"
+      )
+    ) %>% 
     dplyr::left_join(
       y = dplyr::rename(hgMeta, pangenome_class = class),
       by = "hgId"
     )
   
   ## group stats
-  sppGrpStats <- dplyr::count(hgSum, pangenome_class, class, name = "count") %>%
-    dplyr::mutate(SpeciesName = .env$sp, nHgs = !!nrow(hgSum)) %>%
+  sppGrpStats <- dplyr::count(hgSum, pangenome_class, subpan_class, name = "count") %>%
+    dplyr::mutate(
+      SpeciesName = .env$sp, nHgs = !!nrow(hgSum),
+      n_genomes = length(spGenomes)
+      ) %>%
     dplyr::bind_rows(sppGrpStats)
   
   ## GO enrichment
-  sppGrpGo <- dplyr::group_by(hgSum, class) %>%
+  sppGrpGo <- dplyr::group_by(hgSum, subpan_class) %>%
     dplyr::group_modify(
       .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
     ) %>%
@@ -154,22 +176,27 @@ ggsave(
   width = 8, height = 6
 )
 
-
 ################################################################################
 # core-accessory-unique stats for each species
 hgStats <- dplyr::count(hgMeta, class, name = "count") %>%
   dplyr::mutate(
     SpeciesName = "Pangenome",
     nHgs = sum(count),
-    pangenome_class = class
+    pangenome_class = class,
+    subpan_class = class,
+    n_genomes = nrow(hgBinaryMat)
   ) %>%
   dplyr::bind_rows(sppGrpStats) %>%
-  dplyr::select(SpeciesName, pangenome_class, class, count, nHgs) %>% 
+  dplyr::select(SpeciesName, n_genomes, pangenome_class, subpan_class, count, nHgs) %>% 
   dplyr::mutate(
     fraction = round(count / nHgs, digits = 3),
-    class = forcats::fct_relevel(class, "core", "accessory", "unique"),
+    dplyr::across(
+      .cols = c(subpan_class, pangenome_class),
+      .fns = ~ forcats::fct_relevel(.x, "core", "accessory", "unique")
+    ),
     SpeciesName = forcats::fct_relevel(SpeciesName, "Pangenome", !!!spOrder$SpeciesName)
-  )
+  ) %>% 
+  dplyr::arrange(desc(n_genomes), SpeciesName, pangenome_class, subpan_class)
 
 readr::write_tsv(
   x = hgStats, file = confs$analysis$homology_groups$files$spp_group_stats
@@ -189,7 +216,7 @@ pt_stats <- dplyr::left_join(
   geom_bar(
     mapping = aes(
       x = count, y = SpeciesName,
-      fill = forcats::fct_rev(class)
+      fill = forcats::fct_rev(subpan_class)
     ),
     stat = "sum", position = position_dodge(), width = 0.8
   ) +
