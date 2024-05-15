@@ -164,6 +164,14 @@ pt_tree$data$x[longestBranch] <- trimLongestBranchTo
 ### Representative species phylogenetic tree
 
 ```{r}
+# speciesDend <- ape::keep.tip(
+#   phy = ape::ladderize(rawTree@phylo), tip = representativeSpecies
+# ) %>%
+#   ape::chronos() %>%
+#   ape::as.hclust.phylo() %>%
+#   as.dendrogram()
+
+
 speciesTree <- representative_genomes_tree(phy = rawTree@phylo, metadata = sampleInfo) %>% 
   tidytree::as_tibble() %>% 
   dplyr::left_join(y = sampleInfo, by = c("label" = "genomeId")) %>%

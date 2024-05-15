@@ -120,6 +120,53 @@ clusterList <- dplyr::group_by(phageClusters, phage_grp) %>%
 
 Number of clusters/prophage signatures: `r length(unique(phageClusters$phage_grp))`
 
+## Annotate prophages with defense systems
+
+```{r}
+defense_hgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
+) %>% 
+  dplyr::filter(
+    function_category %in% 
+      c("toxin-antitoxin", "restriction modification", "methyltransferase")
+  ) %>%
+  dplyr::mutate(
+    function_category = dplyr::case_match(
+      function_category,
+      "toxin-antitoxin" ~ "ta_system",
+      "restriction modification" ~ "rm_system",
+      "methyltransferase" ~ "rm_system",
+      .default = function_category
+    )
+  ) %>% 
+  dplyr::left_join(
+    y = tidyr::unnest(proHgs, cols = hgs),
+    by = c("hg_id" = "hgs")
+  ) %>% 
+  dplyr::summarise(
+    hgs = paste(sort(hg_id), collapse = ";"),
+    .by = c(prophage_id, function_category)
+  ) %>% 
+  tidyr::pivot_wider(
+    names_from = function_category,
+    values_from = hgs
+  )
+
+phage_defense <- dplyr::select(phageClusters, prophage_id, phage_grp, fragments, grp_size) %>% 
+  tidyr::separate_longer_delim(cols = fragments, delim = ";") %>% 
+  dplyr::left_join(
+    y = defense_hgs, by = c("fragments" = "prophage_id")
+  ) %>% 
+  dplyr::filter(!is.na(ta_system) | !is.na(rm_system)) %>% 
+  dplyr::distinct(prophage_id, phage_grp, ta_system, rm_system, grp_size) %>% 
+  dplyr::arrange(desc(grp_size))
+
+readr::write_tsv(
+  x = phage_defense,
+  file = confs$analysis$prophages$files$phage_defense
+)
+```
+
 ## Prophage overlap between species
 
 ```{r}
