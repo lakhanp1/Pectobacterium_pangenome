@@ -1,8 +1,56 @@
 author: "Lakhansing Pardeshi"
 project:
   title: "Pectobacterium pangenome data analysis"
-  # output-dir: "./scripts/quarto"
+  type: website
+  output-dir: "./docs"
   execute-dir: project
+  render:
+    - scripts/notebooks/preprocessing.md
+    - scripts/notebooks/pangenome_construction.md
+    - scripts/notebooks/pangenome_analysis.md
+    - scripts/analysis/pangenome_metadata.viz.qmd
+    - scripts/analysis/ani.clustering.qmd
+    - scripts/analysis/prophage_summary.qmd
+    - scripts/analysis/prophage_seq_similarity.qmd
+    - scripts/analysis/prophage_clustering.qmd
+    - scripts/analysis/prophage_cluster_summary.qmd
+    - scripts/notebooks/prophage_analysis.md
+    - scripts/ms_figures/supplementary_tables.qmd
+execute:
+  freeze: true # never re-render during project render
+website:
+  title: "Pectobacterium pangenome data analysis"
+  repo-url: https://github.com/lakhanp1/Pectobacterium_pangenome
+  repo-actions: [issue]
+  page-navigation: true
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - text: "Preprocessing"
+        href: scripts/notebooks/preprocessing.md
+      - section: "Pangenome"
+        contents:
+          - text: "Build"
+            href: scripts/notebooks/pangenome_construction.md
+          - text: "Analysis"
+            href: scripts/notebooks/pangenome_analysis.md
+          - text: "Metadata"
+            href: scripts/analysis/pangenome_metadata.viz.qmd
+          - text: "ANI"
+            href: scripts/analysis/ani.clustering.qmd
+      - section: "Prophages"
+        contents:
+          - text: "Analysis"
+            href: scripts/notebooks/prophage_analysis.md
+          - text: "Prophage summary"
+            href: scripts/analysis/prophage_summary.qmd
+          - text: "Clustering"
+            href: scripts/analysis/prophage_clustering.qmd
+          - text: "Clustering summary"
+            href: scripts/analysis/prophage_cluster_summary.qmd
+      - text: "Supplementary tables"
+        href: scripts/ms_figures/supplementary_tables.qmd
 format:
   html: 
     toc: true
