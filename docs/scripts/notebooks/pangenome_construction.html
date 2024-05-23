@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.433">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Lakhansing Pardeshi">
+
+<title>Pectobacterium pangenome data analysis – pangenome_construction</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../scripts/notebooks/pangenome_analysis.html" rel="next">
+<link href="../../scripts/notebooks/preprocessing.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../scripts/utils/quarto_style.css">
+</head>
+
+<body class="nav-sidebar docked">
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../scripts/notebooks/pangenome_construction.html">Pangenome</a></li><li class="breadcrumb-item"><a href="../../scripts/notebooks/pangenome_construction.html">Build</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Pectobacterium pangenome data analysis</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/notebooks/preprocessing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preprocessing</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Pangenome</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/notebooks/pangenome_construction.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Build</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/notebooks/pangenome_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/analysis/pangenome_metadata.viz.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metadata</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/analysis/ani.clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ANI</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Prophages</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/notebooks/prophage_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/analysis/prophage_summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prophage summary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/analysis/prophage_clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/analysis/prophage_cluster_summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Clustering summary</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/ms_figures/supplementary_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supplementary tables</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#pectobacterium-pangenome" id="toc-pectobacterium-pangenome" class="nav-link active" data-scroll-target="#pectobacterium-pangenome">Pectobacterium pangenome</a>
+  <ul class="collapse">
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#construct-pangenome" id="toc-construct-pangenome" class="nav-link" data-scroll-target="#construct-pangenome">Construct pangenome</a></li>
+  <li><a href="#add-interproscan-and-cog-annotations" id="toc-add-interproscan-and-cog-annotations" class="nav-link" data-scroll-target="#add-interproscan-and-cog-annotations">Add InterProScan and COG annotations</a></li>
+  <li><a href="#grouping" id="toc-grouping" class="nav-link" data-scroll-target="#grouping">Grouping</a>
+  <ul class="collapse">
+  <li><a href="#optimal_grouping-using-subset-of-genomes-or-type-strains" id="toc-optimal_grouping-using-subset-of-genomes-or-type-strains" class="nav-link" data-scroll-target="#optimal_grouping-using-subset-of-genomes-or-type-strains"><code>optimal_grouping</code> using subset of genomes or type strains</a></li>
+  <li><a href="#grouping-at-the-pangenome-level" id="toc-grouping-at-the-pangenome-level" class="nav-link" data-scroll-target="#grouping-at-the-pangenome-level">Grouping at the pangenome level</a></li>
+  </ul></li>
+  <li><a href="#pangenome-exploration" id="toc-pangenome-exploration" class="nav-link" data-scroll-target="#pangenome-exploration">Pangenome exploration</a>
+  <ul class="collapse">
+  <li><a href="#gene-classification" id="toc-gene-classification" class="nav-link" data-scroll-target="#gene-classification">gene classification</a></li>
+  <li><a href="#extract-information-for-all-homology-groups" id="toc-extract-information-for-all-homology-groups" class="nav-link" data-scroll-target="#extract-information-for-all-homology-groups">Extract information for all homology groups</a></li>
+  <li><a href="#k-mer-classification" id="toc-k-mer-classification" class="nav-link" data-scroll-target="#k-mer-classification">k-mer classification</a></li>
+  <li><a href="#pangenome-structure" id="toc-pangenome-structure" class="nav-link" data-scroll-target="#pangenome-structure">Pangenome structure</a></li>
+  <li><a href="#functional-classification" id="toc-functional-classification" class="nav-link" data-scroll-target="#functional-classification">Functional classification</a></li>
+  <li><a href="#msa-for-all-homology-groups" id="toc-msa-for-all-homology-groups" class="nav-link" data-scroll-target="#msa-for-all-homology-groups">MSA for all homology groups</a></li>
+  </ul></li>
+  <li><a href="#phylogeny-analysis" id="toc-phylogeny-analysis" class="nav-link" data-scroll-target="#phylogeny-analysis">Phylogeny analysis</a></li>
+  <li><a href="#build-pangenome-org.db-object" id="toc-build-pangenome-org.db-object" class="nav-link" data-scroll-target="#build-pangenome-org.db-object">Build pangenome <code>org.db</code> object</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/lakhanp1/Pectobacterium_pangenome/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><div class="quarto-title-block"><div class="quarto-title-tools-only"><h1></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+
+
+
+<section id="pectobacterium-pangenome" class="level1">
+<h1>Pectobacterium pangenome</h1>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="bu">shopt</span> <span class="at">-s</span> expand_aliases</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="bu">source</span> ~/.bash_aliases</span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># set -e</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="co"># set -u</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="bu">set</span> <span class="at">-o</span> pipefail</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="co"># source scripts/utils/setup_analysis.sh 'pectobacterium.v2'</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="bu">source</span> scripts/utils/setup_analysis.sh <span class="va">$@</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a></span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-z</span> <span class="va">${pan_db</span><span class="op">+</span>x<span class="va">}</span> <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="cf">then</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>    <span class="bu">echo</span> <span class="st">"</span><span class="dt">\$</span><span class="st">pan_db is unset"</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>    <span class="ex">error_exit</span> 1</span>
+<span id="cb1-17"><a href="#cb1-17"></a><span class="cf">fi</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a></span>
+<span id="cb1-19"><a href="#cb1-19"></a><span class="bu">source</span> <span class="va">$TOOLS_PATH</span>/miniconda3/etc/profile.d/conda.sh</span>
+<span id="cb1-20"><a href="#cb1-20"></a><span class="ex">conda</span> activate pantools_master</span>
+<span id="cb1-21"><a href="#cb1-21"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_4_1</span><span class="st">"</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a><span class="co">#export PANTOOLS="$PANTOOLS_DEV"</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="construct-pangenome" class="level2">
+<h2 class="anchored" data-anchor-id="construct-pangenome">Construct pangenome</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="va">TMPDIR</span><span class="op">=</span><span class="st">"</span><span class="va">$LOCAL_DIR_PATH</span><span class="st">/tmp"</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="bu">[</span> <span class="ot">!</span> <span class="ot">-d</span> <span class="va">${TMPDIR}</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">${TMPDIR}</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="bu">[</span> <span class="ot">-d</span> <span class="va">${TMPDIR}</span>/pantools <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rd</span> <span class="va">${TMPDIR}</span>/pantools</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="bu">[</span> <span class="ot">!</span> <span class="ot">-d</span> <span class="va">${TMPDIR}</span>/pantools <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">${TMPDIR}</span>/pantools</span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="ex">process_start</span> build_pangenome_parallel</span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="va">$PANTOOLS</span> build_pangenome <span class="at">--threads</span> 40 <span class="at">--scratch-directory</span> <span class="va">${TMPDIR}</span>/pantools <span class="dt">\</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>--num-db-writer-threads 10 <span class="at">--cache-size</span> 25000000 <span class="dt">\</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/genomes_fa.list</span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a></span>
+<span id="cb2-12"><a href="#cb2-12"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.raw</span>
+<span id="cb2-13"><a href="#cb2-13"></a></span>
+<span id="cb2-14"><a href="#cb2-14"></a></span>
+<span id="cb2-15"><a href="#cb2-15"></a><span class="co">## add annotations</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_DEV</span><span class="st">"</span></span>
+<span id="cb2-17"><a href="#cb2-17"></a><span class="ex">process_start</span> add_annotations</span>
+<span id="cb2-18"><a href="#cb2-18"></a><span class="va">$PANTOOLS</span> add_annotations <span class="at">--connect</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/genomes_gff3.list</span>
+<span id="cb2-19"><a href="#cb2-19"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb2-20"><a href="#cb2-20"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_4_1</span><span class="st">"</span></span>
+<span id="cb2-21"><a href="#cb2-21"></a></span>
+<span id="cb2-22"><a href="#cb2-22"></a><span class="co">## add phenotypes</span></span>
+<span id="cb2-23"><a href="#cb2-23"></a><span class="ex">process_start</span> add_phenotypes</span>
+<span id="cb2-24"><a href="#cb2-24"></a><span class="va">$PANTOOLS</span> remove_phenotype <span class="va">${pan_db}</span></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="va">$PANTOOLS</span> add_phenotypes <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/genomes_metadata.csv</span>
+<span id="cb2-26"><a href="#cb2-26"></a><span class="ex">error_exit</span> <span class="va">$?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="add-interproscan-and-cog-annotations" class="level2">
+<h2 class="anchored" data-anchor-id="add-interproscan-and-cog-annotations">Add InterProScan and COG annotations</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">## InterProScan</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="ex">process_start</span> add_InterProScan_annotations</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="va">$PANTOOLS</span> add_functions <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/functional_annotations.txt</span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co">## COG</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="ex">process_start</span> add_COG_annotations </span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="va">$PANTOOLS</span> add_functions <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/deggnog_annotations.txt</span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.fn</span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="grouping" class="level2">
+<h2 class="anchored" data-anchor-id="grouping">Grouping</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.backup_fn <span class="va">${pan_db}</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="co">## BUSCO</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="ex">process_start</span> busco_protein</span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="va">$PANTOOLS</span> busco_protein <span class="at">-t</span> 20 <span class="at">--busco10</span> enterobacterales_odb10 <span class="va">${pan_db}</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="ex">error_exit</span> <span class="va">$?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="optimal_grouping-using-subset-of-genomes-or-type-strains" class="level3">
+<h3 class="anchored" data-anchor-id="optimal_grouping-using-subset-of-genomes-or-type-strains"><code>optimal_grouping</code> using subset of genomes or type strains</h3>
+<p><code>optimal_grouping</code> at the Pangenome level is time consuming. An alternative approch using subset of genomes or only type strains was tried and the results were compared with the pangenome scale <code>optimal_grouping</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">## generate random subsets to run `optimal_grouping`</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_build.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This script will generate a two column TSV file where first column is a set identifier and second column include comma separated genome identifers.</p>
+<pre><code>typeStrain  374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266
+rand_001    451,375,343,346,220,403,251,228,431,248,116,440,383,322,306,351,430,15,14,314
+rand_002    451,375,374,224,32,360,252,226,442,248,116,266,386,385,306,387,205,15,265,92
+rand_003    451,375,374,334,279,391,103,445,442,248,116,266,386,27,305,351,393,15,265,21
+rand_004    451,375,374,88,96,193,251,235,431,248,116,440,386,124,335,387,294,15,423,123
+.
+.
+.</code></pre>
+<p>An example to run optimal grouping on subset of genomes in the pangenome.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="co">## type strains</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">bash</span> ./scripts/b_construction/grouping_subsets_process.sh <span class="st">"typeStrain"</span> <span class="st">"374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Use GNU parallel to run optimal grouping on all random sets.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">## run `optimal_grouping` on these random subsets</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="fu">nohup</span> <span class="dt">\</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a># sed <span class="at">-n</span> <span class="st">'1,6!p'</span> analysis/03_pangenome_pecto_v2/subset_optimal_group/subsets_conf.tab <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="fu">cat</span> analysis/03_pangenome_pecto_v2/subset_optimal_group/subsets_conf.tab <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="ex">parallel</span> <span class="at">--colsep</span> <span class="st">'\t'</span> <span class="at">--jobs</span> 10  <span class="at">--keep-order</span> <span class="at">--workdir</span> <span class="va">$PWD</span> <span class="at">--halt</span> soon,fail=1 <span class="dt">\</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a>--load 100% <span class="at">--results</span> logs/pantools/sub_opt_group/{1} <span class="dt">\</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>--joblog logs/pantools/sub_opt_group/sub_opt_group.log <span class="dt">\</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>bash ./scripts/b_construction/grouping_subsets_process.sh {1} {2} <span class="dt">\</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="op">&gt;&gt;</span>logs/pantools/sub_opt_group/nohup.out <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Summarize the results by plotting in R</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">## summarize the results</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_analyze.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="grouping-at-the-pangenome-level" class="level3">
+<h3 class="anchored" data-anchor-id="grouping-at-the-pangenome-level">Grouping at the pangenome level</h3>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">## grouping with relaxation 4 setting</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="ex">process_start</span> group_v4</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="fu">nice</span> <span class="va">$PANTOOLS</span> group <span class="at">-t</span> 30 <span class="at">--relaxation</span> 4 <span class="va">${pan_db}</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.grp</span>
+<span id="cb10-7"><a href="#cb10-7"></a></span>
+<span id="cb10-8"><a href="#cb10-8"></a><span class="co">## optimized grouping</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="ex">process_start</span> optimal_grouping</span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="fu">nice</span> <span class="va">$PANTOOLS</span> optimal_grouping <span class="at">-t</span> 30 <span class="va">${pan_db}</span> <span class="va">${pan_db}</span>/busco/enterobacterales_odb10</span>
+<span id="cb10-11"><a href="#cb10-11"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb10-12"><a href="#cb10-12"></a></span>
+<span id="cb10-13"><a href="#cb10-13"></a></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/optimal_grouping/optimal_grouping.R</span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="va">$PANTOOLS</span> grouping_overview <span class="va">${pan_db}</span></span>
+<span id="cb10-16"><a href="#cb10-16"></a></span>
+<span id="cb10-17"><a href="#cb10-17"></a><span class="co">## fix a grouping setting</span></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="va">$PANTOOLS</span> change_grouping <span class="at">-v</span> 4 <span class="va">${pan_db}</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a><span class="va">$PANTOOLS</span> grouping_overview <span class="va">${pan_db}</span></span>
+<span id="cb10-20"><a href="#cb10-20"></a></span>
+<span id="cb10-21"><a href="#cb10-21"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.opt_grp</span>
+<span id="cb10-22"><a href="#cb10-22"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="pangenome-exploration" class="level2">
+<h2 class="anchored" data-anchor-id="pangenome-exploration">Pangenome exploration</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">## extract the metrics from pangenome</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="ex">process_start</span> extract_pangenome_metrics</span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="va">$PANTOOLS</span> metrics <span class="va">${pan_db}</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="gene-classification" class="level3">
+<h3 class="anchored" data-anchor-id="gene-classification">gene classification</h3>
+<section id="core-unique-variation-w.r.t.-cutoffs" class="level4">
+<h4 class="anchored" data-anchor-id="core-unique-variation-w.r.t.-cutoffs">core-unique variation w.r.t. cutoffs</h4>
+<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">## Core unique thresholds</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="ex">process_start</span> core_unique_thresholds</span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="va">$PANTOOLS</span> core_unique_thresholds <span class="va">${pan_db}</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/core_unique_thresholds/core_unique_thresholds.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="core-and-unique-genes" class="level4">
+<h4 class="anchored" data-anchor-id="core-and-unique-genes">core and unique genes</h4>
+<div class="sourceCode" id="cb13"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">## gene classification: core and unique</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="ex">process_start</span> gene_classification_core_unique</span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="va">$PANTOOLS</span> gene_classification <span class="va">${pan_db}</span> </span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="co">## Gene distance tree</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/gene_classification/gene_distance_tree.R</span>
+<span id="cb13-8"><a href="#cb13-8"></a></span>
+<span id="cb13-9"><a href="#cb13-9"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/gene_classification <span class="va">${pan_db}</span>/gene_classification.100.0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="soft-core-95-and-cloud-5-genes" class="level4">
+<h4 class="anchored" data-anchor-id="soft-core-95-and-cloud-5-genes">soft core (95%) and cloud (5%) genes</h4>
+<div class="sourceCode" id="cb14"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">## gene classification: soft core and cloud</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="ex">process_start</span> gene_classification_softcore_cloud</span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="va">$PANTOOLS</span> gene_classification <span class="at">--core-threshold</span> 95 <span class="at">--unique-threshold</span> 5 <span class="va">${pan_db}</span> </span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a></span>
+<span id="cb14-6"><a href="#cb14-6"></a><span class="co">## Gene distance tree</span></span>
+<span id="cb14-7"><a href="#cb14-7"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/gene_classification/gene_distance_tree.R</span>
+<span id="cb14-8"><a href="#cb14-8"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/gene_classification <span class="va">${pan_db}</span>/gene_classification.95.5</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="extract-information-for-all-homology-groups" class="level3">
+<h3 class="anchored" data-anchor-id="extract-information-for-all-homology-groups">Extract information for all homology groups</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">## homology group information</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="fu">sed</span> <span class="at">-i.bak</span> <span class="at">-r</span> <span class="at">-n</span> <span class="st">'/^#/! p'</span> <span class="va">${pan_db}</span>/gene_classification.100.0/all_homology_groups.csv</span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="ex">process_start</span> <span class="st">"extracting homology group information"</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a><span class="va">$PANTOOLS</span> group_info <span class="at">-H</span> <span class="va">${pan_db}</span>/gene_classification.100.0/all_homology_groups.csv <span class="va">${pan_db}</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="ex">error_exit</span> <span class="va">$?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="k-mer-classification" class="level3">
+<h3 class="anchored" data-anchor-id="k-mer-classification">k-mer classification</h3>
+<section id="core-and-unique-kmers" class="level4">
+<h4 class="anchored" data-anchor-id="core-and-unique-kmers">core and unique kmers</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">## K-mer classification: soft core and cloud</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="ex">process_start</span> kmer_classification_core_unique</span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="va">$PANTOOLS</span> k_mer_classification <span class="va">${pan_db}</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/kmer_classification/genome_kmer_distance_tree.R</span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/kmer_classification <span class="va">${pan_db}</span>/kmer_classification.100.0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="soft-core-95-and-cloud-5-kmers" class="level4">
+<h4 class="anchored" data-anchor-id="soft-core-95-and-cloud-5-kmers">soft core (95%) and cloud (5%) kmers</h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">## K-mer classification: soft core and cloud</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="ex">process_start</span> kmer_classification_softcore_cloud</span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="va">$PANTOOLS</span> k_mer_classification <span class="at">--core-threshold</span> 95 <span class="at">--unique-threshold</span> 5 <span class="va">${pan_db}</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a></span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/kmer_classification/genome_kmer_distance_tree.R</span>
+<span id="cb17-7"><a href="#cb17-7"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/kmer_classification <span class="va">${pan_db}</span>/kmer_classification.95.5</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="pangenome-structure" class="level3">
+<h3 class="anchored" data-anchor-id="pangenome-structure">Pangenome structure</h3>
+<section id="use-all-genomes-to-determine-pangenome-structure" class="level4">
+<h4 class="anchored" data-anchor-id="use-all-genomes-to-determine-pangenome-structure">Use all genomes to determine pangenome structure</h4>
+<div class="sourceCode" id="cb18"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">## Pangenome structure: genes</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="ex">process_start</span> pangenome_structure_gene</span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="va">${pan_db}</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/pangenome_growth.R</span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_or_average.R</span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_and_average.R</span>
+<span id="cb18-9"><a href="#cb18-9"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/heaps_law.R</span>
+<span id="cb18-10"><a href="#cb18-10"></a></span>
+<span id="cb18-11"><a href="#cb18-11"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/pangenome_size/gene <span class="va">${pan_db}</span>/pangenome_size/gene.pangenome</span>
+<span id="cb18-12"><a href="#cb18-12"></a></span>
+<span id="cb18-13"><a href="#cb18-13"></a><span class="co">## Pangenome structure: kmer</span></span>
+<span id="cb18-14"><a href="#cb18-14"></a><span class="ex">process_start</span> pangenome_structure_kmer</span>
+<span id="cb18-15"><a href="#cb18-15"></a><span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="at">--kmer</span> <span class="va">${pan_db}</span></span>
+<span id="cb18-16"><a href="#cb18-16"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb18-17"><a href="#cb18-17"></a></span>
+<span id="cb18-18"><a href="#cb18-18"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/kmer/pangenome_growth.R</span>
+<span id="cb18-19"><a href="#cb18-19"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="functional-classification" class="level3">
+<h3 class="anchored" data-anchor-id="functional-classification">Functional classification</h3>
+<section id="core-and-unique-functional-classification" class="level4">
+<h4 class="anchored" data-anchor-id="core-and-unique-functional-classification">core and unique functional classification</h4>
+<div class="sourceCode" id="cb19"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">## functional_classification: core and unique</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="ex">process_start</span> functional_classification_core_unique</span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="va">$PANTOOLS</span> functional_classification <span class="va">${pan_db}</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a></span>
+<span id="cb19-6"><a href="#cb19-6"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/function/functional_classification <span class="va">${pan_db}</span>/function/functional_classification.100.0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="softcore-95-and-cloud-5-functional-classification" class="level4">
+<h4 class="anchored" data-anchor-id="softcore-95-and-cloud-5-functional-classification">softcore (95%) and cloud (5%) functional classification</h4>
+<div class="sourceCode" id="cb20"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">## functional_classification: softcore and cloud</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="ex">process_start</span> functional_classification_softcore_cloud</span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="va">$PANTOOLS</span> functional_classification <span class="at">--core-threshold</span> 95 <span class="at">--unique-threshold</span> 5 <span class="va">${pan_db}</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/function/functional_classification <span class="va">${pan_db}</span>/function/functional_classification.95.5</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="function-overview" class="level4">
+<h4 class="anchored" data-anchor-id="function-overview">function overview</h4>
+<div class="sourceCode" id="cb21"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">## function_overview</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="ex">process_start</span> function_overview</span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="va">$PANTOOLS</span> function_overview <span class="va">${pan_db}</span> </span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a></span>
+<span id="cb21-6"><a href="#cb21-6"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/cog_per_class.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">## GO enrichment for core, accessory and unique homology groups</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="cf">for</span> grp <span class="kw">in</span> core accessory unique</span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="cf">do</span></span>
+<span id="cb22-4"><a href="#cb22-4"></a>    <span class="ex">process_start</span> GO_enrichment:<span class="va">$grp</span></span>
+<span id="cb22-5"><a href="#cb22-5"></a>    <span class="va">$PANTOOLS</span> go_enrichment <span class="at">-H</span> <span class="va">${pan_db}</span>/gene_classification.100.0/<span class="va">${grp}</span>_groups.csv  <span class="va">${pan_db}</span></span>
+<span id="cb22-6"><a href="#cb22-6"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb22-7"><a href="#cb22-7"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/function/go_enrichment <span class="va">${pan_db}</span>/function/go_enrichment.100.0.<span class="va">${grp}</span> </span>
+<span id="cb22-8"><a href="#cb22-8"></a><span class="cf">done</span></span>
+<span id="cb22-9"><a href="#cb22-9"></a></span>
+<span id="cb22-10"><a href="#cb22-10"></a><span class="co">## GO enrichment for soft-core, accessory and cloud homology groups</span></span>
+<span id="cb22-11"><a href="#cb22-11"></a><span class="cf">for</span> grp <span class="kw">in</span> core accessory unique</span>
+<span id="cb22-12"><a href="#cb22-12"></a><span class="cf">do</span></span>
+<span id="cb22-13"><a href="#cb22-13"></a>    <span class="ex">process_start</span> GO_enrichment:<span class="va">$grp</span></span>
+<span id="cb22-14"><a href="#cb22-14"></a>    <span class="va">$PANTOOLS</span> go_enrichment <span class="at">-H</span> <span class="va">${pan_db}</span>/gene_classification.95.5/<span class="va">${grp}</span>_groups.csv  <span class="va">${pan_db}</span></span>
+<span id="cb22-15"><a href="#cb22-15"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb22-16"><a href="#cb22-16"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/function/go_enrichment <span class="va">${pan_db}</span>/function/go_enrichment.95.5.<span class="va">${grp}</span> </span>
+<span id="cb22-17"><a href="#cb22-17"></a><span class="cf">done</span></span>
+<span id="cb22-18"><a href="#cb22-18"></a></span>
+<span id="cb22-19"><a href="#cb22-19"></a><span class="co">#######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="msa-for-all-homology-groups" class="level3">
+<h3 class="anchored" data-anchor-id="msa-for-all-homology-groups">MSA for all homology groups</h3>
+<div class="sourceCode" id="cb23"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1"></a><span class="co">## MSA for homology groups</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a><span class="ex">process_start</span> <span class="st">"msa for homology groups"</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a><span class="va">$PANTOOLS</span> msa <span class="at">-t</span> 12 <span class="at">--method</span> per-group <span class="at">--mode</span> nucleotide <span class="va">${pan_db}</span></span>
+<span id="cb23-4"><a href="#cb23-4"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb23-5"><a href="#cb23-5"></a></span>
+<span id="cb23-6"><a href="#cb23-6"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.msa</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="phylogeny-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="phylogeny-analysis">Phylogeny analysis</h2>
+<div class="sourceCode" id="cb24"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1"></a></span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="co">## SNP tree using core gene SNPs</span></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="ex">process_start</span> core_phylogeny</span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span>/gene_classification.100.0 <span class="va">${pan_db}</span>/gene_classification</span>
+<span id="cb24-5"><a href="#cb24-5"></a><span class="va">$PANTOOLS</span> core_phylogeny <span class="at">-t</span> 20  <span class="at">--clustering-mode</span> ML <span class="va">${pan_db}</span></span>
+<span id="cb24-6"><a href="#cb24-6"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb24-7"><a href="#cb24-7"></a><span class="fu">rm</span> <span class="at">-r</span> <span class="va">${pan_db}</span>/gene_classification</span>
+<span id="cb24-8"><a href="#cb24-8"></a></span>
+<span id="cb24-9"><a href="#cb24-9"></a><span class="co">## running_job: leunissen</span></span>
+<span id="cb24-10"><a href="#cb24-10"></a><span class="fu">mkdir</span> <span class="va">${pan_db}</span>/core_snp_tree/ML_tree </span>
+<span id="cb24-11"><a href="#cb24-11"></a><span class="fu">nohup</span> nice iqtree <span class="at">-T</span> 40 <span class="at">-s</span> data/pangenomes/pectobacterium.v2/backup/pectobacterium.v2.DB.msa/core_snp_tree/informative.fasta <span class="at">-redo</span> <span class="at">-B</span> 1000 <span class="dt">\</span></span>
+<span id="cb24-12"><a href="#cb24-12"></a>--prefix data/pangenomes/pectobacterium.v2/backup/pectobacterium.v2.DB.msa/core_snp_tree/ML_tree/informative.fasta <span class="dt">\</span></span>
+<span id="cb24-13"><a href="#cb24-13"></a><span class="op">&gt;&gt;</span> logs/v2_pecto/core_tree.log <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb24-14"><a href="#cb24-14"></a></span>
+<span id="cb24-15"><a href="#cb24-15"></a><span class="fu">nohup</span> nice iqtree <span class="at">-T</span> 40 <span class="at">-s</span> informative.fasta <span class="at">-B</span> 1000 <span class="at">--prefix</span> ML_tree/informative.fasta <span class="dt">\</span></span>
+<span id="cb24-16"><a href="#cb24-16"></a><span class="op">&gt;&gt;</span> core_tree.log <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb24-17"><a href="#cb24-17"></a></span>
+<span id="cb24-18"><a href="#cb24-18"></a><span class="co">## run IQ-tree with a specific model</span></span>
+<span id="cb24-19"><a href="#cb24-19"></a><span class="fu">nohup</span> iqtree <span class="at">-T</span> 30 <span class="at">-s</span> <span class="va">${pan_db}</span>/core_snp_tree/informative.fasta <span class="at">-redo</span> <span class="at">-B</span> 1000 <span class="dt">\</span></span>
+<span id="cb24-20"><a href="#cb24-20"></a>-m GTR+F+ASC <span class="at">--prefix</span> <span class="va">${pan_db}</span>/core_snp_tree/informative.fasta.GTR_F_ASC <span class="dt">\</span></span>
+<span id="cb24-21"><a href="#cb24-21"></a><span class="op">&gt;</span> logs/v2_pecto/iqtree_GTR_F_ASC.log <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb24-22"><a href="#cb24-22"></a></span>
+<span id="cb24-23"><a href="#cb24-23"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="build-pangenome-org.db-object" class="level2">
+<h2 class="anchored" data-anchor-id="build-pangenome-org.db-object">Build pangenome <code>org.db</code> object</h2>
+<p>Extract pangenome data from Neo4j database using Python script.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1"></a><span class="ex">python3</span> scripts/b_construction/neo4j_extract_go.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Create <code>org.db</code> AnnotationHub like object for the pangenome for easier exploratory analysis in R.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1"></a><span class="ex">Rscript</span> scripts/build/pangenome_org_db.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+
+<!-- -->
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../scripts/notebooks/preprocessing.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Preprocessing</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../scripts/notebooks/pangenome_analysis.html" class="pagination-link">
+        <span class="nav-page-text">Analysis</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb27" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb27-1"><a href="#cb27-1"></a><span class="fu"># Pectobacterium pangenome</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a></span>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="fu">## Setup</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a></span>
+<span id="cb27-5"><a href="#cb27-5"></a><span class="in">``` bash</span></span>
+<span id="cb27-6"><a href="#cb27-6"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb27-7"><a href="#cb27-7"></a></span>
+<span id="cb27-8"><a href="#cb27-8"></a><span class="bu">shopt</span> <span class="at">-s</span> expand_aliases</span>
+<span id="cb27-9"><a href="#cb27-9"></a><span class="bu">source</span> ~/.bash_aliases</span>
+<span id="cb27-10"><a href="#cb27-10"></a></span>
+<span id="cb27-11"><a href="#cb27-11"></a><span class="co"># set -e</span></span>
+<span id="cb27-12"><a href="#cb27-12"></a><span class="co"># set -u</span></span>
+<span id="cb27-13"><a href="#cb27-13"></a><span class="bu">set</span> <span class="at">-o</span> pipefail</span>
+<span id="cb27-14"><a href="#cb27-14"></a></span>
+<span id="cb27-15"><a href="#cb27-15"></a><span class="co"># source scripts/utils/setup_analysis.sh 'pectobacterium.v2'</span></span>
+<span id="cb27-16"><a href="#cb27-16"></a><span class="bu">source</span> scripts/utils/setup_analysis.sh <span class="va">$@</span></span>
+<span id="cb27-17"><a href="#cb27-17"></a></span>
+<span id="cb27-18"><a href="#cb27-18"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-z</span> <span class="va">${pan_db</span><span class="op">+</span>x<span class="va">}</span> <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb27-19"><a href="#cb27-19"></a><span class="cf">then</span></span>
+<span id="cb27-20"><a href="#cb27-20"></a>    <span class="bu">echo</span> <span class="st">"</span><span class="dt">\$</span><span class="st">pan_db is unset"</span></span>
+<span id="cb27-21"><a href="#cb27-21"></a>    <span class="ex">error_exit</span> 1</span>
+<span id="cb27-22"><a href="#cb27-22"></a><span class="cf">fi</span></span>
+<span id="cb27-23"><a href="#cb27-23"></a></span>
+<span id="cb27-24"><a href="#cb27-24"></a><span class="bu">source</span> <span class="va">$TOOLS_PATH</span>/miniconda3/etc/profile.d/conda.sh</span>
+<span id="cb27-25"><a href="#cb27-25"></a><span class="ex">conda</span> activate pantools_master</span>
+<span id="cb27-26"><a href="#cb27-26"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_4_1</span><span class="st">"</span></span>
+<span id="cb27-27"><a href="#cb27-27"></a><span class="co">#export PANTOOLS="$PANTOOLS_DEV"</span></span>
+<span id="cb27-28"><a href="#cb27-28"></a><span class="co">######################################################################</span></span>
+<span id="cb27-29"><a href="#cb27-29"></a><span class="kw">```</span></span>
+<span id="cb27-30"><a href="#cb27-30"></a></span>
+<span id="cb27-31"><a href="#cb27-31"></a><span class="co">## Construct pangenome</span></span>
+<span id="cb27-32"><a href="#cb27-32"></a></span>
+<span id="cb27-33"><a href="#cb27-33"></a><span class="kw">```</span> bash</span>
+<span id="cb27-34"><a href="#cb27-34"></a><span class="va">TMPDIR</span><span class="op">=</span><span class="st">"</span><span class="va">$LOCAL_DIR_PATH</span><span class="st">/tmp"</span></span>
+<span id="cb27-35"><a href="#cb27-35"></a><span class="bu">[</span> <span class="ot">!</span> <span class="ot">-d</span> <span class="va">${TMPDIR}</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">${TMPDIR}</span></span>
+<span id="cb27-36"><a href="#cb27-36"></a><span class="bu">[</span> <span class="ot">-d</span> <span class="va">${TMPDIR}</span>/pantools <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rd</span> <span class="va">${TMPDIR}</span>/pantools</span>
+<span id="cb27-37"><a href="#cb27-37"></a><span class="bu">[</span> <span class="ot">!</span> <span class="ot">-d</span> <span class="va">${TMPDIR}</span>/pantools <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">${TMPDIR}</span>/pantools</span>
+<span id="cb27-38"><a href="#cb27-38"></a></span>
+<span id="cb27-39"><a href="#cb27-39"></a><span class="ex">process_start</span> build_pangenome_parallel</span>
+<span id="cb27-40"><a href="#cb27-40"></a><span class="va">$PANTOOLS</span> build_pangenome <span class="at">--threads</span> 40 <span class="at">--scratch-directory</span> <span class="va">${TMPDIR}</span>/pantools <span class="dt">\</span></span>
+<span id="cb27-41"><a href="#cb27-41"></a>--num-db-writer-threads 10 <span class="at">--cache-size</span> 25000000 <span class="dt">\</span></span>
+<span id="cb27-42"><a href="#cb27-42"></a><span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/genomes_fa.list</span>
+<span id="cb27-43"><a href="#cb27-43"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-44"><a href="#cb27-44"></a></span>
+<span id="cb27-45"><a href="#cb27-45"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.raw</span>
+<span id="cb27-46"><a href="#cb27-46"></a></span>
+<span id="cb27-47"><a href="#cb27-47"></a></span>
+<span id="cb27-48"><a href="#cb27-48"></a><span class="co">## add annotations</span></span>
+<span id="cb27-49"><a href="#cb27-49"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_DEV</span><span class="st">"</span></span>
+<span id="cb27-50"><a href="#cb27-50"></a><span class="ex">process_start</span> add_annotations</span>
+<span id="cb27-51"><a href="#cb27-51"></a><span class="va">$PANTOOLS</span> add_annotations <span class="at">--connect</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/genomes_gff3.list</span>
+<span id="cb27-52"><a href="#cb27-52"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-53"><a href="#cb27-53"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_4_1</span><span class="st">"</span></span>
+<span id="cb27-54"><a href="#cb27-54"></a></span>
+<span id="cb27-55"><a href="#cb27-55"></a><span class="co">## add phenotypes</span></span>
+<span id="cb27-56"><a href="#cb27-56"></a><span class="ex">process_start</span> add_phenotypes</span>
+<span id="cb27-57"><a href="#cb27-57"></a><span class="va">$PANTOOLS</span> remove_phenotype <span class="va">${pan_db}</span></span>
+<span id="cb27-58"><a href="#cb27-58"></a><span class="va">$PANTOOLS</span> add_phenotypes <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/genomes_metadata.csv</span>
+<span id="cb27-59"><a href="#cb27-59"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-60"><a href="#cb27-60"></a></span>
+<span id="cb27-61"><a href="#cb27-61"></a><span class="kw">```</span></span>
+<span id="cb27-62"><a href="#cb27-62"></a></span>
+<span id="cb27-63"><a href="#cb27-63"></a><span class="co">## Add InterProScan and COG annotations</span></span>
+<span id="cb27-64"><a href="#cb27-64"></a></span>
+<span id="cb27-65"><a href="#cb27-65"></a><span class="kw">```</span> bash</span>
+<span id="cb27-66"><a href="#cb27-66"></a><span class="co">## InterProScan</span></span>
+<span id="cb27-67"><a href="#cb27-67"></a><span class="ex">process_start</span> add_InterProScan_annotations</span>
+<span id="cb27-68"><a href="#cb27-68"></a><span class="va">$PANTOOLS</span> add_functions <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/functional_annotations.txt</span>
+<span id="cb27-69"><a href="#cb27-69"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-70"><a href="#cb27-70"></a></span>
+<span id="cb27-71"><a href="#cb27-71"></a><span class="co">## COG</span></span>
+<span id="cb27-72"><a href="#cb27-72"></a><span class="ex">process_start</span> add_COG_annotations </span>
+<span id="cb27-73"><a href="#cb27-73"></a><span class="va">$PANTOOLS</span> add_functions <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/deggnog_annotations.txt</span>
+<span id="cb27-74"><a href="#cb27-74"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-75"><a href="#cb27-75"></a></span>
+<span id="cb27-76"><a href="#cb27-76"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.fn</span>
+<span id="cb27-77"><a href="#cb27-77"></a><span class="co">######################################################################</span></span>
+<span id="cb27-78"><a href="#cb27-78"></a><span class="kw">```</span></span>
+<span id="cb27-79"><a href="#cb27-79"></a></span>
+<span id="cb27-80"><a href="#cb27-80"></a><span class="co">## Grouping</span></span>
+<span id="cb27-81"><a href="#cb27-81"></a></span>
+<span id="cb27-82"><a href="#cb27-82"></a><span class="kw">```</span> bash</span>
+<span id="cb27-83"><a href="#cb27-83"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.backup_fn <span class="va">${pan_db}</span></span>
+<span id="cb27-84"><a href="#cb27-84"></a><span class="co">## BUSCO</span></span>
+<span id="cb27-85"><a href="#cb27-85"></a><span class="ex">process_start</span> busco_protein</span>
+<span id="cb27-86"><a href="#cb27-86"></a><span class="va">$PANTOOLS</span> busco_protein <span class="at">-t</span> 20 <span class="at">--busco10</span> enterobacterales_odb10 <span class="va">${pan_db}</span></span>
+<span id="cb27-87"><a href="#cb27-87"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-88"><a href="#cb27-88"></a><span class="kw">```</span></span>
+<span id="cb27-89"><a href="#cb27-89"></a></span>
+<span id="cb27-90"><a href="#cb27-90"></a><span class="co">### </span><span class="kw">`</span>optimal_grouping<span class="kw">`</span> <span class="ex">using</span> subset of genomes or type strains</span>
+<span id="cb27-91"><a href="#cb27-91"></a></span>
+<span id="cb27-92"><a href="#cb27-92"></a><span class="kw">`</span>optimal_grouping<span class="kw">`</span> <span class="ex">at</span> the Pangenome level is time consuming. An alternative approch using subset of genomes or only type strains was tried and the results were compared with the pangenome scale <span class="kw">`</span>optimal_grouping<span class="kw">`</span><span class="bu">.</span></span>
+<span id="cb27-93"><a href="#cb27-93"></a></span>
+<span id="cb27-94"><a href="#cb27-94"></a><span class="kw">```</span> bash</span>
+<span id="cb27-95"><a href="#cb27-95"></a><span class="co">## generate random subsets to run `optimal_grouping`</span></span>
+<span id="cb27-96"><a href="#cb27-96"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_build.R</span>
+<span id="cb27-97"><a href="#cb27-97"></a></span>
+<span id="cb27-98"><a href="#cb27-98"></a><span class="kw">```</span></span>
+<span id="cb27-99"><a href="#cb27-99"></a></span>
+<span id="cb27-100"><a href="#cb27-100"></a><span class="ex">This</span> script will generate a two column TSV file where first column is a set identifier and second column include comma separated genome identifers.</span>
+<span id="cb27-101"><a href="#cb27-101"></a></span>
+<span id="cb27-102"><a href="#cb27-102"></a><span class="kw">```</span></span>
+<span id="cb27-103"><a href="#cb27-103"></a><span class="ex">typeStrain</span>  374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266</span>
+<span id="cb27-104"><a href="#cb27-104"></a><span class="ex">rand_001</span>    451,375,343,346,220,403,251,228,431,248,116,440,383,322,306,351,430,15,14,314</span>
+<span id="cb27-105"><a href="#cb27-105"></a><span class="ex">rand_002</span>    451,375,374,224,32,360,252,226,442,248,116,266,386,385,306,387,205,15,265,92</span>
+<span id="cb27-106"><a href="#cb27-106"></a><span class="ex">rand_003</span>    451,375,374,334,279,391,103,445,442,248,116,266,386,27,305,351,393,15,265,21</span>
+<span id="cb27-107"><a href="#cb27-107"></a><span class="ex">rand_004</span>    451,375,374,88,96,193,251,235,431,248,116,440,386,124,335,387,294,15,423,123</span>
+<span id="cb27-108"><a href="#cb27-108"></a><span class="bu">.</span></span>
+<span id="cb27-109"><a href="#cb27-109"></a><span class="bu">.</span></span>
+<span id="cb27-110"><a href="#cb27-110"></a><span class="bu">.</span></span>
+<span id="cb27-111"><a href="#cb27-111"></a><span class="kw">```</span></span>
+<span id="cb27-112"><a href="#cb27-112"></a></span>
+<span id="cb27-113"><a href="#cb27-113"></a><span class="ex">An</span> example to run optimal grouping on subset of genomes in the pangenome.</span>
+<span id="cb27-114"><a href="#cb27-114"></a></span>
+<span id="cb27-115"><a href="#cb27-115"></a><span class="kw">```</span>bash</span>
+<span id="cb27-116"><a href="#cb27-116"></a><span class="co">## type strains</span></span>
+<span id="cb27-117"><a href="#cb27-117"></a><span class="fu">bash</span> ./scripts/b_construction/grouping_subsets_process.sh <span class="st">"typeStrain"</span> <span class="st">"374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"</span></span>
+<span id="cb27-118"><a href="#cb27-118"></a><span class="kw">```</span></span>
+<span id="cb27-119"><a href="#cb27-119"></a></span>
+<span id="cb27-120"><a href="#cb27-120"></a><span class="ex">Use</span> GNU parallel to run optimal grouping on all random sets.</span>
+<span id="cb27-121"><a href="#cb27-121"></a></span>
+<span id="cb27-122"><a href="#cb27-122"></a><span class="kw">```</span>bash</span>
+<span id="cb27-123"><a href="#cb27-123"></a><span class="co">## run `optimal_grouping` on these random subsets</span></span>
+<span id="cb27-124"><a href="#cb27-124"></a><span class="fu">nohup</span> <span class="dt">\</span></span>
+<span id="cb27-125"><a href="#cb27-125"></a># sed <span class="at">-n</span> <span class="st">'1,6!p'</span> analysis/03_pangenome_pecto_v2/subset_optimal_group/subsets_conf.tab <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb27-126"><a href="#cb27-126"></a><span class="fu">cat</span> analysis/03_pangenome_pecto_v2/subset_optimal_group/subsets_conf.tab <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb27-127"><a href="#cb27-127"></a><span class="ex">parallel</span> <span class="at">--colsep</span> <span class="st">'\t'</span> <span class="at">--jobs</span> 10  <span class="at">--keep-order</span> <span class="at">--workdir</span> <span class="va">$PWD</span> <span class="at">--halt</span> soon,fail=1 <span class="dt">\</span></span>
+<span id="cb27-128"><a href="#cb27-128"></a>--load 100% <span class="at">--results</span> logs/pantools/sub_opt_group/{1} <span class="dt">\</span></span>
+<span id="cb27-129"><a href="#cb27-129"></a>--joblog logs/pantools/sub_opt_group/sub_opt_group.log <span class="dt">\</span></span>
+<span id="cb27-130"><a href="#cb27-130"></a>bash ./scripts/b_construction/grouping_subsets_process.sh {1} {2} <span class="dt">\</span></span>
+<span id="cb27-131"><a href="#cb27-131"></a><span class="op">&gt;&gt;</span>logs/pantools/sub_opt_group/nohup.out <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb27-132"><a href="#cb27-132"></a><span class="kw">```</span></span>
+<span id="cb27-133"><a href="#cb27-133"></a></span>
+<span id="cb27-134"><a href="#cb27-134"></a><span class="ex">Summarize</span> the results by plotting in R</span>
+<span id="cb27-135"><a href="#cb27-135"></a></span>
+<span id="cb27-136"><a href="#cb27-136"></a><span class="kw">```</span>bash</span>
+<span id="cb27-137"><a href="#cb27-137"></a><span class="co">## summarize the results</span></span>
+<span id="cb27-138"><a href="#cb27-138"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_analyze.R</span>
+<span id="cb27-139"><a href="#cb27-139"></a><span class="kw">```</span></span>
+<span id="cb27-140"><a href="#cb27-140"></a></span>
+<span id="cb27-141"><a href="#cb27-141"></a><span class="co">### Grouping at the pangenome level</span></span>
+<span id="cb27-142"><a href="#cb27-142"></a></span>
+<span id="cb27-143"><a href="#cb27-143"></a><span class="kw">```</span>bash</span>
+<span id="cb27-144"><a href="#cb27-144"></a><span class="co">## grouping with relaxation 4 setting</span></span>
+<span id="cb27-145"><a href="#cb27-145"></a><span class="ex">process_start</span> group_v4</span>
+<span id="cb27-146"><a href="#cb27-146"></a><span class="fu">nice</span> <span class="va">$PANTOOLS</span> group <span class="at">-t</span> 30 <span class="at">--relaxation</span> 4 <span class="va">${pan_db}</span></span>
+<span id="cb27-147"><a href="#cb27-147"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-148"><a href="#cb27-148"></a></span>
+<span id="cb27-149"><a href="#cb27-149"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.grp</span>
+<span id="cb27-150"><a href="#cb27-150"></a></span>
+<span id="cb27-151"><a href="#cb27-151"></a><span class="co">## optimized grouping</span></span>
+<span id="cb27-152"><a href="#cb27-152"></a><span class="ex">process_start</span> optimal_grouping</span>
+<span id="cb27-153"><a href="#cb27-153"></a><span class="fu">nice</span> <span class="va">$PANTOOLS</span> optimal_grouping <span class="at">-t</span> 30 <span class="va">${pan_db}</span> <span class="va">${pan_db}</span>/busco/enterobacterales_odb10</span>
+<span id="cb27-154"><a href="#cb27-154"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-155"><a href="#cb27-155"></a></span>
+<span id="cb27-156"><a href="#cb27-156"></a></span>
+<span id="cb27-157"><a href="#cb27-157"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/optimal_grouping/optimal_grouping.R</span>
+<span id="cb27-158"><a href="#cb27-158"></a><span class="va">$PANTOOLS</span> grouping_overview <span class="va">${pan_db}</span></span>
+<span id="cb27-159"><a href="#cb27-159"></a></span>
+<span id="cb27-160"><a href="#cb27-160"></a><span class="co">## fix a grouping setting</span></span>
+<span id="cb27-161"><a href="#cb27-161"></a><span class="va">$PANTOOLS</span> change_grouping <span class="at">-v</span> 4 <span class="va">${pan_db}</span></span>
+<span id="cb27-162"><a href="#cb27-162"></a><span class="va">$PANTOOLS</span> grouping_overview <span class="va">${pan_db}</span></span>
+<span id="cb27-163"><a href="#cb27-163"></a></span>
+<span id="cb27-164"><a href="#cb27-164"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.opt_grp</span>
+<span id="cb27-165"><a href="#cb27-165"></a><span class="co">######################################################################</span></span>
+<span id="cb27-166"><a href="#cb27-166"></a><span class="kw">```</span></span>
+<span id="cb27-167"><a href="#cb27-167"></a></span>
+<span id="cb27-168"><a href="#cb27-168"></a><span class="co">## Pangenome exploration</span></span>
+<span id="cb27-169"><a href="#cb27-169"></a></span>
+<span id="cb27-170"><a href="#cb27-170"></a><span class="kw">```</span> bash</span>
+<span id="cb27-171"><a href="#cb27-171"></a><span class="co">## extract the metrics from pangenome</span></span>
+<span id="cb27-172"><a href="#cb27-172"></a><span class="ex">process_start</span> extract_pangenome_metrics</span>
+<span id="cb27-173"><a href="#cb27-173"></a><span class="va">$PANTOOLS</span> metrics <span class="va">${pan_db}</span></span>
+<span id="cb27-174"><a href="#cb27-174"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-175"><a href="#cb27-175"></a><span class="kw">```</span></span>
+<span id="cb27-176"><a href="#cb27-176"></a></span>
+<span id="cb27-177"><a href="#cb27-177"></a><span class="co">### gene classification</span></span>
+<span id="cb27-178"><a href="#cb27-178"></a></span>
+<span id="cb27-179"><a href="#cb27-179"></a><span class="co">#### core-unique variation w.r.t. cutoffs</span></span>
+<span id="cb27-180"><a href="#cb27-180"></a></span>
+<span id="cb27-181"><a href="#cb27-181"></a><span class="kw">```</span> bash</span>
+<span id="cb27-182"><a href="#cb27-182"></a><span class="co">## Core unique thresholds</span></span>
+<span id="cb27-183"><a href="#cb27-183"></a><span class="ex">process_start</span> core_unique_thresholds</span>
+<span id="cb27-184"><a href="#cb27-184"></a><span class="va">$PANTOOLS</span> core_unique_thresholds <span class="va">${pan_db}</span></span>
+<span id="cb27-185"><a href="#cb27-185"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-186"><a href="#cb27-186"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/core_unique_thresholds/core_unique_thresholds.R</span>
+<span id="cb27-187"><a href="#cb27-187"></a><span class="kw">```</span></span>
+<span id="cb27-188"><a href="#cb27-188"></a></span>
+<span id="cb27-189"><a href="#cb27-189"></a><span class="co">#### core and unique genes</span></span>
+<span id="cb27-190"><a href="#cb27-190"></a></span>
+<span id="cb27-191"><a href="#cb27-191"></a><span class="kw">```</span> bash</span>
+<span id="cb27-192"><a href="#cb27-192"></a><span class="co">## gene classification: core and unique</span></span>
+<span id="cb27-193"><a href="#cb27-193"></a><span class="ex">process_start</span> gene_classification_core_unique</span>
+<span id="cb27-194"><a href="#cb27-194"></a><span class="va">$PANTOOLS</span> gene_classification <span class="va">${pan_db}</span> </span>
+<span id="cb27-195"><a href="#cb27-195"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-196"><a href="#cb27-196"></a></span>
+<span id="cb27-197"><a href="#cb27-197"></a><span class="co">## Gene distance tree</span></span>
+<span id="cb27-198"><a href="#cb27-198"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/gene_classification/gene_distance_tree.R</span>
+<span id="cb27-199"><a href="#cb27-199"></a></span>
+<span id="cb27-200"><a href="#cb27-200"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/gene_classification <span class="va">${pan_db}</span>/gene_classification.100.0</span>
+<span id="cb27-201"><a href="#cb27-201"></a><span class="kw">```</span></span>
+<span id="cb27-202"><a href="#cb27-202"></a></span>
+<span id="cb27-203"><a href="#cb27-203"></a><span class="co">#### soft core (95%) and cloud (5%) genes</span></span>
+<span id="cb27-204"><a href="#cb27-204"></a></span>
+<span id="cb27-205"><a href="#cb27-205"></a><span class="kw">```</span> bash</span>
+<span id="cb27-206"><a href="#cb27-206"></a><span class="co">## gene classification: soft core and cloud</span></span>
+<span id="cb27-207"><a href="#cb27-207"></a><span class="ex">process_start</span> gene_classification_softcore_cloud</span>
+<span id="cb27-208"><a href="#cb27-208"></a><span class="va">$PANTOOLS</span> gene_classification <span class="at">--core-threshold</span> 95 <span class="at">--unique-threshold</span> 5 <span class="va">${pan_db}</span> </span>
+<span id="cb27-209"><a href="#cb27-209"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-210"><a href="#cb27-210"></a></span>
+<span id="cb27-211"><a href="#cb27-211"></a><span class="co">## Gene distance tree</span></span>
+<span id="cb27-212"><a href="#cb27-212"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/gene_classification/gene_distance_tree.R</span>
+<span id="cb27-213"><a href="#cb27-213"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/gene_classification <span class="va">${pan_db}</span>/gene_classification.95.5</span>
+<span id="cb27-214"><a href="#cb27-214"></a><span class="kw">```</span></span>
+<span id="cb27-215"><a href="#cb27-215"></a></span>
+<span id="cb27-216"><a href="#cb27-216"></a><span class="co">### Extract information for all homology groups</span></span>
+<span id="cb27-217"><a href="#cb27-217"></a></span>
+<span id="cb27-218"><a href="#cb27-218"></a><span class="kw">```</span> bash</span>
+<span id="cb27-219"><a href="#cb27-219"></a><span class="co">## homology group information</span></span>
+<span id="cb27-220"><a href="#cb27-220"></a><span class="fu">sed</span> <span class="at">-i.bak</span> <span class="at">-r</span> <span class="at">-n</span> <span class="st">'/^#/! p'</span> <span class="va">${pan_db}</span>/gene_classification.100.0/all_homology_groups.csv</span>
+<span id="cb27-221"><a href="#cb27-221"></a><span class="ex">process_start</span> <span class="st">"extracting homology group information"</span></span>
+<span id="cb27-222"><a href="#cb27-222"></a><span class="va">$PANTOOLS</span> group_info <span class="at">-H</span> <span class="va">${pan_db}</span>/gene_classification.100.0/all_homology_groups.csv <span class="va">${pan_db}</span></span>
+<span id="cb27-223"><a href="#cb27-223"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-224"><a href="#cb27-224"></a><span class="kw">```</span></span>
+<span id="cb27-225"><a href="#cb27-225"></a></span>
+<span id="cb27-226"><a href="#cb27-226"></a><span class="co">### k-mer classification</span></span>
+<span id="cb27-227"><a href="#cb27-227"></a></span>
+<span id="cb27-228"><a href="#cb27-228"></a><span class="co">#### core and unique kmers</span></span>
+<span id="cb27-229"><a href="#cb27-229"></a></span>
+<span id="cb27-230"><a href="#cb27-230"></a><span class="kw">```</span> bash</span>
+<span id="cb27-231"><a href="#cb27-231"></a><span class="co">## K-mer classification: soft core and cloud</span></span>
+<span id="cb27-232"><a href="#cb27-232"></a><span class="ex">process_start</span> kmer_classification_core_unique</span>
+<span id="cb27-233"><a href="#cb27-233"></a><span class="va">$PANTOOLS</span> k_mer_classification <span class="va">${pan_db}</span></span>
+<span id="cb27-234"><a href="#cb27-234"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-235"><a href="#cb27-235"></a></span>
+<span id="cb27-236"><a href="#cb27-236"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/kmer_classification/genome_kmer_distance_tree.R</span>
+<span id="cb27-237"><a href="#cb27-237"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/kmer_classification <span class="va">${pan_db}</span>/kmer_classification.100.0</span>
+<span id="cb27-238"><a href="#cb27-238"></a><span class="kw">```</span></span>
+<span id="cb27-239"><a href="#cb27-239"></a></span>
+<span id="cb27-240"><a href="#cb27-240"></a><span class="co">#### soft core (95%) and cloud (5%) kmers</span></span>
+<span id="cb27-241"><a href="#cb27-241"></a></span>
+<span id="cb27-242"><a href="#cb27-242"></a><span class="kw">```</span> bash</span>
+<span id="cb27-243"><a href="#cb27-243"></a><span class="co">## K-mer classification: soft core and cloud</span></span>
+<span id="cb27-244"><a href="#cb27-244"></a><span class="ex">process_start</span> kmer_classification_softcore_cloud</span>
+<span id="cb27-245"><a href="#cb27-245"></a><span class="va">$PANTOOLS</span> k_mer_classification <span class="at">--core-threshold</span> 95 <span class="at">--unique-threshold</span> 5 <span class="va">${pan_db}</span></span>
+<span id="cb27-246"><a href="#cb27-246"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-247"><a href="#cb27-247"></a></span>
+<span id="cb27-248"><a href="#cb27-248"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/kmer_classification/genome_kmer_distance_tree.R</span>
+<span id="cb27-249"><a href="#cb27-249"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/kmer_classification <span class="va">${pan_db}</span>/kmer_classification.95.5</span>
+<span id="cb27-250"><a href="#cb27-250"></a><span class="kw">```</span></span>
+<span id="cb27-251"><a href="#cb27-251"></a></span>
+<span id="cb27-252"><a href="#cb27-252"></a><span class="co">### Pangenome structure</span></span>
+<span id="cb27-253"><a href="#cb27-253"></a></span>
+<span id="cb27-254"><a href="#cb27-254"></a><span class="co">#### Use all genomes to determine pangenome structure</span></span>
+<span id="cb27-255"><a href="#cb27-255"></a></span>
+<span id="cb27-256"><a href="#cb27-256"></a><span class="kw">```</span> bash</span>
+<span id="cb27-257"><a href="#cb27-257"></a><span class="co">## Pangenome structure: genes</span></span>
+<span id="cb27-258"><a href="#cb27-258"></a><span class="ex">process_start</span> pangenome_structure_gene</span>
+<span id="cb27-259"><a href="#cb27-259"></a><span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="va">${pan_db}</span></span>
+<span id="cb27-260"><a href="#cb27-260"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-261"><a href="#cb27-261"></a></span>
+<span id="cb27-262"><a href="#cb27-262"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/pangenome_growth.R</span>
+<span id="cb27-263"><a href="#cb27-263"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_or_average.R</span>
+<span id="cb27-264"><a href="#cb27-264"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_and_average.R</span>
+<span id="cb27-265"><a href="#cb27-265"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/heaps_law.R</span>
+<span id="cb27-266"><a href="#cb27-266"></a></span>
+<span id="cb27-267"><a href="#cb27-267"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/pangenome_size/gene <span class="va">${pan_db}</span>/pangenome_size/gene.pangenome</span>
+<span id="cb27-268"><a href="#cb27-268"></a></span>
+<span id="cb27-269"><a href="#cb27-269"></a><span class="co">## Pangenome structure: kmer</span></span>
+<span id="cb27-270"><a href="#cb27-270"></a><span class="ex">process_start</span> pangenome_structure_kmer</span>
+<span id="cb27-271"><a href="#cb27-271"></a><span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="at">--kmer</span> <span class="va">${pan_db}</span></span>
+<span id="cb27-272"><a href="#cb27-272"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-273"><a href="#cb27-273"></a></span>
+<span id="cb27-274"><a href="#cb27-274"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/kmer/pangenome_growth.R</span>
+<span id="cb27-275"><a href="#cb27-275"></a><span class="co">######################################################################</span></span>
+<span id="cb27-276"><a href="#cb27-276"></a><span class="kw">```</span></span>
+<span id="cb27-277"><a href="#cb27-277"></a></span>
+<span id="cb27-278"><a href="#cb27-278"></a><span class="co">### Functional classification</span></span>
+<span id="cb27-279"><a href="#cb27-279"></a></span>
+<span id="cb27-280"><a href="#cb27-280"></a><span class="co">#### core and unique functional classification</span></span>
+<span id="cb27-281"><a href="#cb27-281"></a></span>
+<span id="cb27-282"><a href="#cb27-282"></a><span class="kw">```</span> bash</span>
+<span id="cb27-283"><a href="#cb27-283"></a><span class="co">## functional_classification: core and unique</span></span>
+<span id="cb27-284"><a href="#cb27-284"></a><span class="ex">process_start</span> functional_classification_core_unique</span>
+<span id="cb27-285"><a href="#cb27-285"></a><span class="va">$PANTOOLS</span> functional_classification <span class="va">${pan_db}</span></span>
+<span id="cb27-286"><a href="#cb27-286"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-287"><a href="#cb27-287"></a></span>
+<span id="cb27-288"><a href="#cb27-288"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/function/functional_classification <span class="va">${pan_db}</span>/function/functional_classification.100.0</span>
+<span id="cb27-289"><a href="#cb27-289"></a><span class="kw">```</span></span>
+<span id="cb27-290"><a href="#cb27-290"></a></span>
+<span id="cb27-291"><a href="#cb27-291"></a><span class="co">#### softcore (95%) and cloud (5%) functional classification</span></span>
+<span id="cb27-292"><a href="#cb27-292"></a></span>
+<span id="cb27-293"><a href="#cb27-293"></a><span class="kw">```</span> bash</span>
+<span id="cb27-294"><a href="#cb27-294"></a><span class="co">## functional_classification: softcore and cloud</span></span>
+<span id="cb27-295"><a href="#cb27-295"></a><span class="ex">process_start</span> functional_classification_softcore_cloud</span>
+<span id="cb27-296"><a href="#cb27-296"></a><span class="va">$PANTOOLS</span> functional_classification <span class="at">--core-threshold</span> 95 <span class="at">--unique-threshold</span> 5 <span class="va">${pan_db}</span></span>
+<span id="cb27-297"><a href="#cb27-297"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-298"><a href="#cb27-298"></a></span>
+<span id="cb27-299"><a href="#cb27-299"></a><span class="fu">mv</span> <span class="va">${pan_db}</span>/function/functional_classification <span class="va">${pan_db}</span>/function/functional_classification.95.5</span>
+<span id="cb27-300"><a href="#cb27-300"></a><span class="kw">```</span></span>
+<span id="cb27-301"><a href="#cb27-301"></a></span>
+<span id="cb27-302"><a href="#cb27-302"></a><span class="co">#### function overview</span></span>
+<span id="cb27-303"><a href="#cb27-303"></a></span>
+<span id="cb27-304"><a href="#cb27-304"></a><span class="kw">```</span> bash</span>
+<span id="cb27-305"><a href="#cb27-305"></a><span class="co">## function_overview</span></span>
+<span id="cb27-306"><a href="#cb27-306"></a><span class="ex">process_start</span> function_overview</span>
+<span id="cb27-307"><a href="#cb27-307"></a><span class="va">$PANTOOLS</span> function_overview <span class="va">${pan_db}</span> </span>
+<span id="cb27-308"><a href="#cb27-308"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-309"><a href="#cb27-309"></a></span>
+<span id="cb27-310"><a href="#cb27-310"></a><span class="ex">Rscript</span> <span class="va">${pan_db}</span>/cog_per_class.R</span>
+<span id="cb27-311"><a href="#cb27-311"></a><span class="kw">```</span></span>
+<span id="cb27-312"><a href="#cb27-312"></a></span>
+<span id="cb27-313"><a href="#cb27-313"></a><span class="kw">```</span> bash</span>
+<span id="cb27-314"><a href="#cb27-314"></a><span class="co">## GO enrichment for core, accessory and unique homology groups</span></span>
+<span id="cb27-315"><a href="#cb27-315"></a><span class="cf">for</span> grp <span class="kw">in</span> core accessory unique</span>
+<span id="cb27-316"><a href="#cb27-316"></a><span class="cf">do</span></span>
+<span id="cb27-317"><a href="#cb27-317"></a>    <span class="ex">process_start</span> GO_enrichment:<span class="va">$grp</span></span>
+<span id="cb27-318"><a href="#cb27-318"></a>    <span class="va">$PANTOOLS</span> go_enrichment <span class="at">-H</span> <span class="va">${pan_db}</span>/gene_classification.100.0/<span class="va">${grp}</span>_groups.csv  <span class="va">${pan_db}</span></span>
+<span id="cb27-319"><a href="#cb27-319"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-320"><a href="#cb27-320"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/function/go_enrichment <span class="va">${pan_db}</span>/function/go_enrichment.100.0.<span class="va">${grp}</span> </span>
+<span id="cb27-321"><a href="#cb27-321"></a><span class="cf">done</span></span>
+<span id="cb27-322"><a href="#cb27-322"></a></span>
+<span id="cb27-323"><a href="#cb27-323"></a><span class="co">## GO enrichment for soft-core, accessory and cloud homology groups</span></span>
+<span id="cb27-324"><a href="#cb27-324"></a><span class="cf">for</span> grp <span class="kw">in</span> core accessory unique</span>
+<span id="cb27-325"><a href="#cb27-325"></a><span class="cf">do</span></span>
+<span id="cb27-326"><a href="#cb27-326"></a>    <span class="ex">process_start</span> GO_enrichment:<span class="va">$grp</span></span>
+<span id="cb27-327"><a href="#cb27-327"></a>    <span class="va">$PANTOOLS</span> go_enrichment <span class="at">-H</span> <span class="va">${pan_db}</span>/gene_classification.95.5/<span class="va">${grp}</span>_groups.csv  <span class="va">${pan_db}</span></span>
+<span id="cb27-328"><a href="#cb27-328"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-329"><a href="#cb27-329"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/function/go_enrichment <span class="va">${pan_db}</span>/function/go_enrichment.95.5.<span class="va">${grp}</span> </span>
+<span id="cb27-330"><a href="#cb27-330"></a><span class="cf">done</span></span>
+<span id="cb27-331"><a href="#cb27-331"></a></span>
+<span id="cb27-332"><a href="#cb27-332"></a><span class="co">#######################################################################</span></span>
+<span id="cb27-333"><a href="#cb27-333"></a><span class="kw">```</span></span>
+<span id="cb27-334"><a href="#cb27-334"></a></span>
+<span id="cb27-335"><a href="#cb27-335"></a><span class="co">### MSA for all homology groups</span></span>
+<span id="cb27-336"><a href="#cb27-336"></a></span>
+<span id="cb27-337"><a href="#cb27-337"></a><span class="kw">```</span> bash</span>
+<span id="cb27-338"><a href="#cb27-338"></a><span class="co">## MSA for homology groups</span></span>
+<span id="cb27-339"><a href="#cb27-339"></a><span class="ex">process_start</span> <span class="st">"msa for homology groups"</span></span>
+<span id="cb27-340"><a href="#cb27-340"></a><span class="va">$PANTOOLS</span> msa <span class="at">-t</span> 12 <span class="at">--method</span> per-group <span class="at">--mode</span> nucleotide <span class="va">${pan_db}</span></span>
+<span id="cb27-341"><a href="#cb27-341"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-342"><a href="#cb27-342"></a></span>
+<span id="cb27-343"><a href="#cb27-343"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span> <span class="va">$PANGENOME_DIR</span>/backup/<span class="va">${PANGENOME_NAME}</span>.DB.msa</span>
+<span id="cb27-344"><a href="#cb27-344"></a><span class="kw">```</span></span>
+<span id="cb27-345"><a href="#cb27-345"></a></span>
+<span id="cb27-346"><a href="#cb27-346"></a><span class="co">## Phylogeny analysis</span></span>
+<span id="cb27-347"><a href="#cb27-347"></a></span>
+<span id="cb27-348"><a href="#cb27-348"></a><span class="kw">```</span> bash</span>
+<span id="cb27-349"><a href="#cb27-349"></a></span>
+<span id="cb27-350"><a href="#cb27-350"></a><span class="co">## SNP tree using core gene SNPs</span></span>
+<span id="cb27-351"><a href="#cb27-351"></a><span class="ex">process_start</span> core_phylogeny</span>
+<span id="cb27-352"><a href="#cb27-352"></a><span class="fu">cp</span> <span class="at">-rp</span> <span class="va">${pan_db}</span>/gene_classification.100.0 <span class="va">${pan_db}</span>/gene_classification</span>
+<span id="cb27-353"><a href="#cb27-353"></a><span class="va">$PANTOOLS</span> core_phylogeny <span class="at">-t</span> 20  <span class="at">--clustering-mode</span> ML <span class="va">${pan_db}</span></span>
+<span id="cb27-354"><a href="#cb27-354"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb27-355"><a href="#cb27-355"></a><span class="fu">rm</span> <span class="at">-r</span> <span class="va">${pan_db}</span>/gene_classification</span>
+<span id="cb27-356"><a href="#cb27-356"></a></span>
+<span id="cb27-357"><a href="#cb27-357"></a><span class="co">## running_job: leunissen</span></span>
+<span id="cb27-358"><a href="#cb27-358"></a><span class="fu">mkdir</span> <span class="va">${pan_db}</span>/core_snp_tree/ML_tree </span>
+<span id="cb27-359"><a href="#cb27-359"></a><span class="fu">nohup</span> nice iqtree <span class="at">-T</span> 40 <span class="at">-s</span> data/pangenomes/pectobacterium.v2/backup/pectobacterium.v2.DB.msa/core_snp_tree/informative.fasta <span class="at">-redo</span> <span class="at">-B</span> 1000 <span class="dt">\</span></span>
+<span id="cb27-360"><a href="#cb27-360"></a>--prefix data/pangenomes/pectobacterium.v2/backup/pectobacterium.v2.DB.msa/core_snp_tree/ML_tree/informative.fasta <span class="dt">\</span></span>
+<span id="cb27-361"><a href="#cb27-361"></a><span class="op">&gt;&gt;</span> logs/v2_pecto/core_tree.log <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb27-362"><a href="#cb27-362"></a></span>
+<span id="cb27-363"><a href="#cb27-363"></a><span class="fu">nohup</span> nice iqtree <span class="at">-T</span> 40 <span class="at">-s</span> informative.fasta <span class="at">-B</span> 1000 <span class="at">--prefix</span> ML_tree/informative.fasta <span class="dt">\</span></span>
+<span id="cb27-364"><a href="#cb27-364"></a><span class="op">&gt;&gt;</span> core_tree.log <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb27-365"><a href="#cb27-365"></a></span>
+<span id="cb27-366"><a href="#cb27-366"></a><span class="co">## run IQ-tree with a specific model</span></span>
+<span id="cb27-367"><a href="#cb27-367"></a><span class="fu">nohup</span> iqtree <span class="at">-T</span> 30 <span class="at">-s</span> <span class="va">${pan_db}</span>/core_snp_tree/informative.fasta <span class="at">-redo</span> <span class="at">-B</span> 1000 <span class="dt">\</span></span>
+<span id="cb27-368"><a href="#cb27-368"></a>-m GTR+F+ASC <span class="at">--prefix</span> <span class="va">${pan_db}</span>/core_snp_tree/informative.fasta.GTR_F_ASC <span class="dt">\</span></span>
+<span id="cb27-369"><a href="#cb27-369"></a><span class="op">&gt;</span> logs/v2_pecto/iqtree_GTR_F_ASC.log <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
+<span id="cb27-370"><a href="#cb27-370"></a></span>
+<span id="cb27-371"><a href="#cb27-371"></a><span class="co">######################################################################</span></span>
+<span id="cb27-372"><a href="#cb27-372"></a><span class="kw">```</span></span>
+<span id="cb27-373"><a href="#cb27-373"></a></span>
+<span id="cb27-374"><a href="#cb27-374"></a><span class="co">## Build pangenome </span><span class="kw">`</span>org.db<span class="kw">`</span> <span class="ex">object</span></span>
+<span id="cb27-375"><a href="#cb27-375"></a></span>
+<span id="cb27-376"><a href="#cb27-376"></a><span class="ex">Extract</span> pangenome data from Neo4j database using Python script.</span>
+<span id="cb27-377"><a href="#cb27-377"></a></span>
+<span id="cb27-378"><a href="#cb27-378"></a><span class="kw">```</span>bash</span>
+<span id="cb27-379"><a href="#cb27-379"></a><span class="ex">python3</span> scripts/b_construction/neo4j_extract_go.py</span>
+<span id="cb27-380"><a href="#cb27-380"></a><span class="kw">```</span></span>
+<span id="cb27-381"><a href="#cb27-381"></a></span>
+<span id="cb27-382"><a href="#cb27-382"></a><span class="ex">Create</span> <span class="kw">`</span>org.db<span class="kw">`</span> <span class="ex">AnnotationHub</span> like object for the pangenome for easier exploratory</span>
+<span id="cb27-383"><a href="#cb27-383"></a><span class="ex">analysis</span> in R.</span>
+<span id="cb27-384"><a href="#cb27-384"></a></span>
+<span id="cb27-385"><a href="#cb27-385"></a><span class="kw">```</span>bash</span>
+<span id="cb27-386"><a href="#cb27-386"></a><span class="ex">Rscript</span> scripts/build/pangenome_org_db.R</span>
+<span id="cb27-387"><a href="#cb27-387"></a><span class="kw">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+</body></html>
