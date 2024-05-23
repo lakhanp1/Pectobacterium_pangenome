@@ -31,5 +31,5 @@ busco_downloads
 blastdb
 extracted_data
 .vscode
-
 /.quarto/
+_freeze
