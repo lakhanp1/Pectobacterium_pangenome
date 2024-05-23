@@ -1,0 +1,262 @@
+---
+title: "Supplementary tables"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.Date()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+suppressPackageStartupMessages(library(DT))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/homology_groups.R")
+
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+
+```
+
+::: {.panel-tabset}
+
+## Table 1
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+s1 <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>% 
+  dplyr::select(-starts_with("nodepath."))
+
+DT::datatable(
+  data = s1,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+```
+
+
+## Table 2
+
+Pangenome statistics: Homology group counts for the genus pangenome and 
+individual species pangenome
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+s2 <- suppressMessages(
+  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_stats)
+)
+
+DT::datatable(
+  data = s2,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+```
+
+## Table 3
+
+Homology group copy number variation across 454 genomes in the pangenome. This
+is a big file and hence refer to the raw file at location ...
+
+```{r}
+#| echo: false
+#| eval: false
+#| column: screen-inset-right
+
+s3 <- homology_groups_mat(pandb = panOrgDb, type = "cnv")
+s3 <- tibble::as_tibble(s3, rownames = "genomeId")
+
+DT::datatable(
+  data = s3,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
+## Table 4
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+s4 <- suppressMessages(
+  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_go)
+) %>% 
+  dplyr::filter(SpeciesName == "pangenome") %>% 
+  dplyr::select(-SpeciesName)
+
+DT::datatable(
+  data = s4,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
+## Table 5
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+s5 <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$summary$files$prophage_stats_species)
+)
+
+DT::datatable(
+  data = s5,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+```
+
+## Table 6
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+s6 <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+  dplyr::select(-contig_id, genomeId, everything())
+
+DT::datatable(
+  data = s6,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+```
+
+## Table 7
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+s7 <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$clusters)
+) %>% 
+  dplyr::select(-starts_with("nodepath."))
+
+DT::datatable(
+  data = s7,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
+:::

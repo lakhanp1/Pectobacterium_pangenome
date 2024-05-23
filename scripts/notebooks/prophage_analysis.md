@@ -218,7 +218,15 @@ for individual prophage clusters.
 ### phage_grp_46: highly conserved in all but 5 genomes from n23 clade
 
 ```r
+grpToView <- "phage_grp_46"
+subSample <- TRUE
+cutHeight <- 0.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
 
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
 ```
 
 ### phage_grp_45: prophage present in all BL-causing isolates
@@ -229,18 +237,22 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
 ```
 
 ```r
-grpToView <- "phage_grp_45"
+grpToView <- "grp_45_mosaicsm"
 subSample <- TRUE 
 cutHeight <- 0.5
 addFlankingRegions <- TRUE
-flankingRegion <- 5000
+flankingRegion <- 7000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
 clusterOrder <- "host" # host, hg_pav, cluster_mash
 
 # a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c("g_400.vir_2")
+appendPhages <- c()
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- FALSE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
@@ -250,10 +262,12 @@ customRegions <- list(
   )
 )
 
-# whether to keep custom regions at the bottom or consider during phylogeny
-# based ordering
-regions_phy_ordered <- FALSE
 
+# optionally, a custom region list can be provided to generate the plot
+grp <- list(
+  phage_grp = grpToView,
+  members = c("g_302.vir_1", "g_399.vir_1", "g_400.vir_2")
+)
 ```
 
 ### phage_grp_71
@@ -268,6 +282,42 @@ flankingRegion <- 5000
 # completeness score
 clusterOrder <- "hg_pav"  # completeness, host, hg_pav, cluster_mash
 
+```
+
+### phage_grp_107
+
+```r
+grpToView <- "phage_grp_107"
+subSample <- TRUE
+cutHeight <- 0.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
+
+```
+
+### BL-causing clade specific signatures
+
+```r
+grpToView <- "Pbr_FN_specific"
+subSample <- FALSE
+cutHeight <- 0.5
+addFlankingRegions <- FALSE
+flankingRegion <- 5000
+
+# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
+# completeness score
+clusterOrder <- "default"  # completeness, host, hg_pav, cluster_mash, default
+
+
+# optionally, a custom region list can be provided to generate the plot
+grp <- list(
+  phage_grp = grpToView,
+  members = c("g_302.vir_1", "g_400.vir_2", "g_409.vir_1", "g_302.vir_2")
+)
 ```
 
 ### phage_grp_36
