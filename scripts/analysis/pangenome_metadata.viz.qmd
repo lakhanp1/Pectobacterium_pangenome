@@ -91,7 +91,7 @@ panMeta <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>%
 
 ```{r}
 #| echo: false
-#| column: screen-inset
+#| column: screen-inset-right
 #| label: metadata-tbl
 #| tbl-cap: Pangenome metadata table
 #| out-height: "400px"

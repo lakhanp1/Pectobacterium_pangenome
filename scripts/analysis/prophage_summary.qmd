@@ -748,11 +748,9 @@ pt_proLen <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>
 
 ```{r}
 #| echo: false
-#| column: page
-#| fig-height: 6
-#| fig-width: 10
+#| fig-height: 5
+#| fig-width: 8
 #| out-width: '100%'
-#| layout-valign: top
 
 ggsave(
   filename = file.path(outDir, "prophage_length_vs_blackleg.pdf"),

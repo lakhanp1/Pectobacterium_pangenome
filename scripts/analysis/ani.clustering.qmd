@@ -44,6 +44,7 @@ confs <- prefix_config_paths(
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
 outGroup <- confs$analysis$phylogeny$outgroup
 
 outDir <- confs$analysis$phylogeny$ani$dir
@@ -63,7 +64,7 @@ pt_theme <- theme_bw(base_size = 14) +
 ## Import data
 
 ```{r}
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId
@@ -94,7 +95,7 @@ aniDf <- suppressMessages(readr::read_tsv(
 aniDf %<>% dplyr::mutate(
   dplyr::across(
     .cols = c(id1, id2),
-    .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
+    .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1")
   ),
   dist = 1 - (ani / 100)
 ) %>%
