@@ -1,4 +1,20 @@
-#!/usr/bin/env Rscript
+---
+title: "Pangenome homology groups summary"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(configr))
@@ -6,10 +22,6 @@ suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(here))
 suppressPackageStartupMessages(library(matrixStats))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
-
-## 1) process homology groups to transpose the table where
-## rows are genomes and columns are homology group identifiers
-## 2) plot heatmap of homology group across pangenome
 
 rm(list = ls())
 
@@ -33,8 +45,11 @@ analysisName <- "homology_groups"
 outDir <- confs$analysis$homology_groups$dir
 outPrefix <- file.path(outDir, analysisName)
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
-################################################################################
+```
 
+## Import data
+
+```{r}
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -64,9 +79,14 @@ hgMeta <- AnnotationDbi::select(
     )
   )
 
-################################################################################
-## GO enrichment for homology groups
+## binary matrix for homology_group PAV
+hgPavMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
 
+```
+
+## Species level homology group statistics
+
+```{r}
 spNames <- dplyr::count(sampleInfo, SpeciesName) %>%
   # dplyr::filter(n >= 20) %>%
   dplyr::pull(SpeciesName)
@@ -74,16 +94,13 @@ spNames <- dplyr::count(sampleInfo, SpeciesName) %>%
 sppGrpStats <- NULL
 sppGrpGo <- NULL
 
-## binary matrix for homology_group PAV
-hgBinaryMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
-
-# matrixStats::colSums2(x = hgBinaryMat, useNames = T) %>%
+# matrixStats::colSums2(x = hgPavMat, useNames = T) %>%
 #   tibble::enframe(name = "hgId", value = "nGenomes") %>%
 #   dplyr::mutate(
 #     class = dplyr::case_when(
-#       nGenomes == !!nrow(hgBinaryMat) ~ "core",
+#       nGenomes == !!nrow(hgPavMat) ~ "core",
 #       nGenomes == 1 ~ "unique",
-#       nGenomes < !!nrow(hgBinaryMat) & nGenomes > 1 ~ "accessory"
+#       nGenomes < !!nrow(hgPavMat) & nGenomes > 1 ~ "accessory"
 #     )
 #   ) %>% 
 #   dplyr::count(class)
@@ -96,8 +113,8 @@ for (sp in spNames) {
   cat(sp, ": ", length(spGenomes), "\n")
   
   hgSum <- matrixStats::colSums2(
-    x = hgBinaryMat, useNames = T,
-    rows = which(rownames(hgBinaryMat) %in% spGenomes)
+    x = hgPavMat, useNames = T,
+    rows = which(rownames(hgPavMat) %in% spGenomes)
   ) %>%
     tibble::enframe(name = "hgId", value = "nGenomes") %>%
     dplyr::filter(nGenomes != 0) %>%
@@ -118,73 +135,22 @@ for (sp in spNames) {
     dplyr::mutate(
       SpeciesName = .env$sp, nHgs = !!nrow(hgSum),
       n_genomes = length(spGenomes)
-      ) %>%
-    dplyr::bind_rows(sppGrpStats)
-  
-  ## GO enrichment
-  sppGrpGo <- dplyr::group_by(hgSum, subpan_class) %>%
-    dplyr::group_modify(
-      .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
     ) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(SpeciesName = .env$sp) %>%
-    dplyr::bind_rows(sppGrpGo)
+    dplyr::bind_rows(sppGrpStats)
+
 }
+```
 
-################################################################################
-## pangenome wide GO enrichment
-panGo <- hgMeta  %>%
-  dplyr::group_by(class) %>%
-  dplyr::group_modify(
-    .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)
-  ) %>%
-  dplyr::ungroup() %>%
-  dplyr::mutate(SpeciesName = "pangenome")
+### Proportion of genus pangenome HGs in the species pangenome
 
-sppGrpGo <- dplyr::bind_rows(panGo, sppGrpGo) %>%
-  dplyr::select(SpeciesName, everything())
-
-readr::write_tsv(
-  x = sppGrpGo, file = confs$analysis$homology_groups$files$spp_group_go
-)
-
-################################################################################
-
-ptDf <- dplyr::group_by(panGo, class) %>%
-  dplyr::arrange(pvalue, .by_group = TRUE) %>%
-  dplyr::slice(1:8) %>%
-  dplyr::ungroup() %>%
-  dplyr::mutate(
-    class = forcats::fct_relevel(class, "core", "accessory", "unique")
-  )
-
-pt_go <- enrichment_bar(df = ptDf, title = "pangenome GO", colorCol = "class")
-
-(pt_go <- pt_go +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
-  scale_x_discrete(labels = label_wrap(60)) +
-  scale_fill_manual(
-    values = c(
-      "core" = confs$colors$core, "accessory" = confs$colors$accessory,
-      "unique" = confs$colors$unique
-    )
-  )
-)
-
-ggsave(
-  plot = pt_go, filename = file.path(outDir, "pangenome_GO.pdf"),
-  width = 8, height = 6
-)
-
-################################################################################
-# core-accessory-unique stats for each species
+```{r}
 hgStats <- dplyr::count(hgMeta, class, name = "count") %>%
   dplyr::mutate(
     SpeciesName = "Pangenome",
     nHgs = sum(count),
     pangenome_class = class,
     subpan_class = class,
-    n_genomes = nrow(hgBinaryMat)
+    n_genomes = nrow(hgPavMat)
   ) %>%
   dplyr::bind_rows(sppGrpStats) %>%
   dplyr::select(SpeciesName, n_genomes, pangenome_class, subpan_class, count, nHgs) %>% 
@@ -201,6 +167,15 @@ hgStats <- dplyr::count(hgMeta, class, name = "count") %>%
 readr::write_tsv(
   x = hgStats, file = confs$analysis$homology_groups$files$spp_group_stats
 )
+
+```
+
+### Plot the data
+
+```{r}
+#| fig-cap: "Homology group counts"
+#| fig-height: 5
+#| out-width: "80%"
 
 species_to_show <- dplyr::count(sampleInfo, SpeciesName) %>%
   dplyr::filter(n >= 20) %>% 
@@ -243,8 +218,16 @@ ggsave(
   width = 6, height = 4
 )
 
-################################################################################
-## plot Heap's law alpha for multiple species in pangenome
+pt_stats
+```
+
+## Heap's law alpha for multiple species in pangenome
+
+```{r}
+#| fig-cap: "Heaps law alpha"
+#| fig-height: 5
+#| out-width: "80%"
+
 heaps <- suppressMessages(readr::read_tsv(file.path(outDir, "heaps_law.tab"))) %>%
   dplyr::filter(species != "pangenome") %>%
   dplyr::mutate(
@@ -252,24 +235,65 @@ heaps <- suppressMessages(readr::read_tsv(file.path(outDir, "heaps_law.tab"))) %
     species = forcats::fct_relevel(species, !!!levels(species_to_show$SpeciesName))
   )
 
-(pt_alpha <- ggplot(data = heaps) +
-    geom_bar(
-      mapping = aes(y = species, x = alpha),
-      fill = "black", stat = "identity", width = 0.8
-    ) +
-    scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
-    theme_bw(base_size = 16) +
-    theme(
-      panel.grid = element_blank(),
-      axis.title = element_blank(),
-      axis.text = element_text(face = "bold"),
-      axis.text.y = element_text(face = "bold.italic")
-    )
-)
+pt_alpha <- ggplot(data = heaps) +
+  geom_bar(
+    mapping = aes(y = species, x = alpha),
+    fill = "black", stat = "identity", width = 0.8
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
+  theme_bw(base_size = 16) +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_text(face = "bold"),
+    axis.text.y = element_text(face = "bold.italic")
+  )
+
 
 ggsave(
   plot = pt_alpha, filename = file.path(outDir, "pangenome_spp_alpha.pdf"),
   width = 5, height = 4
 )
 
-################################################################################
+pt_alpha
+```
+
+## Species level GO enrichment results
+
+```{r}
+#| fig-cap: "Homology group GO enrichment"
+#| fig-height: 7
+#| out-width: "100%"
+
+panGo <- suppressMessages(
+  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_go)
+) %>% 
+  dplyr::filter(SpeciesName == "pangenome")
+
+ptDf <- dplyr::group_by(panGo, class) %>%
+  dplyr::arrange(pvalue, .by_group = TRUE) %>%
+  dplyr::slice(1:8) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(
+    class = forcats::fct_relevel(class, "core", "accessory", "unique")
+  )
+
+pt_go <- enrichment_bar(df = ptDf, title = "pangenome GO", colorCol = "class")
+
+pt_go <- pt_go +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  scale_x_discrete(labels = label_wrap(60)) +
+  scale_fill_manual(
+    values = c(
+      "core" = confs$colors$core, "accessory" = confs$colors$accessory,
+      "unique" = confs$colors$unique
+    )
+  )
+
+ggsave(
+  plot = pt_go, filename = file.path(outDir, "pangenome_GO.pdf"),
+  width = 8, height = 6
+)
+
+pt_go
+```

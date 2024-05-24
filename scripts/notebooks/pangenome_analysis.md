@@ -68,6 +68,12 @@ Rscript scripts/analysis/homology_group_process.R
 
 ```
 
+### GO enrichment of homology groups categories
+
+```bash
+Rscript scripts/analysis/HG_GO_enrichment.R
+```
+
 ### GO enrichment for homology groups of interest
 
 ``` bash
