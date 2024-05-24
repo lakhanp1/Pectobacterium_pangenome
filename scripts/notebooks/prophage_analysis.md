@@ -1,10 +1,4 @@
-*# Prophage analysis in *Pectobacterium* pangenome
-
-## Workflow
-
-```mermaid
-
-```
+# Prophage analysis in *Pectobacterium* pangenome
 
 ## Detect prophages in pangenome
 
