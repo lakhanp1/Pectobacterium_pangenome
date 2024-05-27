@@ -1,0 +1,12 @@
+---
+title: "Pectobacterium genus pangenome"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+

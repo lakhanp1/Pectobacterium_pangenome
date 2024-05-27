@@ -5,12 +5,14 @@ project:
   output-dir: "./docs"
   execute-dir: project
   render:
+    - scripts/notebooks/index.qmd
     - scripts/notebooks/preprocessing.md
     - scripts/notebooks/pangenome_construction.md
     - scripts/notebooks/pangenome_analysis.md
     - scripts/analysis/HG_summary.qmd
     - scripts/analysis/pangenome_metadata.viz.qmd
     - scripts/analysis/ani.clustering.qmd
+    - scripts/analysis/phylo.viz_tree.qmd
     - scripts/analysis/prophage_summary.qmd
     - scripts/analysis/prophage_seq_similarity.qmd
     - scripts/analysis/prophage_clustering.qmd
@@ -24,10 +26,21 @@ website:
   repo-url: https://github.com/lakhanp1/Pectobacterium_pangenome
   repo-actions: [issue]
   page-navigation: true
+  back-to-top-navigation: true
   sidebar:
     style: "docked"
     search: true
+    tools:
+      - icon: github
+        menu:
+          - text: Source Code
+            href: https://github.com/lakhanp1/Pectobacterium_pangenome
+          - text: Report a bug
+            href: https://github.com/lakhanp1/Pectobacterium_pangenome/issues/new
+      - icon: twitter
+        href: https://x.com/lakhanp01
     contents:
+      - scripts/notebooks/index.qmd
       - section: "Preprocessing"
         contents:
           - text: "Preprocessing"
@@ -46,6 +59,8 @@ website:
             href: scripts/notebooks/pangenome_analysis.md
           - text: "Pangenome summary"
             href: scripts/analysis/HG_summary.qmd
+          - text: "Phylogeny"
+            href: scripts/analysis/phylo.viz_tree.qmd
       - section: "Prophages"
         contents:
           - text: "Analysis"
