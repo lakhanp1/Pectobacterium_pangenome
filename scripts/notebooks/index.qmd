@@ -10,3 +10,18 @@ knitr:
     fig.height: 7
 ---
 
+## New strain identified in the Netherlands
+
+![](../../reports/graphic/graphic_1.png)
+
+
+
+## A pangenome approach
+
+![](../../reports/graphic/graphic_2.png)
+
+
+
+## Prophage dynamics
+
+![](../../reports/graphic/graphic_3.png)
