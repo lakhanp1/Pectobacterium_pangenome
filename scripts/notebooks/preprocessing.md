@@ -43,7 +43,6 @@ split -a 2 -d -n r/8 data/reference_data/pre_qc_assembly_ids.txt data/reference_
 
 ```
 
-
 ## Check if there are any new assemblies released on NCBI
 
 ``` bash

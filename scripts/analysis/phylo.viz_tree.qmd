@@ -1,5 +1,5 @@
 ---
-title: "Visualized core SNP maximum-likelihood tree with metadata"
+title: "Core SNP maximum-likelihood tree with metadata"
 date: "`r Sys.time()`"
 format: 
   html: 
@@ -171,12 +171,29 @@ pt_tree$data$x[longestBranch] <- trimLongestBranchTo
 #   ape::as.hclust.phylo() %>%
 #   as.dendrogram()
 
+speciesPhy <- representative_genomes_tree(phy = rawTree@phylo, metadata = sampleInfo) %>% 
+  ape::ladderize(right = FALSE)
 
-speciesTree <- representative_genomes_tree(phy = rawTree@phylo, metadata = sampleInfo) %>% 
-  tidytree::as_tibble() %>% 
-  dplyr::left_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
-  treeio::as.treedata() %>% 
-  ggtree::ggtree(size = 2) +
+orderConstraints <- dplyr::left_join(
+  x = speciesOrder,
+  y = dplyr::left_join(
+    x = tibble::tibble(genomeId = speciesPhy$tip.label),
+    y = dplyr::select(sampleInfo, genomeId, SpeciesName),
+    by = "genomeId"
+  ),
+  by = "SpeciesName"
+) %>% 
+  dplyr::arrange(-dplyr::row_number())
+
+speciesPhy <- ape::rotateConstr(
+  phy = speciesPhy, constraint = orderConstraints$genomeId
+)
+
+# ape::plotBreakLongEdges(speciesPhy)
+# ape::axisPhylo()
+
+speciesTree <- ggtree::ggtree(speciesPhy, size = 2, ladderize = FALSE) %<+%
+  dplyr::select(sampleInfo, genomeId, everything()) +
   ggtree::xlim(NA, 1) +
   ggtree::geom_tiplab(
     mapping = aes(label = SpeciesName),
@@ -370,7 +387,7 @@ ggsave(
 :::{.scrolling_y}
 
 ```{r}
-#| column: page 
+#| column: page-inset-right
 #| fig-height: 14
 #| fig-width: 14
 #| out-width: '100%'
@@ -383,4 +400,4 @@ pt_tree3
 :::
 
 Species key in the above figure marks the species on tree from left to right:
-`r paste(rev(speciesOrder$SpeciesName), collapse = ", ")`.
+`r paste(speciesOrder$SpeciesName, collapse = ", ")`.

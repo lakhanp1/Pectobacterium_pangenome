@@ -70,7 +70,7 @@ error_exit $?
 
 ## COG
 process_start add_COG_annotations 
-$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/deggnog_annotations.txt
+$PANTOOLS add_functions ${pan_db} $PANGENOME_DIR/eggnog_annotations.txt
 error_exit $?
 
 cp -rp ${pan_db} $PANGENOME_DIR/backup/${PANGENOME_NAME}.DB.fn
