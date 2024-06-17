@@ -388,7 +388,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="optimal_grouping-using-subset-of-genomes-or-type-strains"><code>optimal_grouping</code> using subset of genomes or type strains</h3>
 <p><code>optimal_grouping</code> at the Pangenome level is time consuming. An alternative approch using subset of genomes or only type strains was tried and the results were compared with the pangenome scale <code>optimal_grouping</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">## generate random subsets to run `optimal_grouping`</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_build.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="ex">Rscript</span> scripts/build/grouping_subsets_build.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>This script will generate a two column TSV file where first column is a set identifier and second column include comma separated genome identifers.</p>
 <pre><code>typeStrain  374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266
 rand_001    451,375,343,346,220,403,251,228,431,248,116,440,383,322,306,351,430,15,14,314
@@ -400,7 +400,7 @@ rand_004    451,375,374,88,96,193,251,235,431,248,116,440,386,124,335,387,294,15
 .</code></pre>
 <p>An example to run optimal grouping on subset of genomes in the pangenome.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="co">## type strains</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">bash</span> ./scripts/b_construction/grouping_subsets_process.sh <span class="st">"typeStrain"</span> <span class="st">"374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">bash</span> ./scripts/build/grouping_subsets_process.sh <span class="st">"typeStrain"</span> <span class="st">"374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Use GNU parallel to run optimal grouping on all random sets.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">## run `optimal_grouping` on these random subsets</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a><span class="fu">nohup</span> <span class="dt">\</span></span>
@@ -409,11 +409,11 @@ rand_004    451,375,374,88,96,193,251,235,431,248,116,440,386,124,335,387,294,15
 <span id="cb8-5"><a href="#cb8-5"></a><span class="ex">parallel</span> <span class="at">--colsep</span> <span class="st">'\t'</span> <span class="at">--jobs</span> 10  <span class="at">--keep-order</span> <span class="at">--workdir</span> <span class="va">$PWD</span> <span class="at">--halt</span> soon,fail=1 <span class="dt">\</span></span>
 <span id="cb8-6"><a href="#cb8-6"></a>--load 100% <span class="at">--results</span> logs/pantools/sub_opt_group/{1} <span class="dt">\</span></span>
 <span id="cb8-7"><a href="#cb8-7"></a>--joblog logs/pantools/sub_opt_group/sub_opt_group.log <span class="dt">\</span></span>
-<span id="cb8-8"><a href="#cb8-8"></a>bash ./scripts/b_construction/grouping_subsets_process.sh {1} {2} <span class="dt">\</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>bash ./scripts/build/grouping_subsets_process.sh {1} {2} <span class="dt">\</span></span>
 <span id="cb8-9"><a href="#cb8-9"></a><span class="op">&gt;&gt;</span>logs/pantools/sub_opt_group/nohup.out <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Summarize the results by plotting in R</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1"></a><span class="co">## summarize the results</span></span>
-<span id="cb9-2"><a href="#cb9-2"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_analyze.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="ex">Rscript</span> scripts/build/grouping_subsets_analyze.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="grouping-at-the-pangenome-level" class="level3">
 <h3 class="anchored" data-anchor-id="grouping-at-the-pangenome-level">Grouping at the pangenome level</h3>
@@ -625,7 +625,7 @@ rand_004    451,375,374,88,96,193,251,235,431,248,116,440,386,124,335,387,294,15
 <section id="build-pangenome-org.db-object" class="level2">
 <h2 class="anchored" data-anchor-id="build-pangenome-org.db-object">Build pangenome <code>org.db</code> object</h2>
 <p>Extract pangenome data from Neo4j database using Python script.</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1"></a><span class="ex">python3</span> scripts/b_construction/neo4j_extract_go.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1"></a><span class="ex">python3</span> scripts/build/neo4j_extract_go.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Create <code>org.db</code> AnnotationHub like object for the pangenome for easier exploratory analysis in R.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1"></a><span class="ex">Rscript</span> scripts/build/pangenome_org_db.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
@@ -1027,7 +1027,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb27-93"><a href="#cb27-93"></a></span>
 <span id="cb27-94"><a href="#cb27-94"></a><span class="kw">```</span> bash</span>
 <span id="cb27-95"><a href="#cb27-95"></a><span class="co">## generate random subsets to run `optimal_grouping`</span></span>
-<span id="cb27-96"><a href="#cb27-96"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_build.R</span>
+<span id="cb27-96"><a href="#cb27-96"></a><span class="ex">Rscript</span> scripts/build/grouping_subsets_build.R</span>
 <span id="cb27-97"><a href="#cb27-97"></a></span>
 <span id="cb27-98"><a href="#cb27-98"></a><span class="kw">```</span></span>
 <span id="cb27-99"><a href="#cb27-99"></a></span>
@@ -1048,7 +1048,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb27-114"><a href="#cb27-114"></a></span>
 <span id="cb27-115"><a href="#cb27-115"></a><span class="kw">```</span>bash</span>
 <span id="cb27-116"><a href="#cb27-116"></a><span class="co">## type strains</span></span>
-<span id="cb27-117"><a href="#cb27-117"></a><span class="fu">bash</span> ./scripts/b_construction/grouping_subsets_process.sh <span class="st">"typeStrain"</span> <span class="st">"374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"</span></span>
+<span id="cb27-117"><a href="#cb27-117"></a><span class="fu">bash</span> ./scripts/build/grouping_subsets_process.sh <span class="st">"typeStrain"</span> <span class="st">"374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"</span></span>
 <span id="cb27-118"><a href="#cb27-118"></a><span class="kw">```</span></span>
 <span id="cb27-119"><a href="#cb27-119"></a></span>
 <span id="cb27-120"><a href="#cb27-120"></a><span class="ex">Use</span> GNU parallel to run optimal grouping on all random sets.</span>
@@ -1061,7 +1061,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb27-127"><a href="#cb27-127"></a><span class="ex">parallel</span> <span class="at">--colsep</span> <span class="st">'\t'</span> <span class="at">--jobs</span> 10  <span class="at">--keep-order</span> <span class="at">--workdir</span> <span class="va">$PWD</span> <span class="at">--halt</span> soon,fail=1 <span class="dt">\</span></span>
 <span id="cb27-128"><a href="#cb27-128"></a>--load 100% <span class="at">--results</span> logs/pantools/sub_opt_group/{1} <span class="dt">\</span></span>
 <span id="cb27-129"><a href="#cb27-129"></a>--joblog logs/pantools/sub_opt_group/sub_opt_group.log <span class="dt">\</span></span>
-<span id="cb27-130"><a href="#cb27-130"></a>bash ./scripts/b_construction/grouping_subsets_process.sh {1} {2} <span class="dt">\</span></span>
+<span id="cb27-130"><a href="#cb27-130"></a>bash ./scripts/build/grouping_subsets_process.sh {1} {2} <span class="dt">\</span></span>
 <span id="cb27-131"><a href="#cb27-131"></a><span class="op">&gt;&gt;</span>logs/pantools/sub_opt_group/nohup.out <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">&amp;</span></span>
 <span id="cb27-132"><a href="#cb27-132"></a><span class="kw">```</span></span>
 <span id="cb27-133"><a href="#cb27-133"></a></span>
@@ -1069,7 +1069,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb27-135"><a href="#cb27-135"></a></span>
 <span id="cb27-136"><a href="#cb27-136"></a><span class="kw">```</span>bash</span>
 <span id="cb27-137"><a href="#cb27-137"></a><span class="co">## summarize the results</span></span>
-<span id="cb27-138"><a href="#cb27-138"></a><span class="ex">Rscript</span> scripts/b_construction/grouping_subsets_analyze.R</span>
+<span id="cb27-138"><a href="#cb27-138"></a><span class="ex">Rscript</span> scripts/build/grouping_subsets_analyze.R</span>
 <span id="cb27-139"><a href="#cb27-139"></a><span class="kw">```</span></span>
 <span id="cb27-140"><a href="#cb27-140"></a></span>
 <span id="cb27-141"><a href="#cb27-141"></a><span class="co">### Grouping at the pangenome level</span></span>
@@ -1310,7 +1310,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb27-376"><a href="#cb27-376"></a><span class="ex">Extract</span> pangenome data from Neo4j database using Python script.</span>
 <span id="cb27-377"><a href="#cb27-377"></a></span>
 <span id="cb27-378"><a href="#cb27-378"></a><span class="kw">```</span>bash</span>
-<span id="cb27-379"><a href="#cb27-379"></a><span class="ex">python3</span> scripts/b_construction/neo4j_extract_go.py</span>
+<span id="cb27-379"><a href="#cb27-379"></a><span class="ex">python3</span> scripts/build/neo4j_extract_go.py</span>
 <span id="cb27-380"><a href="#cb27-380"></a><span class="kw">```</span></span>
 <span id="cb27-381"><a href="#cb27-381"></a></span>
 <span id="cb27-382"><a href="#cb27-382"></a><span class="ex">Create</span> <span class="kw">`</span>org.db<span class="kw">`</span> <span class="ex">AnnotationHub</span> like object for the pangenome for easier exploratory</span>
