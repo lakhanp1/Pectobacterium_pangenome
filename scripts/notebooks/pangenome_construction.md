@@ -93,7 +93,7 @@ error_exit $?
 
 ``` bash
 ## generate random subsets to run `optimal_grouping`
-Rscript scripts/b_construction/grouping_subsets_build.R
+Rscript scripts/build/grouping_subsets_build.R
 
 ```
 
@@ -114,7 +114,7 @@ An example to run optimal grouping on subset of genomes in the pangenome.
 
 ```bash
 ## type strains
-bash ./scripts/b_construction/grouping_subsets_process.sh "typeStrain" "374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"
+bash ./scripts/build/grouping_subsets_process.sh "typeStrain" "374,96,385,386,379,388,116,375,377,347,250,335,338,265,256,32,269,387,266"
 ```
 
 Use GNU parallel to run optimal grouping on all random sets.
@@ -127,7 +127,7 @@ cat analysis/03_pangenome_pecto_v2/subset_optimal_group/subsets_conf.tab | \
 parallel --colsep '\t' --jobs 10  --keep-order --workdir $PWD --halt soon,fail=1 \
 --load 100% --results logs/pantools/sub_opt_group/{1} \
 --joblog logs/pantools/sub_opt_group/sub_opt_group.log \
-bash ./scripts/b_construction/grouping_subsets_process.sh {1} {2} \
+bash ./scripts/build/grouping_subsets_process.sh {1} {2} \
 >>logs/pantools/sub_opt_group/nohup.out 2>&1 &
 ```
 
@@ -135,7 +135,7 @@ Summarize the results by plotting in R
 
 ```bash
 ## summarize the results
-Rscript scripts/b_construction/grouping_subsets_analyze.R
+Rscript scripts/build/grouping_subsets_analyze.R
 ```
 
 ### Grouping at the pangenome level
@@ -376,7 +376,7 @@ nohup iqtree -T 30 -s ${pan_db}/core_snp_tree/informative.fasta -redo -B 1000 \
 Extract pangenome data from Neo4j database using Python script.
 
 ```bash
-python3 scripts/b_construction/neo4j_extract_go.py
+python3 scripts/build/neo4j_extract_go.py
 ```
 
 Create `org.db` AnnotationHub like object for the pangenome for easier exploratory
