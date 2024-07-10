@@ -267,12 +267,13 @@ grp <- list(
 ```r
 grpToView <- "phage_grp_71"
 subSample <- FALSE
-addFlankingRegions <- TRUE 
+cutHeight <- 0.5
+addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "hg_pav"  # completeness, host, hg_pav, cluster_mash
+clusterOrder <- "hg_pav" # host, hg_pav, cluster_mash
 
 ```
 

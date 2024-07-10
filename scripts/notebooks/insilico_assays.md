@@ -106,3 +106,11 @@ cat $ANALYSIS_DIR/pcr_primer_blastn.chrset_*.out > $ANALYSIS_DIR/pcr_primer_blas
 ``` bash
 quarto render scripts/analysis/insilico_assay.viz.qmd
 ```
+
+## Visualize LZI, TIR and 70 HGs specific to FN-Pbr
+
+```bash
+Rscript scripts/analysis/HG_sets_viz.R --config project_config.yaml \
+--tree kmer_upgma --hg_sets "LZI,TIR,assay_FN" \
+--out analysis/pangenome_v2/insilico_assay/assay_HG_pav.hgs.pdf
+```

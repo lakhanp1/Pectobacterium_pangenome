@@ -1,42 +1,13 @@
----
-title: "Homology group visualization"
-date: "`r Sys.time()`"
-format: 
-  html: 
-    embed-resources: true
-params:
-  tree:
-    label: "Phylogenetic tree"
-    value: kmer_upgma
-    input: select
-    choices: [kmer_upgma, kmer_nj, core_snp_ml, ani_nj]
-  name:
-    label: "Analysis name"
-    input: text
-    value: "HG_pav"
-  
----
+#!/usr/bin/env Rscript
 
-***
-
-## Initial setup
-
-```{r}
-#| label: setup
-#| warning: false
-
+suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(configr))
-suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(here))
-suppressPackageStartupMessages(library(ape))
-suppressPackageStartupMessages(library(treeio))
-suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(viridisLite))
-suppressPackageStartupMessages(library(openxlsx))
-suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 ## visualize homology groups PAV for given homology group sets
@@ -51,19 +22,53 @@ source("scripts/utils/homology_groups.R")
 ################################################################################
 set.seed(124)
 
-analysisName <- "assay_HG_pav"
+## argment parsing
+parser <- optparse::OptionParser()
 
-setIds <- c("LZI", "TIR", "assay_FN")
-
-treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
-
-confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+parser <- optparse::add_option(
+  parser,
+  opt_str = c("-t", "--tree"), type = "character", action = "store",
+  help = "species tree name. Tree file will be fetched from the config file."
 )
 
-outDir <- confs$analysis$insilico_assay$dir
-outPrefix <- file.path(outDir, analysisName)
+parser <- optparse::add_option(
+  parser,
+  opt_str = c("--hg_sets"), type = "character", action = "store",
+  help = "COMMA separated homology group sets"
+)
+
+parser <- optparse::add_option(
+  parser,
+  opt_str = c("-c", "--config"), type = "character", action = "store",
+  help = "project config YAML file"
+)
+
+parser <- optparse::add_option(
+  parser,
+  opt_str = c("-o", "--out"), type = "character", action = "store",
+  default = "HG_pav.pdf", help = "Output file name"
+)
+
+opts <- optparse::parse_args(parser)
+
+if (any(is.null(opts$hg_sets), is.null(opts$config), is.null(opts$tree))) {
+  stop(optparse::print_help(parser), call. = TRUE)
+}
+
+# ## for test
+# opts$config <- "project_config.yaml"
+# opts$tree <- "kmer_upgma"
+# opts$out <- "assay_HG_pav"
+# opts$hg_sets <- "LZI,TIR,assay_FN"
+################################################################################
+
+setIds <- stringr::str_split(opts$hg_sets, pattern = ",") %>%
+  unlist()
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = opts$config)),
+  dir = "."
+)
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
@@ -79,34 +84,25 @@ hgSetFiles <- c(
   confs$analysis$prophages$preprocessing$files$raw_prophage_hg
 )
 
-```
+################################################################################
 
-## Import data
-
-### Sample metadata
-
-```{r}
-sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 rawTree <- import_tree(
-  file = confs$analysis$phylogeny[[treeMethod]]$files$tree, phylo = TRUE
+  file = confs$analysis$phylogeny[[opts$tree]]$files$tree, phylo = TRUE
 )
 
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+  readr::read_tsv(confs$analysis$phylogeny[[opts$tree]]$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column
-sampleInfo %<>% dplyr::mutate(
-  SpeciesName = forcats::fct_relevel(SpeciesName, !!!rev(speciesOrder$SpeciesName))
-)
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>%
+  dplyr::mutate(
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+  )
 
-```
+################################################################################
 
-
-### Import homology group information
-
-```{r}
 # prepare homology groups data for plotting
 hgSets <- NULL
 
@@ -117,8 +113,8 @@ for (st in hgSetFiles) {
       setSource = st
     ) %>%
     dplyr::select(id, hgs, setSource)
-  
-  
+
+
   hgSets <- dplyr::bind_rows(hgSets, df)
 }
 
@@ -138,19 +134,11 @@ hgL <- dplyr::left_join(
   purrr::transpose() %>%
   purrr::set_names(nm = purrr::map(., "id"))
 
-```
 
-## Data visualization
-
-```{r}
-#| column: page
-#| fig-height: 8
-#| fig-width: 16
-#| out-width: '200%'
-#| layout-valign: top
-
+# species key heatmap
 htList <- species_key_heatmap(
-  genomes = rawTree$tip.label, speciesInfo = sampleInfo
+  genomes = rawTree$tip.label, speciesInfo = sampleInfo,
+  use_raster = TRUE, raster_quality = 3
 )
 
 htList@heatmap_param$width <- unit(12, "cm")
@@ -164,53 +152,29 @@ hgPavMat <- homology_groups_mat(
 hgPavMat <- hgPavMat[rawTree$tip.label, ]
 
 for (id in names(hgL)) {
-  
+
   hgMat <- hgPavMat[, hgL[[id]]$hgs, drop = FALSE]
-  
+
   ht <- homology_group_heatmap(
     mat = hgMat, phy = rawTree,
     # width = unit(10, "cm"),
     name = id, column_title = id,
     use_raster = TRUE, raster_quality = 3
   )
-  
+
   ht@column_dend_param$cluster <- FALSE
   ht@column_names_param$show <- FALSE
-  
+
   htList <- htList + ht
 }
 
 
-```
-
-```{r}
-#| fig-height: 8
-#| fig-width: 12
-#| out-width: '100%'
-#| layout-valign: top
-#| column: page
-#| echo: false
-
-pdf(file = paste(outPrefix, ".hgs.pdf", sep = ""), width = 12, height = 8)
+pdf(file = opts$out, width = 12, height = 8)
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = hgL[[1]]$id,
   row_dend_side = "left",
   merge_legends = TRUE,
   heatmap_legend_side = "bottom"
-  
 )
 dev.off()
-
-ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = hgL[[1]]$id,
-  row_dend_side = "left",
-  merge_legends = TRUE,
-  heatmap_legend_side = "bottom"
-)
-```
-
-
-
-
