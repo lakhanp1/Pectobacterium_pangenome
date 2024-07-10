@@ -15,7 +15,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
   stopifnot(
     groups %in% c("core", "accessory", "unique", "all")
   )
-  
+
   ## homology groups PAV matrix
   hgs <- suppressMessages(readr::read_csv(file)) %>%
     dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "( |-)", "_")) %>%
@@ -23,7 +23,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
     dplyr::rename_with(.fn = ~ tolower(.x)) %>%
     dplyr::mutate(homology_group_id = as.character(homology_group_id)) %>%
     dplyr::select(hg = homology_group_id, tidyselect::all_of(genomes))
-  
+
   ## binary matrix for homology_group PAV
   hgBinaryMat <- dplyr::mutate(
     hgs,
@@ -34,7 +34,7 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
   ) %>%
     tibble::column_to_rownames(var = "hg") %>%
     as.matrix()
-  
+
   hgSum <- matrixStats::rowSums2(
     x = hgBinaryMat, useNames = T
   ) %>%
@@ -47,18 +47,18 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
         nGenomes < !!nrow(sampleInfo) & nGenomes > 1 ~ "accessory"
       )
     )
-  
+
   if (groups != "all") {
     hgSum %<>% dplyr::filter(class == .env$groups)
   }
-  
+
   if (pav) {
     hgs <- tibble::as_tibble(hgBinaryMat, rownames = "hg")
   }
-  
+
   hgSet <- dplyr::left_join(hgSum, hgs, by = "hg") %>%
     dplyr::select(-nGenomes)
-  
+
   return(hgSet)
 }
 
@@ -76,15 +76,15 @@ homology_groups_extract <- function(file, genomes, groups = "all", pav = FALSE) 
 #' @examples
 homology_groups_mat <- function(pandb, type, groups = NULL) {
   type <- match.arg(arg = tolower(type), choices = c("pav", "cnv"))
-  
+
   stopifnot(
     isa(pandb, c("OrgDb"))
   )
-  
+
   hgs <- AnnotationDbi::select(
     x = pandb, keys = keys(pandb), columns = c("genomeId", "mRNA_key")
   )
-  
+
   if (type == "cnv") {
     hgWide <- tidyr::pivot_wider(
       hgs,
@@ -98,14 +98,14 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
       values_fn = ~ length(.x[1]), values_fill = 0
     )
   }
-  
+
   if (!is.null(groups)) {
     hgWide %<>% dplyr::select(genomeId, tidyselect::all_of(groups))
   }
-  
+
   hgMat <- tibble::column_to_rownames(hgWide, var = "genomeId") %>%
     as.matrix()
-  
+
   return(hgMat)
 }
 
@@ -123,7 +123,7 @@ homology_groups_mat <- function(pandb, type, groups = NULL) {
 #' Default: `NULL` which returns columns `"GID", "chr_name", "start", "end", "strand"`
 #' @param strand If -, homology groups are returned in reversed order
 #' @param overlapping Logical: If `TRUE`, include the overlapping genes too.
-#' Default: FALSE 
+#' Default: FALSE
 #'
 #' @return A vector of homology group identifiers
 #' @export
@@ -136,10 +136,10 @@ region_homology_groups <- function(
   stopifnot(
     !is.na(chr)
   )
-  
+
   start <- ifelse(is.na(start), 1, start)
   end <- ifelse(is.na(end), Inf, end)
-  
+
   df <- suppressMessages(AnnotationDbi::select(
     x = pandb, keys = genome, keytype = "genomeId",
     columns = union(c("GID", "chr_name", "start", "end", "strand"), cols)
@@ -149,7 +149,7 @@ region_homology_groups <- function(
         .cols = c(start, end), .fns = as.integer
       )
     )
-  
+
   # filter for genomic coordinates
   if (overlapping) {
     df <- dplyr::filter(
@@ -160,14 +160,14 @@ region_homology_groups <- function(
       df, chr_name == !!chr, start >= .env$start, end <= .env$end
     )
   }
-  
-  df <- dplyr::arrange(df, start) %>% 
+
+  df <- dplyr::arrange(df, start) %>%
     tibble::as_tibble()
-  
+
   if(strand == "-"){
     df <- dplyr::arrange(df, desc(start))
   }
-  
+
   if(is.null(cols)){
     return(df$GID)
   } else{
@@ -198,9 +198,9 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
     dplyr::filter(genomeId == !!genome, chr_name == !!chr) %>%
     dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>%
     dplyr::arrange(start)
-  
+
   stopifnot(length(unique(hgInfo$chr_id)) == 1)
-  
+
   chrInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = genome, keytype = "genomeId",
@@ -210,10 +210,10 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
     dplyr::filter(chr_id == !!hgInfo$chr_id[1]) %>%
     dplyr::mutate(dplyr::across(c(start, end), as.integer)) %>%
     dplyr::arrange(start)
-  
+
   # use RLE structure to check for tandem overlap
   hgRle <- rle(chrInfo$GID %in% hgInfo$GID)
-  
+
   if (!any(hgRle$lengths[hgRle$values == TRUE] >= nrow(hgInfo))) {
     # for a tandem match of homology groups, there should be one (RLE length for TRUE) >= #HGs
     # if these is no such RLE length, something is wrong
@@ -232,11 +232,11 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
       return(1)
     } else {
       # hgs present within a contig
-      
+
       hgPosition <- which(
         hgRle$values == TRUE & hgRle$lengths >= nrow(hgInfo)
       )
-      
+
       return((sum(head(hgRle$lengthsm, hgPosition - 1)) + 1) / nrow(chrInfo))
     }
   }
@@ -251,74 +251,74 @@ get_hg_sets_location <- function(hgs, genome, chr, pandb) {
 #' @param hgs A vector of homology group ids
 #' @param pandb org.db pangenome object
 #' @param genomes Find tandem match against a specific genomes
+#' @param gap Allowed gap during tandem match. Default = 0
 #'
 #' @return A list of homology groups where each element is a tandem group set
 #' @export
 #'
 #' @examples
+tandem_hg_match <- function(hgs, pandb, genomes = NULL, gap = 0) {
 
-tandem_hg_match <- function(hgs, pandb, genomes = NULL) {
-  
   hgInfo <- suppressMessages(
     AnnotationDbi::select(
       x = pandb, keys = hgs,
       columns = c("genomeId", "chr_id", "start", "end", "strand", "genePos")
     )
-  )%>% 
+  )%>%
     dplyr::mutate(
       dplyr::across(.cols = c(start, end, genePos), .fns = as.integer),
-    ) %>% 
-    dplyr::arrange(start) %>% 
-    dplyr::group_by(genomeId, chr_id) %>% 
-    dplyr::mutate(n = length(unique(GID))) %>% 
-    dplyr::ungroup() %>% 
-    dplyr::filter(n >= length(!!hgs)) %>% 
+    ) %>%
+    dplyr::arrange(start) %>%
+    dplyr::group_by(genomeId, chr_id) %>%
+    dplyr::mutate(n = length(unique(GID))) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(n >= length(!!hgs)) %>%
     tidyr::nest(data = c(GID, genePos), .by = genomeId)
-  
+
   dl <- purrr::map2(
     .x = purrr::set_names(hgInfo$genomeId), .y = hgInfo$data,
     .f = function(g, d){
       split(d$genePos, d$GID)
     }
   )
-  
+
   if(!is.null(genomes)){
     genomes <- intersect(genomes, names(dl))
     stopifnot(length(genomes) > 0)
-    
+
     dl <- dl[genomes]
   }
-  
+
   stopifnot(length(dl) > 0)
-  
+
   tandemMatches <- purrr::map(
     .x = dl,
     .f = function(chrHgs){
-      
+
       currentHgPos <- -1
       tandem <- TRUE
-      
+
       for (hg in hgs) {
-        
+
         if (currentHgPos == -1) {
           currentHgPos <- chrHgs[[hg]]
           next
         }
-        
+
         posDiff <- abs(currentHgPos - chrHgs[[hg]])
-        
-        if(all(posDiff != 1)){
+
+        if(all(posDiff != gap + 1)){
           tandem <- FALSE
           break
         } else{
           currentHgPos <- chrHgs[[hg]]
         }
       }
-      
+
       return(tandem)
     }
   )
-  
+
   return(
     purrr::discard(.x = tandemMatches, .p = isFALSE) %>% names()
   )
@@ -338,12 +338,12 @@ tandem_hg_match <- function(hgs, pandb, genomes = NULL) {
 #'
 #' @examples
 sub_pangenome_hgs <- function(pandb, genomes){
-  
+
   stopifnot(!is.null(genomes))
-  
+
   ## binary matrix for homology_group PAV
   hgBinaryMat <- homology_groups_mat(pandb = pandb, type = "pav")
-  
+
   hgSum <- matrixStats::colSums2(
     x = hgBinaryMat, useNames = T,
     rows = which(rownames(hgBinaryMat) %in% genomes)
