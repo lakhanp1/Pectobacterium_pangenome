@@ -48,15 +48,21 @@ Rscript scripts/preprocessing/genomad_checkv_merge.R
 bash scripts/preprocessing/prophage_genomes_extract.sh
 ```
 
+Output:
+- yaml: `confs$data$prophages$files$data`
+- file: `data/prophage_genomad/prophage_summary.tab`
+
 Extract homology groups for prophages from the pangenome org.db object.
 
 ```bash
 Rscript scripts/analysis/prophage_homology_groups.R
 ```
 
+Output:
+- yaml: `confs$analysis$prophages$preprocessing$files$raw_prophage_hg`
+- file: `analysis/pangenome_v2/prophages/preprocessing/prophage_hgs.tab`
 
-Run ANI on prophage genomes to identify the representative prophages in the 
-pangenome.
+Run ANI and MASH on prophage genomes.
 
 ```bash
 conda activate pantools_v4_3
@@ -88,12 +94,16 @@ data/prophage_genomad/mash/prophage_distance.tab
 ### QC
 
 Identify the fragmented prophages resulting because of the genome assembly
-that can be merged into a complete prophage. Prepare a consolidated list of 
+that can be merged into a complete prophage. Prepare a consolidated list of
 prophages which will be used for the subsequent analysis.
 
 ```bash
 Rscript scripts/analysis/prophage_merge.R
 ```
+
+Output:
+- yaml: `confs$analysis$prophages$preprocessing$files$consolidated`
+- file: `analysis/prophages/preprocessing/consolidated_phages.tab`
 
 Summarize the consolidated prophage list to generate various statistics and 
 generate summary plots. Prophages that are fragmented or smaller than the length
@@ -103,6 +113,10 @@ analysis.
 ```bash
 Rscript scripts/analysis/prophage_summary.R
 ```
+
+Output:
+- yaml: `confs$analysis$prophages$preprocessing$files$prophage_pool`
+- File: `analysis/pangenome_v2/prophages/preprocessing/prophages_pool.tab`
 
 Process prophage MASH and ANI results and visualize MASH similarity matrix for
 the filtered prophages.
@@ -161,6 +175,10 @@ reference.
 ```r
 knitr::knit("scripts/analysis/prophage_clustering.qmd")
 ```
+
+Output:
+- yaml: `confs$analysis$prophages$files$clusters`
+- file: `analysis/pangenome_v2/prophages/prophages_clusters.tab`
 
 ### Summarize prophage clusters
 

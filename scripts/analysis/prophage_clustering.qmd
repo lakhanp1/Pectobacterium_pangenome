@@ -76,56 +76,22 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
-phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
-  dplyr::select(prophage_id, taxonomy, completeness, checkv_quality, genomeId)
-
-mergedPhages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
+prophagePool <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$prophage_pool)
 ) %>% 
-  dplyr::filter(filtered != 1)
-
-# get aditional information for fragmented prophages
-fragmented <- dplyr::filter(mergedPhages, nFragments > 1) %>% 
-  dplyr::filter(jaccardIndex >= 0.5 & perSharedChild >= 0.8) %>% 
-  dplyr::select(prophage_id, fragments, nFragments, prophage_length, nHg, parent) %>% 
-  dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>% 
-  tidyr::unnest(fragments) %>% 
-  dplyr::left_join(
-    y = phagesRaw, by = c("fragments" = "prophage_id")
-  ) %>% 
-  dplyr::group_by(prophage_id, nFragments, prophage_length, nHg, parent) %>% 
-  dplyr::summarize(
-    fragments = paste(fragments, collapse = ";"),
-    taxonomy = paste(unique(taxonomy), collapse = "&"),
-    completeness = sum(completeness),
-    checkv_quality = paste("merged:", checkv_quality, collapse = ",", sep = " "),
-    genomeId = unique(genomeId),
-    .groups = "drop"
-  ) %>% 
-  dplyr::mutate(
-    completeness = pmin(98, completeness)
+  dplyr::select(
+    prophage_id, fragments, nFragments, parent, prophage_length, nHg, genomeId,
+    completeness, checkv_quality, taxonomy 
   )
 
-unfragPhages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered)
-) %>%
-  dplyr::select(
-    prophage_id, prophage_length, nHg, genomeId, completeness,
-    checkv_quality, taxonomy
-  ) 
+fragmentedPhages <- dplyr::filter(prophagePool, nFragments > 1)
+unfragPhages <- dplyr::filter(prophagePool, nFragments == 1) %>% 
+  dplyr::select(-parent)
+
 
 simDf <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$pair_comparison)
 )
-
-# read prophage HGs stored locally
-proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
-) %>%
-  dplyr::select(prophage_id = id, hgs) %>%
-  dplyr::mutate(
-    hgs = stringr::str_split(hgs, ";")
-  )
 
 mashMat <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$preprocessing$files$mash_dist)
@@ -137,6 +103,31 @@ mashMat <- mashMat[unfragPhages$prophage_id, unfragPhages$prophage_id]
 
 mashUpgma <- ape::read.tree(confs$analysis$prophages$preprocessing$files$mash_hclust)
 ```
+
+Import HGs for raw prophages stored locally and map them to consolidated prophages
+
+```{r}
+# read prophage HGs stored locally
+rawProHgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+) %>%
+  dplyr::select(prophage_id = id, hgs) %>%
+  dplyr::mutate(
+    hgs = stringr::str_split(hgs, ";")
+  )
+
+# merge the HGs from multiple prophage fragments when they are merged
+prophageHgs <- dplyr::select(prophagePool, prophage_id, fragments) %>% 
+  dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>% 
+  tidyr::unnest(fragments) %>% 
+  dplyr::left_join(y = rawProHgs, by = c("fragments" = "prophage_id")) %>% 
+  dplyr::summarize(
+    hgs = list(unique(unlist(hgs))),
+    .by = prophage_id
+  )
+```
+
+Total prophages to be clustered: `r nrow(prophagePool)`
 
 ## Process syntenic Jaccard similarity and MASH distance data 
 
@@ -157,6 +148,17 @@ allPhageJaccardMat <- tidyr::pivot_wider(
   tibble::column_to_rownames(var = "phage1") %>%
   as.matrix()
 
+```
+
+:::{.callout-important}
+To remove the noise while clustering exclude:
+
+- fragmented prophages
+- all the prophages that show syntenic Jaccard index 0.5 or lower
+against other prophages
+:::
+
+```{r}
 jaccardMat <- allPhageJaccardMat[unfragPhages$prophage_id, unfragPhages$prophage_id]
 
 if (all(is.na(diag(jaccardMat)))) {
@@ -174,12 +176,6 @@ quantile(jaccardMat, c(0, 0.25, 0.5, 0.75, seq(0.9, 0.99, by = 0.01), 0.995, 1))
 
 ```
 
-## Hierarchical clustering of Jaccard similarity
-
-:::{.callout-important}
-To remove the noise while clustering, exclude all the prophages that show
-syntenic Jaccard index 0.5 or lower against other prophages.
-
 ```{r}
 breakPoint <- 0.5
 tempJcMat <- jaccardMat
@@ -192,7 +188,7 @@ trimmedJaccardMat <- jaccardMat[unname(trimmedNodes), unname(trimmedNodes)]
 
 ```
 
-:::
+## Hierarchical clustering of Jaccard similarity
 
 A heatmap showing the syntenic Jaccard index between the singleton nodes
 identified above and the remaining nodes that will be used for clustering.
@@ -273,7 +269,13 @@ rev(phageDend) %>%
 
 ## Visualize the clusters with data
 
-### Syntenic Jaccard distance 
+### Syntenic Jaccard distance
+
+:::{.callout-important}
+The heatmap below excludes obvious singletons i.e. noisy nodes identified above
+(n = `r length(noisyNodes)`). Thus this heatmap shows comparison of
+`r length(trimmedNodes)` prophages.
+:::
 
 ```{r}
 
@@ -386,15 +388,14 @@ phageGroups <- tibble::enframe(
   dplyr::left_join(unfragPhages, by = "prophage_id")
 ```
 
-Finally, add the `r `nrow(fragmented)` fragmented prophages which could be mapped
-to a prophage in the pool with high quality 
-(syntenic-Jaccard index >= 0.5 & perSharedChild >= 0.8) to the respective 
-clusters of their best matching parent prophage.
+Finally, add the `r nrow(fragmentedPhages)` fragmented prophages which could be
+mapped to a prophage in the pool to the respective clusters of their best 
+matching parent prophage.
 
 ```{r}
 
 fragmentsToAdd <- dplyr::left_join(
-  x = fragmented,
+  x = fragmentedPhages,
   y = dplyr::select(phageGroups, prophage_id, phage_grp),
   by = c("parent" = "prophage_id")
 ) %>% 
@@ -470,10 +471,11 @@ rootedClusters <- dplyr::left_join(
   dplyr::ungroup() %>%
   dplyr::mutate(
     is_root = dplyr::if_else(is_root == 1, 1, 0)
-  )
+  ) %>% 
+  dplyr::left_join(y = prophageHgs, by = "prophage_id")
 
-representatives <- dplyr::filter(rootedClusters, is_root == 1) %>% 
-  dplyr::left_join(y = proHgs, by = "prophage_id")
+
+representatives <- dplyr::filter(rootedClusters, is_root == 1)
 
 rootedClusters %<>% dplyr::left_join(
   y = dplyr::select(representatives, phage_grp, root_id = prophage_id),
@@ -484,18 +486,22 @@ rootedClusters %<>% dplyr::left_join(
 
 ### Clustering statistics
 
+Total prophages used for clustering: `r nrow(rootedClusters)`
+
+Total unique homology groups from prophages before clustering:
+`r length(unique(unlist(rootedClusters$hgs)))`
+
 Total prophage clusters: `r nrow(representatives)`
 
-Total homology groups in prophage representatives:
+Total unique homology groups of prophage representatives after clustering:
 `r length(unique(unlist(representatives$hgs)))`
-
 
 ```{r}
 
-phageClusters <- dplyr::arrange(
-  rootedClusters,
-  dplyr::desc(grp_size), phage_grp, desc(completeness), desc(mean_grp_sim)
-) %>%
+phageClusters <- dplyr::select(rootedClusters, -hgs) %>% 
+  dplyr::arrange(
+    dplyr::desc(grp_size), phage_grp, desc(completeness), desc(mean_grp_sim)
+  ) %>%
   dplyr::left_join(
     y = dplyr::select(
       sampleInfo, genomeId, sampleId, SpeciesName, nodepath.kmer_upgma,
