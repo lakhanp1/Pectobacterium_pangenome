@@ -39,7 +39,7 @@ confs <- prefix_config_paths(
 
 prophageGrps <- c(
   # "phage_grp_71", "phage_grp_21", "phage_grp_12",
-  "phage_grp_343", "phage_grp_107", "phage_grp_46", "phage_grp_45"
+   "phage_grp_45", "phage_grp_343", "phage_grp_107", "phage_grp_46"
 )
 
 

@@ -28,18 +28,18 @@ confs <- prefix_config_paths(
 
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
 
-grpToView <- "phage_grp_45"
-subSample <- TRUE
+grpToView <- "phage_grp_71"
+subSample <- FALSE
 cutHeight <- 0.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "host" # host, hg_pav, cluster_mash
+clusterOrder <- "hg_pav" # host, hg_pav, cluster_mash
 
 # a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c("g_400.vir_2")
+appendPhages <- c()
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
@@ -47,11 +47,7 @@ regions_phy_ordered <- FALSE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list(
-  g_406_reg = list(
-    chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"
-  )
-)
+customRegions <- list()
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
@@ -186,7 +182,7 @@ grp <- clusterList[[grpToView]]
 # optionally, a custom region list can be provided to generate the plot
 # grp <- list(
 #   phage_grp = grpToView,
-#   members = c()
+#   members = c("g_302.vir_1", "g_399.vir_1", "g_400.vir_2")
 # )
 
 # if there are no members i.e. only show region of interests, then skip the next block
@@ -388,6 +384,7 @@ viewClusters <- dplyr::case_when(
     grpMemberData$region_id[order(grpMemberData$pav_order)],
   clusterOrder == "cluster_mash" ~
     grpMemberData$region_id[order(grpMemberData$mash_order)],
+  clusterOrder == "default" ~ grpMemberData$region_id,
   TRUE ~ grpMemberData$region_id
 )
 
@@ -405,7 +402,9 @@ regDf <- purrr::map(
 
 # create JSON data structure for clustermap.js
 cmJson <- clustermap_data(
-  regions = regDf, flanking_region = flankingRegion, pandb = panOrgDb,
+  regions = regDf,
+  flanking_region = ifelse(addFlankingRegions, flankingRegion, 0),
+  pandb = panOrgDb,
   group_colors = hgColors,
   file = paste(outPrefix, ".json", sep = "")
 )

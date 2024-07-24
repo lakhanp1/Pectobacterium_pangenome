@@ -316,7 +316,7 @@ analysis:
       files:
         raw_prophage_hg: "prophage_hgs.tab"
         consolidated: "consolidated_phages.tab"
-        filtered: "filtered_prophages.tab"
+        prophage_pool: "prophages_pool.tab"
         pair_comparison: "phage_pair_relationships.tab"
         hgs_union: "prophage_hgs_union.tab"
         dag_clusters: "prophage_DAG_network.tab"

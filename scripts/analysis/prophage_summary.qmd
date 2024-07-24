@@ -63,17 +63,12 @@ sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
-# read prophage HGs stored locally
-proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
-) %>%
-  dplyr::select(prophage_id = id, nHgs, hgs) %>%
-  dplyr::mutate(
-    hgs = stringr::str_split(hgs, ";")
-  )
+phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+  dplyr::select(prophage_id, taxonomy, completeness, checkv_quality, genomeId, sampleId)
 
-phagesRaw <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
-  dplyr::select(prophage_id, sampleId, taxonomy, completeness, checkv_quality)
+phagesConsolidated <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
+)
 
 rawTree <- import_tree(
   file = confs$analysis$phylogeny[[treeMethod]]$files$tree,
@@ -83,53 +78,120 @@ pt_tree <- ggtree::ggtree(rawTree)
 treeTipOrder <- ggtree::get_taxa_name(pt_tree)
 ```
 
-### Import processed prophage data
+Import HGs for raw prophages stored locally and map them to consolidated prophages
 
 ```{r}
-mergedPhages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$consolidated)
-)
+# read prophage HGs stored locally
+rawProHgs <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+) %>%
+  dplyr::select(prophage_id = id, hgs) %>%
+  dplyr::mutate(
+    hgs = stringr::str_split(hgs, ";")
+  )
 
-fragmented <- dplyr::filter(mergedPhages, nFragments > 1)
-removedPro <- dplyr::filter(mergedPhages, filtered != 0 | nFragments > 1)
+# merge the HGs from multiple prophage fragments when they are merged
+prophageHgs <- dplyr::select(phagesConsolidated, prophage_id, fragments) %>% 
+  dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>% 
+  tidyr::unnest(fragments) %>% 
+  dplyr::left_join(y = rawProHgs, by = c("fragments" = "prophage_id")) %>% 
+  dplyr::summarize(
+    hgs = list(unique(unlist(hgs))),
+    .by = prophage_id
+  )
+```
 
-phages <- dplyr::filter(mergedPhages, filtered == 0, nFragments == 1) %>%
-  dplyr::left_join(y = phagesRaw, by = "prophage_id") %>%
-  dplyr::left_join(proHgs, by = "prophage_id") %>%
-  dplyr::relocate(sampleId, taxonomy, completeness, checkv_quality, .after = genomeId)
+### Filter prophages and prepare prophage pool
 
-phageHgDf <- tibble::tibble(hgId = unlist(phages$hgs) %>% unique())
+```{r}
+qcPassedPhages <- dplyr::filter(phagesConsolidated, filtered != 1)
 
-# save filtered prophages
+# get aditional information for fragmented prophages
+fragmentedPhages <- dplyr::filter(qcPassedPhages, nFragments > 1) %>% 
+  dplyr::filter(jaccardIndex >= 0.5 & perSharedChild >= 0.8) %>% 
+  dplyr::select(prophage_id, fragments, nFragments, prophage_length, nHg, parent) %>% 
+  dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>% 
+  tidyr::unnest(fragments) %>% 
+  dplyr::left_join(
+    y = phagesRaw, by = c("fragments" = "prophage_id")
+  ) %>% 
+  dplyr::group_by(prophage_id, nFragments, prophage_length, nHg, parent) %>% 
+  dplyr::summarize(
+    fragments = paste(fragments, collapse = ";"),
+    taxonomy = paste(unique(taxonomy), collapse = "&"),
+    nTaxo = length(unique(taxonomy)),
+    completeness = sum(completeness),
+    checkv_quality = paste("merged:", checkv_quality, collapse = ",", sep = " "),
+    genomeId = unique(genomeId),
+    .groups = "drop"
+  ) %>% 
+  dplyr::mutate(
+    completeness = pmin(98, completeness)
+  ) %>% 
+  dplyr::filter(nTaxo == 1) %>% 
+  dplyr::select(prophage_id, taxonomy, completeness, checkv_quality, nFragments)
+
+unfragPhages <- dplyr::filter(qcPassedPhages, nFragments == 1) %>%
+  dplyr::left_join(y = phagesRaw, by = c("prophage_id", "genomeId")) %>%
+  dplyr::select(prophage_id, taxonomy, completeness, checkv_quality
+  )
+
+prophagePool <- dplyr::bind_rows(
+  unfragPhages,
+  dplyr::select(fragmentedPhages, -nFragments)
+) %>% 
+  dplyr::left_join(phagesConsolidated, by = "prophage_id")
+
+# save unfragmented prophages
 readr::write_tsv(
-  dplyr::select(phages, -hgs, -nHgs),
-  file = confs$analysis$prophages$preprocessing$files$filtered
+  prophagePool,
+  file = confs$analysis$prophages$preprocessing$files$prophage_pool
 )
+
+prophagePool <- dplyr::left_join(
+  prophagePool, prophageHgs, by = "prophage_id"
+)
+
+phageHgDf <- tibble::tibble(hgId = unlist(prophagePool$hgs) %>% unique())
+
+
 
 ```
 
-## Prophage summary for deciding filtering
+### Filtered prophages
 
 ```{r}
-glimpse(phages)
+removedPhages <- tibble::tibble(
+  prophage_id = setdiff(phagesConsolidated$prophage_id, prophagePool$prophage_id)
+) %>% 
+  dplyr::left_join(phagesConsolidated, by = "prophage_id")
+```
+
+## Prophage pool statistics
+
+```{r}
+glimpse(prophagePool)
 ```
 
 Prophages identified by geNomad pipeline: `r nrow(phagesRaw)`
 
-Prophages with at least 1 homology group: `r nrow(proHgs)`
+Prophages with at least 1 homology group: `r nrow(prophageHgs)`
 
-Total homology groups of raw prophages: `r unlist(proHgs$hgs) %>% unique() %>% length()`
+Total homology groups of raw prophages: `r unlist(prophageHgs$hgs) %>% unique() %>% length()`
 
-Consolidated prophages: `r nrow(mergedPhages)`
+Consolidated prophages: `r nrow(phagesConsolidated)`
 
-Fragmented prophages: `r nrow(fragmented)`
+Fragmented prophages: `r nrow(fragmentedPhages)`
 
-Total fragments in fragmented prophages: `r sum(fragmented$nFragments)`
+Total fragments in fragmented prophages: `r sum(fragmentedPhages$nFragments)`
 
-Prophages after filtering fragmented prophages and length smaller than `r confs$analysis$prophages$cutoff_length`bp: `r nrow(phages)`
+Final prophage pool after filtering fragmented prophages and length smaller 
+than `r confs$analysis$prophages$cutoff_length`bp: `r nrow(prophagePool)`
 
-Total homology groups of the filtered prophage set: 
+Total homology groups of the final prophage pool: 
 `r length(phageHgDf$hgId)`
+
+## Prophage length summary
 
 ```{r}
 #| fig-cap: Prophage length distribution
@@ -137,7 +199,7 @@ Total homology groups of the filtered prophage set:
 #| fig-height: 4
 
 completenessDf <- dplyr::select(
-  phages, prophage_id, genomeId, prophage_length, completeness
+  prophagePool, prophage_id, genomeId, prophage_length, completeness
 ) %>%
   dplyr::mutate(
     comp_category = dplyr::case_when(
@@ -156,6 +218,41 @@ shortestCompletePro <- dplyr::filter(completenessDf, completeness >= 90) %>%
   dplyr::arrange(prophage_length) %>%
   dplyr::slice(1L)
 
+pt_sizeDens <- ggplot2::ggplot(
+  data = completenessDf,
+  mapping = aes(x = prophage_length, color = comp_category, group = NA)
+) +
+  ggdist::geom_dots(layout = "weave", smooth = "bounded", scale = 1, shape = 19) +
+  scale_color_manual(
+    name = "CheckV completeness",
+    values = c(
+      "complete" = "#4daf4a", "gt_90" = "#b2df8a",
+      "betn_50_90" = "#ff7f00", "lt_50" = "grey50"
+    ),
+    labels = c(
+      "complete" = "100%", "gt_90" = ">= 90%",
+      "betn_50_90" = "[50%, 90%)", "lt_50" = "< 50%"
+    )
+  ) +
+  scale_x_continuous(
+    labels = scales::label_number(scale_cut = c(0, kb = 10^3, mb = 10^6)),
+    breaks = scales::breaks_extended(6),
+    limits = c(0, NA), expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
+  labs(x = "Prophage length", y = "density") +
+  theme_bw(base_size = 16) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = c(0.95, 0.95),
+    legend.justification = c(1, 1)
+  )
+
+
+pt_sizeDens
+```
+
+```{r}
 pt_sizeHist <- ggplot2::ggplot(
   data = completenessDf,
   mapping = aes(x = prophage_length)
@@ -190,42 +287,12 @@ pt_sizeHist <- ggplot2::ggplot(
   )
 
 
-pt_sizeDens <- ggplot2::ggplot(
-  data = completenessDf,
-  mapping = aes(x = prophage_length, color = comp_category, group = NA)
-) +
-  ggdist::geom_dots(layout = "weave", smooth = "bounded", scale = 1, shape = 19) +
-  scale_color_manual(
-    name = "CheckV completeness",
-    values = c(
-      "complete" = "#4daf4a", "gt_90" = "#b2df8a",
-      "betn_50_90" = "#ff7f00", "lt_50" = "grey50"
-    ),
-    labels = c(
-      "complete" = "100%", "gt_90" = ">= 90%",
-      "betn_50_90" = "[50%, 90%)", "lt_50" = "< 50%"
-    )
-  ) +
-  scale_x_continuous(
-    labels = scales::label_number(scale_cut = c(0, kb = 10^3, mb = 10^6)),
-    breaks = scales::breaks_extended(6),
-    limits = c(0, NA), expand = expansion(mult = c(0, 0.05))
-  ) +
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
-  labs(x = "Prophage length", y = "density") +
-  theme_bw(base_size = 16) +
-  theme(
-    panel.grid = element_blank(),
-    legend.position = c(0.95, 0.95),
-    legend.justification = c(1, 1)
-  )
-
 ggsave(
   filename = paste(outDir, "/prophage_size_density.pdf", sep = ""),
   plot = pt_sizeHist, width = 8, height = 5
 )
 
-pt_sizeDens
+pt_sizeHist
 ```
 
 ## Prophage summary
@@ -233,7 +300,7 @@ pt_sizeDens
 ### Prophage types
 
 ```{r}
-table(phages$taxonomy)
+table(prophagePool$taxonomy)
 ```
 
 ```{r}
@@ -241,14 +308,14 @@ table(phages$taxonomy)
 #| fig-height: 7
 #| out-width: "50%"
 
-pt_proTax <- dplyr::select(phages, taxonomy) %>%
+pt_proTax <- dplyr::select(prophagePool, taxonomy) %>%
   dplyr::mutate(
     taxonomy = stringr::str_replace(taxonomy, ".*;", "")
   ) %>%
   ggplot2::ggplot() +
   ggplot2::geom_bar(mapping = aes(y = taxonomy), color = "black", fill = "black") +
   ggplot2::labs(x = "Count", y = "Taxonomy") +
-  ggbreak::scale_x_break(breaks = c(10, 1290)) +
+  ggbreak::scale_x_break(breaks = c(10, 1300)) +
   theme_bw(base_size = 24) +
   theme(
     panel.grid = element_blank(),
@@ -279,7 +346,7 @@ proCompletenessStats <- dplyr::select(completenessDf, genomeId, comp_category) %
   dplyr::select(genomeId, complete, gt_90, betn_50_90, lt_50)
 
 # fragmented or filtered prophages stats
-fragmentStats <- dplyr::select(removedPro, prophage_id, genomeId, nFragments, filtered) %>%
+fragmentStats <- dplyr::select(removedPhages, prophage_id, genomeId, nFragments, filtered) %>%
   dplyr::mutate(
     removed = dplyr::case_when(
       filtered == 1 ~ "filtered",
@@ -298,7 +365,7 @@ fragmentStats <- dplyr::select(removedPro, prophage_id, genomeId, nFragments, fi
   )
 
 
-perGenomePhageInfo <- dplyr::group_by(phages, genomeId) %>%
+perGenomePhageInfo <- dplyr::group_by(prophagePool, genomeId) %>%
   dplyr::summarise(
     phage_count = n(),
     longest_phage = max(prophage_length),

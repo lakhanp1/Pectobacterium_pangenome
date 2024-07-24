@@ -99,7 +99,7 @@ proHgs <- suppressMessages(
   dplyr::select(prophage_id, hgs)
 
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$filtered)
+  readr::read_tsv(confs$analysis$prophages$preprocessing$files$prophage_pool)
 )
 
 
