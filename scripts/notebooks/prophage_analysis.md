@@ -185,7 +185,7 @@ Output:
 Summarize the representative prophages in the pangenome.
 
 ```bash
-Rscript scripts/analysis/prophage_representative_summary.qmd
+Rscript scripts/analysis/prophage_cluster_summary.qmd
 ```
 
 Visualize the representative prophages across pangenome. Use MASH distance to

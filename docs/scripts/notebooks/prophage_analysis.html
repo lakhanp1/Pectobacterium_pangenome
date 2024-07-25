@@ -381,7 +381,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Output: - yaml: <code>confs$analysis$prophages$preprocessing$files$consolidated</code> - file: <code>analysis/prophages/preprocessing/consolidated_phages.tab</code></p>
 <p>Summarize the consolidated prophage list to generate various statistics and generate summary plots. Prophages that are fragmented or smaller than the length cutoff are removed and the filtered list of prophages is saved for downstream analysis.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="ex">Rscript</span> scripts/analysis/prophage_summary.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Output: - yaml: <code>confs$analysis$prophages$preprocessing$files$prophage_pool</code> - File: <code>analysis/pangenome_v2/prophages/preprocessing/filtered_prophages.tab</code></p>
+<p>Output: - yaml: <code>confs$analysis$prophages$preprocessing$files$prophage_pool</code> - File: <code>analysis/pangenome_v2/prophages/preprocessing/prophages_pool.tab</code></p>
 <p>Process prophage MASH and ANI results and visualize MASH similarity matrix for the filtered prophages.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="ex">Rscript</span> scripts/analysis/prophage_seq_similarity.qmd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
@@ -409,7 +409,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="summarize-prophage-clusters" class="level3">
 <h3 class="anchored" data-anchor-id="summarize-prophage-clusters">Summarize prophage clusters</h3>
 <p>Summarize the representative prophages in the pangenome.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1"></a><span class="ex">Rscript</span> scripts/analysis/prophage_representative_summary.qmd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1"></a><span class="ex">Rscript</span> scripts/analysis/prophage_cluster_summary.qmd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Visualize the representative prophages across pangenome. Use MASH distance to cluster prophages and ANI distance to cluster the genomes in the pangenome.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1"></a><span class="ex">Rscript</span> scripts/analysis/prophage_pangenome_viz.qmd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Visualize homology group sets for selected prophages as PAV heatmap across the pangenome. Replace the code block in <code>scripts/analysis/homology_group_viz.R</code> script with the following.</p>
@@ -1008,7 +1008,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb29-116"><a href="#cb29-116"></a></span>
 <span id="cb29-117"><a href="#cb29-117"></a>Output:</span>
 <span id="cb29-118"><a href="#cb29-118"></a><span class="ss">- </span>yaml: <span class="in">`confs$analysis$prophages$preprocessing$files$prophage_pool`</span></span>
-<span id="cb29-119"><a href="#cb29-119"></a><span class="ss">- </span>File: <span class="in">`analysis/pangenome_v2/prophages/preprocessing/filtered_prophages.tab`</span></span>
+<span id="cb29-119"><a href="#cb29-119"></a><span class="ss">- </span>File: <span class="in">`analysis/pangenome_v2/prophages/preprocessing/prophages_pool.tab`</span></span>
 <span id="cb29-120"><a href="#cb29-120"></a></span>
 <span id="cb29-121"><a href="#cb29-121"></a>Process prophage MASH and ANI results and visualize MASH similarity matrix for</span>
 <span id="cb29-122"><a href="#cb29-122"></a>the filtered prophages.</span>
@@ -1077,7 +1077,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb29-185"><a href="#cb29-185"></a>Summarize the representative prophages in the pangenome.</span>
 <span id="cb29-186"><a href="#cb29-186"></a></span>
 <span id="cb29-187"><a href="#cb29-187"></a><span class="in">```bash</span></span>
-<span id="cb29-188"><a href="#cb29-188"></a><span class="ex">Rscript</span> scripts/analysis/prophage_representative_summary.qmd</span>
+<span id="cb29-188"><a href="#cb29-188"></a><span class="ex">Rscript</span> scripts/analysis/prophage_cluster_summary.qmd</span>
 <span id="cb29-189"><a href="#cb29-189"></a><span class="in">```</span></span>
 <span id="cb29-190"><a href="#cb29-190"></a></span>
 <span id="cb29-191"><a href="#cb29-191"></a>Visualize the representative prophages across pangenome. Use MASH distance to</span>
