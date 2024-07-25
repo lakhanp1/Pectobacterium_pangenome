@@ -410,7 +410,7 @@
     "href": "scripts/analysis/prophage_summary.html",
     "title": "Summary statistics for prophages",
     "section": "",
-    "text": "This script summarizes the consolidated prophages in the pangenome. The figures and statistics generated in this analysis include all prophages i.e. redundant prophages (from identical genomes assemblies). For the summary of unique prophages, please refer to the script scripts/analysis/prophage_representatives_summary.qmd."
+    "text": "This script summarizes the consolidated prophages in the pangenome. The figures and statistics generated in this analysis include all prophages i.e. redundant prophages (from identical genomes assemblies). For the summary of unique prophages, please refer to the script scripts/analysis/prophage_cluster_summary.qmd."
   },
   {
     "objectID": "scripts/analysis/prophage_summary.html#initial-setup",
