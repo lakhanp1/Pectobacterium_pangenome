@@ -230,6 +230,7 @@ colorAni <- list(
 
 htList <- plot_species_ANI_heatmap(
   mat = aniMat, phy = treeUpgma, speciesInfo = sampleInfo,
+  markGenomes = markGenomes,
   col = circlize::colorRamp2(
     breaks = colorAni$breaks, colors = colorAni$colors
   ),
@@ -237,13 +238,19 @@ htList <- plot_species_ANI_heatmap(
     direction = "horizontal", legend_width = unit(5, "cm")
   ),
   name = "ani",
-  markGenomes = markGenomes
+  show_column_dend = FALSE,
+  use_raster = TRUE,
+  raster_quality = 3
 )
 
-htList@ht_list$species_key@matrix_param$width <- unit(10, "cm")
+htList@ht_list$species_key@matrix_param$width <- unit(12, "cm")
 htList@ht_list$ani@matrix_param$width <- unit(18, "cm")
 
-png(filename = file.path(outDir, "ANI_heatmap.png"), width = 5000, height = 3000, res = 350)
+pdf(
+  file = file.path(outDir, "ANI_heatmap.pdf"),
+  width = 15, height = 10
+)
+
 ComplexHeatmap::draw(
   object = htList,
   main_heatmap = "ani",
@@ -315,12 +322,14 @@ htList2 <- plot_species_ANI_heatmap(
   heatmap_legend_param = list(
     direction = "horizontal", legend_width = unit(5, "cm")
   ),
-  name = "ani"
+  name = "ani",
+  use_raster = TRUE,
+  raster_quality = 3
 )
 
-png(
-  filename = file.path(outDir, "ANI_PBrasiliense.heatmap.png"),
-  width = 3000, height = 2500, res = 350
+pdf(
+  file = file.path(outDir, "ANI_PBrasiliense.heatmap.pdf"),
+  width = 10, height = 10
 )
 ComplexHeatmap::draw(
   object = htList2,
@@ -361,16 +370,16 @@ In *P. brasiliense* genome ANI comparison, `r scales::percent(length(which(lower
 
 (
   ptHist_pbrAni <- ggplot(data = tibble::tibble(ani = lowerTr)) +
-  geom_histogram(
-    mapping = aes(x = ani), bins = 60,
-    color = "black", fill = "black"
+    geom_histogram(
+      mapping = aes(x = ani), bins = 60,
+      color = "black", fill = "black"
     ) +
-  geom_vline(xintercept = 96, color = "red", linetype = "dashed", linewidth = 1) +
-  scale_x_continuous(expand = expansion(add = 0)) +
-  scale_y_continuous(expand = expansion(add = c(0, NULL))) +
-  labs(x = "ANI", y = "Count") +
-  theme_bw(base_size = 24) + 
-  theme(panel.grid = element_blank())
+    geom_vline(xintercept = 96, color = "red", linetype = "dashed", linewidth = 1) +
+    scale_x_continuous(expand = expansion(add = 0)) +
+    scale_y_continuous(expand = expansion(add = c(0, NULL))) +
+    labs(x = "ANI", y = "Count") +
+    theme_bw(base_size = 24) + 
+    theme(panel.grid = element_blank())
 )
 
 ```

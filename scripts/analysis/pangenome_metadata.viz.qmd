@@ -51,6 +51,10 @@ panConf <- confs$data$pangenomes[[pangenome]]
 
 ```{r}
 
+sampleMeta <- suppressMessages(
+  readr::read_tsv(confs$data$reference_data$files$metadata)
+)
+
 panMetrix <- suppressMessages(
   readr::read_csv(panConf$db$metrics$files$per_genome)
 ) %>% 
@@ -84,10 +88,13 @@ panMeta <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>%
     pbr = forcats::fct_relevel(pbr, "other", "P. brasiliense"),
     geo_loc_country = forcats::fct_relevel(geo_loc_country, "Netherlands"),
     virType = forcats::fct_relevel(virType, "TP", "FN", "TN", "FP", "unknown")
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(sampleMeta, sampleId, AssemblyStatus),
+    by = "sampleId"
   )
 
 ```
-
 
 ```{r}
 #| echo: false
@@ -112,6 +119,48 @@ DT::datatable(
     scrollY = 600
   ),
   selection = 'none'
+)
+```
+
+## Species wise genome statistics
+
+```{r}
+pt_speciesCount <- ggplot2::ggplot(
+  data = panMeta
+) +
+  geom_bar(
+    mapping = aes(
+      y = forcats::fct_infreq(SpeciesName),
+      fill = AssemblyStatus
+    )
+  ) +
+  labs(
+    x = "#genomes",
+    y = NULL,
+    title = "# of genomes"
+  ) +
+  scale_x_continuous(expand = expansion(add = c(0, 2))) +
+  ggplot2::scale_fill_viridis_d(option = "C") +
+  theme_bw(base_size = 20) +
+  theme(
+    axis.text.y = element_text(face = "bold.italic", size = 14, color = "black"),
+    axis.text.x = element_text(face = "bold.italic", size = 16, color = "black"),
+    plot.title = element_text(face = "bold", size = 18, color = "black"),
+    axis.title = element_text(face = "bold", size = 16, color = "black"),
+    legend.position = "bottom",
+    panel.grid = element_blank()
+  )
+```
+
+```{r}
+#| fig-width: 10
+
+pt_speciesCount
+
+ggsave(
+  filename = file.path(outDir, "species_count.pdf"),
+  plot = pt_speciesCount,
+  width = 12, height = 8
 )
 ```
 

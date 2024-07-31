@@ -14,13 +14,13 @@
 #'
 #' @examples
 plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes = NULL, ...){
-  
+
   ## necessary checks
   stopifnot(
     setequal(rownames(mat), colnames(mat)),
     any(isa(phy, c("phylo", "dendrogram", "hclust", "logical")))
   )
-  
+
   if (isa(phy, "phylo")) {
     clust <- as.dendrogram_ordered.phylo(phy = phy, sourceOrder = rownames(mat))
   } else if (isa(phy, "hclust")) {
@@ -28,12 +28,12 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
   } else {
     clust <- phy
   }
-  
+
   stopifnot(
     # all(rownames(mat) == labels(clust)),
     setequal(rownames(mat), labels(clust))
   )
-  
+
   ht_args <- list(
     matrix = mat,
     cluster_rows = clust,
@@ -43,19 +43,19 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
     show_row_names = FALSE, show_column_names = FALSE,
     ...
   )
-  
+
   ht_args$column_title <- ifelse(
     is.null(ht_args$column_title), "similarity scores", ht_args$column_title
   )
-  
+
   ## ANI heatmap
   ht_ani <- do.call(
     what = ComplexHeatmap::Heatmap,
     args = ht_args
   )
-  
+
   htList <- ht_ani
-  
+
   # species key heatmap
   if(!is.null(speciesInfo)){
     stopifnot(
@@ -63,18 +63,20 @@ plot_species_ANI_heatmap <- function(mat, phy, speciesInfo = NULL, markGenomes =
       has_name(speciesInfo, "genomeId"),
       has_name(speciesInfo, "SpeciesName")
     )
-    
+
     ht_species <- species_key_heatmap(
       genomes = rownames(mat), speciesInfo = speciesInfo,
       markGenomes = markGenomes,
-      cluster_rows = clust
+      cluster_rows = clust,
+      use_raster = TRUE,
+      raster_quality = 3
     )
-    
+
     htList <- ht_species + ht_ani
   }
-  
+
   return(htList)
-  
+
 }
 
 ################################################################################
@@ -102,7 +104,7 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
     all(genomes %in% speciesInfo$genomeId),
     tibble::has_name(speciesInfo, "SpeciesName")
   )
-  
+
   ## species name key heatmap
   speciesKey <- tibble::tibble(genomeId = genomes) %>%
     {
@@ -113,14 +115,14 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
             tibble::enframe(name = "species", value = "genomeId") %>%
             tidyr::unnest(cols = genomeId),
           by = "genomeId"
-        ) %>% 
+        ) %>%
           tidyr::replace_na(replace = list(species = "1"))
       } else{
         dplyr::mutate(., species = "1")
       }
-    } %>% 
+    } %>%
     dplyr::left_join(y = dplyr::select(speciesInfo, genomeId, SpeciesName), by = "genomeId")
-  
+
   if (type == "wide") {
     speciesKey %<>%
       tidyr::pivot_wider(
@@ -130,7 +132,7 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
       tibble::column_to_rownames(var = "genomeId") %>%
       as.matrix()
   }
-  
+
   return(speciesKey)
 }
 
@@ -146,31 +148,31 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
 #' avir = list(genomes = c("1", "11", "4", "19"), color = "green")
 #' )`
 #' Default: `NULL`
-#' 
+#'
 #' @return A heatmap
 #' @export
 #'
 #' @examples NA
 species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL, ...){
-  
+
   stopifnot(
     all(genomes %in% speciesInfo$genomeId),
     tibble::has_name(speciesInfo, "SpeciesName")
   )
-  
+
   ## species name key heatmap
   speciesMat <- get_species_key_data(
     genomes = genomes, speciesInfo = speciesInfo,
     type = "wide", markGenomes = markGenomes
   )
-  
+
   ## ensure the row order is same: this is because of a bug in ComplexHeatmap
   stopifnot(all(rownames(speciesMat) == genomes))
-  
+
   spColor <- purrr::map(markGenomes, "color") %>%
     unlist() %>%
     append(c("1" = "black", "0" = "white"))
-  
+
   ht1 <- ComplexHeatmap::Heatmap(
     matrix = speciesMat,
     name = "species_key",
@@ -185,7 +187,7 @@ species_key_heatmap <- function(genomes, speciesInfo, markGenomes = NULL, ...){
     column_title = "Species key",
     ...
   )
-  
+
   return(ht1)
 }
 
@@ -204,7 +206,7 @@ species_key_ggplot <- function(keyDf) {
     tibble::has_name(keyDf, "SpeciesName"),
     tibble::has_name(keyDf, "Genome")
   )
-  
+
   pt <- ggplot2::ggplot(
     data = keyDf,
     mapping = aes(x = SpeciesName, y = Genome), color = "black", fill = "black"
@@ -219,7 +221,7 @@ species_key_ggplot <- function(keyDf) {
       axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
       plot.title = element_text(hjust = 0.5, vjust = 0)
     )
-  
+
   return(pt)
 }
 
@@ -252,7 +254,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     is.null(markGenomes) |
       (is.list(markGenomes) & all(unlist(markGenomes) %in% rownames(mat)))
   )
-  
+
   if (isa(phy, "phylo")) {
     clust <- as.dendrogram_ordered.phylo(phy = phy, sourceOrder = rownames(mat))
   } else if (isa(phy, "hclust")) {
@@ -260,7 +262,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
   } else {
     clust <- phy
   }
-  
+
   if(isa(clust, "dendrogram")){
     ## ensure the row order is same: this is because of a bug in ComplexHeatmap
     # https://github.com/jokergoo/ComplexHeatmap/issues/949
@@ -270,7 +272,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     )
   }
 
-  
+
   ## homology groups heatmap arguments
   ht_args <- list(
     matrix = mat,
@@ -287,23 +289,23 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     row_dend_width = unit(3, "cm"),
     ...
   )
-  
+
   if (!is.null(hgAn)) {
     ht_args$column_split <- hgAn$hg_group
     ht_args$column_order <- hgAn$hg_id
     ht_args$column_labels <- hgAn$label
     ht_args$cluster_columns <- FALSE
   }
-  
+
   ## homology group heatmap
   ht_hg <- do.call(
     what = ComplexHeatmap::Heatmap,
     args = ht_args
   )
-  
+
   # draw(ht_hg)
   htList <- ht_hg
-  
+
   # optional species key heatmap
   if (!is.null(speciesInfo)) {
     stopifnot(
@@ -311,23 +313,23 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
       has_name(speciesInfo, "genomeId"),
       has_name(speciesInfo, "SpeciesName")
     )
-    
+
     ht_species <- species_key_heatmap(
       genomes = rownames(mat), speciesInfo = speciesInfo,
       markGenomes = markGenomes
     )
-    
+
     htList <- ht_species + ht_hg
   }
-  
+
   return(htList)
 }
 
 ################################################################################
 
 #' Correct the order of the dendrogram created from the `phylo` object
-#' 
-#' This function fixes the ComplexHeatmap issue #305. 
+#'
+#' This function fixes the ComplexHeatmap issue #305.
 #' https://github.com/jokergoo/ComplexHeatmap/issues/305
 #'
 #' @param phy a `phylo` object
@@ -339,26 +341,26 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
 #'
 #' @examples NA
 as.dendrogram_ordered.phylo <- function(phy, sourceOrder){
-  
+
   stopifnot(
     isa(phy, "phylo"),
     setequal(sourceOrder, phy$tip.label)
   )
-  
+
   dnd <- as.dendrogram(ape::as.hclust.phylo(phy))
-  
-  # handle phylo->dendrogram object in ComplexHeatmap: 
+
+  # handle phylo->dendrogram object in ComplexHeatmap:
   # fix the order.dendrogram() to correctly map to the matrix rows and columns
   # https://github.com/jokergoo/ComplexHeatmap/issues/305
-  
+
   # head(order.dendrogram(dnd))
   # head(labels(dnd))
   # sourceOrder[head(order.dendrogram(dnd))]
-  
+
   phyloOrder <- structure(1:ape::Ntip(phy), names = sourceOrder)
   newOrder <- unname(phyloOrder[labels(dnd)])
   dendextend::order.dendrogram(dnd) <- newOrder
-  
+
   return(dnd)
 }
 ################################################################################
