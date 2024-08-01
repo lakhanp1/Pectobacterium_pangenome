@@ -112,18 +112,18 @@ hgPos <- suppressMessages(
       "GID", "mRNA_id",
       "genomeId", "chr", "chr_id", "chr_name", "start", "end", "strand"
     )
-  ) 
-) %>% 
-  dplyr::distinct() %>% 
+  )
+) %>%
+  dplyr::distinct() %>%
   dplyr::mutate(
     dplyr::across(.cols = c(start, end), .fns = as.numeric),
     length = end - start + 1
-  ) %>% 
-  dplyr::filter(genomeId %in% !!genomes) %>% 
-  dplyr::group_by(genomeId, chr_id) %>% 
-  dplyr::mutate(n = n(), nUniq = length(unique(GID))) %>% 
+  ) %>%
+  dplyr::filter(genomeId %in% !!genomes) %>%
+  dplyr::group_by(genomeId, chr_id) %>%
+  dplyr::mutate(n = n(), nUniq = length(unique(GID))) %>%
   # dplyr::add_count(genomeId, chr_id) %>%
-  dplyr::filter(n >= 2, nUniq == 2) %>% 
+  dplyr::filter(n >= 2, nUniq == 2) %>%
   dplyr::ungroup()
 
 hgGrl <- GenomicRanges::makeGRangesListFromDataFrame(
@@ -137,25 +137,25 @@ hgRegionGr <- hgRange
 if(opts$inner_region){
   hgRegionGr <- GenomicRanges::psetdiff(
     x = hgRange, y = hgGrl, ignore.strand = TRUE
-  ) %>% 
+  ) %>%
     unlist()
 }
 
-hgRegions <- as.data.frame(hgRegionGr) %>% 
-  tibble::rownames_to_column(var = "genomeId") %>% 
-  dplyr::select(genomeId, chr = seqnames, start, end) %>% 
-  tibble::as_tibble() %>% 
+hgRegions <- as.data.frame(hgRegionGr) %>%
+  tibble::rownames_to_column(var = "genomeId") %>%
+  dplyr::select(genomeId, chr = seqnames, start, end) %>%
+  tibble::as_tibble() %>%
   dplyr::left_join(
-    y = dplyr::filter(hgPos, GID == !!hgs[1]) %>% 
+    y = dplyr::filter(hgPos, GID == !!hgs[1]) %>%
       dplyr::select(genomeId, chr, chr_name, strand),
     by = c("genomeId", "chr")
   ) %>%
   dplyr::left_join(
     y = dplyr::select(sampleInfo, genomeId, sampleId, SpeciesName),
     by = "genomeId"
-  ) %>% 
+  ) %>%
   dplyr::mutate(
-    region = paste(chr_name, ":", start, "-", end, sep = ""),
+    region = paste(genomeId, "#", chr_name, ":", start, "-", end, sep = ""),
     SpeciesName = stringr::str_replace_all(
       string = SpeciesName, pattern = "\\.?\\s+", replacement = "_"
     ),
@@ -179,22 +179,22 @@ if(opts$haplotypes){
           end = end, strand = strand, overlapping = opts$overlapping
         )
       )
-    ) %>% 
+    ) %>%
     dplyr::mutate(
       nHgs = length(hgs),
       hgs = paste(hgs, collapse = ";"),
     )
-  
-  hgRegions %<>% 
-    dplyr::ungroup() %>% 
-    dplyr::add_count(hgs, name = "grp_n") %>% 
-    dplyr::arrange(desc(grp_n)) %>% 
+
+  hgRegions %<>%
+    dplyr::ungroup() %>%
+    dplyr::add_count(hgs, name = "grp_n") %>%
+    dplyr::arrange(desc(grp_n)) %>%
     dplyr::mutate(
       haplotype = paste("haplotype_", dplyr::cur_group_id(), sep = ""),
       .by = hgs
     )
-    
-  
+
+
   outCols <- c(outCols, "hgs", "haplotype")
 }
 
@@ -206,6 +206,6 @@ if(is.null(opts$out)){
     readr::write_tsv(
       file = paste(opts$dir, "/", opts$out, sep = "")
     )
-  
+
 }
 
