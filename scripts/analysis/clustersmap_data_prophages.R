@@ -28,15 +28,15 @@ confs <- prefix_config_paths(
 
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
 
-grpToView <- "phage_grp_71"
-subSample <- FALSE
+grpToView <- "phage_grp_46"
+subSample <- TRUE
 cutHeight <- 0.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
 # ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
 # completeness score
-clusterOrder <- "hg_pav" # host, hg_pav, cluster_mash
+clusterOrder <- "host" # host, hg_pav, cluster_mash
 
 # a vector of prophage identifiers that will be included in clustermap plot
 appendPhages <- c()
@@ -47,7 +47,14 @@ regions_phy_ordered <- FALSE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list()
+customRegions <- list(
+  g_190_reg = list(chr = "NZ_CP059960.1", start = 1997124, end = 2000186, genomeId = "g_190"),
+  g_193_reg = list(chr = "NZ_CP059957.1", start = 5005351, end = 5008413, genomeId = "g_193"),
+  g_411_reg = list(chr = "NAK682_contig_2_consensus", start = 461100, end = 464162, genomeId = "g_411"),
+  g_415_reg = list(chr = "NAK701_contig_5_consensus", start = 415799, end = 418861, genomeId = "g_415"),
+  g_63_reg = list(chr = "NZ_CP092039.1", start = 4288654, end = 4291716, genomeId = "g_63"),
+  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406")
+)
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
