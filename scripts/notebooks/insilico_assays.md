@@ -114,3 +114,16 @@ Rscript scripts/analysis/HG_sets_viz.R --config project_config.yaml \
 --tree kmer_upgma --hg_sets "LZI,TIR,assay_FN" \
 --out analysis/pangenome_v2/insilico_assay/assay_HG_pav.hgs.pdf
 ```
+
+## MSA for core HGs with `--phenotype` argument
+
+```bash
+
+mamba activate pantools_4_3_1
+
+pan_db="/local/work/${USER}/pangenomes/pectobacterium.v2.DB.chr/"
+
+nohup pantools -Xms40g -Xmx120g msa --align-nucleotide -t 48 --phenotype \
+--homology-file ${pan_db}/gene_classification.100.0/core_groups.csv \
+${pan_db} 2>&1 >logs/msa/msa_phenotype.log &
+```

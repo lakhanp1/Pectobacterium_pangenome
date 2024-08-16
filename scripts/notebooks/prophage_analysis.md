@@ -229,7 +229,7 @@ for individual prophage clusters.
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429500,hg_22429499 \
---inner_region --genomes "g_63,g_190,g_193,g_411,g_415,g_406"
+--inner_region --genomes "g_63,g_190,g_193,g_411,g_415,g_406,g_194,g_263"
 ```
 
 ```r
@@ -258,7 +258,9 @@ customRegions <- list(
   g_411_reg = list(chr = "NAK682_contig_2_consensus", start = 461100, end = 464162, genomeId = "g_411"),
   g_415_reg = list(chr = "NAK701_contig_5_consensus", start = 415799, end = 418861, genomeId = "g_415"),
   g_63_reg = list(chr = "NZ_CP092039.1", start = 4288654, end = 4291716, genomeId = "g_63"),
-  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406")
+  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406"),
+  g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194"),
+  g_263_reg = list(chr = "NZ_CP047495.1", start = 956237, end = 956907, genomeId = "g_263")
 )
 ```
 

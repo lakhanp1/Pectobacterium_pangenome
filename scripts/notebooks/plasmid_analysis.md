@@ -25,3 +25,11 @@ Rscript scripts/utils/HG_pav_genomes.R \
 --genomes "g_401,g_13,g_214,g_188,g_187,g_190" --tree kmer_nj --node n25 \
 --out analysis/pangenome_v2/plasmids/plasmid_evaluation_hgs.tab
 ```
+
+Extract pairwise ANI for genomes of interest:
+
+```bash
+s1="NAK238|GCA_024343655.1_ASM2434365v1|GCF_003990515.2_ASM399051v2|GCF_016944595.1_ASM1694459v1"
+s2="GCF_016949255.1_ASM1694925v1|NAK638|NAK644"
+grep "($s1).fna.+($s2).fna" analysis/fastANI/ANI_results
+```
