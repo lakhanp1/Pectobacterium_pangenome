@@ -19,6 +19,9 @@ project:
     - scripts/analysis/prophage_cluster_summary.qmd
     - scripts/notebooks/prophage_analysis.md
     - scripts/ms_figures/supplementary_tables.qmd
+    - scripts/ms_figures/phage_grp_45.qmd
+    - scripts/ms_figures/phage_grp_46.qmd
+    - scripts/ms_figures/phage_grp_71.qmd
 execute:
   freeze: true # never re-render during project render
 website:
@@ -46,13 +49,13 @@ website:
           - text: "Preprocessing"
             href: scripts/notebooks/preprocessing.md
           # - text: "Raw data QC"
-            # href: 
+            # href:
           - text: "ANI"
             href: scripts/analysis/ani.clustering.qmd
       - section: "Pangenome"
         contents:
           - text: "Pangenome metadata"
-            href: scripts/analysis/pangenome_metadata.viz.qmd        
+            href: scripts/analysis/pangenome_metadata.viz.qmd
           - text: "Build"
             href: scripts/notebooks/pangenome_construction.md
           - text: "Analysis"
@@ -71,10 +74,18 @@ website:
             href: scripts/analysis/prophage_clustering.qmd
           - text: "Clustering summary"
             href: scripts/analysis/prophage_cluster_summary.qmd
+          - section: "Prophage clusters"
+            contents:
+              - text: "Phage group 46"
+                href: scripts/ms_figures/phage_grp_46.qmd
+              - test: "Phage group 45"
+                href: scripts/ms_figures/phage_grp_45.qmd
+              - test: "Phage group 71"
+                href: scripts/ms_figures/phage_grp_71.qmd
       - text: "Supplementary tables"
         href: scripts/ms_figures/supplementary_tables.qmd
 format:
-  html: 
+  html:
     toc: true
     toc-depth: 3
     html-math-method: katex
