@@ -67,7 +67,9 @@ gzip -d data/genomes/ncbi/*.gz
 
 ```
 
-## Prokka annotation for bacterial genomes
+## Run standard annotations for all the genomes
+
+### Prokka annotation for bacterial genomes
 
 ``` bash
 nohup \
@@ -84,7 +86,7 @@ data will be processed in serial mode. Further debugging is required to
 understand the parallel processing failure. For now, running GNU `parallel`
 with `--jobs 1` setting in serial mode.
 
-### Remove the FASTA sequence at the end of prokka gff files
+#### Remove the FASTA sequence at the end of prokka gff files
 
 ``` bash
 for i in `cat data/reference_data/pre_qc_assembly_ids.txt`
@@ -95,7 +97,7 @@ done
 
 ```
 
-### FASTA file indexing
+#### FASTA file indexing
 
 ``` bash
 printf '' > analysis/QC/assembly_chr_size.txt
@@ -115,7 +117,7 @@ done
 
 ```
 
-## BUSCO protein and genome assembly evaluation
+### BUSCO protein and genome assembly evaluation
 
 ``` bash
 ## !GNU parallel on single server
@@ -132,7 +134,7 @@ This is failing with `parallel`, most likely because of the number of open files
 exceeding the `ulimit`. Need to debug further. For now, running GNU `parallel`
 with `--jobs 1` setting is serial mode.
 
-## QUAST assembly evaluation
+### QUAST assembly evaluation
 
 ``` bash
 nohup \
@@ -144,7 +146,7 @@ parallel --jobs 6 --workdir $PWD --halt now,fail=1 \
 >>logs/quast/nohup.out 2>&1 &
 ```
 
-## InterProScan functional annotation
+### InterProScan functional annotation
 
 ``` bash
 ## GNU parallel on single server
@@ -168,7 +170,7 @@ env_parallel --jobs 4 --workdir $PWD --halt now,fail=1 \
 
 ```
 
-## eggNOG annotation
+### eggNOG annotation
 
 ``` bash
 conda activate eggnog
@@ -200,7 +202,7 @@ done
 
 ```
 
-## MultiQC
+### MultiQC
 
 ``` bash
 ## QUAST MultiQC
@@ -223,7 +225,7 @@ multiqc -f --filename busco_geno_multiqc --interactive --title "BUSCO report" \
 
 ```
 
-## fastANI
+### fastANI
 
 ``` bash
 process_start "ANI on all genomes"
@@ -233,7 +235,7 @@ analysis/02_fastANI/ANI_results >logs/fastANI.log 2>&1 &
 error_exit $?
 ```
 
-## Defense-finder
+### Defense-finder
 
 ```bash
 conda activate defensefinder
@@ -251,4 +253,30 @@ do
 
     error_exit $?
 done
+```
+
+## Prepare data for pangenome construction
+
+### Extract metadata from NCBI XML files
+
+```bash
+Rscript scripts/preprocessing/raw_prebuild_metadata.R
+```
+
+### Correct taxonomy
+
+```bash
+Rscript scripts/preprocessing/taxonomy_check_inhouse.R
+```
+
+### Prepare final metadata table with updated taxonomy
+
+```bash
+Rscript scripts/preprocessing/build_metadata.R
+```
+
+### Prepare PanTools input files
+
+```bash
+Rscript scripts/preprocessing/prepare_PanTools_input.R
 ```

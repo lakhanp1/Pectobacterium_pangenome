@@ -7,7 +7,7 @@ suppressPackageStartupMessages(library(openxlsx))
 
 rm(list = ls())
 
-source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/01_RScripts/02_R_utils.R")
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 ################################################################################
 set.seed(124)
 
@@ -24,7 +24,7 @@ cutoff_ani_ncbi <- 96L
 
 genomeMetadata <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$prebuild_metadata)
-) %>% 
+) %>%
   dplyr::filter(
     ## no need to include assemblies that already have problem
     dplyr::if_all(
@@ -37,17 +37,17 @@ ncbiAni <- suppressMessages(
   readr::read_tsv(file = confs$data$other$files$ani_report, na = "na")
 )
 
-typeStrains <- dplyr::filter(genomeMetadata, !is.na(type_material)) %>% 
+typeStrains <- dplyr::filter(genomeMetadata, !is.na(type_material)) %>%
   dplyr::select(type_organism_name = SpeciesName, typeStrainId = sampleId)
 
 aniDf <- suppressMessages(readr::read_tsv(
   file = confs$analysis$ANI$files$fastani_out,
   col_names = c("id1", "id2", "ani", "mapped", "total")
-)) %>% 
+)) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(id1, id2),
-      .fns = ~stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
+      .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1")
     )
   )
 
@@ -82,7 +82,7 @@ ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
   dplyr::mutate(
     ncbi_declared_species = na_if(ncbi_declared_species, ""),
     ncbi_taxonomy_check_method = "NCBI_ANI"
-  ) %>% 
+  ) %>%
   dplyr::select(-synonym_GB)
 
 ################################################################################
@@ -90,20 +90,20 @@ ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
 # all(ncbiTaxCheck$sampleId %in% genomeMetadata$sampleId)
 
 ## use inhouse data to perform taxonomy checking: because of additional type strains available
-inhouseTypeAni <- dplyr::select(genomeMetadata, sampleId, AssemblyAccession, source, SpeciesName) %>% 
+inhouseTypeAni <- dplyr::select(genomeMetadata, sampleId, AssemblyAccession, source, SpeciesName) %>%
   dplyr::left_join(
     y = typeStrains, by = c("SpeciesName" = "type_organism_name")
-  ) %>% 
+  ) %>%
   dplyr::left_join(
     y = typeStrainAni, by = c("sampleId" = "id1", "typeStrainId")
-  ) %>% 
+  ) %>%
   # dplyr::filter(!is.na(ani) | is.na(typeStrainId)) %>%
-  dplyr::group_by(sampleId) %>% 
-  dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>% 
-  dplyr::slice(1L) %>% 
-  dplyr::ungroup() %>% 
+  dplyr::group_by(sampleId) %>%
+  dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>%
+  dplyr::slice(1L) %>%
+  dplyr::ungroup() %>%
   dplyr::select(
-    sampleId, source, AssemblyAccession, SpeciesName, inhouse_declared_id = typeStrainId, 
+    sampleId, source, AssemblyAccession, SpeciesName, inhouse_declared_id = typeStrainId,
     inhouse_declared_ANI = ani,
     inhouse_declared_species = type_organism_name
   )
@@ -115,29 +115,29 @@ if(!all(ncbiTaxCheck$sampleId %in% inhouseTypeAni$sampleId)){
 ## get best ANI with its respective type species name
 inhouseTaxCheck <- dplyr::left_join(
   inhouseTypeAni, y = typeStrainAni, by = c("sampleId" = "id1")
-) %>% 
-  dplyr::group_by(sampleId) %>% 
-  dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>% 
-  dplyr::slice(1L) %>% 
-  dplyr::ungroup() %>% 
+) %>%
+  dplyr::group_by(sampleId) %>%
+  dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>%
+  dplyr::slice(1L) %>%
+  dplyr::ungroup() %>%
   dplyr::rename(
     inhouse_best_ts_species = type_organism_name,
     inhouse_best_ts_id = typeStrainId,
     inhouse_best_ts_ANI = ani
-  ) %>% 
+  ) %>%
   dplyr::mutate(
     inhouse_tax_status = dplyr::case_when(
-      inhouse_declared_species == inhouse_best_ts_species & 
+      inhouse_declared_species == inhouse_best_ts_species &
         inhouse_best_ts_ANI >= cutoff_ani_species ~ "OK",
-      inhouse_declared_species == inhouse_best_ts_species & 
+      inhouse_declared_species == inhouse_best_ts_species &
         inhouse_best_ts_ANI < cutoff_ani_species ~ "Inconclusive",
       is.na(inhouse_declared_id) ~ "Inconclusive",
       TRUE ~ "Failed"
     ),
     inhouse_match_status = dplyr::case_when(
-      inhouse_declared_species == inhouse_best_ts_species & 
+      inhouse_declared_species == inhouse_best_ts_species &
         inhouse_best_ts_ANI >= cutoff_ani_species ~ "match",
-      inhouse_declared_species == inhouse_best_ts_species & 
+      inhouse_declared_species == inhouse_best_ts_species &
         inhouse_best_ts_ANI < cutoff_ani_species ~ "below-threshold-match",
       TRUE ~ "mismatch"
     ),
@@ -146,38 +146,38 @@ inhouseTaxCheck <- dplyr::left_join(
       inhouse_declared_ANI == 100 ~ "this is a type strain"
     ),
     inhouse_taxonomy_check_method = "inhouse_fastANI"
-  ) %>% 
+  ) %>%
   dplyr::select(-mapped, -total, -inhouse_best_ts_id, -inhouse_declared_id)
 
 taxCheckDf <- dplyr::left_join(
   inhouseTaxCheck, ncbiTaxCheck, by = "sampleId"
-) %>% 
+) %>%
   dplyr::filter(
     inhouse_tax_status != "OK" | ncbi_tax_status != "OK" | source != "NCBI"
-  ) %>% 
-  tidyr::unite(col = "comment", comment_inhouse, comment_ncbi) %>% 
+  ) %>%
+  tidyr::unite(col = "comment", comment_inhouse, comment_ncbi) %>%
   dplyr::mutate(
     ncbi_eq_inhouse = if_else(
       ncbi_best_ts_species == inhouse_best_ts_species, true = "TRUE", false = "FALSE"
     )
   )
 
-bestAni <- dplyr::select(taxCheckDf, c(sampleId, ends_with("_ANI"))) %>% 
+bestAni <- dplyr::select(taxCheckDf, c(sampleId, ends_with("_ANI"))) %>%
   tidyr::pivot_longer(
     cols = -sampleId,
     names_to = "best_ANI_from",
     values_to = "best_ANI",
     values_drop_na = TRUE
-  ) %>% 
-  dplyr::group_by(sampleId) %>% 
-  dplyr::arrange(dplyr::desc(best_ANI), .by_group = TRUE) %>% 
-  dplyr::slice(1L) %>% 
+  ) %>%
+  dplyr::group_by(sampleId) %>%
+  dplyr::arrange(dplyr::desc(best_ANI), .by_group = TRUE) %>%
+  dplyr::slice(1L) %>%
   dplyr::ungroup()
 
 taxCheckDf <- dplyr::left_join(
   taxCheckDf, bestAni, by = "sampleId"
-) %>% 
-  dplyr::arrange(source, SpeciesName) %>% 
+) %>%
+  dplyr::arrange(source, SpeciesName) %>%
   dplyr::mutate(
     best_ani_species = dplyr::case_when(
       best_ANI_from == "inhouse_declared_ANI" ~ inhouse_declared_species,
@@ -191,10 +191,10 @@ taxCheckDf <- dplyr::left_join(
     ),
     taxonomy_check_method = dplyr::case_when(
       best_ANI >= cutoff_ani_species &
-        (best_ANI_from %in% c("inhouse_declared_ANI", "inhouse_best_ts_ANI")) ~ 
+        (best_ANI_from %in% c("inhouse_declared_ANI", "inhouse_best_ts_ANI")) ~
         inhouse_taxonomy_check_method,
       best_ANI >= cutoff_ani_species &
-        (best_ANI_from %in% c("ncbi_declared_ANI", "ncbi_best_ts_ANI")) ~ 
+        (best_ANI_from %in% c("ncbi_declared_ANI", "ncbi_best_ts_ANI")) ~
         ncbi_taxonomy_check_method,
       TRUE ~ ""
     ),
@@ -204,7 +204,7 @@ taxCheckDf <- dplyr::left_join(
       best_ANI_from %in% c("ncbi_declared_ANI", "ncbi_best_ts_ANI") ~
         ncbi_tax_status
     )
-  ) %>% 
+  ) %>%
   dplyr::mutate(
     taxonomy_corrected = NA,
     new_species_name = NA
