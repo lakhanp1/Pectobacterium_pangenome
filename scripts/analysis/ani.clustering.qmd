@@ -387,7 +387,7 @@ In *P. brasiliense* genome ANI comparison, `r scales::percent(length(which(lower
 ### ANI heatmap for inhouse strains
 
 ```{r}
-inhouseNodes <- dplyr::filter(sampleInfo, source %in% c("NAK", "NVWA"))
+inhouseNodes <- dplyr::filter(sampleInfo, source %in% setdiff(confs$data$include_source, "NCBI"))
 
 subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$genomeId)
 subAni2 <- aniMat[subTree2$tip.label, subTree2$tip.label] %>%

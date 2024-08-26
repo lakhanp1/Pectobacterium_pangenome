@@ -27,7 +27,7 @@ treeDims:
   scale: 2
 data:
   dir: "data"
-  include_source: ["NCBI", "NAK", "NVWA"]
+  include_source: ["NCBI", "NAK", "NIVIP"]
   reference_data:
     dir: "reference_data"
     files:

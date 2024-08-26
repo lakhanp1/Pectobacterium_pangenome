@@ -403,7 +403,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="prokka-annotation-for-bacterial-genomes" class="level3">
 <h3 class="anchored" data-anchor-id="prokka-annotation-for-bacterial-genomes">Prokka annotation for bacterial genomes</h3>
 <div class="sourceCode" id="cb3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">nohup</span> <span class="dt">\</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>ls data/genomes/<span class="pp">?(</span>NCBI<span class="pp">|</span>WUR<span class="pp">|</span>NVWA<span class="pp">|</span>NAK<span class="pp">)</span>/<span class="pp">*</span>.<span class="pp">?(</span>fa<span class="pp">|</span>fna<span class="pp">|</span>fasta<span class="pp">)</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>ls data/genomes/<span class="pp">?(</span>NCBI<span class="pp">|</span>WUR<span class="pp">|</span>NIVIP<span class="pp">|</span>NAK<span class="pp">)</span>/<span class="pp">*</span>.<span class="pp">?(</span>fa<span class="pp">|</span>fna<span class="pp">|</span>fasta<span class="pp">)</span> <span class="kw">|</span> <span class="dt">\</span></span>
 <span id="cb3-3"><a href="#cb3-3"></a><span class="ex">parallel</span> <span class="at">--gnu</span> <span class="at">--keep-order</span> <span class="at">--jobs</span> 1 <span class="at">--halt</span> now,fail=1 <span class="dt">\</span></span>
 <span id="cb3-4"><a href="#cb3-4"></a>--results logs/prokka/{/.} <span class="at">--joblog</span> logs/prokka/parallel.log <span class="dt">\</span></span>
 <span id="cb3-5"><a href="#cb3-5"></a>scripts/preprocessing/prokka_annotation.sh {} <span class="dt">\</span></span>
@@ -950,7 +950,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb17-73"><a href="#cb17-73"></a></span>
 <span id="cb17-74"><a href="#cb17-74"></a><span class="in">``` bash</span></span>
 <span id="cb17-75"><a href="#cb17-75"></a><span class="fu">nohup</span> <span class="dt">\</span></span>
-<span id="cb17-76"><a href="#cb17-76"></a>ls data/genomes/<span class="pp">?(</span>NCBI<span class="pp">|</span>WUR<span class="pp">|</span>NVWA<span class="pp">|</span>NAK<span class="pp">)</span>/<span class="pp">*</span>.<span class="pp">?(</span>fa<span class="pp">|</span>fna<span class="pp">|</span>fasta<span class="pp">)</span> <span class="kw">|</span> <span class="dt">\</span></span>
+<span id="cb17-76"><a href="#cb17-76"></a>ls data/genomes/<span class="pp">?(</span>NCBI<span class="pp">|</span>WUR<span class="pp">|</span>NIVIP<span class="pp">|</span>NAK<span class="pp">)</span>/<span class="pp">*</span>.<span class="pp">?(</span>fa<span class="pp">|</span>fna<span class="pp">|</span>fasta<span class="pp">)</span> <span class="kw">|</span> <span class="dt">\</span></span>
 <span id="cb17-77"><a href="#cb17-77"></a><span class="ex">parallel</span> <span class="at">--gnu</span> <span class="at">--keep-order</span> <span class="at">--jobs</span> 1 <span class="at">--halt</span> now,fail=1 <span class="dt">\</span></span>
 <span id="cb17-78"><a href="#cb17-78"></a>--results logs/prokka/{/.} <span class="at">--joblog</span> logs/prokka/parallel.log <span class="dt">\</span></span>
 <span id="cb17-79"><a href="#cb17-79"></a>scripts/preprocessing/prokka_annotation.sh {} <span class="dt">\</span></span>

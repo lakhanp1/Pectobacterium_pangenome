@@ -73,7 +73,7 @@ gzip -d data/genomes/ncbi/*.gz
 
 ``` bash
 nohup \
-ls data/genomes/?(NCBI|WUR|NVWA|NAK)/*.?(fa|fna|fasta) | \
+ls data/genomes/?(NCBI|WUR|NIVIP|NAK)/*.?(fa|fna|fasta) | \
 parallel --gnu --keep-order --jobs 1 --halt now,fail=1 \
 --results logs/prokka/{/.} --joblog logs/prokka/parallel.log \
 scripts/preprocessing/prokka_annotation.sh {} \

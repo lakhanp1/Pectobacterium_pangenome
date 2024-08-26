@@ -77,38 +77,38 @@ IPO_4449	NAK2	Pectobacterium spp.	IPO4449	NAK
 IPO_4450	NAK2	Pectobacterium spp.	IPO4450	NAK										
 IPO_4451	NAK2	Pectobacterium spp.	IPO4451	NAK										
 IPO_4452	NAK2	Pectobacterium spp.	IPO4452	NAK										
-104326-106-001	NVWA	Pectobacterium carotovorum	K3536	NVWA	Netherlands	1997	Kalanchoe							
-104326-106-002	NVWA	Pectobacterium carotovorum subsp. carotovorum	K3539	NVWA	Netherlands	2003	Spathiphyllum							
-104326-106-003	NVWA	Pectobacterium odoriferum	K3542	NVWA	Netherlands	2003	Delphinium							
-104326-106-004	NVWA	Pectobacterium polonicum	K3545	NVWA	Netherlands	2004	Calathea							
-104326-106-005	NVWA	Pectobacterium versatile	K3549	NVWA	Netherlands	2004	Cyclamen							
-104326-106-006	NVWA	Pectobacterium carotovorum subsp. carotovorum	K3550	NVWA		2004	Lactuca							
-104326-106-007	NVWA	Pectobacterium brasiliense	K3552	NVWA	Netherlands	2004	Lycopersicon esculentum							
-104326-106-008	NVWA	Pectobacterium brasiliense	K3554	NVWA	Netherlands	2004	Osteospermum							
-104326-106-023	NVWA	Pectobacterium punjabense	PD5156	NVWA	Netherlands	2005	Anubias barteri							
-104326-106-025	NVWA	Pectobacterium brasiliense	PD5190	NVWA	Netherlands	2005	Ornithogalum							
-104326-106-028	NVWA	Pectobacterium parmentieri	PD5801	NVWA	Netherlands	2009	Solanum tuberosum							
-104326-106-043	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD6523	NVWA	Guatemala	2013	Yucca gigantea							
-104326-106-045	NVWA	Pectobacterium odoriferum	PD6860	NVWA	Netherlands	2014	Daucus carota							
-104326-106-047	NVWA	Pectobacterium brasiliense	PD6952	NVWA	Netherlands	2014	Cucumis sativus							
-104326-106-048	NVWA	Pectobacterium odoriferum	PD6958	NVWA	Netherlands	2014	Hyacinthus							
-104326-106-049	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD6993	NVWA	Suriname	2014	Solanum melongena							
-104326-106-050	NVWA	Pectobacterium versatile	PD6994	NVWA	Netherlands	2014	Brassica oleracea							
-104326-106-051	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD6997	NVWA	Netherlands	2014	Zantedeschia albomaculata							
-104326-106-052	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD7079	NVWA	South Africa	2014	Cucurbita pepo							
-104326-106-053	NVWA	Pectobacterium brasiliense	PD7081	NVWA	Netherlands	2015	Solanum torvum							
-104326-106-054	NVWA	Pectobacterium zantedeschiae	PD7096	NVWA	Netherlands	2015	Zantedeschia							
-104326-106-055	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD7231	NVWA	Netherlands	2016	Euphorbia neomontana							
-104326-106-056	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD7232	NVWA	Netherlands	2015	Dracaena							
-104326-106-057	NVWA	Pectobacterium polaris	PD7233	NVWA	Netherlands	2015	Brassica oleracea							
-104326-106-058	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD7236	NVWA	China	2016	Sansevieria trifasciata							
-104326-106-059	NVWA	Pectobacterium carotovorum subsp. carotovorum	PD7271	NVWA	Netherlands	2016	Zantedeschia							
-104326-106-061	NVWA	Pectobacterium polaris	PD7434	NVWA	Netherlands	2018	Cucurbita pepo							
-104326-106-064	NVWA	Pectobacterium versatile	PD7537	NVWA	Netherlands	2019	Hyacinthus							
-104326-106-069	NVWA	Pectobacterium versatile	PD7836	NVWA	Netherlands	2020	Allium stipitatum							
-104326-106-072	NVWA	Pectobacterium actinidiae	PD7900	NVWA	India	2020	Dolichos 							
-104326-106-073	NVWA	Pectobacterium aroidearum	PD8061	NVWA					type strain					
-104326-106-074	NVWA	Pectobacterium cacticida	PD8066	NVWA					type strain					
-104326-106-075	NVWA	Pectobacterium parmentieri	PD8070	NVWA					type strain					
-104326-106-076	NVWA	Pectobacterium parvum	PD8074	NVWA					type strain					
-104326-106-079	NVWA	Pectobacterium polaris	PD8141	NVWA					type strain					
+104326-106-001	NIVIP	Pectobacterium carotovorum	K3536	NIVIP	Netherlands	1997	Kalanchoe							
+104326-106-002	NIVIP	Pectobacterium carotovorum subsp. carotovorum	K3539	NIVIP	Netherlands	2003	Spathiphyllum							
+104326-106-003	NIVIP	Pectobacterium odoriferum	K3542	NIVIP	Netherlands	2003	Delphinium							
+104326-106-004	NIVIP	Pectobacterium polonicum	K3545	NIVIP	Netherlands	2004	Calathea							
+104326-106-005	NIVIP	Pectobacterium versatile	K3549	NIVIP	Netherlands	2004	Cyclamen							
+104326-106-006	NIVIP	Pectobacterium carotovorum subsp. carotovorum	K3550	NIVIP		2004	Lactuca							
+104326-106-007	NIVIP	Pectobacterium brasiliense	K3552	NIVIP	Netherlands	2004	Lycopersicon esculentum							
+104326-106-008	NIVIP	Pectobacterium brasiliense	K3554	NIVIP	Netherlands	2004	Osteospermum							
+104326-106-023	NIVIP	Pectobacterium punjabense	PD5156	NIVIP	Netherlands	2005	Anubias barteri							
+104326-106-025	NIVIP	Pectobacterium brasiliense	PD5190	NIVIP	Netherlands	2005	Ornithogalum							
+104326-106-028	NIVIP	Pectobacterium parmentieri	PD5801	NIVIP	Netherlands	2009	Solanum tuberosum							
+104326-106-043	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6523	NIVIP	Guatemala	2013	Yucca gigantea							
+104326-106-045	NIVIP	Pectobacterium odoriferum	PD6860	NIVIP	Netherlands	2014	Daucus carota							
+104326-106-047	NIVIP	Pectobacterium brasiliense	PD6952	NIVIP	Netherlands	2014	Cucumis sativus							
+104326-106-048	NIVIP	Pectobacterium odoriferum	PD6958	NIVIP	Netherlands	2014	Hyacinthus							
+104326-106-049	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6993	NIVIP	Suriname	2014	Solanum melongena							
+104326-106-050	NIVIP	Pectobacterium versatile	PD6994	NIVIP	Netherlands	2014	Brassica oleracea							
+104326-106-051	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6997	NIVIP	Netherlands	2014	Zantedeschia albomaculata							
+104326-106-052	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7079	NIVIP	South Africa	2014	Cucurbita pepo							
+104326-106-053	NIVIP	Pectobacterium brasiliense	PD7081	NIVIP	Netherlands	2015	Solanum torvum							
+104326-106-054	NIVIP	Pectobacterium zantedeschiae	PD7096	NIVIP	Netherlands	2015	Zantedeschia							
+104326-106-055	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7231	NIVIP	Netherlands	2016	Euphorbia neomontana							
+104326-106-056	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7232	NIVIP	Netherlands	2015	Dracaena							
+104326-106-057	NIVIP	Pectobacterium polaris	PD7233	NIVIP	Netherlands	2015	Brassica oleracea							
+104326-106-058	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7236	NIVIP	China	2016	Sansevieria trifasciata							
+104326-106-059	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7271	NIVIP	Netherlands	2016	Zantedeschia							
+104326-106-061	NIVIP	Pectobacterium polaris	PD7434	NIVIP	Netherlands	2018	Cucurbita pepo							
+104326-106-064	NIVIP	Pectobacterium versatile	PD7537	NIVIP	Netherlands	2019	Hyacinthus							
+104326-106-069	NIVIP	Pectobacterium versatile	PD7836	NIVIP	Netherlands	2020	Allium stipitatum							
+104326-106-072	NIVIP	Pectobacterium actinidiae	PD7900	NIVIP	India	2020	Dolichos 							
+104326-106-073	NIVIP	Pectobacterium aroidearum	PD8061	NIVIP					type strain					
+104326-106-074	NIVIP	Pectobacterium cacticida	PD8066	NIVIP					type strain					
+104326-106-075	NIVIP	Pectobacterium parmentieri	PD8070	NIVIP					type strain					
+104326-106-076	NIVIP	Pectobacterium parvum	PD8074	NIVIP					type strain					
+104326-106-079	NIVIP	Pectobacterium polaris	PD8141	NIVIP					type strain					
