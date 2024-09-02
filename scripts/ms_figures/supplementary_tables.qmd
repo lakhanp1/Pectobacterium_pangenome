@@ -68,8 +68,7 @@ openxlsx::writeData(
 openxlsx::writeDataTable(
   wb = wb, x = metadata, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -353,6 +352,51 @@ DT::datatable(
 )
 ```
 
+
+## Table S7
+
+Inhouse sample information
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+inhouse_samples <- dplyr::filter(metadata, source != "NCBI") %>% 
+  dplyr::select(genomeId, source, sampleId, BioSampleAccn, BioprojectAccn)
+
+currentSheet <- "Table_S7"
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+openxlsx::writeData(
+  wb = wb, sheet = currentSheet,
+  x = paste("## Table S7: Inhouse genome assemblies")
+)
+openxlsx::writeDataTable(
+  wb = wb, x = inhouse_samples, sheet = currentSheet,
+  startCol = 1, startRow = 2, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA",
+  
+)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
+
+DT::datatable(
+  data = inhouse_samples,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
 :::
 
 ```{r}
@@ -361,7 +405,7 @@ DT::datatable(
 # save all table to Excel file
 openxlsx::saveWorkbook(
   wb = wb, overwrite = TRUE,
-  file = file.path(confs$data$reference_data$dir, "ms_prophages_supplementary_data.xlsx")
+  file = file.path("reports/manuscript_prophages", "ms_prophages_supplementary_data.xlsx")
 )
 
 ```
