@@ -95,7 +95,7 @@ data:
     pectobacterium.v2:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
-      include_source: ["NCBI", "NAK", "NVWA"]
+      include_source: ["NCBI", "NAK", "NIVIP"]
       homology_group_setting: 4
       files:
         input_lock: "input_genomes.tab"

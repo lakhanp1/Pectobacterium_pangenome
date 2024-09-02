@@ -1,114 +1,114 @@
-sampleId	source	SpeciesName	strain	SubmitterOrganization	geo_loc_name	collection_date	host	isolation_source	type_material	symptom_per_2019	symptom_per_2020	symptom_per_2022	virulence	virulence_pcr
-JGAR-030718-1	NAK	Pectobacterium brasiliense	JGAR-030718-1	NAK	Netherlands: Groningen	2018	Solanum tuberosum	Symptomatic Potato Stem			0.720385973		virulent	negative
-JGAR-080719-2	NAK	Pectobacterium brasiliense	JGAR-080719-2	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.642761723		virulent	negative
-JGAR-100719-1	NAK	Pectobacterium brasiliense	JGAR-100719-1	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.593263644		virulent	negative
-JGAR-120719-4	NAK	Pectobacterium brasiliense	JGAR-120719-4	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.656878532		virulent	negative
-NAK238	NAK	Pectobacterium brasiliense	NAK238	NAK	Netherlands: Groningen	2016	Solanum tuberosum	Asymptomatic Potato Heel end			0.002638837		avirulent	positive
-NAK246	NAK	Pectobacterium brasiliense	NAK246	NAK	Netherlands: Noord-Holland	2016	Solanum tuberosum	Asymptomatic Potato Heel end					avirulent	positive
-NAK616	NAK	Pectobacterium brasiliense	NAK616	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.494157062		virulent	negative
-NAK617	NAK	Pectobacterium brasiliense	NAK617	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.665436521		virulent	negative
-NAK638	NAK	Pectobacterium brasiliense	NAK638	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem						negative
-NAK641	NAK	Pectobacterium brasiliense	NAK641	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative
-NAK644	NAK	Pectobacterium brasiliense	NAK644	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative
-NAK650	NAK	Pectobacterium brasiliense	NAK650	NAK	Netherlands: Noord-Brabant	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative
-NAK673	NAK	Pectobacterium brasiliense	NAK673	NAK	Netherlands: Noord-Brabant	2020	Solanum tuberosum	Asymptomatic Potato Peel						negative
-NAK679	NAK	Pectobacterium brasiliense	NAK679	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.010527495	avirulent	negative
-NAK682	NAK	Pectobacterium brasiliense	NAK682	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.72676329	virulent	positive
-NAK683	NAK	Pectobacterium brasiliense	NAK683	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.736822611	virulent	negative
-NAK698	NAK	Pectobacterium brasiliense	NAK698	NAK	Netherlands: Zeeland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive
-NAK700	NAK	Pectobacterium brasiliense	NAK700	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative
-NAK701	NAK	Pectobacterium brasiliense	NAK701	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.791320438	virulent	positive
-NAK709	NAK	Pectobacterium brasiliense	NAK709	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel					avirulent	negative
-NAK716	NAK	Pectobacterium brasiliense	NAK716	NAK	Netherlands: Groningen	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative
-NAK719	NAK	Pectobacterium brasiliense	NAK719	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive
-NAK727	NAK	Pectobacterium brasiliense	NAK727	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative
-IPO_4215	NAK2	Pectobacterium spp.	IPO4215	NAK										
-IPO_4216	NAK2	Pectobacterium spp.	IPO4216	NAK										
-IPO_4217	NAK2	Pectobacterium spp.	IPO4217	NAK										
-IPO_4218	NAK2	Pectobacterium spp.	IPO4218	NAK										
-IPO_4219	NAK2	Pectobacterium spp.	IPO4219	NAK										
-IPO_4220	NAK2	Pectobacterium spp.	IPO4220	NAK										
-IPO_4221	NAK2	Pectobacterium spp.	IPO4221	NAK										
-IPO_4222	NAK2	Pectobacterium spp.	IPO4222	NAK										
-IPO_4223	NAK2	Pectobacterium spp.	IPO4223	NAK										
-IPO_4224	NAK2	Pectobacterium spp.	IPO4224	NAK										
-IPO_4225	NAK2	Pectobacterium spp.	IPO4225	NAK										
-IPO_4226	NAK2	Pectobacterium spp.	IPO4226	NAK										
-IPO_4294	NAK2	Pectobacterium spp.	IPO4294	NAK										
-IPO_4295	NAK2	Pectobacterium brasiliense	NAK751	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.063089014	avirulent	negative
-IPO_4296	NAK2	Pectobacterium brasiliense	NAK752	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.808473549	virulent	negative
-IPO_4297	NAK2	Pectobacterium brasiliense	NAK753	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.144188403	inconclusive	negative
-IPO_4298	NAK2	Pectobacterium brasiliense	NAK754	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.030655811	avirulent	negative
-IPO_4299	NAK2	Pectobacterium brasiliense	NAK755	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.010527495	avirulent	negative
-IPO_4300	NAK2	Pectobacterium brasiliense	NAK756	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.789180849	virulent	negative
-IPO_4301	NAK2	Pectobacterium brasiliense	NAK757	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.886966611	virulent	negative
-IPO_4302	NAK2	Pectobacterium brasiliense	NAK758	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.890787741	virulent	negative
-IPO_4303	NAK2	Pectobacterium brasiliense	NAK759	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.84767922	virulent	negative
-IPO_4304	NAK2	Pectobacterium brasiliense	NAK760	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.005350237	avirulent	negative
-IPO_4305	NAK2	Pectobacterium brasiliense	NAK761	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.87286766	virulent	negative
-IPO_4306	NAK2	Pectobacterium brasiliense	NAK762	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.819770435	virulent	negative
-IPO_4307	NAK2	Pectobacterium brasiliense	NAK764	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.002638837	avirulent	negative
-IPO_4308	NAK2	Pectobacterium brasiliense	NAK765	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.862651116	virulent	negative
-IPO_4309	NAK2	Pectobacterium brasiliense	NAK766	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.907442009	virulent	negative
-IPO_4310	NAK2	Pectobacterium brasiliense	NAK767	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.682458365	virulent	negative
-IPO_4311	NAK2	Pectobacterium brasiliense	NAK768	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.910471735	virulent	negative
-IPO_4312	NAK2	Pectobacterium brasiliense	NAK769	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem					avirulent	negative
-IPO_4313	NAK2	Pectobacterium brasiliense	NAK770	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.078773114	inconclusive	negative
-IPO_4314	NAK2	Pectobacterium brasiliense	NAK772	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.810192698	virulent	negative
-IPO_4315	NAK2	Pectobacterium brasiliense	NAK773	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.862689853	virulent	negative
-IPO_4316	NAK2	Pectobacterium brasiliense	NAK782	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.148793786	inconclusive	negative
-IPO_4317	NAK2	Pectobacterium brasiliense	NAK783	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.753569583	virulent	negative
-IPO_4318	NAK2	Pectobacterium brasiliense	NAK787	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.767441322	virulent	negative
-IPO_4319	NAK2	Pectobacterium brasiliense	NAK788	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.892269822	virulent	negative
-IPO_4320	NAK2	Pectobacterium brasiliense	NAK789	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.839713064	virulent	negative
-IPO_4321	NAK2	Pectobacterium brasiliense	NAK790	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.170714101	inconclusive	negative
-IPO_4322	NAK2	Pectobacterium spp.	IPO4322	NAK										
-IPO_4323	NAK2	Pectobacterium spp.	IPO4323	NAK										
-IPO_4324	NAK2	Pectobacterium spp.	IPO4324	NAK										
-IPO_4325	NAK2	Pectobacterium spp.	IPO4325	NAK										
-IPO_4442	NAK2	Pectobacterium brasiliense	NAK829	NAK	Netherlands	2021		surface water 				0.010527495	avirulent	negative
-IPO_4443	NAK2	Pectobacterium brasiliense	NAK862	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel					avirulent	negative
-IPO_4444	NAK2	Pectobacterium brasiliense	NAK869	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.011006377	avirulent	negative
-IPO_4445	NAK2	Pectobacterium brasiliense	NAK882	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.015445704	avirulent	positive
-IPO_4446	NAK2	Pectobacterium brasiliense	NAK883	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.010527495	avirulent	negative
-IPO_4447	NAK2	Pectobacterium brasiliense	NAK898	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.841727028	virulent	negative
-IPO_4448	NAK2	Pectobacterium brasiliense	NAK901	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.781655492	virulent	positive
-IPO_4449	NAK2	Pectobacterium spp.	IPO4449	NAK										
-IPO_4450	NAK2	Pectobacterium spp.	IPO4450	NAK										
-IPO_4451	NAK2	Pectobacterium spp.	IPO4451	NAK										
-IPO_4452	NAK2	Pectobacterium spp.	IPO4452	NAK										
-104326-106-001	NIVIP	Pectobacterium carotovorum	K3536	NIVIP	Netherlands	1997	Kalanchoe							
-104326-106-002	NIVIP	Pectobacterium carotovorum subsp. carotovorum	K3539	NIVIP	Netherlands	2003	Spathiphyllum							
-104326-106-003	NIVIP	Pectobacterium odoriferum	K3542	NIVIP	Netherlands	2003	Delphinium							
-104326-106-004	NIVIP	Pectobacterium polonicum	K3545	NIVIP	Netherlands	2004	Calathea							
-104326-106-005	NIVIP	Pectobacterium versatile	K3549	NIVIP	Netherlands	2004	Cyclamen							
-104326-106-006	NIVIP	Pectobacterium carotovorum subsp. carotovorum	K3550	NIVIP		2004	Lactuca							
-104326-106-007	NIVIP	Pectobacterium brasiliense	K3552	NIVIP	Netherlands	2004	Lycopersicon esculentum							
-104326-106-008	NIVIP	Pectobacterium brasiliense	K3554	NIVIP	Netherlands	2004	Osteospermum							
-104326-106-023	NIVIP	Pectobacterium punjabense	PD5156	NIVIP	Netherlands	2005	Anubias barteri							
-104326-106-025	NIVIP	Pectobacterium brasiliense	PD5190	NIVIP	Netherlands	2005	Ornithogalum							
-104326-106-028	NIVIP	Pectobacterium parmentieri	PD5801	NIVIP	Netherlands	2009	Solanum tuberosum							
-104326-106-043	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6523	NIVIP	Guatemala	2013	Yucca gigantea							
-104326-106-045	NIVIP	Pectobacterium odoriferum	PD6860	NIVIP	Netherlands	2014	Daucus carota							
-104326-106-047	NIVIP	Pectobacterium brasiliense	PD6952	NIVIP	Netherlands	2014	Cucumis sativus							
-104326-106-048	NIVIP	Pectobacterium odoriferum	PD6958	NIVIP	Netherlands	2014	Hyacinthus							
-104326-106-049	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6993	NIVIP	Suriname	2014	Solanum melongena							
-104326-106-050	NIVIP	Pectobacterium versatile	PD6994	NIVIP	Netherlands	2014	Brassica oleracea							
-104326-106-051	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6997	NIVIP	Netherlands	2014	Zantedeschia albomaculata							
-104326-106-052	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7079	NIVIP	South Africa	2014	Cucurbita pepo							
-104326-106-053	NIVIP	Pectobacterium brasiliense	PD7081	NIVIP	Netherlands	2015	Solanum torvum							
-104326-106-054	NIVIP	Pectobacterium zantedeschiae	PD7096	NIVIP	Netherlands	2015	Zantedeschia							
-104326-106-055	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7231	NIVIP	Netherlands	2016	Euphorbia neomontana							
-104326-106-056	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7232	NIVIP	Netherlands	2015	Dracaena							
-104326-106-057	NIVIP	Pectobacterium polaris	PD7233	NIVIP	Netherlands	2015	Brassica oleracea							
-104326-106-058	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7236	NIVIP	China	2016	Sansevieria trifasciata							
-104326-106-059	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7271	NIVIP	Netherlands	2016	Zantedeschia							
-104326-106-061	NIVIP	Pectobacterium polaris	PD7434	NIVIP	Netherlands	2018	Cucurbita pepo							
-104326-106-064	NIVIP	Pectobacterium versatile	PD7537	NIVIP	Netherlands	2019	Hyacinthus							
-104326-106-069	NIVIP	Pectobacterium versatile	PD7836	NIVIP	Netherlands	2020	Allium stipitatum							
-104326-106-072	NIVIP	Pectobacterium actinidiae	PD7900	NIVIP	India	2020	Dolichos 							
-104326-106-073	NIVIP	Pectobacterium aroidearum	PD8061	NIVIP					type strain					
-104326-106-074	NIVIP	Pectobacterium cacticida	PD8066	NIVIP					type strain					
-104326-106-075	NIVIP	Pectobacterium parmentieri	PD8070	NIVIP					type strain					
-104326-106-076	NIVIP	Pectobacterium parvum	PD8074	NIVIP					type strain					
-104326-106-079	NIVIP	Pectobacterium polaris	PD8141	NIVIP					type strain					
+sampleId	source	SpeciesName	strain	SubmitterOrganization	geo_loc_name	collection_date	host	isolation_source	type_material	symptom_per_2019	symptom_per_2020	symptom_per_2022	virulence	virulence_pcr	AssemblyAccession	BioSampleAccn	BioprojectAccn
+JGAR-030718-1	NAK	Pectobacterium brasiliense	JGAR-030718-1	NAK	Netherlands: Groningen	2018	Solanum tuberosum	Symptomatic Potato Stem			0.720385973		virulent	negative		SAMN42841154	PRJNA1140644
+JGAR-080719-2	NAK	Pectobacterium brasiliense	JGAR-080719-2	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.642761723		virulent	negative		SAMN42841155	PRJNA1140644
+JGAR-100719-1	NAK	Pectobacterium brasiliense	JGAR-100719-1	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.593263644		virulent	negative		SAMN42841156	PRJNA1140644
+JGAR-120719-4	NAK	Pectobacterium brasiliense	JGAR-120719-4	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.656878532		virulent	negative		SAMN42841157	PRJNA1140644
+NAK238	NAK	Pectobacterium brasiliense	NAK238	NAK	Netherlands: Groningen	2016	Solanum tuberosum	Asymptomatic Potato Heel end			0.002638837		avirulent	positive		SAMN42841158	PRJNA1140644
+NAK246	NAK	Pectobacterium brasiliense	NAK246	NAK	Netherlands: Noord-Holland	2016	Solanum tuberosum	Asymptomatic Potato Heel end					avirulent	positive		SAMN42841159	PRJNA1140644
+NAK616	NAK	Pectobacterium brasiliense	NAK616	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.494157062		virulent	negative		SAMN42841160	PRJNA1140644
+NAK617	NAK	Pectobacterium brasiliense	NAK617	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.665436521		virulent	negative		SAMN42841161	PRJNA1140644
+NAK638	NAK	Pectobacterium brasiliense	NAK638	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem						negative		SAMN42841162	PRJNA1140644
+NAK641	NAK	Pectobacterium brasiliense	NAK641	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative		SAMN42841163	PRJNA1140644
+NAK644	NAK	Pectobacterium brasiliense	NAK644	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative		SAMN42841164	PRJNA1140644
+NAK650	NAK	Pectobacterium brasiliense	NAK650	NAK	Netherlands: Noord-Brabant	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative		SAMN42841165	PRJNA1140644
+NAK673	NAK	Pectobacterium brasiliense	NAK673	NAK	Netherlands: Noord-Brabant	2020	Solanum tuberosum	Asymptomatic Potato Peel						negative		SAMN42841166	PRJNA1140644
+NAK679	NAK	Pectobacterium brasiliense	NAK679	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.010527495	avirulent	negative		SAMN42841167	PRJNA1140644
+NAK682	NAK	Pectobacterium brasiliense	NAK682	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.72676329	virulent	positive		SAMN42841168	PRJNA1140644
+NAK683	NAK	Pectobacterium brasiliense	NAK683	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.736822611	virulent	negative		SAMN42841169	PRJNA1140644
+NAK698	NAK	Pectobacterium brasiliense	NAK698	NAK	Netherlands: Zeeland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive		SAMN42841170	PRJNA1140644
+NAK700	NAK	Pectobacterium brasiliense	NAK700	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative		SAMN42841171	PRJNA1140644
+NAK701	NAK	Pectobacterium brasiliense	NAK701	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.791320438	virulent	positive		SAMN42841172	PRJNA1140644
+NAK709	NAK	Pectobacterium brasiliense	NAK709	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel					avirulent	negative		SAMN42841173	PRJNA1140644
+NAK716	NAK	Pectobacterium brasiliense	NAK716	NAK	Netherlands: Groningen	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative		SAMN42841174	PRJNA1140644
+NAK719	NAK	Pectobacterium brasiliense	NAK719	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive		SAMN42841175	PRJNA1140644
+NAK727	NAK	Pectobacterium brasiliense	NAK727	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative		SAMN42841176	PRJNA1140644
+IPO_4215	NAK2	Pectobacterium spp.	IPO4215	NAK													
+IPO_4216	NAK2	Pectobacterium spp.	IPO4216	NAK													
+IPO_4217	NAK2	Pectobacterium spp.	IPO4217	NAK													
+IPO_4218	NAK2	Pectobacterium spp.	IPO4218	NAK													
+IPO_4219	NAK2	Pectobacterium spp.	IPO4219	NAK													
+IPO_4220	NAK2	Pectobacterium spp.	IPO4220	NAK													
+IPO_4221	NAK2	Pectobacterium spp.	IPO4221	NAK													
+IPO_4222	NAK2	Pectobacterium spp.	IPO4222	NAK													
+IPO_4223	NAK2	Pectobacterium spp.	IPO4223	NAK													
+IPO_4224	NAK2	Pectobacterium spp.	IPO4224	NAK													
+IPO_4225	NAK2	Pectobacterium spp.	IPO4225	NAK													
+IPO_4226	NAK2	Pectobacterium spp.	IPO4226	NAK													
+IPO_4294	NAK2	Pectobacterium spp.	IPO4294	NAK													
+IPO_4295	NAK2	Pectobacterium brasiliense	NAK751	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.063089014	avirulent	negative			
+IPO_4296	NAK2	Pectobacterium brasiliense	NAK752	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.808473549	virulent	negative			
+IPO_4297	NAK2	Pectobacterium brasiliense	NAK753	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.144188403	inconclusive	negative			
+IPO_4298	NAK2	Pectobacterium brasiliense	NAK754	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.030655811	avirulent	negative			
+IPO_4299	NAK2	Pectobacterium brasiliense	NAK755	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.010527495	avirulent	negative			
+IPO_4300	NAK2	Pectobacterium brasiliense	NAK756	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.789180849	virulent	negative			
+IPO_4301	NAK2	Pectobacterium brasiliense	NAK757	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.886966611	virulent	negative			
+IPO_4302	NAK2	Pectobacterium brasiliense	NAK758	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.890787741	virulent	negative			
+IPO_4303	NAK2	Pectobacterium brasiliense	NAK759	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.84767922	virulent	negative			
+IPO_4304	NAK2	Pectobacterium brasiliense	NAK760	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.005350237	avirulent	negative			
+IPO_4305	NAK2	Pectobacterium brasiliense	NAK761	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.87286766	virulent	negative			
+IPO_4306	NAK2	Pectobacterium brasiliense	NAK762	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.819770435	virulent	negative			
+IPO_4307	NAK2	Pectobacterium brasiliense	NAK764	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.002638837	avirulent	negative			
+IPO_4308	NAK2	Pectobacterium brasiliense	NAK765	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.862651116	virulent	negative			
+IPO_4309	NAK2	Pectobacterium brasiliense	NAK766	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.907442009	virulent	negative			
+IPO_4310	NAK2	Pectobacterium brasiliense	NAK767	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.682458365	virulent	negative			
+IPO_4311	NAK2	Pectobacterium brasiliense	NAK768	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.910471735	virulent	negative			
+IPO_4312	NAK2	Pectobacterium brasiliense	NAK769	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem					avirulent	negative			
+IPO_4313	NAK2	Pectobacterium brasiliense	NAK770	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.078773114	inconclusive	negative			
+IPO_4314	NAK2	Pectobacterium brasiliense	NAK772	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.810192698	virulent	negative			
+IPO_4315	NAK2	Pectobacterium brasiliense	NAK773	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.862689853	virulent	negative			
+IPO_4316	NAK2	Pectobacterium brasiliense	NAK782	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.148793786	inconclusive	negative			
+IPO_4317	NAK2	Pectobacterium brasiliense	NAK783	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.753569583	virulent	negative			
+IPO_4318	NAK2	Pectobacterium brasiliense	NAK787	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.767441322	virulent	negative			
+IPO_4319	NAK2	Pectobacterium brasiliense	NAK788	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.892269822	virulent	negative			
+IPO_4320	NAK2	Pectobacterium brasiliense	NAK789	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.839713064	virulent	negative			
+IPO_4321	NAK2	Pectobacterium brasiliense	NAK790	NAK	Netherlands	2021	Solanum tuberosum	symptomatic potato stem				0.170714101	inconclusive	negative			
+IPO_4322	NAK2	Pectobacterium spp.	IPO4322	NAK													
+IPO_4323	NAK2	Pectobacterium spp.	IPO4323	NAK													
+IPO_4324	NAK2	Pectobacterium spp.	IPO4324	NAK													
+IPO_4325	NAK2	Pectobacterium spp.	IPO4325	NAK													
+IPO_4442	NAK2	Pectobacterium brasiliense	NAK829	NAK	Netherlands	2021		surface water 				0.010527495	avirulent	negative			
+IPO_4443	NAK2	Pectobacterium brasiliense	NAK862	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel					avirulent	negative			
+IPO_4444	NAK2	Pectobacterium brasiliense	NAK869	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.011006377	avirulent	negative			
+IPO_4445	NAK2	Pectobacterium brasiliense	NAK882	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.015445704	avirulent	positive			
+IPO_4446	NAK2	Pectobacterium brasiliense	NAK883	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.010527495	avirulent	negative			
+IPO_4447	NAK2	Pectobacterium brasiliense	NAK898	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.841727028	virulent	negative			
+IPO_4448	NAK2	Pectobacterium brasiliense	NAK901	NAK	Netherlands	2021	Solanum tuberosum	Asymptomatic potato Peel				0.781655492	virulent	positive			
+IPO_4449	NAK2	Pectobacterium spp.	IPO4449	NAK													
+IPO_4450	NAK2	Pectobacterium spp.	IPO4450	NAK													
+IPO_4451	NAK2	Pectobacterium spp.	IPO4451	NAK													
+IPO_4452	NAK2	Pectobacterium spp.	IPO4452	NAK													
+104326-106-001	NIVIP	Pectobacterium carotovorum	K3536	NIVIP	Netherlands	1997	Kalanchoe								GCF_040225055.1	SAMN41774365	PRJNA1122109
+104326-106-002	NIVIP	Pectobacterium carotovorum subsp. carotovorum	K3539	NIVIP	Netherlands	2003	Spathiphyllum								GCF_040224315.1	SAMN41774366	PRJNA1122109
+104326-106-003	NIVIP	Pectobacterium odoriferum	K3542	NIVIP	Netherlands	2003	Delphinium								GCF_040224355.1	SAMN41774367	PRJNA1122109
+104326-106-004	NIVIP	Pectobacterium polonicum	K3545	NIVIP	Netherlands	2004	Calathea								GCF_040224295.1	SAMN41774368	PRJNA1122109
+104326-106-005	NIVIP	Pectobacterium versatile	K3549	NIVIP	Netherlands	2004	Cyclamen								GCF_040224435.1	SAMN41774369	PRJNA1122109
+104326-106-006	NIVIP	Pectobacterium carotovorum subsp. carotovorum	K3550	NIVIP		2004	Lactuca								GCF_040224275.1	SAMN41774370	PRJNA1122109
+104326-106-007	NIVIP	Pectobacterium brasiliense	K3552	NIVIP	Netherlands	2004	Lycopersicon esculentum								GCF_040224195.1	SAMN41774371	PRJNA1122109
+104326-106-008	NIVIP	Pectobacterium brasiliense	K3554	NIVIP	Netherlands	2004	Osteospermum								GCF_040225295.1	SAMN41774372	PRJNA1122109
+104326-106-023	NIVIP	Pectobacterium punjabense	PD5156	NIVIP	Netherlands	2005	Anubias barteri								GCF_040224575.1	SAMN41774377	PRJNA1122109
+104326-106-025	NIVIP	Pectobacterium brasiliense	PD5190	NIVIP	Netherlands	2005	Ornithogalum								GCF_040225375.1	SAMN41774378	PRJNA1122109
+104326-106-028	NIVIP	Pectobacterium parmentieri	PD5801	NIVIP	Netherlands	2009	Solanum tuberosum								GCF_040224495.1	SAMN41774379	PRJNA1122109
+104326-106-043	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6523	NIVIP	Guatemala	2013	Yucca gigantea								GCF_040224615.1	SAMN41774380	PRJNA1122109
+104326-106-045	NIVIP	Pectobacterium odoriferum	PD6860	NIVIP	Netherlands	2014	Daucus carota								GCF_040224555.1	SAMN41774381	PRJNA1122109
+104326-106-047	NIVIP	Pectobacterium brasiliense	PD6952	NIVIP	Netherlands	2014	Cucumis sativus								GCF_040225255.1	SAMN41774382	PRJNA1122109
+104326-106-048	NIVIP	Pectobacterium odoriferum	PD6958	NIVIP	Netherlands	2014	Hyacinthus								GCF_040225195.1	SAMN41774383	PRJNA1122109
+104326-106-049	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6993	NIVIP	Suriname	2014	Solanum melongena								GCF_040285185.1	SAMN41774384	PRJNA1122109
+104326-106-050	NIVIP	Pectobacterium versatile	PD6994	NIVIP	Netherlands	2014	Brassica oleracea								GCF_040225235.1	SAMN41774385	PRJNA1122109
+104326-106-051	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD6997	NIVIP	Netherlands	2014	Zantedeschia albomaculata								GCF_040225335.1	SAMN41774386	PRJNA1122109
+104326-106-052	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7079	NIVIP	South Africa	2014	Cucurbita pepo								GCF_040225265.1	SAMN41774387	PRJNA1122109
+104326-106-053	NIVIP	Pectobacterium brasiliense	PD7081	NIVIP	Netherlands	2015	Solanum torvum								GCF_040224535.1	SAMN41774388	PRJNA1122109
+104326-106-054	NIVIP	Pectobacterium zantedeschiae	PD7096	NIVIP	Netherlands	2015	Zantedeschia								GCF_040224455.1	SAMN41774389	PRJNA1122109
+104326-106-055	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7231	NIVIP	Netherlands	2016	Euphorbia neomontana								GCF_040225175.1	SAMN41774390	PRJNA1122109
+104326-106-056	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7232	NIVIP	Netherlands	2015	Dracaena								GCF_040224595.1	SAMN41774391	PRJNA1122109
+104326-106-057	NIVIP	Pectobacterium polaris	PD7233	NIVIP	Netherlands	2015	Brassica oleracea								GCF_040225315.1	SAMN41774392	PRJNA1122109
+104326-106-058	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7236	NIVIP	China	2016	Sansevieria trifasciata								GCF_040224475.1	SAMN41774393	PRJNA1122109
+104326-106-059	NIVIP	Pectobacterium carotovorum subsp. carotovorum	PD7271	NIVIP	Netherlands	2016	Zantedeschia								GCF_040224515.1	SAMN41774394	PRJNA1122109
+104326-106-061	NIVIP	Pectobacterium polaris	PD7434	NIVIP	Netherlands	2018	Cucurbita pepo								GCF_040225075.1	SAMN41774395	PRJNA1122109
+104326-106-064	NIVIP	Pectobacterium versatile	PD7537	NIVIP	Netherlands	2019	Hyacinthus								GCF_040225155.1	SAMN41774396	PRJNA1122109
+104326-106-069	NIVIP	Pectobacterium versatile	PD7836	NIVIP	Netherlands	2020	Allium stipitatum								GCF_040225115.1	SAMN41774397	PRJNA1122109
+104326-106-072	NIVIP	Pectobacterium actinidiae	PD7900	NIVIP	India	2020	Dolichos 								GCF_040225205.1	SAMN41774398	PRJNA1122109
+104326-106-073	NIVIP	Pectobacterium aroidearum	PD8061	NIVIP					type strain						GCF_040224395.1	SAMN41774373	PRJNA1122109
+104326-106-074	NIVIP	Pectobacterium cacticida	PD8066	NIVIP					type strain						GCF_040224415.1	SAMN41774374	PRJNA1122109
+104326-106-075	NIVIP	Pectobacterium parmentieri	PD8070	NIVIP					type strain						GCF_040224375.1	SAMN41774375	PRJNA1122109
+104326-106-076	NIVIP	Pectobacterium parvum	PD8074	NIVIP					type strain						GCF_040224335.1	SAMN41774376	PRJNA1122109
+104326-106-079	NIVIP	Pectobacterium polaris	PD8141	NIVIP					type strain						GCF_040225135.1	SAMN41774364	PRJNA1122109

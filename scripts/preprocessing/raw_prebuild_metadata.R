@@ -32,7 +32,7 @@ outDir <- confs$analysis$qc$dir
 ## inhouse genomes and QC data
 inhouseGenomes <- suppressMessages(
   readr::read_tsv(file = confs$data$reference_data$files$inhouse_metadata)
-) %>% 
+) %>%
   dplyr::mutate(
     SubmissionDate = "2023",
     collection_date = as.character(collection_date)
@@ -47,20 +47,20 @@ missingMetadata <- suppressMessages(
 
 buscopMqc <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$busco_protein)
-) %>% 
+) %>%
   dplyr::mutate(
     sampleId = stringr::str_replace(
       string = Sample, pattern = "short_summary.specific.enterobacterales_odb10.",
       replacement = ""
     )
-  ) %>% 
-  dplyr::select(-Sample, -lineage_dataset) %>% 
+  ) %>%
+  dplyr::select(-Sample, -lineage_dataset) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(starts_with("complete"), missing, fragmented),
       .fns = ~ round(. * 100/total, digits = 3)
     )
-  ) %>% 
+  ) %>%
   dplyr::rename_with(
     .fn = ~ paste("buscop.", .x, sep = ""),
     .cols = !sampleId
@@ -68,20 +68,20 @@ buscopMqc <- suppressMessages(
 
 buscogMqc <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$busco_genome)
-) %>% 
+) %>%
   dplyr::mutate(
     sampleId = stringr::str_replace(
       string = Sample, pattern = "short_summary.specific.enterobacterales_odb10.",
       replacement = ""
     )
-  ) %>% 
-  dplyr::select(-Sample, -lineage_dataset) %>% 
+  ) %>%
+  dplyr::select(-Sample, -lineage_dataset) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = c(starts_with("complete"), missing, fragmented),
       .fns = ~ round(. * 100/total, digits = 3)
     )
-  ) %>% 
+  ) %>%
   dplyr::rename_with(
     .fn = ~ paste("buscog.", .x, sep = ""),
     .cols = !sampleId
@@ -114,7 +114,7 @@ quastCols <- c(
 
 quastMqc <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$quast)
-) %>% 
+) %>%
   dplyr::select(sampleId = Sample, !!!quastCols)
 
 ncbiAni <- suppressMessages(
@@ -133,7 +133,7 @@ asmDf <- XML::xmlToDataFrame(nodes = asmNodes)
 
 parse_assembly_docsum <- function(node){
   xmlList <- XML::xmlToList(node = node)
-  
+
   exclFromRefSeq <- NA
   if(!is.null(node[["ExclFromRefSeq"]])){
     exclFromRefSeq <- paste(
@@ -142,7 +142,7 @@ parse_assembly_docsum <- function(node){
     )
     warning(xmlList$AssemblyAccession, exclFromRefSeq, ": ExclFromRefSeq\n")
   }
-  
+
   Anomalous <- NA
   if(!is.null(node[["AnomalousList"]])){
     Anomalous <- paste(
@@ -151,15 +151,15 @@ parse_assembly_docsum <- function(node){
     )
     warning(xmlList$AssemblyAccession, Anomalous, ": Anomalous\n")
   }
-  
+
   replaced <- NA
   if(is.element(el = "replaced", xmlSApply(node[["PropertyList"]], xmlValue))){
     replaced <- "replaced"
     warning(xmlList$AssemblyAccession, replaced, ": replaced\n")
   }
-  
-  
-  
+
+
+
   return(c(
     Id = xmlList$Id,
     taxonomy_check_status = xmlList$Meta$`taxonomy-check-status`,
@@ -169,15 +169,16 @@ parse_assembly_docsum <- function(node){
     replaced = replaced,
     synonym_GB = xmlList$Synonym$Genbank,
     synonym_RS = xmlList$Synonym$RefSeq,
+    BioprojectAccn = xmlList$GB_BioProjects$Bioproj$BioprojectAccn,
     synonym_similarity = xmlList$Synonym$Similarity
   ))
-  
+
 }
 
 asmMetadata <- purrr::map_dfr(
   .x = asmNodes,
   .f = ~ parse_assembly_docsum(node = .)
-) %>% 
+) %>%
   dplyr::mutate(
     dplyr::across(
       .cols = where(is.character),
@@ -190,7 +191,7 @@ asmMetadata <- purrr::map_dfr(
         replacement = NA_character_
       )
     )
-    
+
   )
 
 
@@ -209,7 +210,7 @@ bsMetadata <- purrr::map_dfr(
   .f = function(aNode){
     aNodeDoc <- XML::xmlParse(XML::toString.XMLNode(aNode))
     aNodeList <- XML::xmlToList(node = aNode)
-    
+
     ## parse all the metadata from Attribute nodes
     attrDf <- purrr::map_dfr(
       .x = XML::getNodeSet(doc = aNodeDoc, path = "//Attribute"),
@@ -220,7 +221,7 @@ bsMetadata <- purrr::map_dfr(
         ))
       }
     )
-    
+
     ## cleanup attribute names which will be used as column names
     attrDf <- dplyr::mutate(
       .data = attrDf,
@@ -234,7 +235,7 @@ bsMetadata <- purrr::map_dfr(
       ),
       harmonized_name = dplyr::coalesce(harmonized_name, attribute_name)
     )
-    
+
     ## cleanup the attribute values
     attrDf <- dplyr::mutate(
       .data = attrDf,
@@ -247,14 +248,14 @@ bsMetadata <- purrr::map_dfr(
         replacement = NA_character_
       )
     )
-    
+
     ## add the attribute name and description to global DF
     colInfo <<- dplyr::bind_rows(
       colInfo,
-      dplyr::filter(attrDf, !is.na(value)) %>% 
+      dplyr::filter(attrDf, !is.na(value)) %>%
         dplyr::select(attribute_name, harmonized_name, display_name)
     )
-    
+
     return(c(
       BioSampleAccn = aNodeList$Accession,
       tibble::deframe(x = dplyr::select(attrDf, harmonized_name, value))
@@ -271,30 +272,30 @@ bsMetadata <- dplyr::select(
 ################################################################################
 
 assemblyCols <- c(
-  "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism", 
+  "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism",
   "AssemblyStatus", "AssemblyType", "BioSampleAccn", "SubmissionDate", "SubmitterOrganization",
   "FtpPath_RefSeq", "FtpPath_GenBank",  "Id"
 )
 
 ## merge all data
-ncbiData <- dplyr::select(.data = asmDf, !!!assemblyCols)  %>% 
+ncbiData <- dplyr::select(.data = asmDf, !!!assemblyCols)  %>%
   dplyr::mutate(
     AssemblyName = stringr::str_replace_all(
       string = AssemblyName, pattern = "\\s+", replacement = "_"
     ),
     source = "NCBI"
-  ) %>% 
-  tidyr::unite(col = sampleId, AssemblyAccession, AssemblyName, sep = "_", remove = F) %>% 
+  ) %>%
+  tidyr::unite(col = sampleId, AssemblyAccession, AssemblyName, sep = "_", remove = F) %>%
   dplyr::left_join(y = asmMetadata, by = "Id") %>%
   dplyr::left_join(y = bsMetadata, by = "BioSampleAccn")
 
 
 genomeMetadata <- dplyr::bind_rows(
   ncbiData, inhouseGenomes
-) %>% 
-  dplyr::left_join(y = buscopMqc, by = "sampleId") %>% 
-  dplyr::left_join(y = buscogMqc, by = "sampleId") %>% 
-  dplyr::left_join(y = quastMqc, by = "sampleId") %>% 
+) %>%
+  dplyr::left_join(y = buscopMqc, by = "sampleId") %>%
+  dplyr::left_join(y = buscogMqc, by = "sampleId") %>%
+  dplyr::left_join(y = quastMqc, by = "sampleId") %>%
   dplyr::mutate(
     AssemblyStatus = dplyr::case_when(
       source != "NCBI" & n_contigs == 1 ~ "Complete Genome",
@@ -310,8 +311,8 @@ genomeMetadata <- dplyr::bind_rows(
 
 informativeCols <- c(
   "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism",
-  "AssemblyStatus", "AssemblyType", "BioSampleAccn", "strain", "geo_loc_name",
-  "collection_date", "host", "isolation_source",
+  "AssemblyStatus", "AssemblyType", "BioSampleAccn", "BioprojectAccn", "strain",
+  "geo_loc_name", "collection_date", "host", "isolation_source",
   "env_broad_scale", "env_local_scale", "env_medium"
 )
 
@@ -328,8 +329,8 @@ genomeMetadata <- dplyr::select(
 ## from the people who submitted the genomes but did not include the metadata
 missingMetadata <- dplyr::left_join(
   x = missingMetadata,
-  y = dplyr::filter(genomeMetadata, source == "NCBI") %>% 
-    dplyr::select(AssemblyAccession) %>% 
+  y = dplyr::filter(genomeMetadata, source == "NCBI") %>%
+    dplyr::select(AssemblyAccession) %>%
     dplyr::mutate(rowIndex = 1:n()),
   by = "AssemblyAccession"
 )
@@ -345,22 +346,22 @@ for(mtcol in setdiff(colnames(missingMetadata), c("AssemblyAccession", "rowIndex
 #####################################################################
 ## correct dates
 genomeMetadata <- dplyr::mutate(
-  .data = genomeMetadata,  
+  .data = genomeMetadata,
   SubmissionDate = lubridate::ymd_hm(SubmissionDate),
   submission_y = lubridate::year(SubmissionDate),
   collection_date = lubridate::ymd(collection_date, truncated = 2),
   collection_year = lubridate::year(collection_date)
-) %>% 
-  dplyr::relocate(collection_year, .before = collection_date) %>% 
+) %>%
+  dplyr::relocate(collection_year, .before = collection_date) %>%
   dplyr::relocate(submission_y, .before = SubmissionDate)
 
 ## correct country name
-genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>% 
+genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_name") %>%
   dplyr::mutate(
     geo_loc_country = stringr::str_replace(
       string = geo_loc_name, pattern = ":.*", replacement = ""
     )
-  ) %>% 
+  ) %>%
   dplyr::mutate(
     geo_loc_country = dplyr::case_when(
       geo_loc_country == "USA" ~ "United States",
@@ -381,7 +382,7 @@ genomeMetadata %<>%
   dplyr::left_join(
     y = dplyr::select(world, name_long, continent),
     by = c("geo_loc_country" = "name_long")
-  ) %>% 
+  ) %>%
   dplyr::relocate(continent, .after = geo_loc_country)
 
 #####################################################################

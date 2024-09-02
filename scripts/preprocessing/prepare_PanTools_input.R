@@ -20,9 +20,10 @@ panConf <- confs$data$pangenomes$pectobacterium.v2
 testPanConf <- confs$data$pangenomes$pectobacterium.ts
 
 cols_metadata <- c(
-  "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status", 
+  "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status",
+  "BioSampleAccn", "BioprojectAccn",
   "strain", "virulence", "virulence_pcr", "geo_loc_country", "continent",
-  "host", "isolation_source", "collection_year", "collected_by", "env_broad_scale", 
+  "host", "isolation_source", "collection_year", "collected_by", "env_broad_scale",
   "type_material", "virulence", "virulence_pcr",
   "source", "type_material", "representative_status", "sample_type",
   "length", "N50", "L50", "n_contigs")
@@ -44,9 +45,10 @@ filteredMeta <- dplyr::filter(
   metadata,
   filtered == "PASS",
   source %in% panConf$include_source
-) %>% 
+) %>%
   dplyr::mutate(
-    genomeId = 1:n(),
+    Genome = 1:n(),
+    genomeId = paste("g_", Genome, sep = ""),
     fasta = paste(
       confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""
     ),
@@ -71,31 +73,31 @@ filteredMeta <- dplyr::filter(
 
 #####################################################################
 ## FASTA file paths
-dplyr::select(filteredMeta, fasta) %>% 
+dplyr::select(filteredMeta, fasta) %>%
   readr::write_tsv(
     file = panConf$files$genomes,
     col_names = FALSE
   )
 
 ## GFF3 file paths
-dplyr::select(filteredMeta, genomeId, gff3) %>% 
+dplyr::select(filteredMeta, Genome, gff3) %>%
   readr::write_tsv(file = panConf$files$gff, col_names = FALSE)
 
 ## functional annotation file paths
-dplyr::select(filteredMeta, genomeId, interpro) %>% 
+dplyr::select(filteredMeta, Genome, interpro) %>%
   readr::write_delim(file = panConf$files$annotations, col_names = FALSE)
 
 ## COG annotation file path
-dplyr::select(filteredMeta, genomeId, cog) %>% 
+dplyr::select(filteredMeta, Genome, cog) %>%
   readr::write_delim(file = panConf$files$cog, col_names = FALSE)
 
 ## metadata file
-dplyr::select(filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata) %>% 
+dplyr::select(filteredMeta, Genome, genomeId, sampleId, !!!cols_metadata) %>%
   readr::write_csv(file = panConf$files$metadata, col_names = TRUE)
 
 ## input genome lock file: this file should never change
 readr::write_tsv(
-  x = dplyr::select(filteredMeta, Genome = genomeId, sampleId),
+  x = dplyr::select(filteredMeta, Genome, sampleId),
   file = panConf$files$input_lock
 )
 
@@ -120,24 +122,27 @@ openxlsx::saveWorkbook(
 
 #####################################################################
 ## write small subset for testing pangenome pipeline
-testSet <- dplyr::filter(filteredMeta, !is.na(type_material)) %>% 
-  dplyr::arrange(sampleId) %>% 
-  dplyr::mutate(genomeId = 1:n())
+testSet <- dplyr::filter(filteredMeta, !is.na(type_material)) %>%
+  dplyr::arrange(sampleId) %>%
+  dplyr::mutate(
+    Genome = 1:n(),
+    genomeId = paste("g_", Genome, sep = "")
+  )
 
 ## FASTA file paths
-dplyr::select(testSet, fasta) %>% 
+dplyr::select(testSet, fasta) %>%
   readr::write_tsv(file = testPanConf$files$genomes, col_names = FALSE)
 
 ## GFF3 file paths
-dplyr::select(testSet, genomeId, gff3) %>% 
+dplyr::select(testSet, Genome, gff3) %>%
   readr::write_tsv(file = testPanConf$files$gff, col_names = FALSE)
 
 ## functional annotation file paths
-dplyr::select(testSet, genomeId, interpro) %>% 
+dplyr::select(testSet, Genome, interpro) %>%
   readr::write_delim(file = testPanConf$files$annotations, col_names = FALSE)
 
 ## metadata file
-dplyr::select(testSet, Genome=genomeId, sampleId, !!!cols_metadata) %>% 
+dplyr::select(testSet, Genome, sampleId, !!!cols_metadata) %>%
   readr::write_csv(file = testPanConf$files$metadata, col_names = TRUE)
 
 
