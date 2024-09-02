@@ -107,7 +107,7 @@ if (!dir.exists(outDir)) {
 sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 # read tree
@@ -115,7 +115,7 @@ if(opts$bootstrap){
   rawTree <- treeio::read.newick(file = opts$tree, node.label = "support")
   bootstrapData <- dplyr::rename(rawTree@data, bootstrap = support)
   treePhy <- rawTree@phylo
-  
+
 } else{
   treePhy <- ape::read.tree(file = opts$tree)
 }
@@ -135,7 +135,7 @@ rootedTr <- ape::root(
   phy = treePhy, outgroup = sampleInfoList[[outGroup]]$genomeId,
   edgelabel = TRUE, resolve.root = TRUE
 ) %>%
-  ape::ladderize() %>% 
+  ape::ladderize() %>%
   ape::makeNodeLabel(method = "number", prefix = "n")
 
 # save both trees in BEAST format
@@ -146,12 +146,12 @@ if(opts$bootstrap){
   treePhyData <- treeio::full_join(
     x = treePhy, y = bootstrapData, by = "node"
   )
-  
+
   rootedTreeData <- treeio::full_join(
     x = rootedTr, y = bootstrapData, by = "node"
   )
-  
-} 
+
+}
 
 # store tree in BEAST format
 treeio::write.beast(
@@ -176,7 +176,7 @@ pt_tree <- ggtree::ggtree(tr = treeTbl) +
   labs(title = opts$name)
 
 ## mark outgroup
-pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleName")
+pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleId")
 
 ## mark species of interest
 pt_tree3 <- pt_tree2 +
@@ -218,10 +218,10 @@ if(opts$save_leaf_order){
 
   leafOrder <- tibble:::enframe(
     ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
-  ) %>% 
+  ) %>%
     dplyr::left_join(y = sampleInfo, by = "genomeId")
-  
-  
+
+
   speciesOrder <- dplyr::select(leafOrder, SpeciesName, tipOrder, type_material) %>%
     dplyr::group_by(SpeciesName) %>%
     dplyr::arrange(type_material, tipOrder, .by_group = TRUE) %>%
@@ -230,31 +230,31 @@ if(opts$save_leaf_order){
     dplyr::arrange(desc(tipOrder)) %>%
     # dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %>%
     dplyr::pull(SpeciesName)
-  
+
   readr::write_tsv(
     x = tibble::tibble(SpeciesName = speciesOrder),
     file = confs$analysis$phylogeny[[opts$name]]$files$species_order
   )
-  
+
   # add nodepath to the pangenome metadata file
   nodePathCol <- paste('nodepath.', opts$name, sep = "")
-  nodePaths <- nodepath_df(phy = rootedTr) %>% 
+  nodePaths <- nodepath_df(phy = rootedTr) %>%
     dplyr::rename(
       genomeId = tip,
       !!nodePathCol := nodepath
     )
-  
+
   if(tibble::has_name(sampleInfo, nodePathCol)){
     sampleInfo %<>% dplyr::select(-!!nodePathCol)
   }
-  
-  sampleInfo %<>% dplyr::left_join(nodePaths, by = "genomeId") %>% 
+
+  sampleInfo %<>% dplyr::left_join(nodePaths, by = "genomeId") %>%
     dplyr::select(Genome, genomeId, everything(), -nodeLabs)
-  
+
   readr::write_csv(
     x = sampleInfo, file = panConf$files$metadata
   )
-  
+
   ## write metadata to excel
   wb <- openxlsx::createWorkbook()
   currentSheet <- "metadata"
@@ -265,7 +265,7 @@ if(opts$save_leaf_order){
     x = sampleInfo
   )
   openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
-  
+
   # openxlsx::openXL(wb)
   openxlsx::saveWorkbook(
     wb = wb,
