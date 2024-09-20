@@ -32,7 +32,7 @@ parser <- optparse::add_option(
 parser <- optparse::add_option(
   parser, default = NULL,
   opt_str = c("--genomes"), type = "character", action = "store",
-  help = "a COMMA separated list of genome ids"
+  help = "[optional] a COMMA separated list of genome ids. Default: use all genomes"
 )
 
 parser <- optparse::add_option(
@@ -56,13 +56,6 @@ parser <- optparse::add_option(
 )
 
 parser <- optparse::add_option(
-  parser, default = ".",
-  opt_str = c("-d", "--dir"), type = "character", action = "store",
-  help = "output dir"
-)
-
-
-parser <- optparse::add_option(
   parser, default = NULL,
   opt_str = c("-o", "--out"), type = "character", action = "store",
   help = "Output file name"
@@ -70,12 +63,12 @@ parser <- optparse::add_option(
 
 opts <- optparse::parse_args(parser)
 
-if (any(is.null(opts$hgs), is.null(opts$dir))) {
+if (any(is.null(opts$hgs))) {
   stop(optparse::print_help(parser), call. = TRUE)
 }
 
 # opts$hgs <- "hg_22427604,hg_22427603"
-# opts$dir <- "analysis/pangenome_v2/carotovoricin/ctv_tail"
+# opts$out <- "analysis/pangenome_v2/carotovoricin/ctv_tail"
 # opts$inner_region <- TRUE
 # opts$haplotypes <- TRUE
 ################################################################################
@@ -86,10 +79,6 @@ confs <- prefix_config_paths(
 )
 
 hgs <- stringr::str_split_1(string = opts$hgs, pattern = ",")
-
-if(!dir.exists(opts$dir)){
-  dir.create(opts$dir)
-}
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
@@ -159,14 +148,15 @@ hgRegions <- as.data.frame(hgRegionGr) %>%
     SpeciesName = stringr::str_replace_all(
       string = SpeciesName, pattern = "\\.?\\s+", replacement = "_"
     ),
-    regionId = paste(genomeId, ".", SpeciesName, sep = "")
+    regionId = paste(genomeId, ".", SpeciesName, sep = ""),
+    length = abs(end - start)
   ) %>%
   dplyr::select(
-    regionId, genomeId, sampleId, chr_name, start, end, strand, region
+    regionId, genomeId, sampleId, chr_name, start, end, strand, region, length
   )
 
 outCols <- c("regionId", "genomeId", "sampleId", "region", "strand",
-             "chr_name", "start", "end")
+             "chr_name", "start", "end", "length")
 
 
 # optionally, extract HGs and save the column
@@ -195,7 +185,7 @@ if(opts$haplotypes){
     )
 
 
-  outCols <- c(outCols, "hgs", "haplotype")
+  outCols <- c(outCols, "nHgs", "hgs", "haplotype")
 }
 
 if(is.null(opts$out)){
@@ -203,9 +193,7 @@ if(is.null(opts$out)){
     write.table(sep = "\t", quote = FALSE, row.names = FALSE)
 } else {
   dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
-    readr::write_tsv(
-      file = paste(opts$dir, "/", opts$out, sep = "")
-    )
+    readr::write_tsv(file = opts$out)
 
 }
 
