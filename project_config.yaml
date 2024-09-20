@@ -339,6 +339,7 @@ analysis:
     dir: "pangenome_v2/carotovoricin"
     files:
       ctv_regions: "ctv_region/hg_regions.tab"
+      hg_broad_functions: "ctv_hg_broad_functions.tab"
       ctv_mash: "ctv_region/mash_dist.tab"
       tail_regions: "ctv_tail/hg_regions.tab"
       tail_mash: "ctv_tail/mash_dist.tab"

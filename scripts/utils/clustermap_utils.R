@@ -15,7 +15,7 @@
 clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_colors = NULL) {
   stopifnot(
     all(c("chr", "start", "end", "genomeId", "region_id") %in% names(regions)),
-    any(duplicated(regions$region_id))
+    !any(duplicated(regions$region_id))
   )
 
   if(!is.null(group_colors)){

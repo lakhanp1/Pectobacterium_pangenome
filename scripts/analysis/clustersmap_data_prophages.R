@@ -21,16 +21,22 @@ source("scripts/utils/clustermap_utils.R")
 ################################################################################
 set.seed(124)
 
+
 confs <- prefix_config_paths(
   conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
   dir = "."
 )
 
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
+cluster_title <- "ctv_deletion"
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
+hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
 
-grpToView <- "phage_grp_46"
-subSample <- TRUE
-cutHeight <- 0.5
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- NA
+other_regions <- c("g_345.vir_1", "g_66.vir_3", "g_8.vir_2", "g_381.vir_2")
+
+subSample <- FALSE
+cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
@@ -38,40 +44,48 @@ flankingRegion <- 5000
 # completeness score
 clusterOrder <- "host" # host, hg_pav, cluster_mash
 
-# a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c()
-
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
-regions_phy_ordered <- FALSE
+regions_phy_ordered <- TRUE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_190_reg = list(chr = "NZ_CP059960.1", start = 1997124, end = 2000186, genomeId = "g_190"),
-  g_193_reg = list(chr = "NZ_CP059957.1", start = 5005351, end = 5008413, genomeId = "g_193"),
-  g_411_reg = list(chr = "NAK682_contig_2_consensus", start = 461100, end = 464162, genomeId = "g_411"),
-  g_415_reg = list(chr = "NAK701_contig_5_consensus", start = 415799, end = 418861, genomeId = "g_415"),
-  g_63_reg = list(chr = "NZ_CP092039.1", start = 4288654, end = 4291716, genomeId = "g_63"),
-  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406"),
-  g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194"),
-  g_263_reg = list(chr = "NZ_CP047495.1", start = 956237, end = 956907, genomeId = "g_263")
+  g_177_reg = list(chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"),
+  g_182_reg = list(chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"),
+  g_185_reg = list(chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"),
+  g_236_reg = list(chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"),
+  g_385_reg = list(chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"),
+  g_386_reg = list(chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"),
+  g_451_reg = list(chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451")
 )
 
-pangenome <- confs$data$pangenomes$pectobacterium.v2$name
-panConf <- confs$data$pangenomes[[pangenome]]
+regionClusters <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$clusters)
+)
+
+# # optional filter
+# regionClusters %<>%
+#   dplyr::filter(
+#     SpeciesName == "P. brasiliense",
+#     !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
+#   )
+
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma, core_snp_ml
 hostPhy <- "kmer_upgma"
 
+################################################################################
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
-outDir <- paste(outDir, "/", grpToView, sep = "")
-outPrefix <- paste(outDir, "/", grpToView, sep = "")
+outDir <- paste(outDir, "/", cluster_title, sep = "")
+outPrefix <- paste(outDir, "/", cluster_title, sep = "")
 
 if (!dir.exists(outDir)) {
   dir.create(outDir)
 }
-################################################################################
+
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
@@ -97,6 +111,8 @@ sampleInfo %<>% dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!rev(speciesOrder$SpeciesName))
 )
 
+################################################################################
+## regions specific data
 rawRegions <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
   dplyr::select(prophage_id, chr, start, end, topology)
 
@@ -109,16 +125,12 @@ regionHgs <- suppressMessages(
     hgs = stringr::str_split(hgs, ";")
   )
 
-regionClusters <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$files$clusters)
+regionClusters <- dplyr::left_join(
+  x = regionClusters, y = rawRegions, by = "prophage_id"
 ) %>%
-  # handle fragmented regions in the future
-  # dplyr::mutate(fragments = stringr::str_split(fragments, ";")) %>%
-  # tidyr::unnest(fragments) %>%
-  dplyr::left_join(y = rawRegions, by = "prophage_id") %>%
   dplyr::left_join(y = regionHgs, by = "prophage_id")
 
-################################################################################
+
 regionList <- purrr::transpose(regionClusters) %>%
   purrr::set_names(nm = purrr::map(., "prophage_id"))
 
@@ -143,34 +155,16 @@ mashTree <- ape::read.tree(
   file = confs$analysis$prophages$preprocessing$files$mash_hclust
 )
 
-phageHgTypes2 <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
-)
+hg_functions <- suppressMessages(readr::read_tsv(hg_color_categories))
 
-funcTypes <- list(
-  DNA = c("nuclease", "helicase", "terminase", "DNA function"),
-  integrase = "integrase",
-  mixed = c(
-    "CI repressor", "hydrolase", "holin", "portal protein",
-    "VRR-NUC domain", "other"
-  ),
-  replication = c("DNA polymerase", "reverse transcriptase"),
-  tail = c(
-    "tail fibre", "tail tube", "tail", "tail collar", "baseplate",
-    "tail sheath", "tail tape"
-  ),
-  capsid = c("capsid", "head"),
-  defense = c("colicin", "toxin-antitoxin", "methyltransferase", "restriction modification"),
-  unknown = c("unknown", "uncharacterized conserved"),
-  flanking = c("flanking")
-)
+function_types <- c(setdiff(hg_functions$broad_function, "unknown"), "unknown", "flanking")
 
-hgFuncColors <- purrr::map2(
-  .x = funcTypes,
-  .y = c(viridis::viridis(n = length(funcTypes) - 2, option = "turbo"), "grey50", "white"),
+hg_function_col <- purrr::map2(
+  .x = function_types,
+  .y = c(viridis::viridis(n = length(function_types) - 2, option = "turbo"), "grey50", "white"),
   .f = function(x, y) {
     tibble::tibble(
-      function_category = x,
+      broad_function = x,
       colour_hex = y,
       colour = paste(
         "rgb(",
@@ -181,34 +175,30 @@ hgFuncColors <- purrr::map2(
     )
   }
 ) %>%
-  purrr::list_rbind(names_to = "broad_function")
+  purrr::list_rbind()
 
-hgColors <- dplyr::left_join(phageHgTypes2, hgFuncColors, by = "function_category")
+hgColors <- dplyr::left_join(hg_functions, hg_function_col, by = "broad_function")
 ################################################################################
 # prepare clusterjs JSON for a cluster/grp
-grp <- clusterList[[grpToView]]
-
-# optionally, a custom region list can be provided to generate the plot
-# grp <- list(
-#   phage_grp = grpToView,
-#   members = c("g_302.vir_1", "g_399.vir_1", "g_400.vir_2")
-# )
+region_set <- union(clusterList[[region_cluster]]$members, other_regions)
 
 # if there are no members i.e. only show region of interests, then skip the next block
-if (!is.null(grp$members)) {
-  # frequency for all HGs in the prophages in current cluster
-  grpHgFreq <- regionList[grp$members] %>%
+# if (!is.null(region_set) && !is.null(other_regions)) {
+if (!is.null(region_set)) {
+
+  # frequency for all HGs in the prophages in current cluster: used for heatmap plotting
+  grpHgFreq <- regionList[region_set] %>%
     purrr::map("hgs") %>%
     unlist() %>%
     table() %>%
     tibble::enframe(name = "hg_id", value = "freq") %>%
     dplyr::mutate(freq = as.numeric(freq)) %>%
-    dplyr::left_join(phageHgTypes2, by = "hg_id") %>%
-    dplyr::left_join(hgFuncColors, by = "function_category") %>%
+    dplyr::left_join(hg_functions, by = "hg_id") %>%
+    dplyr::left_join(hg_function_col, by = "broad_function") %>%
     dplyr::arrange(desc(freq))
 
   # original MASH distance tree
-  grpMashDnd <- ape::keep.tip(phy = mashTree, tip = grp$members) %>%
+  grpMashDnd <- ape::keep.tip(phy = mashTree, tip = region_set) %>%
     ape::as.hclust.phylo() %>%
     as.dendrogram() %>%
     dendextend::ladderize()
@@ -239,9 +229,8 @@ if (!is.null(grp$members)) {
   plot(rev(hgPavDnd), horiz = TRUE)
   # order.dendrogram(hgPavDnd) == sort(hgPavDnd, type = "nodes") %>% order.dendrogram() %>% rev()
 
-
   grpMemberData <- dplyr::left_join(
-    x = tibble::tibble(region_id = c(grp$members, appendPhages)),
+    x = tibble::tibble(region_id = region_set),
     y = dplyr::select(regionClusters, region_id = prophage_id, phage_grp, genomeId),
     by = "region_id"
   ) %>%
@@ -258,7 +247,7 @@ if (!is.null(grp$members)) {
       by = "region_id"
     )
 
-
+  # select only a subset of regions to visualize
   if (subSample) {
     pavDndCut <- dendextend::cutree(tree = hgPavDnd, h = cutHeight) %>%
       tibble::enframe(name = "region_id", value = "cut") %>%
@@ -266,10 +255,11 @@ if (!is.null(grp$members)) {
 
     grpSubset <- dplyr::slice_sample(pavDndCut, n = 1, by = cut)
 
-    if (length(appendPhages) > 0) {
+    # ensure to include other_regions
+    if (length(other_regions) > 0) {
       grpSubset <- dplyr::bind_rows(
         grpSubset,
-        tibble::tibble(region_id = appendPhages)
+        tibble::tibble(region_id = other_regions)
       ) %>%
         dplyr::distinct(region_id, .keep_all = TRUE)
     }
@@ -340,7 +330,7 @@ if (!is.null(grp$members)) {
   grpMemberData <- NULL
 }
 
-#
+
 # add custom region genomeId and metadata
 if(!is.null(customRegions) & is.list(customRegions)){
   grpMemberData <- dplyr::bind_rows(
@@ -385,8 +375,8 @@ if (is.null(grpMemberData$mash_order)) {
 }
 
 
-
-viewClusters <- dplyr::case_when(
+# decide the order in which regions will be shown
+viewRegions <- dplyr::case_when(
   clusterOrder == "host" ~
     grpMemberData$region_id[order(grpMemberData$host_order)],
   clusterOrder == "hg_pav" ~
@@ -398,8 +388,8 @@ viewClusters <- dplyr::case_when(
 )
 
 
-regDf <- purrr::map(
-  .x = regionList[viewClusters],
+regions_df <- purrr::map(
+  .x = regionList[viewRegions],
   .f = function(x){
     tibble::tibble(
       genomeId = x$genomeId, chr = x$chr, start = x$start, end = x$end
@@ -411,14 +401,14 @@ regDf <- purrr::map(
 
 # create JSON data structure for clustermap.js
 cmJson <- clustermap_data(
-  regions = regDf,
+  regions = regions_df,
   flanking_region = ifelse(addFlankingRegions, flankingRegion, 0),
   pandb = panOrgDb,
   group_colors = hgColors,
   file = paste(outPrefix, ".json", sep = "")
 )
 
-dplyr::select(regDf, -genomeId) %>%
+dplyr::select(regions_df, -genomeId) %>%
   dplyr::left_join(grpMemberData, by = "region_id") %>%
   dplyr::select(
     region_id, SpeciesName, isolation_source, geo_loc_country, genomeId,
@@ -433,15 +423,20 @@ dplyr::select(regDf, -genomeId) %>%
 
 markGenomeColors <- list(
   prophages = list(
-    genomes = purrr::map_chr(.x = regionList[grp$members], .f = "genomeId") %>%
+    genomes = purrr::map_chr(.x = regionList[region_set], .f = "genomeId") %>%
       unname(),
     color = "#D81B60"
   )
 )
 
-if (length(grp$fragmented) > 0) {
+# highlight fragmented regions with specific color
+if (length(clusterList[[region_cluster]]$fragmented) > 0) {
   markGenomeColors[["fragmented"]] <- list(
-    genomes = purrr::map_chr(.x = regionList[grp$fragmented], .f = "genomeId") %>%
+    genomes = purrr::map_chr(
+      .x = regionList[
+        clusterList[[region_cluster]]$fragmented
+      ],
+      .f = "genomeId") %>%
       unname(),
     color = "#FFC107"
   )
@@ -461,7 +456,7 @@ hgMat <- homology_groups_mat(
 hgMat <- hgMat[rawTree$tip.label, ]
 
 funcTypeColors <- dplyr::select(
-  hgFuncColors,
+  hg_function_col,
   at = broad_function, fill = colour_hex
 ) %>%
   dplyr::distinct()
@@ -527,7 +522,7 @@ pdf(
 ComplexHeatmap::draw(
   object = htList,
   column_title = paste(
-    nrow(grpHgFreq), "homology groups for prophages in cluster:", grpToView
+    nrow(grpHgFreq), "homology groups for prophages in cluster:", region_cluster
   ),
   column_title_gp = gpar(fontsize = 14, fontface = "bold"),
   main_heatmap = "hgs",
@@ -540,7 +535,7 @@ ComplexHeatmap::draw(
 ComplexHeatmap::draw(
   object = htList,
   column_title = paste(
-    nrow(grpHgFreq), "homology groups for prophages in cluster:", grpToView
+    nrow(grpHgFreq), "homology groups for prophages in cluster:", region_cluster
   ),
   column_title_gp = gpar(fontsize = 14, fontface = "bold"),
   main_heatmap = "hgs",
