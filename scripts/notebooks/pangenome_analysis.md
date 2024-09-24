@@ -70,19 +70,11 @@ Rscript scripts/analysis/homology_group_process.R
 
 ### GO enrichment of homology groups categories
 
+This script will use the pangenome `org.db` object (built [here](pangenome_construction.md#build-pangenome-org-db-object))
+and perform GO enrichment using `BioConductor::topGO` package.
+
 ```bash
 Rscript scripts/analysis/HG_GO_enrichment.R
-```
-
-### GO enrichment for homology groups of interest
-
-``` bash
-## go_enrichment for assay_FN enriched homology groups
-process_start "go_enrichment for assay_FN enriched homology groups"
-$PANTOOLS go_enrichment -H analysis/04_pangenome_pecto_v2/pheno_association/specific_hgs.assay_FN.txt \
---include=429,439,369,149,29,97,155,366,373,178,181,159,345,371,180,316,414,360,166,243,147,152,173,170,416,433,157,417,191,390,136,419,142,410,146,317,145,194,426,240,340,367,357,364,359,372,358,342,370,196,24,353,52,134,179,187,188,195,192,401,402,413,154,214,153,144,165,176,140,168,156,13,148,163,164,162,418,172,297,302,63,190,415,169,171,167,174,189,193,411,397,398,405,409,412,403,408,399,404,407,175,400,406,158,161,138,60,337,242,368,74,427,308,438,299,391,182,185,236,177,42,43,263,307,379,356,380,141,341,64,352,111,115,114,108,109,99,137 ${pan_db} 
-error_exit $?
-######################################################################
 ```
 
 ### Use subset of genomes to determine pangenome structure

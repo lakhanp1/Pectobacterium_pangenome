@@ -311,7 +311,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#generate-various-trees-with-default-layout" id="toc-generate-various-trees-with-default-layout" class="nav-link" data-scroll-target="#generate-various-trees-with-default-layout">Generate various trees with default layout</a></li>
   <li><a href="#go-enrichment-of-homology-groups-categories" id="toc-go-enrichment-of-homology-groups-categories" class="nav-link" data-scroll-target="#go-enrichment-of-homology-groups-categories">GO enrichment of homology groups categories</a></li>
-  <li><a href="#go-enrichment-for-homology-groups-of-interest" id="toc-go-enrichment-for-homology-groups-of-interest" class="nav-link" data-scroll-target="#go-enrichment-for-homology-groups-of-interest">GO enrichment for homology groups of interest</a></li>
   <li><a href="#use-subset-of-genomes-to-determine-pangenome-structure" id="toc-use-subset-of-genomes-to-determine-pangenome-structure" class="nav-link" data-scroll-target="#use-subset-of-genomes-to-determine-pangenome-structure">Use subset of genomes to determine pangenome structure</a></li>
   </ul></li>
   <li><a href="#visualize-homology-groups-of-interest" id="toc-visualize-homology-groups-of-interest" class="nav-link" data-scroll-target="#visualize-homology-groups-of-interest">Visualize homology groups of interest</a>
@@ -396,74 +395,66 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="go-enrichment-of-homology-groups-categories" class="level3">
 <h3 class="anchored" data-anchor-id="go-enrichment-of-homology-groups-categories">GO enrichment of homology groups categories</h3>
+<p>This script will use the pangenome <code>org.db</code> object (built <a href="../../scripts/notebooks/pangenome_construction.html#build-pangenome-org-db-object">here</a>) and perform GO enrichment using <code>BioConductor::topGO</code> package.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="ex">Rscript</span> scripts/analysis/HG_GO_enrichment.R</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section id="go-enrichment-for-homology-groups-of-interest" class="level3">
-<h3 class="anchored" data-anchor-id="go-enrichment-for-homology-groups-of-interest">GO enrichment for homology groups of interest</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">## go_enrichment for assay_FN enriched homology groups</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a><span class="ex">process_start</span> <span class="st">"go_enrichment for assay_FN enriched homology groups"</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a><span class="va">$PANTOOLS</span> go_enrichment <span class="at">-H</span> analysis/04_pangenome_pecto_v2/pheno_association/specific_hgs.assay_FN.txt <span class="dt">\</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a>--include=429,439,369,149,29,97,155,366,373,178,181,159,345,371,180,316,414,360,166,243,147,152,173,170,416,433,157,417,191,390,136,419,142,410,146,317,145,194,426,240,340,367,357,364,359,372,358,342,370,196,24,353,52,134,179,187,188,195,192,401,402,413,154,214,153,144,165,176,140,168,156,13,148,163,164,162,418,172,297,302,63,190,415,169,171,167,174,189,193,411,397,398,405,409,412,403,408,399,404,407,175,400,406,158,161,138,60,337,242,368,74,427,308,438,299,391,182,185,236,177,42,43,263,307,379,356,380,141,341,64,352,111,115,114,108,109,99,137 <span class="va">${pan_db}</span> </span>
-<span id="cb4-5"><a href="#cb4-5"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="use-subset-of-genomes-to-determine-pangenome-structure" class="level3">
 <h3 class="anchored" data-anchor-id="use-subset-of-genomes-to-determine-pangenome-structure">Use subset of genomes to determine pangenome structure</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">## Pangenome structure for species with more than 20 genomes</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="cf">for</span> sp <span class="kw">in</span> <span class="kw">`</span><span class="fu">awk</span> <span class="at">-F</span> <span class="st">"\t"</span> <span class="st">'{ if (NR != 1 &amp;&amp; $2 &gt;= 20) {print $1} }'</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab<span class="kw">`</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a><span class="cf">do</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>    <span class="va">genomes</span><span class="op">=</span><span class="kw">`</span><span class="fu">grep</span> <span class="st">"^</span><span class="va">${sp}</span><span class="st">\b"</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-f3</span><span class="kw">`</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a>    </span>
-<span id="cb5-6"><a href="#cb5-6"></a>    <span class="ex">process_start</span> <span class="st">"pangenome_structure for genome of species </span><span class="va">${sp}</span><span class="st">: </span><span class="va">$genomes</span><span class="st">"</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a>    <span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="at">--include</span> <span class="va">${genomes}</span> <span class="va">${pan_db}</span></span>
-<span id="cb5-8"><a href="#cb5-8"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
-<span id="cb5-9"><a href="#cb5-9"></a></span>
-<span id="cb5-10"><a href="#cb5-10"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/pangenome_growth.R</span>
-<span id="cb5-11"><a href="#cb5-11"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_or_average.R</span>
-<span id="cb5-12"><a href="#cb5-12"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_and_average.R</span>
-<span id="cb5-13"><a href="#cb5-13"></a>    <span class="co"># Rscript ${pan_db}/pangenome_size/gene/heaps_law.R</span></span>
-<span id="cb5-14"><a href="#cb5-14"></a></span>
-<span id="cb5-15"><a href="#cb5-15"></a>    <span class="co">## move results to a folder</span></span>
-<span id="cb5-16"><a href="#cb5-16"></a>    <span class="va">psDir</span><span class="op">=</span><span class="va">${pan_db}</span>/pangenome_size/gene.<span class="va">${sp}</span></span>
-<span id="cb5-17"><a href="#cb5-17"></a>    <span class="bu">[</span> <span class="ot">-d</span> <span class="va">${psDir}</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-r</span> <span class="va">${psDir}</span></span>
-<span id="cb5-18"><a href="#cb5-18"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/pangenome_size/gene <span class="va">${psDir}</span></span>
-<span id="cb5-19"><a href="#cb5-19"></a><span class="cf">done</span></span>
-<span id="cb5-20"><a href="#cb5-20"></a></span>
-<span id="cb5-21"><a href="#cb5-21"></a><span class="co">## update the path in heaps_law.R script</span></span>
-<span id="cb5-22"><a href="#cb5-22"></a><span class="bu">cd</span> <span class="va">${pan_db}</span>/pangenome_size</span>
-<span id="cb5-23"><a href="#cb5-23"></a><span class="cf">for</span> i <span class="kw">in</span> gene.<span class="pp">*</span></span>
-<span id="cb5-24"><a href="#cb5-24"></a><span class="cf">do</span></span>
-<span id="cb5-25"><a href="#cb5-25"></a>    <span class="fu">sed</span> <span class="at">-i.bak</span> <span class="st">"s/pangenome_size\/gene/pangenome_size\/gene.</span><span class="va">$i</span><span class="st">/g"</span> <span class="va">$i</span>/heaps_law.R</span>
-<span id="cb5-26"><a href="#cb5-26"></a><span class="cf">done</span></span>
-<span id="cb5-27"><a href="#cb5-27"></a><span class="bu">cd</span> <span class="va">$PROJECT_DIR</span></span>
-<span id="cb5-28"><a href="#cb5-28"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">## Pangenome structure for species with more than 20 genomes</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="cf">for</span> sp <span class="kw">in</span> <span class="kw">`</span><span class="fu">awk</span> <span class="at">-F</span> <span class="st">"\t"</span> <span class="st">'{ if (NR != 1 &amp;&amp; $2 &gt;= 20) {print $1} }'</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab<span class="kw">`</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="cf">do</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>    <span class="va">genomes</span><span class="op">=</span><span class="kw">`</span><span class="fu">grep</span> <span class="st">"^</span><span class="va">${sp}</span><span class="st">\b"</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-f3</span><span class="kw">`</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>    </span>
+<span id="cb4-6"><a href="#cb4-6"></a>    <span class="ex">process_start</span> <span class="st">"pangenome_structure for genome of species </span><span class="va">${sp}</span><span class="st">: </span><span class="va">$genomes</span><span class="st">"</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="at">--include</span> <span class="va">${genomes}</span> <span class="va">${pan_db}</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a></span>
+<span id="cb4-10"><a href="#cb4-10"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/pangenome_growth.R</span>
+<span id="cb4-11"><a href="#cb4-11"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_or_average.R</span>
+<span id="cb4-12"><a href="#cb4-12"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_and_average.R</span>
+<span id="cb4-13"><a href="#cb4-13"></a>    <span class="co"># Rscript ${pan_db}/pangenome_size/gene/heaps_law.R</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a></span>
+<span id="cb4-15"><a href="#cb4-15"></a>    <span class="co">## move results to a folder</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>    <span class="va">psDir</span><span class="op">=</span><span class="va">${pan_db}</span>/pangenome_size/gene.<span class="va">${sp}</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a>    <span class="bu">[</span> <span class="ot">-d</span> <span class="va">${psDir}</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-r</span> <span class="va">${psDir}</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/pangenome_size/gene <span class="va">${psDir}</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="cf">done</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a></span>
+<span id="cb4-21"><a href="#cb4-21"></a><span class="co">## update the path in heaps_law.R script</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a><span class="bu">cd</span> <span class="va">${pan_db}</span>/pangenome_size</span>
+<span id="cb4-23"><a href="#cb4-23"></a><span class="cf">for</span> i <span class="kw">in</span> gene.<span class="pp">*</span></span>
+<span id="cb4-24"><a href="#cb4-24"></a><span class="cf">do</span></span>
+<span id="cb4-25"><a href="#cb4-25"></a>    <span class="fu">sed</span> <span class="at">-i.bak</span> <span class="st">"s/pangenome_size\/gene/pangenome_size\/gene.</span><span class="va">$i</span><span class="st">/g"</span> <span class="va">$i</span>/heaps_law.R</span>
+<span id="cb4-26"><a href="#cb4-26"></a><span class="cf">done</span></span>
+<span id="cb4-27"><a href="#cb4-27"></a><span class="bu">cd</span> <span class="va">$PROJECT_DIR</span></span>
+<span id="cb4-28"><a href="#cb4-28"></a><span class="co">######################################################################</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 </section>
 <section id="visualize-homology-groups-of-interest" class="level2">
 <h2 class="anchored" data-anchor-id="visualize-homology-groups-of-interest">Visualize homology groups of interest</h2>
 <section id="viral-dna-integration-related-biological-processes" class="level3">
 <h3 class="anchored" data-anchor-id="viral-dna-integration-related-biological-processes">viral DNA integration related biological processes</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"virulence_GO"</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a></span>
-<span id="cb6-3"><a href="#cb6-3"></a>goIds <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb6-4"><a href="#cb6-4"></a>  <span class="st">"GO:0046718"</span>, <span class="st">"GO:0044826"</span>, <span class="st">"GO:0019069"</span>, <span class="st">"GO:0044659"</span>, <span class="st">"GO:0075713"</span>,</span>
-<span id="cb6-5"><a href="#cb6-5"></a>  <span class="st">"GO:0044660"</span>, <span class="st">"GO:0019076"</span>, <span class="st">"GO:0019058"</span></span>
-<span id="cb6-6"><a href="#cb6-6"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"virulence_GO"</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a>goIds <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb5-4"><a href="#cb5-4"></a>  <span class="st">"GO:0046718"</span>, <span class="st">"GO:0044826"</span>, <span class="st">"GO:0019069"</span>, <span class="st">"GO:0044659"</span>, <span class="st">"GO:0075713"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5"></a>  <span class="st">"GO:0044660"</span>, <span class="st">"GO:0019076"</span>, <span class="st">"GO:0019058"</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="secretion-systems-in-pectobacterium-spp." class="level3">
 <h3 class="anchored" data-anchor-id="secretion-systems-in-pectobacterium-spp.">secretion systems in <em>Pectobacterium</em> spp.</h3>
-<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"secretion_sys"</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a></span>
-<span id="cb7-3"><a href="#cb7-3"></a>goIds <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb7-4"><a href="#cb7-4"></a>  <span class="st">"GO:0030253"</span>, <span class="st">"GO:0015628"</span>, <span class="st">"GO:0030254"</span>, <span class="st">"GO:0030255"</span>, <span class="st">"GO:0046819"</span>,</span>
-<span id="cb7-5"><a href="#cb7-5"></a>  <span class="st">"GO:0033103"</span>, <span class="st">"GO:0044315"</span></span>
-<span id="cb7-6"><a href="#cb7-6"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"secretion_sys"</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a>goIds <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="st">"GO:0030253"</span>, <span class="st">"GO:0015628"</span>, <span class="st">"GO:0030254"</span>, <span class="st">"GO:0030255"</span>, <span class="st">"GO:0046819"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  <span class="st">"GO:0033103"</span>, <span class="st">"GO:0044315"</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="homology-groups-for-lipopolysaccharide-biosynthetic-process" class="level3">
 <h3 class="anchored" data-anchor-id="homology-groups-for-lipopolysaccharide-biosynthetic-process">Homology groups for <code>lipopolysaccharide biosynthetic process</code></h3>
-<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"lps_syn"</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a></span>
-<span id="cb8-3"><a href="#cb8-3"></a>goIds <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"GO:0009103"</span>, <span class="st">"GO:0009244"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"lps_syn"</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a>goIds <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"GO:0009103"</span>, <span class="st">"GO:0009244"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 <!-- -->
@@ -769,157 +760,149 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb9" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu"># Downstream analysis of pangenome data</span></span>
-<span id="cb9-2"><a href="#cb9-2"></a></span>
-<span id="cb9-3"><a href="#cb9-3"></a><span class="fu">## Setup</span></span>
-<span id="cb9-4"><a href="#cb9-4"></a></span>
-<span id="cb9-5"><a href="#cb9-5"></a><span class="in">``` bash</span></span>
-<span id="cb9-6"><a href="#cb9-6"></a><span class="co">#!/usr/bin/env bash</span></span>
-<span id="cb9-7"><a href="#cb9-7"></a></span>
-<span id="cb9-8"><a href="#cb9-8"></a><span class="bu">shopt</span> <span class="at">-s</span> expand_aliases</span>
-<span id="cb9-9"><a href="#cb9-9"></a><span class="bu">source</span> ~/.bash_aliases</span>
-<span id="cb9-10"><a href="#cb9-10"></a></span>
-<span id="cb9-11"><a href="#cb9-11"></a><span class="co"># set -e</span></span>
-<span id="cb9-12"><a href="#cb9-12"></a><span class="co"># set -u</span></span>
-<span id="cb9-13"><a href="#cb9-13"></a><span class="bu">set</span> <span class="at">-o</span> pipefail</span>
-<span id="cb9-14"><a href="#cb9-14"></a></span>
-<span id="cb9-15"><a href="#cb9-15"></a><span class="co"># source scripts/utils/setup_analysis.sh 'pectobacterium.v2'</span></span>
-<span id="cb9-16"><a href="#cb9-16"></a><span class="bu">source</span> scripts/utils/setup_analysis.sh <span class="va">$@</span></span>
-<span id="cb9-17"><a href="#cb9-17"></a></span>
-<span id="cb9-18"><a href="#cb9-18"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-z</span> <span class="va">${pan_db</span><span class="op">+</span>x<span class="va">}</span> <span class="bu">]</span><span class="kw">;</span></span>
-<span id="cb9-19"><a href="#cb9-19"></a><span class="cf">then</span></span>
-<span id="cb9-20"><a href="#cb9-20"></a>    <span class="bu">echo</span> <span class="st">"</span><span class="dt">\$</span><span class="st">pan_db is unset"</span></span>
-<span id="cb9-21"><a href="#cb9-21"></a>    <span class="ex">error_exit</span> 1</span>
-<span id="cb9-22"><a href="#cb9-22"></a><span class="cf">fi</span></span>
-<span id="cb9-23"><a href="#cb9-23"></a></span>
-<span id="cb9-24"><a href="#cb9-24"></a><span class="bu">source</span> <span class="va">$TOOLS_PATH</span>/miniconda3/etc/profile.d/conda.sh</span>
-<span id="cb9-25"><a href="#cb9-25"></a><span class="ex">conda</span> activate pantools_master</span>
-<span id="cb9-26"><a href="#cb9-26"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_4_1</span><span class="st">"</span></span>
-<span id="cb9-27"><a href="#cb9-27"></a></span>
-<span id="cb9-28"><a href="#cb9-28"></a><span class="co">######################################################################</span></span>
-<span id="cb9-29"><a href="#cb9-29"></a><span class="kw">```</span></span>
-<span id="cb9-30"><a href="#cb9-30"></a></span>
-<span id="cb9-31"><a href="#cb9-31"></a><span class="co">## Analysis</span></span>
-<span id="cb9-32"><a href="#cb9-32"></a></span>
-<span id="cb9-33"><a href="#cb9-33"></a><span class="co">### Generate various trees with default layout</span></span>
-<span id="cb9-34"><a href="#cb9-34"></a></span>
-<span id="cb9-35"><a href="#cb9-35"></a><span class="kw">```</span> bash</span>
-<span id="cb9-36"><a href="#cb9-36"></a><span class="co">## UPGMA tree</span></span>
-<span id="cb9-37"><a href="#cb9-37"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
-<span id="cb9-38"><a href="#cb9-38"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick <span class="dt">\</span></span>
-<span id="cb9-39"><a href="#cb9-39"></a>--name <span class="st">"ani_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
-<span id="cb9-40"><a href="#cb9-40"></a></span>
-<span id="cb9-41"><a href="#cb9-41"></a><span class="co">## Neighbor joining tree</span></span>
-<span id="cb9-42"><a href="#cb9-42"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
-<span id="cb9-43"><a href="#cb9-43"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_NJ.pangenome.newick <span class="dt">\</span></span>
-<span id="cb9-44"><a href="#cb9-44"></a>--name <span class="st">"ani_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
-<span id="cb9-45"><a href="#cb9-45"></a></span>
-<span id="cb9-46"><a href="#cb9-46"></a><span class="co">## gene distance NJ tree</span></span>
-<span id="cb9-47"><a href="#cb9-47"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
-<span id="cb9-48"><a href="#cb9-48"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree <span class="dt">\</span></span>
-<span id="cb9-49"><a href="#cb9-49"></a>--name <span class="st">"gene_nj"</span> <span class="at">--config</span> project_config.yaml </span>
-<span id="cb9-50"><a href="#cb9-50"></a></span>
-<span id="cb9-51"><a href="#cb9-51"></a><span class="co">## kmer distance UPGMA tree</span></span>
-<span id="cb9-52"><a href="#cb9-52"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
-<span id="cb9-53"><a href="#cb9-53"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick <span class="dt">\</span></span>
-<span id="cb9-54"><a href="#cb9-54"></a>--name <span class="st">"kmer_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
-<span id="cb9-55"><a href="#cb9-55"></a></span>
-<span id="cb9-56"><a href="#cb9-56"></a><span class="co">## kmer distance NJ tree</span></span>
-<span id="cb9-57"><a href="#cb9-57"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
-<span id="cb9-58"><a href="#cb9-58"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick <span class="dt">\</span></span>
-<span id="cb9-59"><a href="#cb9-59"></a>--name <span class="st">"kmer_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
-<span id="cb9-60"><a href="#cb9-60"></a></span>
-<span id="cb9-61"><a href="#cb9-61"></a><span class="co">## core-SNP ML tree</span></span>
-<span id="cb9-62"><a href="#cb9-62"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
-<span id="cb9-63"><a href="#cb9-63"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile <span class="dt">\</span></span>
-<span id="cb9-64"><a href="#cb9-64"></a>--name <span class="st">"core_snp_ml"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span> <span class="at">--bootstrap</span></span>
-<span id="cb9-65"><a href="#cb9-65"></a></span>
-<span id="cb9-66"><a href="#cb9-66"></a><span class="co">## process homology groups</span></span>
-<span id="cb9-67"><a href="#cb9-67"></a><span class="ex">Rscript</span> scripts/analysis/homology_group_process.R </span>
-<span id="cb9-68"><a href="#cb9-68"></a></span>
-<span id="cb9-69"><a href="#cb9-69"></a><span class="kw">```</span></span>
-<span id="cb9-70"><a href="#cb9-70"></a></span>
-<span id="cb9-71"><a href="#cb9-71"></a><span class="co">### GO enrichment of homology groups categories</span></span>
-<span id="cb9-72"><a href="#cb9-72"></a></span>
-<span id="cb9-73"><a href="#cb9-73"></a><span class="kw">```</span>bash</span>
-<span id="cb9-74"><a href="#cb9-74"></a><span class="ex">Rscript</span> scripts/analysis/HG_GO_enrichment.R</span>
-<span id="cb9-75"><a href="#cb9-75"></a><span class="kw">```</span></span>
-<span id="cb9-76"><a href="#cb9-76"></a></span>
-<span id="cb9-77"><a href="#cb9-77"></a><span class="co">### GO enrichment for homology groups of interest</span></span>
-<span id="cb9-78"><a href="#cb9-78"></a></span>
-<span id="cb9-79"><a href="#cb9-79"></a><span class="kw">```</span> bash</span>
-<span id="cb9-80"><a href="#cb9-80"></a><span class="co">## go_enrichment for assay_FN enriched homology groups</span></span>
-<span id="cb9-81"><a href="#cb9-81"></a><span class="ex">process_start</span> <span class="st">"go_enrichment for assay_FN enriched homology groups"</span></span>
-<span id="cb9-82"><a href="#cb9-82"></a><span class="va">$PANTOOLS</span> go_enrichment <span class="at">-H</span> analysis/04_pangenome_pecto_v2/pheno_association/specific_hgs.assay_FN.txt <span class="dt">\</span></span>
-<span id="cb9-83"><a href="#cb9-83"></a>--include=429,439,369,149,29,97,155,366,373,178,181,159,345,371,180,316,414,360,166,243,147,152,173,170,416,433,157,417,191,390,136,419,142,410,146,317,145,194,426,240,340,367,357,364,359,372,358,342,370,196,24,353,52,134,179,187,188,195,192,401,402,413,154,214,153,144,165,176,140,168,156,13,148,163,164,162,418,172,297,302,63,190,415,169,171,167,174,189,193,411,397,398,405,409,412,403,408,399,404,407,175,400,406,158,161,138,60,337,242,368,74,427,308,438,299,391,182,185,236,177,42,43,263,307,379,356,380,141,341,64,352,111,115,114,108,109,99,137 <span class="va">${pan_db}</span> </span>
-<span id="cb9-84"><a href="#cb9-84"></a><span class="ex">error_exit</span> <span class="va">$?</span></span>
-<span id="cb9-85"><a href="#cb9-85"></a><span class="co">######################################################################</span></span>
-<span id="cb9-86"><a href="#cb9-86"></a><span class="kw">```</span></span>
-<span id="cb9-87"><a href="#cb9-87"></a></span>
-<span id="cb9-88"><a href="#cb9-88"></a><span class="co">### Use subset of genomes to determine pangenome structure</span></span>
-<span id="cb9-89"><a href="#cb9-89"></a></span>
-<span id="cb9-90"><a href="#cb9-90"></a><span class="kw">```</span> bash</span>
-<span id="cb9-91"><a href="#cb9-91"></a><span class="co">## Pangenome structure for species with more than 20 genomes</span></span>
-<span id="cb9-92"><a href="#cb9-92"></a><span class="cf">for</span> sp <span class="kw">in</span> <span class="kw">`</span><span class="fu">awk</span> <span class="at">-F</span> <span class="st">"\t"</span> <span class="st">'{ if (NR != 1 &amp;&amp; $2 &gt;= 20) {print $1} }'</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab<span class="kw">`</span></span>
-<span id="cb9-93"><a href="#cb9-93"></a><span class="cf">do</span></span>
-<span id="cb9-94"><a href="#cb9-94"></a>    <span class="va">genomes</span><span class="op">=</span><span class="kw">`</span><span class="fu">grep</span> <span class="st">"^</span><span class="va">${sp}</span><span class="st">\b"</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-f3</span><span class="kw">`</span></span>
-<span id="cb9-95"><a href="#cb9-95"></a>    </span>
-<span id="cb9-96"><a href="#cb9-96"></a>    <span class="ex">process_start</span> <span class="st">"pangenome_structure for genome of species </span><span class="va">${sp}</span><span class="st">: </span><span class="va">$genomes</span><span class="st">"</span></span>
-<span id="cb9-97"><a href="#cb9-97"></a>    <span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="at">--include</span> <span class="va">${genomes}</span> <span class="va">${pan_db}</span></span>
-<span id="cb9-98"><a href="#cb9-98"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
-<span id="cb9-99"><a href="#cb9-99"></a></span>
-<span id="cb9-100"><a href="#cb9-100"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/pangenome_growth.R</span>
-<span id="cb9-101"><a href="#cb9-101"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_or_average.R</span>
-<span id="cb9-102"><a href="#cb9-102"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_and_average.R</span>
-<span id="cb9-103"><a href="#cb9-103"></a>    <span class="co"># Rscript ${pan_db}/pangenome_size/gene/heaps_law.R</span></span>
-<span id="cb9-104"><a href="#cb9-104"></a></span>
-<span id="cb9-105"><a href="#cb9-105"></a>    <span class="co">## move results to a folder</span></span>
-<span id="cb9-106"><a href="#cb9-106"></a>    <span class="va">psDir</span><span class="op">=</span><span class="va">${pan_db}</span>/pangenome_size/gene.<span class="va">${sp}</span></span>
-<span id="cb9-107"><a href="#cb9-107"></a>    <span class="bu">[</span> <span class="ot">-d</span> <span class="va">${psDir}</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-r</span> <span class="va">${psDir}</span></span>
-<span id="cb9-108"><a href="#cb9-108"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/pangenome_size/gene <span class="va">${psDir}</span></span>
-<span id="cb9-109"><a href="#cb9-109"></a><span class="cf">done</span></span>
-<span id="cb9-110"><a href="#cb9-110"></a></span>
-<span id="cb9-111"><a href="#cb9-111"></a><span class="co">## update the path in heaps_law.R script</span></span>
-<span id="cb9-112"><a href="#cb9-112"></a><span class="bu">cd</span> <span class="va">${pan_db}</span>/pangenome_size</span>
-<span id="cb9-113"><a href="#cb9-113"></a><span class="cf">for</span> i <span class="kw">in</span> gene.<span class="pp">*</span></span>
-<span id="cb9-114"><a href="#cb9-114"></a><span class="cf">do</span></span>
-<span id="cb9-115"><a href="#cb9-115"></a>    <span class="fu">sed</span> <span class="at">-i.bak</span> <span class="st">"s/pangenome_size\/gene/pangenome_size\/gene.</span><span class="va">$i</span><span class="st">/g"</span> <span class="va">$i</span>/heaps_law.R</span>
-<span id="cb9-116"><a href="#cb9-116"></a><span class="cf">done</span></span>
-<span id="cb9-117"><a href="#cb9-117"></a><span class="bu">cd</span> <span class="va">$PROJECT_DIR</span></span>
-<span id="cb9-118"><a href="#cb9-118"></a><span class="co">######################################################################</span></span>
-<span id="cb9-119"><a href="#cb9-119"></a><span class="kw">```</span></span>
-<span id="cb9-120"><a href="#cb9-120"></a></span>
-<span id="cb9-121"><a href="#cb9-121"></a><span class="co">## Visualize homology groups of interest</span></span>
-<span id="cb9-122"><a href="#cb9-122"></a></span>
-<span id="cb9-123"><a href="#cb9-123"></a><span class="co">### viral DNA integration related biological processes</span></span>
-<span id="cb9-124"><a href="#cb9-124"></a></span>
-<span id="cb9-125"><a href="#cb9-125"></a><span class="kw">```</span>r</span>
-<span id="cb9-126"><a href="#cb9-126"></a><span class="ex">analysisName</span> <span class="op">&lt;</span>- <span class="st">"virulence_GO"</span></span>
-<span id="cb9-127"><a href="#cb9-127"></a></span>
-<span id="cb9-128"><a href="#cb9-128"></a><span class="ex">goIds</span> <span class="op">&lt;</span>- c<span class="er">(</span></span>
-<span id="cb9-129"><a href="#cb9-129"></a>  <span class="st">"GO:0046718"</span><span class="ex">,</span> <span class="st">"GO:0044826"</span>, <span class="st">"GO:0019069"</span>, <span class="st">"GO:0044659"</span>, <span class="st">"GO:0075713"</span>,</span>
-<span id="cb9-130"><a href="#cb9-130"></a>  <span class="st">"GO:0044660"</span><span class="ex">,</span> <span class="st">"GO:0019076"</span>, <span class="st">"GO:0019058"</span></span>
-<span id="cb9-131"><a href="#cb9-131"></a><span class="kw">)</span></span>
-<span id="cb9-132"><a href="#cb9-132"></a><span class="kw">```</span></span>
-<span id="cb9-133"><a href="#cb9-133"></a></span>
-<span id="cb9-134"><a href="#cb9-134"></a><span class="co">### secretion systems in *Pectobacterium* spp.</span></span>
-<span id="cb9-135"><a href="#cb9-135"></a></span>
-<span id="cb9-136"><a href="#cb9-136"></a><span class="kw">```</span>r</span>
-<span id="cb9-137"><a href="#cb9-137"></a><span class="ex">analysisName</span> <span class="op">&lt;</span>- <span class="st">"secretion_sys"</span></span>
-<span id="cb9-138"><a href="#cb9-138"></a></span>
-<span id="cb9-139"><a href="#cb9-139"></a><span class="ex">goIds</span> <span class="op">&lt;</span>- c<span class="er">(</span></span>
-<span id="cb9-140"><a href="#cb9-140"></a>  <span class="st">"GO:0030253"</span><span class="ex">,</span> <span class="st">"GO:0015628"</span>, <span class="st">"GO:0030254"</span>, <span class="st">"GO:0030255"</span>, <span class="st">"GO:0046819"</span>,</span>
-<span id="cb9-141"><a href="#cb9-141"></a>  <span class="st">"GO:0033103"</span><span class="ex">,</span> <span class="st">"GO:0044315"</span></span>
-<span id="cb9-142"><a href="#cb9-142"></a><span class="kw">)</span></span>
-<span id="cb9-143"><a href="#cb9-143"></a><span class="kw">```</span></span>
-<span id="cb9-144"><a href="#cb9-144"></a></span>
-<span id="cb9-145"><a href="#cb9-145"></a><span class="co">### Homology groups for </span><span class="kw">`</span>lipopolysaccharide biosynthetic process<span class="kw">`</span></span>
-<span id="cb9-146"><a href="#cb9-146"></a></span>
-<span id="cb9-147"><a href="#cb9-147"></a><span class="kw">```</span>r</span>
-<span id="cb9-148"><a href="#cb9-148"></a><span class="ex">analysisName</span> <span class="op">&lt;</span>- <span class="st">"lps_syn"</span></span>
-<span id="cb9-149"><a href="#cb9-149"></a></span>
-<span id="cb9-150"><a href="#cb9-150"></a><span class="ex">goIds</span> <span class="op">&lt;</span>- c<span class="er">(</span><span class="st">"GO:0009103"</span><span class="ex">,</span> <span class="st">"GO:0009244"</span><span class="kw">)</span></span>
-<span id="cb9-151"><a href="#cb9-151"></a><span class="kw">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8" data-shortcodes="false"><pre class="sourceCode numberSource markdown number-lines code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu"># Downstream analysis of pangenome data</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="fu">## Setup</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="in">``` bash</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="bu">shopt</span> <span class="at">-s</span> expand_aliases</span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="bu">source</span> ~/.bash_aliases</span>
+<span id="cb8-10"><a href="#cb8-10"></a></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co"># set -e</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="co"># set -u</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="bu">set</span> <span class="at">-o</span> pipefail</span>
+<span id="cb8-14"><a href="#cb8-14"></a></span>
+<span id="cb8-15"><a href="#cb8-15"></a><span class="co"># source scripts/utils/setup_analysis.sh 'pectobacterium.v2'</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a><span class="bu">source</span> scripts/utils/setup_analysis.sh <span class="va">$@</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a></span>
+<span id="cb8-18"><a href="#cb8-18"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-z</span> <span class="va">${pan_db</span><span class="op">+</span>x<span class="va">}</span> <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb8-19"><a href="#cb8-19"></a><span class="cf">then</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a>    <span class="bu">echo</span> <span class="st">"</span><span class="dt">\$</span><span class="st">pan_db is unset"</span></span>
+<span id="cb8-21"><a href="#cb8-21"></a>    <span class="ex">error_exit</span> 1</span>
+<span id="cb8-22"><a href="#cb8-22"></a><span class="cf">fi</span></span>
+<span id="cb8-23"><a href="#cb8-23"></a></span>
+<span id="cb8-24"><a href="#cb8-24"></a><span class="bu">source</span> <span class="va">$TOOLS_PATH</span>/miniconda3/etc/profile.d/conda.sh</span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="ex">conda</span> activate pantools_master</span>
+<span id="cb8-26"><a href="#cb8-26"></a><span class="bu">export</span> <span class="va">PANTOOLS</span><span class="op">=</span><span class="st">"</span><span class="va">$PANTOOLS_4_1</span><span class="st">"</span></span>
+<span id="cb8-27"><a href="#cb8-27"></a></span>
+<span id="cb8-28"><a href="#cb8-28"></a><span class="co">######################################################################</span></span>
+<span id="cb8-29"><a href="#cb8-29"></a><span class="kw">```</span></span>
+<span id="cb8-30"><a href="#cb8-30"></a></span>
+<span id="cb8-31"><a href="#cb8-31"></a><span class="co">## Analysis</span></span>
+<span id="cb8-32"><a href="#cb8-32"></a></span>
+<span id="cb8-33"><a href="#cb8-33"></a><span class="co">### Generate various trees with default layout</span></span>
+<span id="cb8-34"><a href="#cb8-34"></a></span>
+<span id="cb8-35"><a href="#cb8-35"></a><span class="kw">```</span> bash</span>
+<span id="cb8-36"><a href="#cb8-36"></a><span class="co">## UPGMA tree</span></span>
+<span id="cb8-37"><a href="#cb8-37"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb8-38"><a href="#cb8-38"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick <span class="dt">\</span></span>
+<span id="cb8-39"><a href="#cb8-39"></a>--name <span class="st">"ani_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
+<span id="cb8-40"><a href="#cb8-40"></a></span>
+<span id="cb8-41"><a href="#cb8-41"></a><span class="co">## Neighbor joining tree</span></span>
+<span id="cb8-42"><a href="#cb8-42"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb8-43"><a href="#cb8-43"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_NJ.pangenome.newick <span class="dt">\</span></span>
+<span id="cb8-44"><a href="#cb8-44"></a>--name <span class="st">"ani_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
+<span id="cb8-45"><a href="#cb8-45"></a></span>
+<span id="cb8-46"><a href="#cb8-46"></a><span class="co">## gene distance NJ tree</span></span>
+<span id="cb8-47"><a href="#cb8-47"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb8-48"><a href="#cb8-48"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree <span class="dt">\</span></span>
+<span id="cb8-49"><a href="#cb8-49"></a>--name <span class="st">"gene_nj"</span> <span class="at">--config</span> project_config.yaml </span>
+<span id="cb8-50"><a href="#cb8-50"></a></span>
+<span id="cb8-51"><a href="#cb8-51"></a><span class="co">## kmer distance UPGMA tree</span></span>
+<span id="cb8-52"><a href="#cb8-52"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb8-53"><a href="#cb8-53"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick <span class="dt">\</span></span>
+<span id="cb8-54"><a href="#cb8-54"></a>--name <span class="st">"kmer_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
+<span id="cb8-55"><a href="#cb8-55"></a></span>
+<span id="cb8-56"><a href="#cb8-56"></a><span class="co">## kmer distance NJ tree</span></span>
+<span id="cb8-57"><a href="#cb8-57"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb8-58"><a href="#cb8-58"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick <span class="dt">\</span></span>
+<span id="cb8-59"><a href="#cb8-59"></a>--name <span class="st">"kmer_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
+<span id="cb8-60"><a href="#cb8-60"></a></span>
+<span id="cb8-61"><a href="#cb8-61"></a><span class="co">## core-SNP ML tree</span></span>
+<span id="cb8-62"><a href="#cb8-62"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb8-63"><a href="#cb8-63"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile <span class="dt">\</span></span>
+<span id="cb8-64"><a href="#cb8-64"></a>--name <span class="st">"core_snp_ml"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span> <span class="at">--bootstrap</span></span>
+<span id="cb8-65"><a href="#cb8-65"></a></span>
+<span id="cb8-66"><a href="#cb8-66"></a><span class="co">## process homology groups</span></span>
+<span id="cb8-67"><a href="#cb8-67"></a><span class="ex">Rscript</span> scripts/analysis/homology_group_process.R </span>
+<span id="cb8-68"><a href="#cb8-68"></a></span>
+<span id="cb8-69"><a href="#cb8-69"></a><span class="kw">```</span></span>
+<span id="cb8-70"><a href="#cb8-70"></a></span>
+<span id="cb8-71"><a href="#cb8-71"></a><span class="co">### GO enrichment of homology groups categories</span></span>
+<span id="cb8-72"><a href="#cb8-72"></a></span>
+<span id="cb8-73"><a href="#cb8-73"></a><span class="ex">This</span> script will use the pangenome <span class="kw">`</span>org.db<span class="kw">`</span> <span class="ex">object</span> <span class="er">(</span><span class="ex">built</span> <span class="pp">[</span><span class="ss">here</span><span class="pp">]</span><span class="er">(</span><span class="ex">pangenome_construction.md#build-pangenome-org-db-object</span><span class="kw">))</span></span>
+<span id="cb8-74"><a href="#cb8-74"></a><span class="ex">and</span> perform GO enrichment using <span class="kw">`</span>BioConductor::topGO<span class="kw">`</span> <span class="ex">package.</span></span>
+<span id="cb8-75"><a href="#cb8-75"></a></span>
+<span id="cb8-76"><a href="#cb8-76"></a><span class="kw">```</span>bash</span>
+<span id="cb8-77"><a href="#cb8-77"></a><span class="ex">Rscript</span> scripts/analysis/HG_GO_enrichment.R</span>
+<span id="cb8-78"><a href="#cb8-78"></a><span class="kw">```</span></span>
+<span id="cb8-79"><a href="#cb8-79"></a></span>
+<span id="cb8-80"><a href="#cb8-80"></a><span class="co">### Use subset of genomes to determine pangenome structure</span></span>
+<span id="cb8-81"><a href="#cb8-81"></a></span>
+<span id="cb8-82"><a href="#cb8-82"></a><span class="kw">```</span> bash</span>
+<span id="cb8-83"><a href="#cb8-83"></a><span class="co">## Pangenome structure for species with more than 20 genomes</span></span>
+<span id="cb8-84"><a href="#cb8-84"></a><span class="cf">for</span> sp <span class="kw">in</span> <span class="kw">`</span><span class="fu">awk</span> <span class="at">-F</span> <span class="st">"\t"</span> <span class="st">'{ if (NR != 1 &amp;&amp; $2 &gt;= 20) {print $1} }'</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab<span class="kw">`</span></span>
+<span id="cb8-85"><a href="#cb8-85"></a><span class="cf">do</span></span>
+<span id="cb8-86"><a href="#cb8-86"></a>    <span class="va">genomes</span><span class="op">=</span><span class="kw">`</span><span class="fu">grep</span> <span class="st">"^</span><span class="va">${sp}</span><span class="st">\b"</span> <span class="va">$PANGENOME_DIR</span>/analysis_configs/species_wise_genomes.tab <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-f3</span><span class="kw">`</span></span>
+<span id="cb8-87"><a href="#cb8-87"></a>    </span>
+<span id="cb8-88"><a href="#cb8-88"></a>    <span class="ex">process_start</span> <span class="st">"pangenome_structure for genome of species </span><span class="va">${sp}</span><span class="st">: </span><span class="va">$genomes</span><span class="st">"</span></span>
+<span id="cb8-89"><a href="#cb8-89"></a>    <span class="va">$PANTOOLS</span> pangenome_structure <span class="at">-t</span> 20 <span class="at">--include</span> <span class="va">${genomes}</span> <span class="va">${pan_db}</span></span>
+<span id="cb8-90"><a href="#cb8-90"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
+<span id="cb8-91"><a href="#cb8-91"></a></span>
+<span id="cb8-92"><a href="#cb8-92"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/pangenome_growth.R</span>
+<span id="cb8-93"><a href="#cb8-93"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_or_average.R</span>
+<span id="cb8-94"><a href="#cb8-94"></a>    <span class="ex">Rscript</span> <span class="va">${pan_db}</span>/pangenome_size/gene/gains_losses_median_and_average.R</span>
+<span id="cb8-95"><a href="#cb8-95"></a>    <span class="co"># Rscript ${pan_db}/pangenome_size/gene/heaps_law.R</span></span>
+<span id="cb8-96"><a href="#cb8-96"></a></span>
+<span id="cb8-97"><a href="#cb8-97"></a>    <span class="co">## move results to a folder</span></span>
+<span id="cb8-98"><a href="#cb8-98"></a>    <span class="va">psDir</span><span class="op">=</span><span class="va">${pan_db}</span>/pangenome_size/gene.<span class="va">${sp}</span></span>
+<span id="cb8-99"><a href="#cb8-99"></a>    <span class="bu">[</span> <span class="ot">-d</span> <span class="va">${psDir}</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-r</span> <span class="va">${psDir}</span></span>
+<span id="cb8-100"><a href="#cb8-100"></a>    <span class="fu">mv</span> <span class="va">${pan_db}</span>/pangenome_size/gene <span class="va">${psDir}</span></span>
+<span id="cb8-101"><a href="#cb8-101"></a><span class="cf">done</span></span>
+<span id="cb8-102"><a href="#cb8-102"></a></span>
+<span id="cb8-103"><a href="#cb8-103"></a><span class="co">## update the path in heaps_law.R script</span></span>
+<span id="cb8-104"><a href="#cb8-104"></a><span class="bu">cd</span> <span class="va">${pan_db}</span>/pangenome_size</span>
+<span id="cb8-105"><a href="#cb8-105"></a><span class="cf">for</span> i <span class="kw">in</span> gene.<span class="pp">*</span></span>
+<span id="cb8-106"><a href="#cb8-106"></a><span class="cf">do</span></span>
+<span id="cb8-107"><a href="#cb8-107"></a>    <span class="fu">sed</span> <span class="at">-i.bak</span> <span class="st">"s/pangenome_size\/gene/pangenome_size\/gene.</span><span class="va">$i</span><span class="st">/g"</span> <span class="va">$i</span>/heaps_law.R</span>
+<span id="cb8-108"><a href="#cb8-108"></a><span class="cf">done</span></span>
+<span id="cb8-109"><a href="#cb8-109"></a><span class="bu">cd</span> <span class="va">$PROJECT_DIR</span></span>
+<span id="cb8-110"><a href="#cb8-110"></a><span class="co">######################################################################</span></span>
+<span id="cb8-111"><a href="#cb8-111"></a><span class="kw">```</span></span>
+<span id="cb8-112"><a href="#cb8-112"></a></span>
+<span id="cb8-113"><a href="#cb8-113"></a><span class="co">## Visualize homology groups of interest</span></span>
+<span id="cb8-114"><a href="#cb8-114"></a></span>
+<span id="cb8-115"><a href="#cb8-115"></a><span class="co">### viral DNA integration related biological processes</span></span>
+<span id="cb8-116"><a href="#cb8-116"></a></span>
+<span id="cb8-117"><a href="#cb8-117"></a><span class="kw">```</span>r</span>
+<span id="cb8-118"><a href="#cb8-118"></a><span class="ex">analysisName</span> <span class="op">&lt;</span>- <span class="st">"virulence_GO"</span></span>
+<span id="cb8-119"><a href="#cb8-119"></a></span>
+<span id="cb8-120"><a href="#cb8-120"></a><span class="ex">goIds</span> <span class="op">&lt;</span>- c<span class="er">(</span></span>
+<span id="cb8-121"><a href="#cb8-121"></a>  <span class="st">"GO:0046718"</span><span class="ex">,</span> <span class="st">"GO:0044826"</span>, <span class="st">"GO:0019069"</span>, <span class="st">"GO:0044659"</span>, <span class="st">"GO:0075713"</span>,</span>
+<span id="cb8-122"><a href="#cb8-122"></a>  <span class="st">"GO:0044660"</span><span class="ex">,</span> <span class="st">"GO:0019076"</span>, <span class="st">"GO:0019058"</span></span>
+<span id="cb8-123"><a href="#cb8-123"></a><span class="kw">)</span></span>
+<span id="cb8-124"><a href="#cb8-124"></a><span class="kw">```</span></span>
+<span id="cb8-125"><a href="#cb8-125"></a></span>
+<span id="cb8-126"><a href="#cb8-126"></a><span class="co">### secretion systems in *Pectobacterium* spp.</span></span>
+<span id="cb8-127"><a href="#cb8-127"></a></span>
+<span id="cb8-128"><a href="#cb8-128"></a><span class="kw">```</span>r</span>
+<span id="cb8-129"><a href="#cb8-129"></a><span class="ex">analysisName</span> <span class="op">&lt;</span>- <span class="st">"secretion_sys"</span></span>
+<span id="cb8-130"><a href="#cb8-130"></a></span>
+<span id="cb8-131"><a href="#cb8-131"></a><span class="ex">goIds</span> <span class="op">&lt;</span>- c<span class="er">(</span></span>
+<span id="cb8-132"><a href="#cb8-132"></a>  <span class="st">"GO:0030253"</span><span class="ex">,</span> <span class="st">"GO:0015628"</span>, <span class="st">"GO:0030254"</span>, <span class="st">"GO:0030255"</span>, <span class="st">"GO:0046819"</span>,</span>
+<span id="cb8-133"><a href="#cb8-133"></a>  <span class="st">"GO:0033103"</span><span class="ex">,</span> <span class="st">"GO:0044315"</span></span>
+<span id="cb8-134"><a href="#cb8-134"></a><span class="kw">)</span></span>
+<span id="cb8-135"><a href="#cb8-135"></a><span class="kw">```</span></span>
+<span id="cb8-136"><a href="#cb8-136"></a></span>
+<span id="cb8-137"><a href="#cb8-137"></a><span class="co">### Homology groups for </span><span class="kw">`</span>lipopolysaccharide biosynthetic process<span class="kw">`</span></span>
+<span id="cb8-138"><a href="#cb8-138"></a></span>
+<span id="cb8-139"><a href="#cb8-139"></a><span class="kw">```</span>r</span>
+<span id="cb8-140"><a href="#cb8-140"></a><span class="ex">analysisName</span> <span class="op">&lt;</span>- <span class="st">"lps_syn"</span></span>
+<span id="cb8-141"><a href="#cb8-141"></a></span>
+<span id="cb8-142"><a href="#cb8-142"></a><span class="ex">goIds</span> <span class="op">&lt;</span>- c<span class="er">(</span><span class="st">"GO:0009103"</span><span class="ex">,</span> <span class="st">"GO:0009244"</span><span class="kw">)</span></span>
+<span id="cb8-143"><a href="#cb8-143"></a><span class="kw">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
