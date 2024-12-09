@@ -1,172 +1,223 @@
 
 # Carotovoricin (CTV) cluster or phage_grp_1 data analysis
 
+## Extract all homology groups representing CTV region across the pangenome
+
+Genes and their respective homology groups flanking CTV:
+- ybiB: hg_22427603
+- tolC_2: hg_22427641
+
+Extract genomic coordinates for CTV region together with the haplotypes
+
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427603,hg_22427641 \
+--inner_region --haplotypes \
+--out analysis/pangenome_v2/carotovoricin/ctv_region/hg_regions.tab
+```
+
+Process the output file from the previous step to build CTV homology group
+table and then manually annotate the homology groups with broad functionl
+categories based on the keywords in GO, COG and PFAM annotations.
+
+Intact CTV is present in 366 genomes.
+
+CTV is missing or deleted in the following 25 genomes:
+- *P. brasiliense*: g_149, g_177, g_182, g_185, g_236
+- *P. carotovorum*: g_15
+- *P_atrosepticum*: g_124, g_200, g_27, g_283, g_311, g_322, g_336, g_348, g_382,
+  g_385, g_389, g_392, g_396, g_50, g_51, g_55
+- *P. betavasculorum*: g_383, g_386
+- *P. cacticida*: g_451
+- *P. versatile*: g_313 (deletion of 5 genes including tail sheath, tail tube
+  and tape measure genes). Check g_313.vir_2
+
+Genome g_149 CTV cluster has integration of another prophage and hence it is 
+disrupted. It was detected as g_149.vir_1	and was part of phage_grp_89 with 3 members.
+
+CTV fragmented into multiple contigs in rest of the genomes.
+
 ## Clustermap visualization of CTV clusters
 
 ### CTV across pangenome
 
+Include *P. atrosepticum* (g_385), *P. betavasculorum* (g_386) and *P. cacticida*
+(g_451) genomes that lack CTV cluster.
+
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427603,hg_22427641 \
+--inner_region --genomes "g_385,g_386,g_451"
+```
+
 ```r
-grpToView <- "phage_grp_1"
-subSample <- TRUE
+cluster_title <- "ctv_typeStrains"
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
+hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
+
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- NA
+other_regions <- c(
+  "g_345.vir_1", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_365.vir_3",
+  "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+  "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
+  "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
+)
+
+subSample <- FALSE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
-```
-
-### CTV in type strains
-
-Include *P. atrosepticum* (g_385), *P. betavasculorum* (g_386) and *P. cacticida*
-(g_451) genomes that lack CTV cluster.
-
-```r
-grpToView <- "ctv_typeStrains"
-subSample <- FALSE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 6000
-
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
-
-# a vector of prophage identifiers that will be included in clustermap plot
-appendPhages <- c()
-
-# regions to append as list of list with following structure
-# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list(
-  g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"
-  ),
-  g_386_reg = list(
-    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
-  ),
-  g_451_reg = list(
-    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
-  )
-)
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "host" # host, hg_pav, cluster_mash, default
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
 regions_phy_ordered <- TRUE
 
-
-
-grp <- list(
-  phage_grp = grpToView,
-  members = c(
-    "g_345.vir_1", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_365.vir_3",
-    "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
-    "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
-    "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
-  )
-)
-
-```
-
-### Carotovoricin cluster missing from genomes
-
-```r
-grpToView <- "ctv_deletion"
-subSample <- TRUE
-cutHeight <- 1.5
-addFlankingRegions <- TRUE
-flankingRegion <- 5000
-
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "host"  # completeness, host, hg_pav, cluster_mash
-
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_177_reg = list(
-    chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
-  ),
-  g_182_reg = list(
-    chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"
-  ),
-  g_185_reg = list(
-    chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"
-  ),
-  g_236_reg = list(
-    chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
-  ),
-  g_385_reg = list(
-    chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"
-  ),
-  g_386_reg = list(
-    chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"
-  ),
-  g_451_reg = list(
-    chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"
-  )
-)
-
-
-grp <- list(
-  phage_grp = grpToView,
-  members = c(
-    "g_345.vir_1", "g_66.vir_3", "g_8.vir_2", "g_381.vir_2"
-  )
+  g_385_reg = list(chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"),
+  g_386_reg = list(chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"),
+  g_451_reg = list(chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451")
 )
 
 ```
 
 ### carotovoricin cluster absent in some *P. brasiliense* isolates
 
-ybiB: hg_22427603
+*P. brasiliense* lacking CTV cluster: g_149, g_177, g_182, g_185, g_236. Genome
+g_149 CTV cluster has integration of another prophage and hence it is disrupted.
 
-tolC_2: hg_22427641
-
-*P. brasiliense* lacking CTV cluster: g_149, g_177, g_182, g_185, g_236
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427641,hg_22427603 \
+--inner_region --genomes "g_149,g_177,g_182,g_185,g_236,g_15,g_313"
+```
 
 ```r
-grpToView <- "ctv_pbr"
+cluster_title <- "ctv_pbr"
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
+hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
+
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- "phage_grp_1"
+other_regions <- c("g_368.vir_3")
+
 subSample <- TRUE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "cluster_mash"  # completeness, host, hg_pav, cluster_mash
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "host" # host, hg_pav, cluster_mash, default
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- FALSE
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list()
+
+regionClusters <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$clusters)
+)
+
+# optional filter
+regionClusters %<>%
+  dplyr::filter(
+    SpeciesName == "P. brasiliense",
+    !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
+  )
+
+```
+
+### Visualize CTV deletion
+
+Extract genomic coordinates for the species/genomes in which CTV is deleted.
+
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427603,hg_22427641 \
+--inner_region --genomes "g_149,g_177,g_182,g_185,g_236,g_15,g_313,g_385,g_386"
+```
+
+```r
+cluster_title <- "ctv_deletion"
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
+hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
+
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- NA
+other_regions <- c("g_345.vir_1", "g_66.vir_3", "g_8.vir_2", "g_381.vir_2")
+
+subSample <- FALSE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "host" # host, hg_pav, cluster_mash, default
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- TRUE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_177_reg = list(
-    chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"
-  ),
-  g_182_reg = list(
-    chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"
-  ),
-  g_185_reg = list(
-    chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"
-  ),
-  g_236_reg = list(
-    chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"
-  )
-)
-
-
-grp <- list(
-  phage_grp = grpToView,
-  members = dplyr::filter(
-    regionClusters,
-    SpeciesName == "P. brasiliense", nFragments == 1, phage_grp == "phage_grp_1",
-    !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
-  ) %>%
-    dplyr::pull(prophage_id)
+  g_177_reg = list(chr = "NZ_JACGEP010000002.1", start = 102352, end = 103187, genomeId = "g_177"),
+  g_182_reg = list(chr = "NZ_JACGZZ010000050.1", start = 81626, end = 82461, genomeId = "g_182"),
+  g_185_reg = list(chr = "NZ_JACGEN010000006.1", start = 81658, end = 82493, genomeId = "g_185"),
+  g_236_reg = list(chr = "NZ_JACDSF010000027.1", start = 89639, end = 90475, genomeId = "g_236"),
+  g_149_reg = list(chr = "NZ_JACGFD010000001.1", start = 2861612, end = 2913419, genomeId = "g_149"),
+  g_385_reg = list(chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"),
+  g_386_reg = list(chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"),
+  g_451_reg = list(chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451"),
+  g_313_reg = list(chr = "NZ_CP024842.1", start = 2917505, end = 2929851, genomeId = "g_313"),
+  g_15_reg = list(chr = "BRCR01000012.1", start = 138656, end = 139632, genomeId = "g_15")
 )
 
 ```
 
 Prophage clusters found in the ctv-lacking Pbr: phage_grp_30, phage_grp_6, phage_grp_29
+
+### A prophage integrated within the CTV in *P. brasiliense* genome `g_149`
+
+<!--  -->
+Genome g_149 CTV cluster has integration of another prophage and hence it is 
+disrupted. It was detected as g_149.vir_1	and was part of phage_grp_89 which has
+3 members, `r c("g_149.vir_1", "g_116.vir_1", "g_46.vir_2")`
+
+```r
+cluster_title <- "prophage_in_ctv"
+outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
+hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
+
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- NA
+other_regions <- c("g_368.vir_3", "g_149.vir_1", "g_116.vir_1", "g_46.vir_2")
+
+subSample <- FALSE
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "default" # host, hg_pav, cluster_mash, default
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- FALSE
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list()
+
+```
 
 ### CTV in *P. versatile*
 
@@ -219,8 +270,7 @@ homology group, COG, PFAM and other metadata information to visualize.
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --genomes "g_302,g_364,g_337,g_439,g_403,g_399,g_408,g_175,g_138,g_368,g_345,\
 g_366,g_308,g_191,g_173,g_155,g_166,g_299,g_438,g_263,g_43,g_391" \
---out ctv_pbr.variable_regions.tab \
---dir analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr
+--out analysis/pangenome_v2/prophages/cluster_viz/ctv_pbr/ctv_pbr.variable_regions.tab
 
 # create CTV regions GFF3 files for one species representative each
 Rscript scripts/utils/HGs_gff_from_regions.R \
@@ -397,7 +447,7 @@ Complete CTV region along with 3 flanking genes:
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427643,hg_22427599 \
---inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_region
+--inner_region --out analysis/pangenome_v2/carotovoricin/ctv_region/hg_regions.tab 
 
 # create GFF3 files for CTV regions of interest
 Rscript scripts/utils/HGs_gff_from_regions.R \
@@ -414,14 +464,15 @@ CTV conserved loci:
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
---dir analysis/pangenome_v2/carotovoricin/ctv_conserved
+--out analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab
 ```
 
 CTV variable loci:
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
---inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail --haplotypes
+--inner_region --haplotypes \
+--out analysis/pangenome_v2/carotovoricin/ctv_tail/hg_regions.tab 
 ```
 
 CTV tape measure protein gene:
@@ -429,7 +480,7 @@ CTV tape measure protein gene:
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
 --haplotypes --inner_region --overlapping \
---dir analysis/pangenome_v2/carotovoricin/tape_measure
+--out analysis/pangenome_v2/carotovoricin/tape_measure/hg_regions.tab
 ```
 
 Run `scripts/analysis/ctv_hgt.qmd` script to perform HGT analysis.
@@ -534,28 +585,24 @@ in multiple *Pectobacterium* species.
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,\
 g_221,g_53,g_395,g_108,g_444,g_160" \
---dir analysis/pangenome_v2/carotovoricin/ctv_tail \
---out "selected_haplotypes_flanking.tab"
+--out analysis/pangenome_v2/carotovoricin/ctv_tail/selected_haplotypes_flanking.tab
 
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,\
 g_221,g_53,g_395,g_108,g_444,g_160" \
---inner_region --dir analysis/pangenome_v2/carotovoricin/ctv_tail \
---out "selected_haplotypes.tab" 
+--inner_region --out analysis/pangenome_v2/carotovoricin/ctv_tail/selected_haplotypes.tab
 
 # conserved CTV locus
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
 --genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,\
 g_221,g_53,g_395,g_108,g_444,g_160" \
---dir analysis/pangenome_v2/carotovoricin/ctv_conserved \
---out "selected_conserved.tab"
+--out analysis/pangenome_v2/carotovoricin/ctv_conserved/selected_conserved.tab
 
 # upstream core
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427642,hg_22427641 \
 --genomes "g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,\
 g_221,g_53,g_395,g_108,g_444,g_160" \
---dir analysis/pangenome_v2/carotovoricin/upstream_core \
---out "selected_upstream.tab"
+--out analysis/pangenome_v2/carotovoricin/upstream_core/selected_upstream.tab
 ```
 
 [DNA sequence comparison of these regions](#dna-sequence-comparison)
@@ -656,4 +703,49 @@ hgSets <- list(
 )
 
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/ctv_hgt", sep = "")
+```
+
+## O-antigen coevolution
+
+### O-antigen homology groups
+
+#### ABC transporter dependent O-antigen synthesis
+
+- *Wzm* (ABC transporter permease):
+- *Wzt* (ABC transporter ATP binding protein):
+
+#### G4C or O-antigen capsule cluster
+
+- *Wza*: hg_22428205
+- *Wzb*: hg_22428204
+- *Wzc*: hg_22428201
+- *WaaL* (ligase):
+- *rfbB*: found & conserved, GCF_009873295.1
+- *rfbA*: found & conserved
+- *rfbC*: found & conserved
+
+- ?: hg_22428182
+- *GfcB*: hg_22428181
+- *GfcC*: hg_22428167
+- *YbjH*: hg_22428166
+
+- *wecA* (hg_22429666)
+
+#### *Wzx/Wzy*-dependent pathway
+
+- *Wzx* (flipase):
+- *Wxy* (O-antigen polymerase):
+- *Wzz* (chain length regulator):
+
+*Dickeya solani* genome : https://www.ncbi.nlm.nih.gov/nuccore/CP015137.1
+
+GCF_002068115.1: genes in LPS biosynthesis
+
+### O-antigen HGs
+
+hg_22428205,hg_22428166
+
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22428205,hg_22428166 \
+--out analysis/pangenome_v2/o_antigen/abc_transporter_hg_regions.tab
 ```
