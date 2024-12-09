@@ -105,6 +105,16 @@ get_species_key_data <- function(genomes, speciesInfo, type = "wide", markGenome
     tibble::has_name(speciesInfo, "SpeciesName")
   )
 
+  # check the structure of markGenomes
+  if(!is.null(markGenomes)){
+    stopifnot(
+      is.list(markGenomes),
+      purrr::map_lgl(
+        .x = markGenomes,
+        .f = ~ is.list(.x) & exists("genomes", .x) & exists("color", .x))
+    ) %>% all()
+  }
+
   ## species name key heatmap
   speciesKey <- tibble::tibble(genomeId = genomes) %>%
     {
@@ -250,9 +260,7 @@ homology_group_heatmap <- function(mat, phy, speciesInfo = NULL,
     is.matrix(mat),
     is.null(speciesInfo) | (all(rownames(mat) %in% speciesInfo$genomeId)),
     is.null(hgAn) | all(colnames(mat) == hgAn$hg_id),
-    any(isa(phy, c("phylo", "dendrogram", "hclust", "logical"))),
-    is.null(markGenomes) |
-      (is.list(markGenomes) & all(unlist(markGenomes) %in% rownames(mat)))
+    any(isa(phy, c("phylo", "dendrogram", "hclust", "logical")))
   )
 
   if (isa(phy, "phylo")) {
