@@ -27,38 +27,30 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-cluster_title <- "ctv_deletion"
+cluster_title <- "prophage_in_ctv"
 outDir <- paste(confs$analysis$ctv$dir, "/cluster_viz", sep = "")
 hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
 region_cluster <- NA
-other_regions <- c("g_345.vir_1", "g_66.vir_3", "g_8.vir_2", "g_381.vir_2")
+other_regions <- c("g_368.vir_3", "g_149.vir_1", "g_116.vir_1", "g_46.vir_2")
 
 subSample <- FALSE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
-# ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,
-# completeness score
-clusterOrder <- "host" # host, hg_pav, cluster_mash
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "default" # host, hg_pav, cluster_mash, default
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
-regions_phy_ordered <- TRUE
+regions_phy_ordered <- FALSE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list(
-  g_177_reg = list(chr = "NZ_JACGEP010000002.1", start = 102351, end = 102361, genomeId = "g_177"),
-  g_182_reg = list(chr = "NZ_JACGZZ010000050.1", start = 81625, end = 81635, genomeId = "g_182"),
-  g_185_reg = list(chr = "NZ_JACGEN010000006.1", start = 81657, end = 81667, genomeId = "g_185"),
-  g_236_reg = list(chr = "NZ_JACDSF010000027.1", start = 89639, end = 89649, genomeId = "g_236"),
-  g_385_reg = list(chr = "NZ_JQHK01000003.1", start = 203963, end = 207120, genomeId = "g_385"),
-  g_386_reg = list(chr = "NZ_JQHM01000001.1", start = 553213, end = 555615, genomeId = "g_386"),
-  g_451_reg = list(chr = "Contig_2_668.636", start = 191452, end = 191490, genomeId = "g_451")
-)
+customRegions <- list()
 
 regionClusters <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$clusters)
@@ -157,11 +149,17 @@ mashTree <- ape::read.tree(
 
 hg_functions <- suppressMessages(readr::read_tsv(hg_color_categories))
 
-function_types <- c(setdiff(hg_functions$broad_function, "unknown"), "unknown", "flanking")
+function_types <- c(
+  "other", sort(setdiff(hg_functions$broad_function, c("other", "unknown"))),
+  "unknown", "flanking"
+)
 
 hg_function_col <- purrr::map2(
   .x = function_types,
-  .y = c(viridis::viridis(n = length(function_types) - 2, option = "turbo"), "grey50", "white"),
+  .y = c(viridis::viridis(
+    n = length(function_types) - 2, option = "turbo"),
+    "grey50", "white"
+  ),
   .f = function(x, y) {
     tibble::tibble(
       broad_function = x,
@@ -417,6 +415,35 @@ dplyr::select(regions_df, -genomeId) %>%
   readr::write_tsv(
     file = paste(outPrefix, ".shown_clusters.txt", sep = "")
   )
+
+################################################################################
+# save the subtree of the core-snp tree with species names
+
+regions_df %<>% dplyr::left_join(
+  y = dplyr::select(sampleInfo, genomeId, SpeciesName), by = "genomeId"
+) %>%
+  dplyr::mutate(
+    node_label = paste(genomeId, "|", SpeciesName)
+  )
+
+pt_core_tree <- ape::keep.tip(phy = coreTree, tip = regions_df$genomeId) %>%
+  tidytree::as_tibble() %>%
+  dplyr::left_join(y = regions_df, by = c("label" = "genomeId")) %>%
+  tidytree::as.treedata() %>%
+  ggtree::ggtree(ladderize = FALSE) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.5))) +
+  ggtree::geom_tiplab(
+    mapping = aes(label = node_label),
+    align = TRUE, size = 4, fontface = "italic"
+  ) +
+  # scale_y_continuous(expand=c(0, 10)) +
+  scale_y_reverse() +
+  ggtree::geom_treescale()
+
+ggplot2::ggsave(
+  filename = paste(outPrefix, ".core_subtree.pdf", sep = ""),
+  plot = pt_core_tree, width = 8, height = 8
+)
 
 ################################################################################
 # prepare homology group PAV matrix from pan.db
