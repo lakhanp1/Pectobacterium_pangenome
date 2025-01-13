@@ -104,7 +104,14 @@ if (!dir.exists(outDir)) {
 
 ################################################################################
 
-sampleInfo <- get_metadata(file = confs$data$pangenomes[[pangenome]]$files$metadata, genus = confs$genus)
+sampleInfo <- get_metadata(
+  file = confs$data$pangenomes[[pangenome]]$files$metadata,
+  genus = confs$genus
+) %>%
+  dplyr::mutate(
+    genomeString = paste(SpeciesName, " | (", strain, ")", sep = "")
+  )
+
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
@@ -173,6 +180,10 @@ treeTbl <- dplyr::full_join(
 ## plotting
 
 pt_tree <- ggtree::ggtree(tr = treeTbl) +
+  geom_treescale(
+    x = 0, y = nrow(sampleInfo) * 0.8,
+    fontsize = 8, linesize = 2, offset = 4
+  ) +
   labs(title = opts$name)
 
 ## mark outgroup
@@ -185,25 +196,79 @@ pt_tree3 <- pt_tree2 +
     node = "internal", size = 3, hjust = 1.3, color = "red"
   ) +
   ggtree::geom_tiplab(
-    mapping = aes(color = SpeciesName, label = nodeLabs),
+    mapping = aes(label = label, color = type_material),
     size = 3, align = TRUE, linesize = 0.5
   ) +
   scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   scale_color_manual(
-    values = setNames(
-      c("red", "#E57A44", "#088734", "#088734"),
-      c(
-        sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
-        "P. carotovorum", "P. c. subsp. carotovorum"
-      )
-    ),
-    breaks = NULL,
+    values = c("type strain" = "blue"),
+    name = "Type strain",
+    guide = guide_legend(order = 2),
     na.value = "black"
   ) +
   ggnewscale::new_scale_color()
 
+## add metadata
+pt_tree4 <- pt_tree3 +
+  ## SpeciesName
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, label = genomeString),
+    geom = "geom_text", size = 3, hjust = "left",
+    pwidth = 0.6, offset = 0.06
+  ) +
+  ggnewscale::new_scale_color() +
+  ## virulence PCR result
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
+    geom = "geom_point",
+    pwidth = 0.01, offset = 0.2
+  ) +
+  scale_color_manual(
+    name = "Blackleg PCR",
+    values = c("positive" = "red", "negative" = "green"),
+    labels = c("positive" = "BL +ve", "negative" = "BL -ve"),
+    guide = guide_legend(order = 3),
+    na.value = alpha("white", 0)
+  ) +
+  ggnewscale::new_scale_color() +
+  ## virulence phenotype
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, x = "virulence", color = virulence),
+    geom = "geom_point", shape = 17, size = 2,
+    pwidth = 0.01, offset = 0.02
+  ) +
+  scale_color_manual(
+    name = "Blackleg phenotype",
+    values = c("virulent" = "red", "avirulent" = "green"),
+    labels = c("virulent" = "BL-causing", "avirulent" = "BL-non-causing"),
+    guide = guide_legend(order = 4),
+    na.value = alpha("white", 0)
+  ) +
+  ## collection year
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, label = collection_year),
+    geom = "geom_text", size = 3, hjust = "left",
+    pwidth = 0.2
+  ) +
+  ## country
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, label = geo_loc_country),
+    geom = "geom_text", size = 3, hjust = "left",
+    pwidth = 0.2, offset = 0.05
+  )  +
+  ggnewscale::new_scale_color() +
+  ## BioSampleAccn
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, label = BioSampleAccn, color = source),
+    geom = "geom_text", size = 3, hjust = "left",
+    pwidth = 0.2, offset = 0.15
+  ) +
+  scale_color_manual(
+    values = c("NCBI" = "black", "NAK" = "#377eb8", "NIVIP" = "#ff7f00"),
+    labels = c("NCBI" = "NCBI", "NAK" = "NAK (this study)", "NIVIP" = "NIVIP (this study)"),
+    guide = guide_legend(order = 5)
+  )
 
-pt_tree4 <- annotate_ggtree(pt = pt_tree3, offset = 0.25)
 
 # pt_tree4
 
@@ -211,6 +276,8 @@ ggsave(
   plot = pt_tree4, width = 10, height = 20, scale = 2,
   filename = paste(outDir, "/", opts$name, ".rooted_tree.pdf", sep = "")
 )
+
+sampleInfo %<>% dplyr::select(-genomeString)
 
 ################################################################################
 # optionally, save species order for plotting species key heatmap
