@@ -536,7 +536,10 @@
     "href": "scripts/ms_figures/supplementary_tables.html",
     "title": "Supplementary tables",
     "section": "",
-    "text": "Table S1Table S2Table S3Table S4Table S5Table S6Table S7\n\n\nMetadata for all the genome in the current pangenome\n\n\n\n\n\n\n\n\n\nPangenome statistics: Homology group counts for the genus pangenome and individual species pangenome\n\n\n\n\n\n\n\n\n\nGO enrichment for core, accessory and unique homology groups with respect to the pangenome background\n\n\n\n\n\n\n\n\n\nSpecies wise and pangenome wide prophage statistics\n\n\n\n\n\n\n\n\n\ngeNomad prophage prediction result summary for 454 genomes\n\n\n\n\n\n\n\n\n\nProphage clustering based on syntenic Jaccard index\n\n\n\n\n\n\n\n\n\nInhouse sample information\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Back to top"
+    "text": "Table S1Table S2Table S3Table S4Table S5Table S6Table S7Table S8\n\n\nMetadata for all the genome in the current pangenome\n\n\n\n\n\n\n\n\nPangenome statistics: Homology group counts for the genus pangenome and individual species pangenome\n\n\n\n\n\n\n\n\nGO enrichment for core, accessory and unique homology groups with respect to the pangenome background\n\n\n\n\n\n\n\n\nSpecies wise and pangenome wide prophage statistics\n\n\n\n\n\n\n\n\nProphage statistics for individual genomes\n\n\n\n\n\n\n\n\ngeNomad prophage prediction result summary for 454 genomes\n\n\n\n\n\n\n\n\nProphage clustering based on syntenic Jaccard index\n\n\n\n\n\n\n\n\nInhouse sample information\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Back to top",
+    "crumbs": [
+      "Supplementary tables"
+    ]
   },
   {
     "objectID": "scripts/ms_figures/phage_grp_46.html",
