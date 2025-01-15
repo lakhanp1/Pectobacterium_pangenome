@@ -43,11 +43,13 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ## write tables to excel file
 wb <- openxlsx::createWorkbook()
+
+table_counter <- 1
 ```
 
 ::: {.panel-tabset}
 
-## Table S1
+## Table S`r table_counter`
 
 Metadata for all the genome in the current pangenome
 
@@ -57,13 +59,17 @@ Metadata for all the genome in the current pangenome
 
 metadata <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>% 
   dplyr::select(-starts_with("nodepath."), -Genome) %>% 
-  dplyr::select(genomeId, source, everything())
+  dplyr::select(
+    genomeId, source, SpeciesName, strain, geo_loc_country, collection_year, host,
+    blackleg_phenotype = virulence, blackleg_PCR = virulence_pcr,
+    AssemblyAccession, BioSampleAccn, everything()
+  )
 
-currentSheet <- "Table_S1"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S1: Metadata for all the genome in the current pangenome")
+  x = paste("## Table S", table_counter, " Metadata for all the genome in the current pangenome", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = metadata, sheet = currentSheet,
@@ -90,10 +96,11 @@ DT::datatable(
   selection = 'none'
 )
 
+table_counter <- table_counter + 1
 ```
 
 
-## Table S2
+## Table S`r table_counter`
 
 Pangenome statistics: Homology group counts for the genus pangenome and 
 individual species pangenome
@@ -110,18 +117,17 @@ hg_stats <- suppressMessages(
     HGs_pangenome = nHgs
   )
 
-currentSheet <- "Table_S2"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S2: Pangenome statistics: Homology group counts for the genus pangenome",
-            "and individual species pangenome")
+  x = paste("## Table S", table_counter, ": Pangenome statistics: Homology group counts for the genus pangenome",
+            "and individual species pangenome", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = hg_stats, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -143,10 +149,11 @@ DT::datatable(
   selection = 'none'
 )
 
+table_counter <- table_counter + 1
 ```
 
 
-## Table S3
+## Table S`r table_counter`
 
 GO enrichment for core, accessory and unique homology groups with respect to
 the pangenome background
@@ -161,18 +168,17 @@ go_table <- suppressMessages(
   dplyr::filter(SpeciesName == "pangenome") %>% 
   dplyr::select(-SpeciesName, -subpan_class)
 
-currentSheet <- "Table_S3"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S3: GO enrichment for core, accessory and unique homology groups",
-            "with respect to the pangenome background")
+  x = paste("## Table S", table_counter, ": GO enrichment for core, accessory and unique homology groups",
+            " with respect to the pangenome background", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = go_table, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -193,9 +199,11 @@ DT::datatable(
   ),
   selection = 'none'
 )
+
+table_counter <- table_counter + 1
 ```
 
-## Table S4
+## Table S`r table_counter`
 
 Species wise and pangenome wide prophage statistics
 
@@ -221,17 +229,16 @@ phage_stats <- suppressMessages(
   ) %>% 
   dplyr::select(-dplyr::starts_with("phageRatio."))
 
-currentSheet <- "Table_S4"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Tabls S4: Species wise and pangenome wide prophage statistics")
+  x = paste("## Tabls S", table_counter, ": Species wise and pangenome wide prophage statistics", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = phage_stats, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -253,9 +260,65 @@ DT::datatable(
   selection = 'none'
 )
 
+table_counter <- table_counter + 1
+
 ```
 
-## Table S5
+## Table S`r table_counter`
+
+Prophage statistics for individual genomes
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+phage_stats_genomes <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$summary$files$prophage_stats_genome)
+) %>% 
+  dplyr::select(-dplyr::starts_with("nodepath")) %>% 
+  dplyr::left_join(
+    y = dplyr::select(metadata, genomeId, strain, blackleg_phenotype, blackleg_PCR),
+    by = "genomeId"
+  ) %>%
+  dplyr::relocate(strain, blackleg_phenotype, blackleg_PCR, .after = SpeciesName)
+
+currentSheet <- paste("Table_S", table_counter, sep = "")
+
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+openxlsx::writeData(
+  wb = wb, sheet = currentSheet,
+  x = paste("## Table S", table_counter, ": Prophage statistics for individual genomes", sep = "")
+)
+openxlsx::writeDataTable(
+  wb = wb, x = phage_stats_genomes, sheet = currentSheet,
+  startCol = 1, startRow = 2, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
+
+DT::datatable(
+  data = phage_stats_genomes,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+
+```
+
+## Table S`r table_counter`
 
 geNomad prophage prediction result summary for 454 genomes
 
@@ -268,21 +331,25 @@ prophages <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) 
     integrated = dplyr::if_else(
       condition = is.na(start) & is.na(end), true = "N", false = "Y" 
     )
-  ) %>%
+  ) %>% 
   dplyr::select(prophage_id, genomeId, everything()) %>% 
-  dplyr::relocate(integrated, .after = end)
+  dplyr::relocate(integrated, .after = end) %>% 
+  dplyr::left_join(
+    y = dplyr::select(metadata, genomeId, strain, blackleg_phenotype, blackleg_PCR),
+    by = "genomeId"
+  ) %>%
+  dplyr::relocate(strain, blackleg_phenotype, blackleg_PCR, .after = SpeciesName)
 
-currentSheet <- "Table_S5"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S5: geNomad prophage prediction result summary for 454 genomes")
+  x = paste("## Table S", table_counter, ": geNomad prophage prediction result summary for 454 genomes", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = prophages, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -304,9 +371,11 @@ DT::datatable(
   selection = 'none'
 )
 
+table_counter <- table_counter + 1
+
 ```
 
-## Table S6
+## Table S`r table_counter`
 
 Prophage clustering based on syntenic Jaccard index
 
@@ -317,19 +386,23 @@ Prophage clustering based on syntenic Jaccard index
 phage_grps <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$clusters)
 ) %>% 
-  dplyr::select(-starts_with("nodepath."))
+  dplyr::select(-starts_with("nodepath.")) %>%
+  dplyr::left_join(
+    y = dplyr::select(metadata, genomeId, strain, blackleg_phenotype, blackleg_PCR),
+    by = "genomeId"
+  ) %>%
+  dplyr::relocate(strain, blackleg_phenotype, blackleg_PCR, .after = SpeciesName)
 
-currentSheet <- "Table_S6"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S6: Prophage clustering based on syntenic Jaccard index")
+  x = paste("## Table S", table_counter, ": Prophage clustering based on syntenic Jaccard index", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = phage_grps, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -350,10 +423,13 @@ DT::datatable(
   ),
   selection = 'none'
 )
+
+table_counter <- table_counter + 1
+
 ```
 
 
-## Table S7
+## Table S`r table_counter`
 
 Inhouse sample information
 
@@ -364,17 +440,16 @@ Inhouse sample information
 inhouse_samples <- dplyr::filter(metadata, source != "NCBI") %>% 
   dplyr::select(genomeId, source, sampleId, BioSampleAccn, BioprojectAccn)
 
-currentSheet <- "Table_S7"
+currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S7: Inhouse genome assemblies")
+  x = paste("## Table S", table_counter, ": Inhouse genome assemblies", sep = "")
 )
 openxlsx::writeDataTable(
   wb = wb, x = inhouse_samples, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
-  keepNA = TRUE, na.string = "NA",
-  
+  keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
@@ -395,6 +470,9 @@ DT::datatable(
   ),
   selection = 'none'
 )
+
+table_counter <- table_counter + 1
+
 ```
 
 :::
