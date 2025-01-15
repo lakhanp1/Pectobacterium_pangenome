@@ -205,45 +205,41 @@ table_counter <- table_counter + 1
 
 ## Table S`r table_counter`
 
-Species wise and pangenome wide prophage statistics
+geNomad prophage prediction result summary for 454 genomes
 
 ```{r}
 #| echo: false
 #| column: screen-inset-right
 
-phage_stats <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$summary$files$prophage_stats_species)
-) %>% 
-  dplyr::rename(
-    n_phages = n_vir_sp,
-    phages_per_genome = mean_vir_per_g,
-    HG_core = core,
-    HG_accessory = accessory,
-    HG_unique = unique,
-    HG_total = total,
-    HG_phage = phage_nHgs.total,
-    phage_HG_ratio = phageRatio.total,
-    phage_HG_core = phage_nHgs.core,
-    phage_HG_accessory = phage_nHgs.accessory,
-    phage_HG_unique = phage_nHgs.unique
+prophages <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+  dplyr::mutate(
+    integrated = dplyr::if_else(
+      condition = is.na(start) & is.na(end), true = "N", false = "Y" 
+    )
   ) %>% 
-  dplyr::select(-dplyr::starts_with("phageRatio."))
+  dplyr::select(prophage_id, genomeId, everything()) %>% 
+  dplyr::relocate(integrated, .after = end) %>% 
+  dplyr::left_join(
+    y = dplyr::select(metadata, genomeId, strain, blackleg_phenotype, blackleg_PCR),
+    by = "genomeId"
+  ) %>%
+  dplyr::relocate(strain, blackleg_phenotype, blackleg_PCR, .after = SpeciesName)
 
 currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Tabls S", table_counter, ": Species wise and pangenome wide prophage statistics", sep = "")
+  x = paste("## Table S", table_counter, ": geNomad prophage prediction result summary for 454 genomes", sep = "")
 )
 openxlsx::writeDataTable(
-  wb = wb, x = phage_stats, sheet = currentSheet,
+  wb = wb, x = prophages, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
   keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
 DT::datatable(
-  data = phage_stats,
+  data = prophages,
   rownames = FALSE,
   filter = "top",
   class = 'compact hover',
@@ -320,41 +316,45 @@ table_counter <- table_counter + 1
 
 ## Table S`r table_counter`
 
-geNomad prophage prediction result summary for 454 genomes
+Species wise and pangenome wide prophage statistics
 
 ```{r}
 #| echo: false
 #| column: screen-inset-right
 
-prophages <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
-  dplyr::mutate(
-    integrated = dplyr::if_else(
-      condition = is.na(start) & is.na(end), true = "N", false = "Y" 
-    )
+phage_stats <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$summary$files$prophage_stats_species)
+) %>% 
+  dplyr::rename(
+    n_phages = n_vir_sp,
+    phages_per_genome = mean_vir_per_g,
+    HG_core = core,
+    HG_accessory = accessory,
+    HG_unique = unique,
+    HG_total = total,
+    HG_phage = phage_nHgs.total,
+    phage_HG_ratio = phageRatio.total,
+    phage_HG_core = phage_nHgs.core,
+    phage_HG_accessory = phage_nHgs.accessory,
+    phage_HG_unique = phage_nHgs.unique
   ) %>% 
-  dplyr::select(prophage_id, genomeId, everything()) %>% 
-  dplyr::relocate(integrated, .after = end) %>% 
-  dplyr::left_join(
-    y = dplyr::select(metadata, genomeId, strain, blackleg_phenotype, blackleg_PCR),
-    by = "genomeId"
-  ) %>%
-  dplyr::relocate(strain, blackleg_phenotype, blackleg_PCR, .after = SpeciesName)
+  dplyr::select(-dplyr::starts_with("phageRatio."))
 
 currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeData(
   wb = wb, sheet = currentSheet,
-  x = paste("## Table S", table_counter, ": geNomad prophage prediction result summary for 454 genomes", sep = "")
+  x = paste("## Tabls S", table_counter, ": Species wise and pangenome wide prophage statistics", sep = "")
 )
 openxlsx::writeDataTable(
-  wb = wb, x = prophages, sheet = currentSheet,
+  wb = wb, x = phage_stats, sheet = currentSheet,
   startCol = 1, startRow = 2, withFilter = TRUE,
   keepNA = TRUE, na.string = "NA"
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
 
 DT::datatable(
-  data = prophages,
+  data = phage_stats,
   rownames = FALSE,
   filter = "top",
   class = 'compact hover',
