@@ -127,3 +127,10 @@ nohup pantools -Xms40g -Xmx120g msa --align-nucleotide -t 48 --phenotype \
 --homology-file ${pan_db}/gene_classification.100.0/core_groups.csv \
 ${pan_db} 2>&1 >logs/msa/msa_phenotype.log &
 ```
+
+## Visualize assays
+
+```bash
+quarto render scripts/analysis/insilico_assay_viz.qmd --execute-dir ./
+quarto render scripts/analysis/assay_HG_viz.qmd --execute-dir ./
+```

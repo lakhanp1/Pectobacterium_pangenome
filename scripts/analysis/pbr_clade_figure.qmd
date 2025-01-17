@@ -8,6 +8,7 @@ format:
 knitr: 
   opts_chunk:
     fig.height: 7
+execute-dir: ../../
 ---
 
 Visualize phylogeny for *P. brasiliense* clade with phenotype, ANI and *in silico*
@@ -50,7 +51,6 @@ outPrefix <- paste(outDir, "/", analysisName, ".", treeMethod, sep = "")
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 outGroup <- confs$analysis$phylogeny$outgroup
 
-
 ```
 
 ## Import data
@@ -84,9 +84,9 @@ speciesOrder <- suppressMessages(
 
 ```{r}
 ## read tree
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted)
-
-rawTree <- ape::ladderize(rawTree)
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted, phylo = TRUE
+)
 
 ```
 
@@ -242,21 +242,27 @@ pt_phyloData <- pt_tree +
   ggtreeExtra::geom_fruit(
     mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
     geom = "geom_point",
-    pwidth = 0.01, offset = 0.05
+    pwidth = 0.01, offset = 0.2
   ) +
   scale_color_manual(
+    name = "Blackleg PCR",
     values = c("positive" = "red", "negative" = "green"),
+    labels = c("positive" = "BL +ve", "negative" = "BL -ve"),
+    guide = guide_legend(order = 3),
     na.value = alpha("white", 0)
   ) +
-    ggnewscale::new_scale_color() +
+  ggnewscale::new_scale_color() +
   ## virulence phenotype
   ggtreeExtra::geom_fruit(
     mapping = aes(y = id, x = "virulence", color = virulence),
     geom = "geom_point", shape = 17, size = 2,
-    pwidth = 0.01, offset = 0.05
+    pwidth = 0.01, offset = 0.02
   ) +
   scale_color_manual(
+    name = "Blackleg phenotype",
     values = c("virulent" = "red", "avirulent" = "green"),
+    labels = c("virulent" = "BL-causing", "avirulent" = "BL-non-causing"),
+    guide = guide_legend(order = 4),
     na.value = alpha("white", 0)
   ) +
   theme(legend.position = "bottom")
@@ -276,11 +282,12 @@ ggsave(
 ```
 
 ```{r echo=FALSE}
-#| column: page 
-#| fig-height: 8
-#| fig-width: 16
-#| out-width: '200%'
+#| column: page
+#| fig-height: 12
+#| fig-width: 20
+#| out-width: '100%'
 #| layout-valign: top
+#| echo: false
 
 pt_all
 

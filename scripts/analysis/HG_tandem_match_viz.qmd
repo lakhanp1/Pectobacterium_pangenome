@@ -150,7 +150,7 @@ spKeyDf <- get_species_key_data(
     names_to = 'SpeciesName', values_to = "species"
   ) %>%
   dplyr::mutate(
-    SpeciesName = forcats::fct_relevel(SpeciesName, !!!rev(speciesOrder$SpeciesName)),
+    SpeciesName = forcats::fct_relevel(SpeciesName, speciesOrder$SpeciesName),
     SpeciesName = forcats::fct_drop(SpeciesName)
   )
 
@@ -210,6 +210,4 @@ pt_tree3
 
 ```
 
-Species key in the above figure marks the species on tree from left to right:
-`r paste(levels(spKeyDf$SpeciesName), collapse = ", ")`.
-
+Species key in the above figure marks the species on tree from left to right: `r paste(levels(spKeyDf$SpeciesName), collapse = ", ")`.

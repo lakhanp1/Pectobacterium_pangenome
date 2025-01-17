@@ -28,9 +28,46 @@ export PANTOOLS="$PANTOOLS_4_1"
 ######################################################################
 ```
 
-## Analysis
+## Use subset of genomes to determine pangenome structure
 
-### Generate various trees with default layout
+``` bash
+## Pangenome structure for species with more than 20 genomes
+for sp in `awk -F "\t" '{ if (NR != 1 && $2 >= 20) {print $1} }' $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab`
+do
+    genomes=`grep "^${sp}\b" $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab | cut -f3`
+    
+    process_start "pangenome_structure for genome of species ${sp}: $genomes"
+    $PANTOOLS pangenome_structure -t 20 --include ${genomes} ${pan_db}
+    error_exit $?
+
+    Rscript ${pan_db}/pangenome_size/gene/pangenome_growth.R
+    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
+    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
+    # Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
+
+    ## move results to a folder
+    psDir=${pan_db}/pangenome_size/gene.${sp}
+    [ -d ${psDir} ] && rm -r ${psDir}
+    mv ${pan_db}/pangenome_size/gene ${psDir}
+done
+
+## update the path in heaps_law.R script
+cd ${pan_db}/pangenome_size
+for i in gene.*
+do
+    sed -i.bak "s/pangenome_size\/gene/pangenome_size\/gene.$i/g" $i/heaps_law.R
+done
+cd $PROJECT_DIR
+
+```
+
+## Visualize pangenome metadata
+
+```bash
+quarto render scripts/analysis/pangenome_metadata.viz.qmd
+```
+
+## Phylogeny analysis 
 
 ``` bash
 ## UPGMA tree
@@ -68,6 +105,14 @@ Rscript scripts/analysis/homology_group_process.R
 
 ```
 
+Visualize core-SNP phylogenetic tree with metadata.
+
+```bash
+quarto render scripts/analysis/phylo_viz_tree.qmd
+```
+
+## Homology groups analysis
+
 ### GO enrichment of homology groups categories
 
 This script will use the pangenome `org.db` object (built [here](pangenome_construction.md#build-pangenome-org-db-object))
@@ -77,42 +122,27 @@ and perform GO enrichment using `BioConductor::topGO` package.
 Rscript scripts/analysis/HG_GO_enrichment.R
 ```
 
-### Use subset of genomes to determine pangenome structure
+### Summarize homology groups
 
-``` bash
-## Pangenome structure for species with more than 20 genomes
-for sp in `awk -F "\t" '{ if (NR != 1 && $2 >= 20) {print $1} }' $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab`
-do
-    genomes=`grep "^${sp}\b" $PANGENOME_DIR/analysis_configs/species_wise_genomes.tab | cut -f3`
-    
-    process_start "pangenome_structure for genome of species ${sp}: $genomes"
-    $PANTOOLS pangenome_structure -t 20 --include ${genomes} ${pan_db}
-    error_exit $?
-
-    Rscript ${pan_db}/pangenome_size/gene/pangenome_growth.R
-    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_or_average.R
-    Rscript ${pan_db}/pangenome_size/gene/gains_losses_median_and_average.R
-    # Rscript ${pan_db}/pangenome_size/gene/heaps_law.R
-
-    ## move results to a folder
-    psDir=${pan_db}/pangenome_size/gene.${sp}
-    [ -d ${psDir} ] && rm -r ${psDir}
-    mv ${pan_db}/pangenome_size/gene ${psDir}
-done
-
-## update the path in heaps_law.R script
-cd ${pan_db}/pangenome_size
-for i in gene.*
-do
-    sed -i.bak "s/pangenome_size\/gene/pangenome_size\/gene.$i/g" $i/heaps_law.R
-done
-cd $PROJECT_DIR
-######################################################################
+```bash
+quarto render scripts/analysis/HG_summary.qmd 
 ```
 
-## Visualize homology groups of interest
+### Visualize tandemly mapped homology groups sets on the pangenome
 
-### viral DNA integration related biological processes
+```bash
+quarto render scripts/analysis/HG_tandem_match_viz.qmd --execute-dir ./
+```
+
+### Visualize homology groups across pagenome for GO terms of interest
+
+to-do: convert this to script with arguments
+
+```bash
+quarto render scripts/analysis/homology_groups_go_viz.qmd --execute-dir ./
+```
+
+#### viral DNA integration related biological processes
 
 ```r
 analysisName <- "virulence_GO"
@@ -123,7 +153,7 @@ goIds <- c(
 )
 ```
 
-### secretion systems in *Pectobacterium* spp.
+#### secretion systems in *Pectobacterium* spp.
 
 ```r
 analysisName <- "secretion_sys"
@@ -134,10 +164,11 @@ goIds <- c(
 )
 ```
 
-### Homology groups for `lipopolysaccharide biosynthetic process`
+#### Homology groups for `lipopolysaccharide biosynthetic process`
 
 ```r
 analysisName <- "lps_syn"
 
 goIds <- c("GO:0009103", "GO:0009244")
 ```
+

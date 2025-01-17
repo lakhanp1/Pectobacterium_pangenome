@@ -294,7 +294,7 @@ if(opts$save_leaf_order){
     dplyr::arrange(type_material, tipOrder, .by_group = TRUE) %>%
     dplyr::slice(1L) %>%
     dplyr::ungroup() %>%
-    dplyr::arrange(desc(tipOrder)) %>%
+    dplyr::arrange(tipOrder) %>%
     # dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %>%
     dplyr::pull(SpeciesName)
 

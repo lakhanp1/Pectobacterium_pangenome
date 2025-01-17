@@ -208,6 +208,12 @@ df <- dplyr::left_join(
  
 ```
 
+### Genome coordinates as query
+
+```r
+
+```
+
 ### homology groups as query
 
 ```r

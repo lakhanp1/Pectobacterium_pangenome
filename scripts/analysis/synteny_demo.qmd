@@ -11,6 +11,9 @@ knitr:
     fig.height: 7
 ---
 
+This notebook demonstrate some examples of comparing prophage homology group 
+signatures to calculate syntenic Jaccard Index.
+
 ## Initial setup
 
 ```{r}
@@ -31,10 +34,10 @@ useCase <- 1
 
 ## Parameters while detecting syntenic overlap
 
-- match score = 5
-- gap penalty = -2
-- maximum gap length = 2
-- minimum chain length = 5
+- Score for a match of homology group during DP: $match\_score = 5$
+- Score for a mismatch of homology group during DP: $gap\_penalty = -2$
+- Maximum number of consecutive mismatches allowed in a valid LCS: $maximum\_gap\_length = 2$
+- Minimum LCS required for a valid LCS: $minimum\_chain\_length = 5$
 
 ## Testing various use cases for synteny analysis
 

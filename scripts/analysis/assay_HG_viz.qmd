@@ -33,6 +33,8 @@ suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
 rm(list = ls())
 
+print(getwd())
+
 source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
 source("scripts/utils/config_functions.R")
 source("scripts/utils/phylogeny_functions.R")
@@ -89,7 +91,7 @@ speciesOrder <- suppressMessages(
 
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
-  SpeciesName = forcats::fct_relevel(SpeciesName, !!!rev(speciesOrder$SpeciesName))
+  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 ## genomes that are used for phenotype association analysis

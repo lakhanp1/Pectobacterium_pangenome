@@ -192,12 +192,17 @@ speciesPhy <- ape::rotateConstr(
 # ape::plotBreakLongEdges(speciesPhy)
 # ape::axisPhylo()
 
+
 speciesTree <- ggtree::ggtree(speciesPhy, size = 2, ladderize = FALSE) %<+%
   dplyr::select(sampleInfo, genomeId, everything()) +
   ggtree::xlim(NA, 1) +
   ggtree::geom_tiplab(
     mapping = aes(label = SpeciesName),
     align = TRUE, size = 5, fontface = "italic"
+  ) +
+  geom_treescale(
+    x = 0, y = nrow(speciesOrder) * 0.9,
+    fontsize = 4, linesize = 2
   )
 
 speciesTree$data$x[which(speciesTree$data$label == longestBranchTip)] <- trimLongestBranchTo
