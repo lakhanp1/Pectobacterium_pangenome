@@ -14,7 +14,6 @@ project:
     - scripts/analysis/ani_clustering.qmd
     - scripts/analysis/phylo_viz_tree.qmd
     - scripts/analysis/prophage_summary.qmd
-    - scripts/analysis/prophage_seq_similarity.qmd
     - scripts/analysis/synteny_demo.qmd
     - scripts/analysis/prophage_clustering.qmd
     - scripts/analysis/prophage_cluster_summary.qmd

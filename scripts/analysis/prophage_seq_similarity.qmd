@@ -65,7 +65,8 @@ phages <- suppressMessages(
 ) %>% 
   dplyr::select(
     prophage_id, fragments, nFragments, prophage_length, nHg, genomeId
-  )
+  ) %>% 
+  dplyr::filter(nFragments == 1)
 
 nodeOfInterest <- dplyr::select(phages, prophage_id)
 ```

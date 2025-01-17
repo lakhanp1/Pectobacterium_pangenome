@@ -75,7 +75,7 @@ proHgs <- suppressMessages(
 prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
   dplyr::select(prophage_id, prophage_length, completeness)
 
-rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
+rawTree <- import_tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree, phylo = TRUE)
 
 speciesOrder <- suppressMessages(
   readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)

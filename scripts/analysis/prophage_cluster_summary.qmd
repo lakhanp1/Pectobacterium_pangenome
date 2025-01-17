@@ -52,14 +52,17 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ## Import data
 
 ```{r}
-sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+)
+
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>% 
+  dplyr::mutate(
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+  )
 
 sampleInfoList <- as.list_metadata(
   df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
-)
-
-speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
 ## read tree
@@ -429,8 +432,32 @@ phage_upset <- ComplexHeatmap::UpSet(
   row_names_gp = gpar(fontface = "italic"),
   column_title_gp = gpar(fontface = "bold", fontsize = 16),
   set_order = speciesOrder$SpeciesName,
+  top_annotation = ComplexHeatmap::HeatmapAnnotation(
+    "Generalist\nprophages" = anno_barplot(
+      x = comb_size(cm), 
+      border = FALSE, 
+      gp = gpar(fill = "black"), 
+      height = unit(1.5, "cm")
+    ),
+    annotation_name_side = "left", 
+    annotation_name_rot = 0,
+    annotation_name_gp = gpar(fontface = "bold"),
+    gap = unit(4, "mm")
+  ),
   right_annotation = upset_right_annotation(cm, add_numbers = TRUE)
 )
+
+phage_upset <- phage_upset +
+  ComplexHeatmap::rowAnnotation(
+    "Number of\ngenomes" = ComplexHeatmap::anno_barplot(
+      x = dplyr::count(sampleInfo, SpeciesName) %>% 
+        dplyr::pull(var = n, name = SpeciesName),
+      border = FALSE,
+      add_numbers = TRUE,
+      gp = gpar(fill = "black"), width = unit(2, "cm")
+    ),
+    gap = unit(3, "mm")
+  )
 
 ```
 
