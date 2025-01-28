@@ -10,7 +10,7 @@ project:
     - scripts/notebooks/pangenome_construction.md
     - scripts/notebooks/pangenome_analysis.md
     - scripts/analysis/HG_summary.qmd
-    - scripts/analysis/pangenome_metadata.viz.qmd
+    - scripts/analysis/pangenome_metadata_viz.qmd
     - scripts/analysis/ani_clustering.qmd
     - scripts/analysis/phylo_viz_tree.qmd
     - scripts/analysis/prophage_summary.qmd
@@ -56,7 +56,7 @@ website:
       - section: "Pangenome"
         contents:
           - text: "Pangenome metadata"
-            href: scripts/analysis/pangenome_metadata.viz.qmd
+            href: scripts/analysis/pangenome_metadata_viz.qmd
           - text: "Build"
             href: scripts/notebooks/pangenome_construction.md
           - text: "Analysis"
@@ -78,7 +78,7 @@ website:
           - text: "Clustering summary"
             href: scripts/analysis/prophage_cluster_summary.qmd
           - section: "Prophage clusters"
-            contents:
+            contents:         
               - text: "Phage group 46"
                 href: scripts/ms_figures/phage_grp_46.qmd
               - test: "Phage group 45"

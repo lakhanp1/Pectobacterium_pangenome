@@ -66,7 +66,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
 <link href="../../scripts/notebooks/pangenome_analysis.html" rel="next">
-<link href="../../scripts/analysis/pangenome_metadata.viz.html" rel="prev">
+<link href="../../scripts/analysis/pangenome_metadata_viz.html" rel="prev">
 <script src="../../site_libs/quarto-html/quarto.js"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -106,6 +106,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="../../scripts/utils/quarto_style.css">
+<meta property="og:title" content="Pectobacterium pangenome data analysis">
+<meta property="og:site_name" content="Pectobacterium pangenome data analysis">
 </head>
 
 <body class="nav-sidebar docked">
@@ -117,7 +119,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../scripts/analysis/pangenome_metadata.viz.html">Pangenome</a></li><li class="breadcrumb-item"><a href="../../scripts/notebooks/pangenome_construction.html">Build</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../scripts/analysis/pangenome_metadata_viz.html">Pangenome</a></li><li class="breadcrumb-item"><a href="../../scripts/notebooks/pangenome_construction.html">Build</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -183,7 +185,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../scripts/analysis/ani.clustering.html" class="sidebar-item-text sidebar-link">
+  <a href="../../scripts/analysis/ani_clustering.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">ANI</span></a>
   </div>
 </li>
@@ -200,7 +202,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../scripts/analysis/pangenome_metadata.viz.html" class="sidebar-item-text sidebar-link">
+  <a href="../../scripts/analysis/pangenome_metadata_viz.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Pangenome metadata</span></a>
   </div>
 </li>
@@ -224,7 +226,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../scripts/analysis/phylo.viz_tree.html" class="sidebar-item-text sidebar-link">
+  <a href="../../scripts/analysis/phylo_viz_tree.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Phylogeny</span></a>
   </div>
 </li>
@@ -249,6 +251,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../../scripts/analysis/prophage_summary.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Prophage summary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../scripts/analysis/synteny_demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Syntenic Jaccard index</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -336,7 +344,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="toc-actions"><ul><li><a href="https://github.com/lakhanp1/Pectobacterium_pangenome/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><div class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../scripts/analysis/pangenome_metadata.viz.html">Pangenome</a></li><li class="breadcrumb-item"><a href="../../scripts/notebooks/pangenome_construction.html">Build</a></li></ol></nav><div class="quarto-title-tools-only"><h1></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<main class="content" id="quarto-document-content"><div class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../scripts/analysis/pangenome_metadata_viz.html">Pangenome</a></li><li class="breadcrumb-item"><a href="../../scripts/notebooks/pangenome_construction.html">Build</a></li></ol></nav><div class="quarto-title-tools-only"><h1></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
@@ -1166,7 +1174,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../../scripts/analysis/pangenome_metadata.viz.html" class="pagination-link" aria-label="Pangenome metadata">
+      <a href="../../scripts/analysis/pangenome_metadata_viz.html" class="pagination-link" aria-label="Pangenome metadata">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Pangenome metadata</span>
       </a>          
   </div>

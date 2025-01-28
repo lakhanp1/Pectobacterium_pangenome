@@ -1,6 +1,6 @@
 # Prophage analysis in *Pectobacterium* pangenome
 
-## Detect prophages in pangenome
+## Detect prophages in genome 
 
 ### genomad prophage detection
 
@@ -122,7 +122,7 @@ Process prophage MASH and ANI results and visualize MASH similarity matrix for
 the filtered prophages.
 
 ```bash
-Rscript scripts/analysis/prophage_seq_similarity.qmd
+quarto render scripts/analysis/prophage_seq_similarity.qmd --execute-dir ./
 ```
 
 ## Cluster prophages
@@ -191,9 +191,14 @@ Rscript scripts/analysis/prophage_cluster_summary.qmd
 Visualize the representative prophages across pangenome. Use MASH distance to
 cluster prophages and ANI distance to cluster the genomes in the pangenome.
 
-```bash
-Rscript scripts/analysis/prophage_pangenome_viz.qmd
+:::{.callout-caution}
+Need a fix. Do not run!
+
+```bash {eval=FALSE}
+quarto render scripts/analysis/prophage_pangenome_viz.qmd --execute-dir ./
 ```
+
+:::
 
 Visualize homology group sets for selected prophages as PAV heatmap across the
 pangenome. Replace the code block in `scripts/analysis/homology_group_viz.R` 

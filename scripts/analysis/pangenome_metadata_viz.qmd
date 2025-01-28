@@ -1,0 +1,403 @@
+---
+title: "Exploratory analysis of pangenome metadata"
+date: "`r Sys.time()`"
+format: 
+  html:
+    embed-resources: true
+fig-format: svg
+fig-height: 8
+---
+
+Here, various exploratory analysis figures are generated for *P. brasiliense* 
+population metadata as well as genome assembly metadata.
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(configr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(ggdist))
+suppressPackageStartupMessages(library(ggpattern))
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(skimr))
+suppressPackageStartupMessages(library(DT))
+
+## pangenome data summary and comparison
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+outDir <- confs$analysis$summary$dir
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+
+```
+
+## Import data
+
+```{r}
+
+sampleMeta <- suppressMessages(
+  readr::read_tsv(confs$data$reference_data$files$metadata)
+)
+
+panMetrix <- suppressMessages(
+  readr::read_csv(panConf$db$metrics$files$per_genome)
+) %>% 
+  dplyr::rename_all(
+    .funs = ~ stringr::str_replace_all(
+      ., c("\\s+" = "_", "%" = "per", "(\\(|\\))" = "")
+    )
+  ) %>%
+  dplyr::select(
+    Genome, Gene_count, mRNA_count, rRNA_count, tRNA_count,
+    Singletons, Homology_groups, GC_per = GC_content_per
+  ) %>% 
+  dplyr::mutate(Genome = as.character(Genome))
+
+panMeta <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>% 
+  dplyr::left_join(y = panMetrix, by = "Genome") %>% 
+  dplyr::mutate(
+    pbr = dplyr::if_else(
+      SpeciesName == "P. brasiliense", SpeciesName, "other"
+    ),
+    geo_loc_country = dplyr::if_else(
+      geo_loc_country == "Netherlands", geo_loc_country, "other", missing = "other"
+    ),
+    virType = dplyr::case_when(
+      virulence == "virulent" & virulence_pcr == "positive" ~ "TP",
+      virulence == "virulent" & virulence_pcr == "negative" ~ "FN",
+      virulence == "avirulent" & virulence_pcr == "positive" ~ "FP",
+      virulence == "avirulent" & virulence_pcr == "negative" ~ "TN",
+      TRUE ~ "unknown"
+    ),
+    pbr = forcats::fct_relevel(pbr, "other", "P. brasiliense"),
+    geo_loc_country = forcats::fct_relevel(geo_loc_country, "Netherlands"),
+    virType = forcats::fct_relevel(virType, "TP", "FN", "TN", "FP", "unknown")
+  ) %>% 
+  dplyr::left_join(
+    y = dplyr::select(sampleMeta, sampleId, AssemblyStatus),
+    by = "sampleId"
+  )
+
+```
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+#| label: metadata-tbl
+#| tbl-cap: Pangenome metadata table
+#| out-height: "400px"
+
+DT::datatable(
+  data = panMeta,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+```
+
+## Species wise genome statistics
+
+```{r}
+pt_speciesCount <- ggplot2::ggplot(
+  data = panMeta
+) +
+  geom_bar(
+    mapping = aes(
+      y = forcats::fct_infreq(SpeciesName),
+      fill = AssemblyStatus
+    )
+  ) +
+  labs(
+    x = "#genomes",
+    y = NULL,
+    title = "# of genomes"
+  ) +
+  scale_x_continuous(expand = expansion(add = c(0, 2))) +
+  ggplot2::scale_fill_viridis_d(option = "C") +
+  theme_bw(base_size = 20) +
+  theme(
+    axis.text.y = element_text(face = "bold.italic", size = 14, color = "black"),
+    axis.text.x = element_text(face = "bold", size = 16, color = "black"),
+    plot.title = element_text(face = "bold", size = 18, color = "black"),
+    axis.title = element_text(face = "bold", size = 16, color = "black"),
+    legend.position = "bottom",
+    panel.grid = element_blank()
+  )
+```
+
+```{r}
+#| column: page-inset-right
+#| fig-width: 12
+#| fig-height: 6
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+pt_speciesCount
+
+ggsave(
+  filename = file.path(outDir, "species_count.pdf"),
+  plot = pt_speciesCount,
+  width = 12, height = 8
+)
+```
+
+## Explore *P. brasiliense* population metadata
+
+### *P. brasiliense* collection in the Netherlands
+
+```{r}
+#| fig-height: 5
+#| fig-width: 5
+#| fig-cap: "P. brasiliense collection after 2015 in the Netherlands"
+
+(
+  pt_pbrTimeline <- dplyr::filter(
+    panMeta, geo_loc_country == "Netherlands", !is.na(collection_year)
+  ) %>% 
+    ggplot2::ggplot() +
+    geom_histogram(
+      mapping = aes(x = collection_year, fill = forcats::fct_rev(pbr)),
+      binwidth = 2, color = "black"
+    ) +
+    geom_vline(xintercept = 2015, color = "blue", linewidth = 1, linetype = "dashed") +
+    scale_fill_manual(
+      values = c("P. brasiliense" = "black", "other" = "grey90")
+    ) +
+    # labs(
+    #   title = "P. brasiliense collection after 2015 in the Netherlands"
+    # ) +
+    scale_x_continuous(expand = expansion(add = 0)) +
+    scale_y_continuous(expand = expansion(add = c(0, 5))) +
+    theme_bw(base_size = 20) +
+    theme(
+      legend.position = c(0.02, 0.9),
+      legend.justification = c(0, 1),
+      legend.key.size = unit(1, "cm"),
+      legend.text = element_text(size = 20),
+      legend.title = element_blank(),
+      axis.title = element_blank(),
+      plot.margin = margin(1, 1, 1, 1, "cm"),
+      panel.grid = element_blank()
+    )
+)
+
+```
+
+```{r echo=FALSE}
+ggsave(filename = file.path(outDir, "pbr_timeline.pdf"), plot = pt_pbrTimeline,
+       width = 8, height = 6)
+```
+
+### Appearance of new *P. brasiliense* virulent isolates in the Netherlands
+
+```{r}
+#| fig-height: 4
+#| fig-width: 5
+#| fig-cap: "FN-Pbr emergence in the Netherlands"
+#| 
+(
+  pt_fnPbr <- dplyr::filter(
+    panMeta, geo_loc_country == "Netherlands", pbr == "P. brasiliense"
+  ) %>% 
+    ggplot2::ggplot() +
+    ggpattern::geom_histogram_pattern(
+      mapping = aes(x = collection_year, fill = virType, pattern_density = virType),
+      binwidth = 1,
+      pattern = "stripe", pattern_fill = "black",
+      # pattern_density = 0.6,
+      color = "black", pattern_spacing = 0.02, pattern_colour = "black"
+    ) +
+    scale_fill_manual(
+      values = c("TP" = "red", "FP" = alpha("green", 1),
+                 "TN" = "green", "FN" = alpha("red", 1), "unknown" = "grey")
+    ) +
+    scale_pattern_density_manual(
+      values = c("TP" = 0, "FP" = 0.5, "TN" = 0,
+                 "FN" = 0.5, "unknown" = 0)
+    ) +
+    # labs(
+    #   title = "FN-Pbr emergence in the Netherlands"
+    # ) +
+    scale_x_continuous(expand = expansion(add = 0)) +
+    scale_y_continuous(expand = expansion(add = c(0, 2))) +
+    theme_bw(base_size = 20) +
+    theme(
+      legend.position = c(0.01, 0.9),
+      legend.justification = c(0, 1),
+      legend.key.size = unit(1, "cm"),
+      legend.text = element_text(size = 20),
+      legend.title = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank()
+    )
+)
+
+```
+
+```{r echo=FALSE}
+ggsave(filename = file.path(outDir, "fn_pbr_NL.pdf"), plot = pt_fnPbr, width = 8, height = 6)
+```
+
+## Explore *P. brasiliense* genome metdata
+
+### Prepare plotting data
+
+```{r}
+
+plotDf <- dplyr::select(
+  panMeta, Genome, source, sampleId, SpeciesName, geo_loc_country, virulence,
+  virulence_pcr, length, GC_per, N50, L50,
+  Gene_count, mRNA_count, tRNA_count, rRNA_count,
+  Homology_groups, Singletons
+) %>%
+  dplyr::filter(SpeciesName == "P. brasiliense") %>% 
+  tidyr::pivot_longer(
+    cols = -c(Genome, sampleId, source, SpeciesName, geo_loc_country,
+              virulence, virulence_pcr),
+    names_to = "field",
+    values_to = "value"
+  ) %>%
+  dplyr::mutate(
+    field = forcats::fct_relevel(
+      field, "length", "Gene_count", "mRNA_count", "tRNA_count", "rRNA_count"
+    )
+  )
+
+```
+
+### Do *P. brasiliense* from the Netherlands have more genes?
+
+Here, we compare the mRNA count of *P. brasiliense* genomes between the isolates
+from the Netherlands and rest of the world. 
+A good quality genome can have more mRNA and to control for this, we also compare
+the N50 values between the same groups.
+
+```{r}
+#| fig-height: 6
+#| fig-width: 5
+#| fig-cap: "Pbr isolates from the Netherlands have more protein coding genes"
+
+(
+  pt_loc <- plotDf %>% 
+    # dplyr::filter(field %in% c("length")) %>%
+    # dplyr::filter(field %in% c("mRNA_count", "length", "N50", "N90", "L50", "L90")) %>%
+    dplyr::filter(field %in% c("mRNA_count", "N50")) %>%
+    # dplyr::filter(field %in% c("mRNA_count", "tRNA_count", "rRNA_count", "N50")) %>%
+    ggplot2::ggplot(
+      mapping = aes(x = forcats::fct_rev(geo_loc_country), y = value)
+    ) +
+    geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
+    ggbeeswarm::geom_quasirandom(size = 3) +
+    ggpubr::stat_compare_means(label.y.npc = "top", vjust = -1) +
+    scale_y_continuous(
+      labels = scales::label_comma(scale_cut = c(Mb = 1000000, Gb = 1000000000)),
+      expand = expansion(mult = c(0.1))
+    ) +
+    facet_wrap(
+      facets = ~field, nrow = 1, scales = "free_y",
+      labeller = ggplot2::labeller(
+        field = c("mRNA_count" = "Gene count", "length" = "Genome size", "N50" = "N50")
+      )
+    ) +
+    # labs(
+    #   title = "Pbr isolates from the Netherlands have more protein coding genes"
+    # ) +
+    theme_bw(base_size = 20) +
+    theme(
+      axis.title = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom",
+      panel.grid = element_blank()
+    )
+)
+
+
+```
+
+```{r echo=FALSE}
+ggsave(filename = file.path(outDir, "location_vs_ngenes.pdf"),
+       plot = pt_loc, width = 8, height = 8)
+```
+
+### Do virulent *P. brasiliense* isolates have more mRNAs?
+
+
+```{r}
+#| fig-cap: Virulent Pbr isolates have more protein coding genes than avirulent
+#| fig-height: 6
+#| fig-width: 9
+
+(
+  pt_vir <- dplyr::filter(plotDf, virulence %in% c("virulent", "avirulent")) %>% 
+    dplyr::filter(field %in% c("mRNA_count", "length", "N50")) %>%
+    ggplot2::ggplot(mapping = aes(x = virulence, y = value))  +
+    ggplot2::geom_boxplot(width = .5, outlier.shape = NA, alpha = 0, linewidth = 1) +
+    ggbeeswarm::geom_quasirandom(
+      mapping = aes(color = virulence),
+      size = 3
+    ) +
+    ggpubr::stat_compare_means(label.y.npc = "top", vjust = -1) +
+    ggplot2::scale_x_discrete(
+      labels = c("virulent" = "BL causing","avirulent" = "BL non-causing")
+    ) +
+    ggplot2::scale_color_manual(
+      name = "Blackleg phenotype",
+      values = c("red", "black"),
+      breaks = c("virulent", "avirulent"),
+      label = c("BL-causing", "BL non-causing"),
+      guide = guide_legend(override.aes = list(size = 6))
+    ) +
+    ggplot2::scale_y_continuous(
+      labels = scales::label_comma(scale_cut = c(Mb = 1000000, Gb = 1000000000)),
+      expand = expansion(mult = c(0.1))
+    ) +
+    ggplot2::facet_wrap(
+      facets = ~field, nrow = 1, scales = "free_y",
+      labeller = ggplot2::labeller(
+        field = c("mRNA_count" = "Gene count", "length" = "Genome size", "N50" = "N50")
+      )
+    ) +
+    ggplot2::theme_bw(base_size = 22) +
+    ggplot2::theme(
+      axis.title = element_blank(),
+      # axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text.x = element_blank(),
+      legend.position = "bottom",
+      panel.grid = element_blank()
+    )
+)
+
+```
+
+```{r echo=FALSE}
+ggsave(filename = file.path(outDir, "genome_size_vs_blackleg.pdf"), plot = pt_vir, width = 8, height = 6)
+```
+
