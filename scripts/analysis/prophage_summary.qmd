@@ -691,58 +691,6 @@ ggsave(
 pt_phage_hgs
 ```
 
-### Prophage homology groups with annotation table for exploration
-
-```{r}
-hgCog <- suppressMessages(
-  AnnotationDbi::select(
-    x = panOrgDb, keys = phageHgDf$hgId,
-    columns = c("GID", "COG_id", "COG_description")
-  )
-) %>%
-  dplyr::filter(COG_id != "None") %>%
-  dplyr::distinct() %>%
-  dplyr::group_by(GID) %>%
-  dplyr::reframe(
-    dplyr::across(
-      .cols = starts_with("COG_"),
-      .fns = ~ paste(.x, collapse = ";")
-    )
-  )
-
-hgPfam <- suppressMessages(
-  AnnotationDbi::select(
-    x = panOrgDb, keys = phageHgDf$hgId,
-    columns = c("GID", "pfam_id", "pfam_description")
-  )
-) %>%
-  dplyr::filter(!is.na(pfam_id)) %>%
-  dplyr::distinct() %>%
-  dplyr::group_by(GID) %>%
-  dplyr::reframe(
-    dplyr::across(
-      .cols = starts_with("pfam_"),
-      .fns = ~ paste(.x, collapse = ";")
-    )
-  )
-
-phageHgDf <- dplyr::left_join(
-  phageHgDf, hgCog,
-  by = c("hgId" = "GID")
-) %>%
-  dplyr::left_join(hgPfam, by = c("hgId" = "GID")) %>%
-  dplyr::select(
-    hgId, starts_with("COG"), starts_with("pfam"),
-    Pangenome, phageSpeciesStats$SpeciesName
-  )
-
-readr::write_tsv(
-  x = phageHgDf,
-  file = confs$analysis$prophages$summary$files$prophage_hg_info
-)
-```
-
-
 ## Prophage contribution to the genome size in blackleg-causing and blackleg-non-causing isolates
 
 ```{r}

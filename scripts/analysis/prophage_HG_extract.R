@@ -22,13 +22,13 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-orgDb <- org.Pectobacterium.spp.pan.eg.db
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ################################################################################
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 prophageDf <- suppressMessages(
@@ -49,26 +49,38 @@ dplyr::group_by(panProphages, sampleId, SpeciesName) %>%
 
 # get homology groups for each prophage region
 proHgs <- dplyr::filter(panProphages, !is.na(contig_id)) %>%
-  dplyr::select(sampleId, genomeId, chr, start, end, prophage_id) %>%
+  dplyr::select(sampleId, genomeId, chr, region_start = start, region_end = end, prophage_id) %>%
+  # head(20) %>%
   dplyr::rowwise() %>%
   dplyr::mutate(
     hgs = list(
       region_homology_groups(
-        pandb = orgDb, genome = genomeId, chr = chr, start = start, end = end
+        pandb = panOrgDb, genome = genomeId, chr = chr,
+        start = region_start, end = region_end,
+        cols = c("GID", "mRNA_id", "mRNA_key")
       )
     )
   )
 
-# filter to remove prophages without any hgs 
-proHgs %>%
-  dplyr::mutate(
-    nHgs = length(hgs),
-    hgs = paste(hgs, collapse = ";")
+phage_genes <- dplyr::select(proHgs, prophage_id, sampleId, hgs) %>%
+  tidyr::unnest(cols = c(hgs)) %>%
+  dplyr::rename(hgId = GID)
+
+# write prophage region homology groups to a file
+dplyr::group_by(phage_genes, prophage_id, sampleId) %>%
+  dplyr::summarise(
+    nHgs = length(hgId),
+    hgs = paste(hgId, collapse = ";"),
+    .groups = "drop"
   ) %>%
+  dplyr::rename(id = prophage_id) %>%
+  dplyr::ungroup() %>%
   dplyr::filter(nHgs > 0) %>%
-  dplyr::select(id = prophage_id, sampleId, nHgs, hgs) %>%
   readr::write_tsv(
     file = confs$analysis$prophages$preprocessing$files$raw_prophage_hg
   )
 
-################################################################################
+readr::write_tsv(
+  phage_genes,
+  file = confs$analysis$prophages$preprocessing$files$raw_prophage_genes
+)

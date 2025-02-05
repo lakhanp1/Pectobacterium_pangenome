@@ -133,12 +133,14 @@ region_homology_groups <- function(
     pandb, genome, chr, start = 1, end = Inf, strand = "+",
     cols = NULL, overlapping = FALSE
 ) {
-  stopifnot(
-    !is.na(chr)
-  )
 
   start <- ifelse(is.na(start), 1, start)
   end <- ifelse(is.na(end), Inf, end)
+
+  stopifnot(
+    !is.na(chr),
+    start < end
+  )
 
   df <- suppressMessages(AnnotationDbi::select(
     x = pandb, keys = genome, keytype = "genomeId",
