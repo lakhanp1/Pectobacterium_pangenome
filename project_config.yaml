@@ -70,6 +70,16 @@ data:
       data: "plasmid_summary.tab"
       ani: "plasmid_ANI"
       mash: "mash/plasmid_distance.tab"
+  defense_finder:
+    dir: "defense_finder"
+    files:
+      defense_systems: "defense_systems.tsv"
+      defense_genes: "defense_systems_genes.tsv"
+  phrog:
+    dir: "phrog_annotation"
+    files:
+      annotations: "phrog_nr_proteome_result.tsv"
+      phrog_metadata: "phrog_annot_v4.tsv"
   busco_db:
     dir: "busco_downloads"
     lineage: "enterobacterales_odb10"
@@ -95,6 +105,7 @@ data:
     pectobacterium.v2:
       dir: "pectobacterium.v2"
       name: "pectobacterium.v2"
+      n_genomes: 454
       include_source: ["NCBI", "NAK", "NIVIP"]
       homology_group_setting: 4
       files:
@@ -110,6 +121,14 @@ data:
         gene_info: "extracted_data/pangenome_gene_info.tab"
         blastdb: "blastdb/genomes_combined.fa"
         genome_chrs: "blastdb/genome_chr_map.tab"
+      proteins:
+        dir: "proteins_db"
+        files:
+          pan_faa: "proteins_combined.faa"
+          proteins_mmseq_db: "proteins_combined.mmseq_db/proteins_combined.mmseq_db"
+          nr_proteins: "proteins_nr.clust/proteins_rep.faa"
+          nr_protein_clusters: "proteins_nr.clust/proteins_nr.clust.tsv"
+          nr_proteins_mmseq_db: "proteins_nr.clust/proteins_rep.db"
       analysis_confs:
         dir: "analysis_configs"
         files:
@@ -304,6 +323,11 @@ analysis:
     dir: "pangenome_v2/pheno_association"
     files:
       pheno_specific_groups: "phenotype_specific_groups.txt"
+  defense_systems:
+    dir: "pangenome_v2/defense_systems"
+    files:
+      data: "defense_system_data.tab"
+      stats_genome: "genome_wide_defense_systems.tab"
   prophages:
     cutoff_length: 5000
     dir: "pangenome_v2/prophages"
@@ -315,6 +339,8 @@ analysis:
       dir: "preprocessing"
       files:
         raw_prophage_hg: "prophage_hgs.tab"
+        raw_prophage_genes: "prophage_genes.tab"
+        hg_annotations: "prophage_hg_annotations.tab"
         consolidated: "consolidated_phages.tab"
         prophage_pool: "prophages_pool.tab"
         pair_comparison: "phage_pair_relationships.tab"
@@ -334,7 +360,6 @@ analysis:
       files:
         prophage_stats_species: "prophage_stats_species.tab"
         prophage_stats_genome: "prophage_stats_genome.tab"
-        prophage_hg_info: "prophage_HG_info.tab"
   ctv:
     dir: "pangenome_v2/carotovoricin"
     files:
