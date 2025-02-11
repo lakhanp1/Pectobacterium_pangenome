@@ -255,6 +255,30 @@ do
 done
 ```
 
+Combine Defense-finder output into single file
+
+```bash
+# combine systems
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+    awk -v var="${i}" '!/^sys_id/ {print var "\t" $0}' data/defense_finder/${i}/${i}_defense_finder_systems.tsv
+done > data/defense_finder/defense_systems.tsv
+
+# combine genes
+for i in `cat data/reference_data/assembly_ids.txt`
+do
+    awk -v var="${i}" 'NR>1 {print var "\t" $0}' data/defense_finder/${i}/${i}_defense_finder_genes.tsv
+done > data/defense_finder/defense_systems_genes.tsv
+```
+
+## MMSeq2 database
+
+```
+conda activate mmseq2
+
+mmseqs createdb data/pangenomes/pectobacterium.v2/mmseq_panproteome_db
+```
+
 ## Prepare data for pangenome construction
 
 ### Extract metadata from NCBI XML files

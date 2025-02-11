@@ -385,3 +385,76 @@ analysis in R.
 ```bash
 Rscript scripts/build/pangenome_org_db.R
 ```
+
+## Combine protein sequences
+
+```bash
+for i in data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/proteins/proteins_*.fasta
+do
+    id=$(basename ${i} | sed -r 's/proteins_([0-9]+).fasta/\1/')
+    awk -v sample=${id} '{sub(/^>/, ">"sample"_"); print }' $i
+done > data/pangenomes/pectobacterium.v2/proteins_db/proteins_combined.faa
+
+```
+
+## Annotate proteins with PHROG annotations for bacteriophages
+
+### Remove redundency in pan-proteome for efficiency
+
+```bash
+conda activate mmseq2
+
+mkdir data/pangenomes/pectobacterium.v2/proteins_db/proteins_combined.mmseq_db
+MMSEQ_DB="data/pangenomes/pectobacterium.v2/proteins_db/proteins_combined.mmseq_db/proteins_combined.mmseq_db"
+
+# create mmseq db for pan-proteome
+mmseqs createdb data/pangenomes/pectobacterium.v2/proteins_db/proteins_combined.faa \
+${MMSEQ_DB} > \
+logs/mmseq_db.log 2>&1
+
+mkdir data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr_hash
+
+## create non-redundant protein set
+mmseqs clusthash ${MMSEQ_DB}  \
+data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr_hash/nr_hash \
+--min-seq-id 1 --threads 32
+
+MMSEQ_NR_CLUSTER_DB="data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr.clust/proteins_nr.clust"
+
+mmseqs clust ${MMSEQ_DB} \
+data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr_hash/nr_hash \
+${MMSEQ_NR_CLUSTER_DB}
+
+## create TSV file with cluster representatives
+mmseqs createtsv \
+${MMSEQ_DB} ${MMSEQ_DB} ${MMSEQ_NR_CLUSTER_DB} \
+data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr.clust/proteins_nr.clust.tsv
+
+MMSEQ_NR_SUB_DB=data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr.clust/proteins_rep.db
+
+## create a sub-db of only cluster representative sequences
+mmseqs createsubdb ${MMSEQ_NR_CLUSTER_DB} ${MMSEQ_DB} ${MMSEQ_NR_SUB_DB}
+
+
+## Extract representative sequence
+mmseqs convert2fasta ${MMSEQ_NR_SUB_DB} \
+data/pangenomes/pectobacterium.v2/proteins_db/proteins_nr.clust/proteins_rep.faa 
+
+```
+
+### Search PHROGS against the representative proteins using MMSeq2
+
+```bash
+conda activate mmseq2
+
+# search pan-proteome using PHROG profiles
+mmseqs search ${TOOLS_PATH}/phrog_profiles/phrogs_mmseqs_db/phrogs_profile_db \
+${MMSEQ_NR_SUB_DB} \
+data/phrog_annotation/phrog_nr_proteome_result \
+./tmp -s 7 --threads 64 > logs/mmseq_search.log 2>&1
+
+# create TSV results file
+mmseqs createtsv ${TOOLS_PATH}/phrog_profiles/phrogs_mmseqs_db/phrogs_profile_db \
+${MMSEQ_NR_SUB_DB} data/phrog_annotation/phrog_nr_proteome_result \
+data/phrog_annotation/phrog_nr_proteome_result.tsv
+```
