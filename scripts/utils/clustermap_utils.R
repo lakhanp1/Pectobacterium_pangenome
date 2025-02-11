@@ -12,7 +12,8 @@
 #' @export
 #'
 #' @examples NA
-clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_colors = NULL) {
+clustermap_data <- function(regions, file, flanking_region = 0, pandb,
+                            group_colors = NULL, group_annotations = NULL) {
   stopifnot(
     all(c("chr", "start", "end", "genomeId", "region_id") %in% names(regions)),
     !any(duplicated(regions$region_id))
@@ -21,7 +22,16 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
   if(!is.null(group_colors)){
     stopifnot(
       is.data.frame(group_colors),
-      all(c("hg_id", "colour") %in% names(group_colors))
+      all(c("hg_id", "colour") %in% names(group_colors)),
+      !any(duplicated(group_colors$hg_id))
+    )
+  }
+
+  if(!is.null(group_annotations)){
+    stopifnot(
+      is.data.frame(group_annotations),
+      all(c("hg_id", "annotation") %in% names(group_annotations)),
+      !any(duplicated(group_annotations$hg_id))
     )
   }
 
@@ -59,7 +69,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
         "mRNA_key", "genePos", "mRNA_id", "COG_description", "pfam_description"
       )
     ) %>%
-      dplyr::rename(hg = GID)
+      dplyr::rename(hg_id = GID)
 
     # summarize COG and PFAM annotations
     cog <- dplyr::select(regHgs, mRNA_key, COG_description) %>%
@@ -88,6 +98,13 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
       ) %>%
       dplyr::arrange(start)
 
+    show_gene_metadata <- c("COG", "PFAM", "genePos", "genomeId")
+
+    if(!is.null(group_annotations)){
+      regHgs <- dplyr::left_join(regHgs, group_annotations, by = "hg_id")
+      show_gene_metadata <- c("COG", "PFAM", "annotation", "genePos", "genomeId")
+    }
+
     # set flanking = 1 for the flanking genes
     if (flanking_region > 0) {
       flankingGenes <- which(regHgs$start < regObj$oldStart | regHgs$end > regObj$oldEnd)
@@ -96,30 +113,30 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
     }
 
     # change the orientation of gene strand for better visualization
-    thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+    thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg_id) %>%
       as.list()
 
     if (!is.null(hgStrand)) {
-      for (h in hgFrequency$hg) {
+      for (h in hgFrequency$hg_id) {
         if (!is.null(thisRegHgStrand[[h]]) & !is.null(hgStrand[[h]])) {
           if ((thisRegHgStrand[[h]] != hgStrand[[h]])) {
             regHgs <- invert_coordinates(regHgs)
 
             # update this region strands backup record after changing orientation
-            thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+            thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg_id) %>%
               as.list(thisRegHgStrand)
           }
           break
         }
       }
     } else {
-      for (h in hgFrequency$hg) {
+      for (h in hgFrequency$hg_id) {
         if (!is.null(thisRegHgStrand[[h]])) {
           if (thisRegHgStrand[[h]] == -1) {
             regHgs <- invert_coordinates(regHgs)
 
             # update this region strands backup record after changing orientation
-            thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg) %>%
+            thisRegHgStrand <- dplyr::pull(regHgs, strand, name = hg_id) %>%
               as.list(thisRegHgStrand)
           }
 
@@ -133,9 +150,9 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
     # finally, store the HG frequency information in decreasing order to
     hgFrequency <- dplyr::bind_rows(
       hgFrequency,
-      dplyr::count(regHgs, hg)
+      dplyr::count(regHgs, hg_id)
     ) %>%
-      dplyr::count(hg, wt = n) %>%
+      dplyr::count(hg_id, wt = n) %>%
       dplyr::arrange(desc(n))
 
     # regHgs <- regHgs[1:5, ]
@@ -146,14 +163,12 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
 
     # names should be a tibble type as it needs to be an {object} in JSON
     # and not a [list of {objects}]
-    regGenes$names <- dplyr::select(
-      regHgs, hg, COG, PFAM, genePos, genomeId
-    )
+    regGenes$names <- dplyr::select(regHgs, hg_id, tidyselect::all_of(show_gene_metadata))
 
     ## save groups information for making groups JSON
     geneToGroup <- dplyr::bind_rows(
       geneToGroup,
-      dplyr::select(regHgs, hg, genes = uid, genomeId, flanking)
+      dplyr::select(regHgs, hg_id, genes = uid, genomeId, flanking)
     )
 
     # for now there is only one loci in each cluster
@@ -189,18 +204,18 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
 
   geneToGroup <- dplyr::mutate(
     geneToGroup,
-    uid = dplyr::if_else(flanking == 1, paste(hg, "_flanking", sep = ""), hg)
+    uid = dplyr::if_else(flanking == 1, paste(hg_id, "_flanking", sep = ""), hg_id)
   )
 
   ## make groups JSON
-  groupsJsonDf <- dplyr::add_count(geneToGroup, hg, name = "groupFreq") %>%
+  groupsJsonDf <- dplyr::add_count(geneToGroup, hg_id, name = "groupFreq") %>%
     dplyr::summarise(
       genes = list(genes),
       hidden = FALSE,
-      .by = c(uid, hg, flanking, groupFreq)
+      .by = c(uid, hg_id, flanking, groupFreq)
     ) %>%
     dplyr::arrange(desc(groupFreq)) %>%
-    dplyr::select(uid, label = hg, everything()) %>%
+    dplyr::select(uid, label = hg_id, everything()) %>%
     dplyr::arrange(desc(groupFreq))
 
 
@@ -212,8 +227,8 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
       by = c("label" = "hg_id")
     ) %>%
       dplyr::mutate(
-        colour = dplyr::if_else(
-          flanking == 1, "rgb(255, 255, 255)", colour)
+        colour = dplyr::if_else(flanking == 1, "rgb(255, 255, 255)", colour),
+        colour = dplyr::if_else(is.na(colour), "rgb(255, 255, 255)", colour)
       )
 
   } else{
@@ -250,12 +265,12 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
   #     by = "q_slot"
   #   ) %>%
   #   dplyr::left_join(
-  #     y = dplyr::select(geneToGroup, hg, q_genome = genomeId, query = genes),
+  #     y = dplyr::select(geneToGroup, hg_id, q_genome = genomeId, query = genes),
   #     by = "q_genome"
   #   ) %>%
   #   dplyr::left_join(
-  #     y = dplyr::select(geneToGroup, hg, t_genome = genomeId, target = genes),
-  #     by = c("t_genome", "hg")
+  #     y = dplyr::select(geneToGroup, hg_id, t_genome = genomeId, target = genes),
+  #     by = c("t_genome", "hg_id")
   #   ) %>%
   #   dplyr::filter(if_all(.cols = c(query, target), ~ !is.na(.))) %>%
   #   tidyr::unite(col = uid, query, target, sep = "_link_", remove = F) %>%
@@ -280,7 +295,7 @@ clustermap_data <- function(regions, file, flanking_region = 0, pandb, group_col
           dplyr::mutate(
             identity = 1,
             similarity = 1,
-            hg = h
+            hg_id = h
           )
 
         regLinks <- dplyr::select(
