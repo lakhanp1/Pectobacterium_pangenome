@@ -27,18 +27,18 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-cluster_title <- "phage_grp_46"
+cluster_title <- "grp_45_mosaicsm"
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
-region_cluster <- "phage_grp_46"
-other_regions <- character(0)
+region_cluster <- NA
+other_regions <- c("g_302.vir_1", "g_399.vir_1", "g_400.vir_2")
 
 subSample <- TRUE
 cutHeight <- 0.5
 addFlankingRegions <- TRUE
-flankingRegion <- 5000
+flankingRegion <- 7000
 
 # ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
 # "cluster_mash" for prophage MASH and "default" to use the provided
@@ -51,16 +51,9 @@ regions_phy_ordered <- FALSE
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_190_reg = list(chr = "NZ_CP059960.1", start = 1997124, end = 2000186, genomeId = "g_190"),
-  g_193_reg = list(chr = "NZ_CP059957.1", start = 5005351, end = 5008413, genomeId = "g_193"),
-  g_411_reg = list(chr = "NAK682_contig_2_consensus", start = 461100, end = 464162, genomeId = "g_411"),
-  g_415_reg = list(chr = "NAK701_contig_5_consensus", start = 415799, end = 418861, genomeId = "g_415"),
-  g_63_reg = list(chr = "NZ_CP092039.1", start = 4288654, end = 4291716, genomeId = "g_63"),
-  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406")
-  # g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194"),
-  # g_263_reg = list(chr = "NZ_CP047495.1", start = 956237, end = 956907, genomeId = "g_263")
+  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"),
+  g_194_reg = list(chr = "NZ_CP059956.1", start = 3940785, end = 3958060, genomeId = "g_194")
 )
-
 
 regionClusters <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$clusters)

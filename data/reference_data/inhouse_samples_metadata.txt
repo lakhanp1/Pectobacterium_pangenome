@@ -1,27 +1,27 @@
 sampleId	source	SpeciesName	strain	SubmitterOrganization	geo_loc_name	collection_date	host	isolation_source	type_material	symptom_per_2019	symptom_per_2020	symptom_per_2022	virulence	virulence_pcr	AssemblyAccession	BioSampleAccn	BioprojectAccn
-JGAR-030718-1	NAK	Pectobacterium brasiliense	JGAR-030718-1	NAK	Netherlands: Groningen	2018	Solanum tuberosum	Symptomatic Potato Stem			0.720385973		virulent	negative	GCA_046623145.1	SAMN42841154	PRJNA1140644
-JGAR-080719-2	NAK	Pectobacterium brasiliense	JGAR-080719-2	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.642761723		virulent	negative	GCA_046623105.1	SAMN42841155	PRJNA1140644
-JGAR-100719-1	NAK	Pectobacterium brasiliense	JGAR-100719-1	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.593263644		virulent	negative	GCA_046623085.1	SAMN42841156	PRJNA1140644
-JGAR-120719-4	NAK	Pectobacterium brasiliense	JGAR-120719-4	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.656878532		virulent	negative	GCA_046623045.1	SAMN42841157	PRJNA1140644
-NAK238	NAK	Pectobacterium brasiliense	NAK238	NAK	Netherlands: Groningen	2016	Solanum tuberosum	Asymptomatic Potato Heel end			0.002638837		avirulent	positive	GCA_046623125.1	SAMN42841158	PRJNA1140644
-NAK246	NAK	Pectobacterium brasiliense	NAK246	NAK	Netherlands: Noord-Holland	2016	Solanum tuberosum	Asymptomatic Potato Heel end					avirulent	positive	GCA_046623065.1	SAMN42841159	PRJNA1140644
-NAK616	NAK	Pectobacterium brasiliense	NAK616	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.494157062		virulent	negative	GCA_046623025.1	SAMN42841160	PRJNA1140644
-NAK617	NAK	Pectobacterium brasiliense	NAK617	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.665436521		virulent	negative	GCA_046623005.1	SAMN42841161	PRJNA1140644
-NAK638	NAK	Pectobacterium brasiliense	NAK638	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem						negative	GCA_046622985.1	SAMN42841162	PRJNA1140644
-NAK641	NAK	Pectobacterium brasiliense	NAK641	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative	GCA_046622965.1	SAMN42841163	PRJNA1140644
-NAK644	NAK	Pectobacterium brasiliense	NAK644	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative	GCA_046622945.1	SAMN42841164	PRJNA1140644
-NAK650	NAK	Pectobacterium brasiliense	NAK650	NAK	Netherlands: Noord-Brabant	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative	GCA_046622905.1	SAMN42841165	PRJNA1140644
-NAK673	NAK	Pectobacterium brasiliense	NAK673	NAK	Netherlands: Noord-Brabant	2020	Solanum tuberosum	Asymptomatic Potato Peel						negative	GCA_046622925.1	SAMN42841166	PRJNA1140644
-NAK679	NAK	Pectobacterium brasiliense	NAK679	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.010527495	avirulent	negative	GCA_046622865.1	SAMN42841167	PRJNA1140644
-NAK682	NAK	Pectobacterium brasiliense	NAK682	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.72676329	virulent	positive	GCA_046622845.1	SAMN42841168	PRJNA1140644
-NAK683	NAK	Pectobacterium brasiliense	NAK683	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.736822611	virulent	negative	GCA_046622825.1	SAMN42841169	PRJNA1140644
-NAK698	NAK	Pectobacterium brasiliense	NAK698	NAK	Netherlands: Zeeland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive	GCA_046622805.1	SAMN42841170	PRJNA1140644
-NAK700	NAK	Pectobacterium brasiliense	NAK700	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative	GCA_046622885.1	SAMN42841171	PRJNA1140644
-NAK701	NAK	Pectobacterium brasiliense	NAK701	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.791320438	virulent	positive	GCA_046622765.1	SAMN42841172	PRJNA1140644
-NAK709	NAK	Pectobacterium brasiliense	NAK709	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel					avirulent	negative	GCA_046622745.1	SAMN42841173	PRJNA1140644
-NAK716	NAK	Pectobacterium brasiliense	NAK716	NAK	Netherlands: Groningen	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative	GCA_046622725.1	SAMN42841174	PRJNA1140644
-NAK719	NAK	Pectobacterium brasiliense	NAK719	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive	GCA_046622685.1	SAMN42841175	PRJNA1140644
-NAK727	NAK	Pectobacterium brasiliense	NAK727	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative	GCA_046622705.1	SAMN42841176	PRJNA1140644
+JGAR-030718-1	NAK	Pectobacterium brasiliense	JGAR-030718-1	NAK	Netherlands: Groningen	2018	Solanum tuberosum	Symptomatic Potato Stem			0.720385973		virulent	negative	GCF_046623145.1	SAMN42841154	PRJNA1140644
+JGAR-080719-2	NAK	Pectobacterium brasiliense	JGAR-080719-2	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.642761723		virulent	negative	GCF_046623105.1	SAMN42841155	PRJNA1140644
+JGAR-100719-1	NAK	Pectobacterium brasiliense	JGAR-100719-1	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.593263644		virulent	negative	GCF_046623085.1	SAMN42841156	PRJNA1140644
+JGAR-120719-4	NAK	Pectobacterium brasiliense	JGAR-120719-4	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.656878532		virulent	negative	GCF_046623045.1	SAMN42841157	PRJNA1140644
+NAK238	NAK	Pectobacterium brasiliense	NAK238	NAK	Netherlands: Groningen	2016	Solanum tuberosum	Asymptomatic Potato Heel end			0.002638837		avirulent	positive	GCF_046623125.1	SAMN42841158	PRJNA1140644
+NAK246	NAK	Pectobacterium brasiliense	NAK246	NAK	Netherlands: Noord-Holland	2016	Solanum tuberosum	Asymptomatic Potato Heel end					avirulent	positive	GCF_046623065.1	SAMN42841159	PRJNA1140644
+NAK616	NAK	Pectobacterium brasiliense	NAK616	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.494157062		virulent	negative	GCF_046623025.1	SAMN42841160	PRJNA1140644
+NAK617	NAK	Pectobacterium brasiliense	NAK617	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem			0.665436521		virulent	negative	GCF_046623005.1	SAMN42841161	PRJNA1140644
+NAK638	NAK	Pectobacterium brasiliense	NAK638	NAK	Netherlands: Friesland	2019	Solanum tuberosum	Symptomatic Potato Stem						negative	GCF_046622985.1	SAMN42841162	PRJNA1140644
+NAK641	NAK	Pectobacterium brasiliense	NAK641	NAK	Netherlands: Zeeland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative	GCF_046622965.1	SAMN42841163	PRJNA1140644
+NAK644	NAK	Pectobacterium brasiliense	NAK644	NAK	Netherlands: Noord-Holland	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative	GCF_046622945.1	SAMN42841164	PRJNA1140644
+NAK650	NAK	Pectobacterium brasiliense	NAK650	NAK	Netherlands: Noord-Brabant	2019	Solanum tuberosum	Symptomatic Potato Stem					virulent	negative	GCF_046622905.1	SAMN42841165	PRJNA1140644
+NAK673	NAK	Pectobacterium brasiliense	NAK673	NAK	Netherlands: Noord-Brabant	2020	Solanum tuberosum	Asymptomatic Potato Peel						negative	GCF_046622925.1	SAMN42841166	PRJNA1140644
+NAK679	NAK	Pectobacterium brasiliense	NAK679	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.010527495	avirulent	negative	GCF_046622865.1	SAMN42841167	PRJNA1140644
+NAK682	NAK	Pectobacterium brasiliense	NAK682	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.72676329	virulent	positive	GCF_046622845.1	SAMN42841168	PRJNA1140644
+NAK683	NAK	Pectobacterium brasiliense	NAK683	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.736822611	virulent	negative	GCF_046622825.1	SAMN42841169	PRJNA1140644
+NAK698	NAK	Pectobacterium brasiliense	NAK698	NAK	Netherlands: Zeeland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive	GCF_046622805.1	SAMN42841170	PRJNA1140644
+NAK700	NAK	Pectobacterium brasiliense	NAK700	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative	GCF_046622885.1	SAMN42841171	PRJNA1140644
+NAK701	NAK	Pectobacterium brasiliense	NAK701	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.791320438	virulent	positive	GCF_046622765.1	SAMN42841172	PRJNA1140644
+NAK709	NAK	Pectobacterium brasiliense	NAK709	NAK	Netherlands: Flevoland	2020	Solanum tuberosum	Asymptomatic Potato Peel					avirulent	negative	GCF_046622745.1	SAMN42841173	PRJNA1140644
+NAK716	NAK	Pectobacterium brasiliense	NAK716	NAK	Netherlands: Groningen	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative	GCF_046622725.1	SAMN42841174	PRJNA1140644
+NAK719	NAK	Pectobacterium brasiliense	NAK719	NAK	Netherlands: Noord-Holland	2020	Solanum tuberosum	Asymptomatic Potato Peel						positive	GCF_046622685.1	SAMN42841175	PRJNA1140644
+NAK727	NAK	Pectobacterium brasiliense	NAK727	NAK	Netherlands: Friesland	2020	Solanum tuberosum	Asymptomatic Potato Peel				0.002638837	avirulent	negative	GCF_046622705.1	SAMN42841176	PRJNA1140644
 IPO_4215	NAK2	Pectobacterium spp.	IPO4215	NAK													
 IPO_4216	NAK2	Pectobacterium spp.	IPO4216	NAK													
 IPO_4217	NAK2	Pectobacterium spp.	IPO4217	NAK													

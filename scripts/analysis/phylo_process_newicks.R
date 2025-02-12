@@ -257,9 +257,9 @@ pt_tree4 <- pt_tree3 +
     pwidth = 0.2, offset = 0.05
   )  +
   ggnewscale::new_scale_color() +
-  ## BioSampleAccn
+  ## AssemblyAccession
   ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, label = BioSampleAccn, color = source),
+    mapping = aes(y = id, label = AssemblyAccession, color = source),
     geom = "geom_text", size = 3, hjust = "left",
     pwidth = 0.2, offset = 0.15
   ) +

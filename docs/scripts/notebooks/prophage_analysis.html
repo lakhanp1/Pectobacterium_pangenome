@@ -521,7 +521,7 @@ Caution
 <span id="cb19-7"><a href="#cb19-7"></a>other_regions <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">0</span>)</span>
 <span id="cb19-8"><a href="#cb19-8"></a></span>
 <span id="cb19-9"><a href="#cb19-9"></a>subSample <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb19-10"><a href="#cb19-10"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb19-10"><a href="#cb19-10"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
 <span id="cb19-11"><a href="#cb19-11"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
 <span id="cb19-12"><a href="#cb19-12"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
 <span id="cb19-13"><a href="#cb19-13"></a></span>
@@ -531,7 +531,7 @@ Caution
 <span id="cb19-17"><a href="#cb19-17"></a></span>
 <span id="cb19-18"><a href="#cb19-18"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
 <span id="cb19-19"><a href="#cb19-19"></a><span class="co"># based ordering</span></span>
-<span id="cb19-20"><a href="#cb19-20"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb19-20"><a href="#cb19-20"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">TRUE</span> </span>
 <span id="cb19-21"><a href="#cb19-21"></a></span>
 <span id="cb19-22"><a href="#cb19-22"></a><span class="co"># regions to append as list of list with following structure</span></span>
 <span id="cb19-23"><a href="#cb19-23"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
@@ -541,15 +541,15 @@ Caution
 <span id="cb19-27"><a href="#cb19-27"></a>  <span class="at">g_411_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK682_contig_2_consensus"</span>, <span class="at">start =</span> <span class="dv">461100</span>, <span class="at">end =</span> <span class="dv">464162</span>, <span class="at">genomeId =</span> <span class="st">"g_411"</span>),</span>
 <span id="cb19-28"><a href="#cb19-28"></a>  <span class="at">g_415_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK701_contig_5_consensus"</span>, <span class="at">start =</span> <span class="dv">415799</span>, <span class="at">end =</span> <span class="dv">418861</span>, <span class="at">genomeId =</span> <span class="st">"g_415"</span>),</span>
 <span id="cb19-29"><a href="#cb19-29"></a>  <span class="at">g_63_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP092039.1"</span>, <span class="at">start =</span> <span class="dv">4288654</span>, <span class="at">end =</span> <span class="dv">4291716</span>, <span class="at">genomeId =</span> <span class="st">"g_63"</span>),</span>
-<span id="cb19-30"><a href="#cb19-30"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">469664</span>, <span class="at">end =</span> <span class="dv">474521</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>)</span>
-<span id="cb19-31"><a href="#cb19-31"></a>  <span class="co"># g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194"),</span></span>
+<span id="cb19-30"><a href="#cb19-30"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">469664</span>, <span class="at">end =</span> <span class="dv">474521</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>),</span>
+<span id="cb19-31"><a href="#cb19-31"></a>  <span class="at">g_194_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP059956.1"</span>, <span class="at">start =</span> <span class="dv">4163454</span>, <span class="at">end =</span> <span class="dv">4167352</span>, <span class="at">genomeId =</span> <span class="st">"g_194"</span>)</span>
 <span id="cb19-32"><a href="#cb19-32"></a>  <span class="co"># g_263_reg = list(chr = "NZ_CP047495.1", start = 956237, end = 956907, genomeId = "g_263")</span></span>
 <span id="cb19-33"><a href="#cb19-33"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="phage_grp_45-prophage-present-in-all-bl-causing-isolates" class="level3">
 <h3 class="anchored" data-anchor-id="phage_grp_45-prophage-present-in-all-bl-causing-isolates">phage_grp_45: prophage present in all BL-causing isolates</h3>
 <div class="sourceCode" id="cb20"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22429319,hg_22429327 <span class="dt">\</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a>--genomes <span class="st">"g_406"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-2"><a href="#cb20-2"></a>--genomes <span class="st">"g_406,g_194"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"grp_45_mosaicsm"</span></span>
 <span id="cb21-2"><a href="#cb21-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb21-3"><a href="#cb21-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
@@ -574,8 +574,9 @@ Caution
 <span id="cb21-22"><a href="#cb21-22"></a><span class="co"># regions to append as list of list with following structure</span></span>
 <span id="cb21-23"><a href="#cb21-23"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
 <span id="cb21-24"><a href="#cb21-24"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb21-25"><a href="#cb21-25"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">671040</span>, <span class="at">end =</span> <span class="dv">674984</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>)</span>
-<span id="cb21-26"><a href="#cb21-26"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-25"><a href="#cb21-25"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">671040</span>, <span class="at">end =</span> <span class="dv">674984</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>),</span>
+<span id="cb21-26"><a href="#cb21-26"></a>  <span class="at">g_194_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP059956.1"</span>, <span class="at">start =</span> <span class="dv">3940785</span>, <span class="at">end =</span> <span class="dv">3958060</span>, <span class="at">genomeId =</span> <span class="st">"g_194"</span>)</span>
+<span id="cb21-27"><a href="#cb21-27"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="phage_grp_71" class="level3">
 <h3 class="anchored" data-anchor-id="phage_grp_71">phage_grp_71</h3>
@@ -610,7 +611,7 @@ Caution
 <span id="cb23-2"><a href="#cb23-2"></a>--inner_region <span class="at">--genomes</span> <span class="st">"g_63,g_194"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
 <span id="cb24-2"><a href="#cb24-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb24-3"><a href="#cb24-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>ctv<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
+<span id="cb24-3"><a href="#cb24-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb24-4"><a href="#cb24-4"></a></span>
 <span id="cb24-5"><a href="#cb24-5"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
 <span id="cb24-6"><a href="#cb24-6"></a>region_cluster <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
@@ -627,7 +628,7 @@ Caution
 <span id="cb24-17"><a href="#cb24-17"></a></span>
 <span id="cb24-18"><a href="#cb24-18"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
 <span id="cb24-19"><a href="#cb24-19"></a><span class="co"># based ordering</span></span>
-<span id="cb24-20"><a href="#cb24-20"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb24-20"><a href="#cb24-20"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">TRUE</span> </span>
 <span id="cb24-21"><a href="#cb24-21"></a></span>
 <span id="cb24-22"><a href="#cb24-22"></a><span class="co"># regions to append as list of list with following structure</span></span>
 <span id="cb24-23"><a href="#cb24-23"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
@@ -1460,7 +1461,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb31-247"><a href="#cb31-247"></a>other_regions <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">0</span>)</span>
 <span id="cb31-248"><a href="#cb31-248"></a></span>
 <span id="cb31-249"><a href="#cb31-249"></a>subSample <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-250"><a href="#cb31-250"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb31-250"><a href="#cb31-250"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
 <span id="cb31-251"><a href="#cb31-251"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
 <span id="cb31-252"><a href="#cb31-252"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
 <span id="cb31-253"><a href="#cb31-253"></a></span>
@@ -1470,7 +1471,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb31-257"><a href="#cb31-257"></a></span>
 <span id="cb31-258"><a href="#cb31-258"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
 <span id="cb31-259"><a href="#cb31-259"></a><span class="co"># based ordering</span></span>
-<span id="cb31-260"><a href="#cb31-260"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-260"><a href="#cb31-260"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">TRUE</span> </span>
 <span id="cb31-261"><a href="#cb31-261"></a></span>
 <span id="cb31-262"><a href="#cb31-262"></a><span class="co"># regions to append as list of list with following structure</span></span>
 <span id="cb31-263"><a href="#cb31-263"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
@@ -1480,8 +1481,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb31-267"><a href="#cb31-267"></a>  <span class="at">g_411_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK682_contig_2_consensus"</span>, <span class="at">start =</span> <span class="dv">461100</span>, <span class="at">end =</span> <span class="dv">464162</span>, <span class="at">genomeId =</span> <span class="st">"g_411"</span>),</span>
 <span id="cb31-268"><a href="#cb31-268"></a>  <span class="at">g_415_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK701_contig_5_consensus"</span>, <span class="at">start =</span> <span class="dv">415799</span>, <span class="at">end =</span> <span class="dv">418861</span>, <span class="at">genomeId =</span> <span class="st">"g_415"</span>),</span>
 <span id="cb31-269"><a href="#cb31-269"></a>  <span class="at">g_63_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP092039.1"</span>, <span class="at">start =</span> <span class="dv">4288654</span>, <span class="at">end =</span> <span class="dv">4291716</span>, <span class="at">genomeId =</span> <span class="st">"g_63"</span>),</span>
-<span id="cb31-270"><a href="#cb31-270"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">469664</span>, <span class="at">end =</span> <span class="dv">474521</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>)</span>
-<span id="cb31-271"><a href="#cb31-271"></a>  <span class="co"># g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194"),</span></span>
+<span id="cb31-270"><a href="#cb31-270"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">469664</span>, <span class="at">end =</span> <span class="dv">474521</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>),</span>
+<span id="cb31-271"><a href="#cb31-271"></a>  <span class="at">g_194_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP059956.1"</span>, <span class="at">start =</span> <span class="dv">4163454</span>, <span class="at">end =</span> <span class="dv">4167352</span>, <span class="at">genomeId =</span> <span class="st">"g_194"</span>)</span>
 <span id="cb31-272"><a href="#cb31-272"></a>  <span class="co"># g_263_reg = list(chr = "NZ_CP047495.1", start = 956237, end = 956907, genomeId = "g_263")</span></span>
 <span id="cb31-273"><a href="#cb31-273"></a>)</span>
 <span id="cb31-274"><a href="#cb31-274"></a><span class="in">```</span></span>
@@ -1490,7 +1491,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb31-277"><a href="#cb31-277"></a></span>
 <span id="cb31-278"><a href="#cb31-278"></a><span class="in">```bash</span></span>
 <span id="cb31-279"><a href="#cb31-279"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22429319,hg_22429327 <span class="dt">\</span></span>
-<span id="cb31-280"><a href="#cb31-280"></a>--genomes <span class="st">"g_406"</span></span>
+<span id="cb31-280"><a href="#cb31-280"></a>--genomes <span class="st">"g_406,g_194"</span></span>
 <span id="cb31-281"><a href="#cb31-281"></a><span class="in">```</span></span>
 <span id="cb31-282"><a href="#cb31-282"></a></span>
 <span id="cb31-283"><a href="#cb31-283"></a><span class="in">```r</span></span>
@@ -1518,174 +1519,175 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb31-305"><a href="#cb31-305"></a><span class="co"># regions to append as list of list with following structure</span></span>
 <span id="cb31-306"><a href="#cb31-306"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
 <span id="cb31-307"><a href="#cb31-307"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb31-308"><a href="#cb31-308"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">671040</span>, <span class="at">end =</span> <span class="dv">674984</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>)</span>
-<span id="cb31-309"><a href="#cb31-309"></a>)</span>
-<span id="cb31-310"><a href="#cb31-310"></a><span class="in">```</span></span>
-<span id="cb31-311"><a href="#cb31-311"></a></span>
-<span id="cb31-312"><a href="#cb31-312"></a><span class="fu">### phage_grp_71</span></span>
-<span id="cb31-313"><a href="#cb31-313"></a></span>
-<span id="cb31-314"><a href="#cb31-314"></a><span class="in">```r</span></span>
-<span id="cb31-315"><a href="#cb31-315"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_71"</span></span>
-<span id="cb31-316"><a href="#cb31-316"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb31-317"><a href="#cb31-317"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
-<span id="cb31-318"><a href="#cb31-318"></a></span>
-<span id="cb31-319"><a href="#cb31-319"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
-<span id="cb31-320"><a href="#cb31-320"></a>region_cluster <span class="ot">&lt;-</span> <span class="st">"phage_grp_71"</span></span>
-<span id="cb31-321"><a href="#cb31-321"></a>other_regions <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
-<span id="cb31-322"><a href="#cb31-322"></a></span>
-<span id="cb31-323"><a href="#cb31-323"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-324"><a href="#cb31-324"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb31-325"><a href="#cb31-325"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-326"><a href="#cb31-326"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
-<span id="cb31-327"><a href="#cb31-327"></a></span>
-<span id="cb31-328"><a href="#cb31-328"></a><span class="co"># ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,</span></span>
-<span id="cb31-329"><a href="#cb31-329"></a><span class="co"># "cluster_mash" for prophage MASH and "default" to use the provided</span></span>
-<span id="cb31-330"><a href="#cb31-330"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"hg_pav"</span> <span class="co"># host, hg_pav, cluster_mash, default</span></span>
-<span id="cb31-331"><a href="#cb31-331"></a></span>
-<span id="cb31-332"><a href="#cb31-332"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
-<span id="cb31-333"><a href="#cb31-333"></a><span class="co"># based ordering</span></span>
-<span id="cb31-334"><a href="#cb31-334"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-335"><a href="#cb31-335"></a></span>
-<span id="cb31-336"><a href="#cb31-336"></a><span class="co"># regions to append as list of list with following structure</span></span>
-<span id="cb31-337"><a href="#cb31-337"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
-<span id="cb31-338"><a href="#cb31-338"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb31-339"><a href="#cb31-339"></a></span>
-<span id="cb31-340"><a href="#cb31-340"></a><span class="in">```</span></span>
-<span id="cb31-341"><a href="#cb31-341"></a></span>
-<span id="cb31-342"><a href="#cb31-342"></a><span class="fu">### phage_grp_107</span></span>
-<span id="cb31-343"><a href="#cb31-343"></a></span>
-<span id="cb31-344"><a href="#cb31-344"></a><span class="in">```bash</span></span>
-<span id="cb31-345"><a href="#cb31-345"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22427004,hg_22426993 <span class="dt">\</span></span>
-<span id="cb31-346"><a href="#cb31-346"></a>--inner_region <span class="at">--genomes</span> <span class="st">"g_63,g_194"</span></span>
-<span id="cb31-347"><a href="#cb31-347"></a><span class="in">```</span></span>
-<span id="cb31-348"><a href="#cb31-348"></a></span>
-<span id="cb31-349"><a href="#cb31-349"></a><span class="in">```r</span></span>
-<span id="cb31-350"><a href="#cb31-350"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
-<span id="cb31-351"><a href="#cb31-351"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
-<span id="cb31-352"><a href="#cb31-352"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>ctv<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
-<span id="cb31-353"><a href="#cb31-353"></a></span>
-<span id="cb31-354"><a href="#cb31-354"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
-<span id="cb31-355"><a href="#cb31-355"></a>region_cluster <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
-<span id="cb31-356"><a href="#cb31-356"></a>other_regions <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">0</span>)</span>
-<span id="cb31-357"><a href="#cb31-357"></a></span>
-<span id="cb31-358"><a href="#cb31-358"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-359"><a href="#cb31-359"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
-<span id="cb31-360"><a href="#cb31-360"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-361"><a href="#cb31-361"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
-<span id="cb31-362"><a href="#cb31-362"></a></span>
-<span id="cb31-363"><a href="#cb31-363"></a><span class="co"># ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,</span></span>
-<span id="cb31-364"><a href="#cb31-364"></a><span class="co"># "cluster_mash" for prophage MASH and "default" to use the provided</span></span>
-<span id="cb31-365"><a href="#cb31-365"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"host"</span> <span class="co"># host, hg_pav, cluster_mash, default</span></span>
-<span id="cb31-366"><a href="#cb31-366"></a></span>
-<span id="cb31-367"><a href="#cb31-367"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
-<span id="cb31-368"><a href="#cb31-368"></a><span class="co"># based ordering</span></span>
-<span id="cb31-369"><a href="#cb31-369"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-370"><a href="#cb31-370"></a></span>
-<span id="cb31-371"><a href="#cb31-371"></a><span class="co"># regions to append as list of list with following structure</span></span>
-<span id="cb31-372"><a href="#cb31-372"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
-<span id="cb31-373"><a href="#cb31-373"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb31-374"><a href="#cb31-374"></a>  <span class="at">g_63_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP092039.1"</span>, <span class="at">start =</span> <span class="dv">2572138</span>, <span class="at">end =</span> <span class="dv">2573569</span>, <span class="at">genomeId =</span> <span class="st">"g_63"</span>),</span>
-<span id="cb31-375"><a href="#cb31-375"></a>  <span class="at">g_194_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP059956.1"</span>, <span class="at">start =</span> <span class="dv">2620331</span>, <span class="at">end =</span> <span class="dv">2621761</span>, <span class="at">genomeId =</span> <span class="st">"g_194"</span>)</span>
-<span id="cb31-376"><a href="#cb31-376"></a>)</span>
-<span id="cb31-377"><a href="#cb31-377"></a></span>
-<span id="cb31-378"><a href="#cb31-378"></a><span class="in">```</span></span>
-<span id="cb31-379"><a href="#cb31-379"></a></span>
-<span id="cb31-380"><a href="#cb31-380"></a><span class="fu">### BL-causing clade specific signatures</span></span>
-<span id="cb31-381"><a href="#cb31-381"></a></span>
-<span id="cb31-382"><a href="#cb31-382"></a><span class="in">```r</span></span>
-<span id="cb31-383"><a href="#cb31-383"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"Pbr_FN_specific"</span></span>
-<span id="cb31-384"><a href="#cb31-384"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-385"><a href="#cb31-385"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb31-386"><a href="#cb31-386"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-387"><a href="#cb31-387"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
-<span id="cb31-388"><a href="#cb31-388"></a></span>
-<span id="cb31-389"><a href="#cb31-389"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
-<span id="cb31-390"><a href="#cb31-390"></a><span class="co"># completeness score</span></span>
-<span id="cb31-391"><a href="#cb31-391"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"default"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash, default</span></span>
-<span id="cb31-392"><a href="#cb31-392"></a></span>
+<span id="cb31-308"><a href="#cb31-308"></a>  <span class="at">g_406_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NAK641_contig_10_consensus"</span>, <span class="at">start =</span> <span class="dv">671040</span>, <span class="at">end =</span> <span class="dv">674984</span>, <span class="at">genomeId =</span> <span class="st">"g_406"</span>),</span>
+<span id="cb31-309"><a href="#cb31-309"></a>  <span class="at">g_194_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP059956.1"</span>, <span class="at">start =</span> <span class="dv">3940785</span>, <span class="at">end =</span> <span class="dv">3958060</span>, <span class="at">genomeId =</span> <span class="st">"g_194"</span>)</span>
+<span id="cb31-310"><a href="#cb31-310"></a>)</span>
+<span id="cb31-311"><a href="#cb31-311"></a><span class="in">```</span></span>
+<span id="cb31-312"><a href="#cb31-312"></a></span>
+<span id="cb31-313"><a href="#cb31-313"></a><span class="fu">### phage_grp_71</span></span>
+<span id="cb31-314"><a href="#cb31-314"></a></span>
+<span id="cb31-315"><a href="#cb31-315"></a><span class="in">```r</span></span>
+<span id="cb31-316"><a href="#cb31-316"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_71"</span></span>
+<span id="cb31-317"><a href="#cb31-317"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb31-318"><a href="#cb31-318"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
+<span id="cb31-319"><a href="#cb31-319"></a></span>
+<span id="cb31-320"><a href="#cb31-320"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
+<span id="cb31-321"><a href="#cb31-321"></a>region_cluster <span class="ot">&lt;-</span> <span class="st">"phage_grp_71"</span></span>
+<span id="cb31-322"><a href="#cb31-322"></a>other_regions <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb31-323"><a href="#cb31-323"></a></span>
+<span id="cb31-324"><a href="#cb31-324"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-325"><a href="#cb31-325"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb31-326"><a href="#cb31-326"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb31-327"><a href="#cb31-327"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb31-328"><a href="#cb31-328"></a></span>
+<span id="cb31-329"><a href="#cb31-329"></a><span class="co"># ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,</span></span>
+<span id="cb31-330"><a href="#cb31-330"></a><span class="co"># "cluster_mash" for prophage MASH and "default" to use the provided</span></span>
+<span id="cb31-331"><a href="#cb31-331"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"hg_pav"</span> <span class="co"># host, hg_pav, cluster_mash, default</span></span>
+<span id="cb31-332"><a href="#cb31-332"></a></span>
+<span id="cb31-333"><a href="#cb31-333"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
+<span id="cb31-334"><a href="#cb31-334"></a><span class="co"># based ordering</span></span>
+<span id="cb31-335"><a href="#cb31-335"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-336"><a href="#cb31-336"></a></span>
+<span id="cb31-337"><a href="#cb31-337"></a><span class="co"># regions to append as list of list with following structure</span></span>
+<span id="cb31-338"><a href="#cb31-338"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
+<span id="cb31-339"><a href="#cb31-339"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb31-340"><a href="#cb31-340"></a></span>
+<span id="cb31-341"><a href="#cb31-341"></a><span class="in">```</span></span>
+<span id="cb31-342"><a href="#cb31-342"></a></span>
+<span id="cb31-343"><a href="#cb31-343"></a><span class="fu">### phage_grp_107</span></span>
+<span id="cb31-344"><a href="#cb31-344"></a></span>
+<span id="cb31-345"><a href="#cb31-345"></a><span class="in">```bash</span></span>
+<span id="cb31-346"><a href="#cb31-346"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22427004,hg_22426993 <span class="dt">\</span></span>
+<span id="cb31-347"><a href="#cb31-347"></a>--inner_region <span class="at">--genomes</span> <span class="st">"g_63,g_194"</span></span>
+<span id="cb31-348"><a href="#cb31-348"></a><span class="in">```</span></span>
+<span id="cb31-349"><a href="#cb31-349"></a></span>
+<span id="cb31-350"><a href="#cb31-350"></a><span class="in">```r</span></span>
+<span id="cb31-351"><a href="#cb31-351"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
+<span id="cb31-352"><a href="#cb31-352"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb31-353"><a href="#cb31-353"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
+<span id="cb31-354"><a href="#cb31-354"></a></span>
+<span id="cb31-355"><a href="#cb31-355"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
+<span id="cb31-356"><a href="#cb31-356"></a>region_cluster <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
+<span id="cb31-357"><a href="#cb31-357"></a>other_regions <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">0</span>)</span>
+<span id="cb31-358"><a href="#cb31-358"></a></span>
+<span id="cb31-359"><a href="#cb31-359"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-360"><a href="#cb31-360"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
+<span id="cb31-361"><a href="#cb31-361"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb31-362"><a href="#cb31-362"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb31-363"><a href="#cb31-363"></a></span>
+<span id="cb31-364"><a href="#cb31-364"></a><span class="co"># ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,</span></span>
+<span id="cb31-365"><a href="#cb31-365"></a><span class="co"># "cluster_mash" for prophage MASH and "default" to use the provided</span></span>
+<span id="cb31-366"><a href="#cb31-366"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"host"</span> <span class="co"># host, hg_pav, cluster_mash, default</span></span>
+<span id="cb31-367"><a href="#cb31-367"></a></span>
+<span id="cb31-368"><a href="#cb31-368"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
+<span id="cb31-369"><a href="#cb31-369"></a><span class="co"># based ordering</span></span>
+<span id="cb31-370"><a href="#cb31-370"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">TRUE</span> </span>
+<span id="cb31-371"><a href="#cb31-371"></a></span>
+<span id="cb31-372"><a href="#cb31-372"></a><span class="co"># regions to append as list of list with following structure</span></span>
+<span id="cb31-373"><a href="#cb31-373"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
+<span id="cb31-374"><a href="#cb31-374"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb31-375"><a href="#cb31-375"></a>  <span class="at">g_63_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP092039.1"</span>, <span class="at">start =</span> <span class="dv">2572138</span>, <span class="at">end =</span> <span class="dv">2573569</span>, <span class="at">genomeId =</span> <span class="st">"g_63"</span>),</span>
+<span id="cb31-376"><a href="#cb31-376"></a>  <span class="at">g_194_reg =</span> <span class="fu">list</span>(<span class="at">chr =</span> <span class="st">"NZ_CP059956.1"</span>, <span class="at">start =</span> <span class="dv">2620331</span>, <span class="at">end =</span> <span class="dv">2621761</span>, <span class="at">genomeId =</span> <span class="st">"g_194"</span>)</span>
+<span id="cb31-377"><a href="#cb31-377"></a>)</span>
+<span id="cb31-378"><a href="#cb31-378"></a></span>
+<span id="cb31-379"><a href="#cb31-379"></a><span class="in">```</span></span>
+<span id="cb31-380"><a href="#cb31-380"></a></span>
+<span id="cb31-381"><a href="#cb31-381"></a><span class="fu">### BL-causing clade specific signatures</span></span>
+<span id="cb31-382"><a href="#cb31-382"></a></span>
+<span id="cb31-383"><a href="#cb31-383"></a><span class="in">```r</span></span>
+<span id="cb31-384"><a href="#cb31-384"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"Pbr_FN_specific"</span></span>
+<span id="cb31-385"><a href="#cb31-385"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-386"><a href="#cb31-386"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb31-387"><a href="#cb31-387"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-388"><a href="#cb31-388"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb31-389"><a href="#cb31-389"></a></span>
+<span id="cb31-390"><a href="#cb31-390"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
+<span id="cb31-391"><a href="#cb31-391"></a><span class="co"># completeness score</span></span>
+<span id="cb31-392"><a href="#cb31-392"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"default"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash, default</span></span>
 <span id="cb31-393"><a href="#cb31-393"></a></span>
-<span id="cb31-394"><a href="#cb31-394"></a><span class="co"># optionally, a custom region list can be provided to generate the plot</span></span>
-<span id="cb31-395"><a href="#cb31-395"></a>grp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb31-396"><a href="#cb31-396"></a>  <span class="at">phage_grp =</span> grpToView,</span>
-<span id="cb31-397"><a href="#cb31-397"></a>  <span class="at">members =</span> <span class="fu">c</span>(<span class="st">"g_302.vir_1"</span>, <span class="st">"g_400.vir_2"</span>, <span class="st">"g_409.vir_1"</span>, <span class="st">"g_302.vir_2"</span>)</span>
-<span id="cb31-398"><a href="#cb31-398"></a>)</span>
-<span id="cb31-399"><a href="#cb31-399"></a><span class="in">```</span></span>
-<span id="cb31-400"><a href="#cb31-400"></a></span>
-<span id="cb31-401"><a href="#cb31-401"></a><span class="fu">### phage_grp_36</span></span>
-<span id="cb31-402"><a href="#cb31-402"></a></span>
-<span id="cb31-403"><a href="#cb31-403"></a><span class="in">```r</span></span>
-<span id="cb31-404"><a href="#cb31-404"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"phage_grp_36"</span></span>
-<span id="cb31-405"><a href="#cb31-405"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-406"><a href="#cb31-406"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
-<span id="cb31-407"><a href="#cb31-407"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-408"><a href="#cb31-408"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
-<span id="cb31-409"><a href="#cb31-409"></a></span>
-<span id="cb31-410"><a href="#cb31-410"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
-<span id="cb31-411"><a href="#cb31-411"></a><span class="co"># completeness score</span></span>
-<span id="cb31-412"><a href="#cb31-412"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"host"</span> <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
-<span id="cb31-413"><a href="#cb31-413"></a><span class="in">```</span></span>
-<span id="cb31-414"><a href="#cb31-414"></a></span>
-<span id="cb31-415"><a href="#cb31-415"></a><span class="fu">### phage_grp_50</span></span>
-<span id="cb31-416"><a href="#cb31-416"></a></span>
-<span id="cb31-417"><a href="#cb31-417"></a><span class="in">```r</span></span>
-<span id="cb31-418"><a href="#cb31-418"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"phage_grp_50"</span></span>
-<span id="cb31-419"><a href="#cb31-419"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-420"><a href="#cb31-420"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span> </span>
-<span id="cb31-421"><a href="#cb31-421"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb31-422"><a href="#cb31-422"></a></span>
-<span id="cb31-423"><a href="#cb31-423"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
-<span id="cb31-424"><a href="#cb31-424"></a><span class="co"># completeness score</span></span>
-<span id="cb31-425"><a href="#cb31-425"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"cluster_mash"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
-<span id="cb31-426"><a href="#cb31-426"></a><span class="in">```</span></span>
-<span id="cb31-427"><a href="#cb31-427"></a></span>
-<span id="cb31-428"><a href="#cb31-428"></a><span class="fu">### phage_grp_21</span></span>
-<span id="cb31-429"><a href="#cb31-429"></a></span>
-<span id="cb31-430"><a href="#cb31-430"></a><span class="in">```r</span></span>
-<span id="cb31-431"><a href="#cb31-431"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"phage_grp_21"</span></span>
-<span id="cb31-432"><a href="#cb31-432"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-433"><a href="#cb31-433"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-434"><a href="#cb31-434"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
-<span id="cb31-435"><a href="#cb31-435"></a></span>
-<span id="cb31-436"><a href="#cb31-436"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
-<span id="cb31-437"><a href="#cb31-437"></a><span class="co"># completeness score</span></span>
-<span id="cb31-438"><a href="#cb31-438"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"cluster_mash"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
-<span id="cb31-439"><a href="#cb31-439"></a><span class="in">```</span></span>
-<span id="cb31-440"><a href="#cb31-440"></a></span>
-<span id="cb31-441"><a href="#cb31-441"></a><span class="fu">### T3SS missing from 4 P. brasiliense genomes</span></span>
-<span id="cb31-442"><a href="#cb31-442"></a></span>
-<span id="cb31-443"><a href="#cb31-443"></a><span class="in">```bash</span></span>
-<span id="cb31-444"><a href="#cb31-444"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22430875,hg_22430876 <span class="at">--genomes</span> g_187,g_368,g_182,g_185,g_236,g_177</span>
-<span id="cb31-445"><a href="#cb31-445"></a><span class="in">```</span></span>
-<span id="cb31-446"><a href="#cb31-446"></a></span>
-<span id="cb31-447"><a href="#cb31-447"></a><span class="in">```r</span></span>
-<span id="cb31-448"><a href="#cb31-448"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"t3ss_regions"</span></span>
-<span id="cb31-449"><a href="#cb31-449"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb31-450"><a href="#cb31-450"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
-<span id="cb31-451"><a href="#cb31-451"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-452"><a href="#cb31-452"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
-<span id="cb31-453"><a href="#cb31-453"></a></span>
-<span id="cb31-454"><a href="#cb31-454"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
-<span id="cb31-455"><a href="#cb31-455"></a><span class="co"># completeness score</span></span>
-<span id="cb31-456"><a href="#cb31-456"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"host"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
-<span id="cb31-457"><a href="#cb31-457"></a></span>
-<span id="cb31-458"><a href="#cb31-458"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
-<span id="cb31-459"><a href="#cb31-459"></a>appendPhages <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
-<span id="cb31-460"><a href="#cb31-460"></a></span>
-<span id="cb31-461"><a href="#cb31-461"></a><span class="co"># regions to append as list of list with following structure</span></span>
-<span id="cb31-462"><a href="#cb31-462"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
-<span id="cb31-463"><a href="#cb31-463"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb31-464"><a href="#cb31-464"></a>  <span class="at">g_177_reg  =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_177"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACGEP010000027.1"</span>, <span class="at">start =</span> <span class="dv">56850</span>, <span class="at">end =</span> <span class="dv">59337</span>),</span>
-<span id="cb31-465"><a href="#cb31-465"></a>  <span class="at">g_182_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_182"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACGZZ010000068.1"</span>, <span class="at">start =</span> <span class="dv">116773</span>, <span class="at">end =</span> <span class="dv">119260</span>),</span>
-<span id="cb31-466"><a href="#cb31-466"></a>  <span class="at">g_185_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_185"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACGEN010000027.1"</span>, <span class="at">start =</span> <span class="dv">117747</span>, <span class="at">end =</span> <span class="dv">120234</span>),</span>
-<span id="cb31-467"><a href="#cb31-467"></a>  <span class="at">g_236_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_236"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACDSF010000026.1"</span>, <span class="at">start =</span> <span class="dv">2275</span>, <span class="at">end =</span> <span class="dv">4762</span>),</span>
-<span id="cb31-468"><a href="#cb31-468"></a>  <span class="at">g_187_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_187"</span>, <span class="at">chr =</span> <span class="st">"NZ_CP059963.1"</span>, <span class="at">start =</span> <span class="dv">2603432</span>, <span class="at">end =</span> <span class="dv">2605919</span>),</span>
-<span id="cb31-469"><a href="#cb31-469"></a>  <span class="at">g_368_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_368"</span>, <span class="at">chr =</span> <span class="st">"NZ_JUJT01000001.1"</span>, <span class="at">start =</span> <span class="dv">566617</span>, <span class="at">end =</span> <span class="dv">569104</span>)</span>
-<span id="cb31-470"><a href="#cb31-470"></a>)</span>
-<span id="cb31-471"><a href="#cb31-471"></a></span>
-<span id="cb31-472"><a href="#cb31-472"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
-<span id="cb31-473"><a href="#cb31-473"></a><span class="co"># based ordering</span></span>
-<span id="cb31-474"><a href="#cb31-474"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb31-475"><a href="#cb31-475"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<span id="cb31-394"><a href="#cb31-394"></a></span>
+<span id="cb31-395"><a href="#cb31-395"></a><span class="co"># optionally, a custom region list can be provided to generate the plot</span></span>
+<span id="cb31-396"><a href="#cb31-396"></a>grp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb31-397"><a href="#cb31-397"></a>  <span class="at">phage_grp =</span> grpToView,</span>
+<span id="cb31-398"><a href="#cb31-398"></a>  <span class="at">members =</span> <span class="fu">c</span>(<span class="st">"g_302.vir_1"</span>, <span class="st">"g_400.vir_2"</span>, <span class="st">"g_409.vir_1"</span>, <span class="st">"g_302.vir_2"</span>)</span>
+<span id="cb31-399"><a href="#cb31-399"></a>)</span>
+<span id="cb31-400"><a href="#cb31-400"></a><span class="in">```</span></span>
+<span id="cb31-401"><a href="#cb31-401"></a></span>
+<span id="cb31-402"><a href="#cb31-402"></a><span class="fu">### phage_grp_36</span></span>
+<span id="cb31-403"><a href="#cb31-403"></a></span>
+<span id="cb31-404"><a href="#cb31-404"></a><span class="in">```r</span></span>
+<span id="cb31-405"><a href="#cb31-405"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"phage_grp_36"</span></span>
+<span id="cb31-406"><a href="#cb31-406"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-407"><a href="#cb31-407"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
+<span id="cb31-408"><a href="#cb31-408"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb31-409"><a href="#cb31-409"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb31-410"><a href="#cb31-410"></a></span>
+<span id="cb31-411"><a href="#cb31-411"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
+<span id="cb31-412"><a href="#cb31-412"></a><span class="co"># completeness score</span></span>
+<span id="cb31-413"><a href="#cb31-413"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"host"</span> <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
+<span id="cb31-414"><a href="#cb31-414"></a><span class="in">```</span></span>
+<span id="cb31-415"><a href="#cb31-415"></a></span>
+<span id="cb31-416"><a href="#cb31-416"></a><span class="fu">### phage_grp_50</span></span>
+<span id="cb31-417"><a href="#cb31-417"></a></span>
+<span id="cb31-418"><a href="#cb31-418"></a><span class="in">```r</span></span>
+<span id="cb31-419"><a href="#cb31-419"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"phage_grp_50"</span></span>
+<span id="cb31-420"><a href="#cb31-420"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-421"><a href="#cb31-421"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span> </span>
+<span id="cb31-422"><a href="#cb31-422"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb31-423"><a href="#cb31-423"></a></span>
+<span id="cb31-424"><a href="#cb31-424"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
+<span id="cb31-425"><a href="#cb31-425"></a><span class="co"># completeness score</span></span>
+<span id="cb31-426"><a href="#cb31-426"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"cluster_mash"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
+<span id="cb31-427"><a href="#cb31-427"></a><span class="in">```</span></span>
+<span id="cb31-428"><a href="#cb31-428"></a></span>
+<span id="cb31-429"><a href="#cb31-429"></a><span class="fu">### phage_grp_21</span></span>
+<span id="cb31-430"><a href="#cb31-430"></a></span>
+<span id="cb31-431"><a href="#cb31-431"></a><span class="in">```r</span></span>
+<span id="cb31-432"><a href="#cb31-432"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"phage_grp_21"</span></span>
+<span id="cb31-433"><a href="#cb31-433"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-434"><a href="#cb31-434"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb31-435"><a href="#cb31-435"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb31-436"><a href="#cb31-436"></a></span>
+<span id="cb31-437"><a href="#cb31-437"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
+<span id="cb31-438"><a href="#cb31-438"></a><span class="co"># completeness score</span></span>
+<span id="cb31-439"><a href="#cb31-439"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"cluster_mash"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
+<span id="cb31-440"><a href="#cb31-440"></a><span class="in">```</span></span>
+<span id="cb31-441"><a href="#cb31-441"></a></span>
+<span id="cb31-442"><a href="#cb31-442"></a><span class="fu">### T3SS missing from 4 P. brasiliense genomes</span></span>
+<span id="cb31-443"><a href="#cb31-443"></a></span>
+<span id="cb31-444"><a href="#cb31-444"></a><span class="in">```bash</span></span>
+<span id="cb31-445"><a href="#cb31-445"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22430875,hg_22430876 <span class="at">--genomes</span> g_187,g_368,g_182,g_185,g_236,g_177</span>
+<span id="cb31-446"><a href="#cb31-446"></a><span class="in">```</span></span>
+<span id="cb31-447"><a href="#cb31-447"></a></span>
+<span id="cb31-448"><a href="#cb31-448"></a><span class="in">```r</span></span>
+<span id="cb31-449"><a href="#cb31-449"></a>grpToView <span class="ot">&lt;-</span> <span class="st">"t3ss_regions"</span></span>
+<span id="cb31-450"><a href="#cb31-450"></a>subSample <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb31-451"><a href="#cb31-451"></a>cutHeight <span class="ot">&lt;-</span> <span class="fl">1.5</span></span>
+<span id="cb31-452"><a href="#cb31-452"></a>addFlankingRegions <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb31-453"><a href="#cb31-453"></a>flankingRegion <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
+<span id="cb31-454"><a href="#cb31-454"></a></span>
+<span id="cb31-455"><a href="#cb31-455"></a><span class="co"># ordering factor for prophages: host phylogeny, prophage HG PAV, prophage MASH,</span></span>
+<span id="cb31-456"><a href="#cb31-456"></a><span class="co"># completeness score</span></span>
+<span id="cb31-457"><a href="#cb31-457"></a>clusterOrder <span class="ot">&lt;-</span> <span class="st">"host"</span>  <span class="co"># completeness, host, hg_pav, cluster_mash</span></span>
+<span id="cb31-458"><a href="#cb31-458"></a></span>
+<span id="cb31-459"><a href="#cb31-459"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
+<span id="cb31-460"><a href="#cb31-460"></a>appendPhages <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb31-461"><a href="#cb31-461"></a></span>
+<span id="cb31-462"><a href="#cb31-462"></a><span class="co"># regions to append as list of list with following structure</span></span>
+<span id="cb31-463"><a href="#cb31-463"></a><span class="co"># list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))</span></span>
+<span id="cb31-464"><a href="#cb31-464"></a>customRegions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb31-465"><a href="#cb31-465"></a>  <span class="at">g_177_reg  =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_177"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACGEP010000027.1"</span>, <span class="at">start =</span> <span class="dv">56850</span>, <span class="at">end =</span> <span class="dv">59337</span>),</span>
+<span id="cb31-466"><a href="#cb31-466"></a>  <span class="at">g_182_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_182"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACGZZ010000068.1"</span>, <span class="at">start =</span> <span class="dv">116773</span>, <span class="at">end =</span> <span class="dv">119260</span>),</span>
+<span id="cb31-467"><a href="#cb31-467"></a>  <span class="at">g_185_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_185"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACGEN010000027.1"</span>, <span class="at">start =</span> <span class="dv">117747</span>, <span class="at">end =</span> <span class="dv">120234</span>),</span>
+<span id="cb31-468"><a href="#cb31-468"></a>  <span class="at">g_236_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_236"</span>, <span class="at">chr =</span> <span class="st">"NZ_JACDSF010000026.1"</span>, <span class="at">start =</span> <span class="dv">2275</span>, <span class="at">end =</span> <span class="dv">4762</span>),</span>
+<span id="cb31-469"><a href="#cb31-469"></a>  <span class="at">g_187_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_187"</span>, <span class="at">chr =</span> <span class="st">"NZ_CP059963.1"</span>, <span class="at">start =</span> <span class="dv">2603432</span>, <span class="at">end =</span> <span class="dv">2605919</span>),</span>
+<span id="cb31-470"><a href="#cb31-470"></a>  <span class="at">g_368_reg =</span> <span class="fu">list</span>(<span class="at">genomeId =</span> <span class="st">"g_368"</span>, <span class="at">chr =</span> <span class="st">"NZ_JUJT01000001.1"</span>, <span class="at">start =</span> <span class="dv">566617</span>, <span class="at">end =</span> <span class="dv">569104</span>)</span>
+<span id="cb31-471"><a href="#cb31-471"></a>)</span>
+<span id="cb31-472"><a href="#cb31-472"></a></span>
+<span id="cb31-473"><a href="#cb31-473"></a><span class="co"># whether to keep custom regions at the bottom or consider during phylogeny</span></span>
+<span id="cb31-474"><a href="#cb31-474"></a><span class="co"># based ordering</span></span>
+<span id="cb31-475"><a href="#cb31-475"></a>regions_phy_ordered <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb31-476"><a href="#cb31-476"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

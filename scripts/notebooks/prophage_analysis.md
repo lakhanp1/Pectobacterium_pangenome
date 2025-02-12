@@ -247,7 +247,7 @@ region_cluster <- "phage_grp_46"
 other_regions <- character(0)
 
 subSample <- TRUE
-cutHeight <- 0.5
+cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
@@ -257,7 +257,7 @@ clusterOrder <- "host" # host, hg_pav, cluster_mash, default
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
-regions_phy_ordered <- FALSE
+regions_phy_ordered <- TRUE 
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
@@ -267,8 +267,8 @@ customRegions <- list(
   g_411_reg = list(chr = "NAK682_contig_2_consensus", start = 461100, end = 464162, genomeId = "g_411"),
   g_415_reg = list(chr = "NAK701_contig_5_consensus", start = 415799, end = 418861, genomeId = "g_415"),
   g_63_reg = list(chr = "NZ_CP092039.1", start = 4288654, end = 4291716, genomeId = "g_63"),
-  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406")
-  # g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194"),
+  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 469664, end = 474521, genomeId = "g_406"),
+  g_194_reg = list(chr = "NZ_CP059956.1", start = 4163454, end = 4167352, genomeId = "g_194")
   # g_263_reg = list(chr = "NZ_CP047495.1", start = 956237, end = 956907, genomeId = "g_263")
 )
 ```
@@ -277,7 +277,7 @@ customRegions <- list(
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
---genomes "g_406"
+--genomes "g_406,g_194"
 ```
 
 ```r
@@ -305,7 +305,8 @@ regions_phy_ordered <- FALSE
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
 customRegions <- list(
-  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406")
+  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"),
+  g_194_reg = list(chr = "NZ_CP059956.1", start = 3940785, end = 3958060, genomeId = "g_194")
 )
 ```
 
@@ -349,7 +350,7 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427004,hg_22426993 \
 ```r
 cluster_title <- "phage_grp_107"
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
-hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
+hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
 region_cluster <- "phage_grp_107"
@@ -366,7 +367,7 @@ clusterOrder <- "host" # host, hg_pav, cluster_mash, default
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
-regions_phy_ordered <- FALSE
+regions_phy_ordered <- TRUE 
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
