@@ -428,6 +428,98 @@ table_counter <- table_counter + 1
 
 ```
 
+## Table S`r table_counter`
+
+Prophage homology group functional categories
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+prophage_hg_ann <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
+) %>% 
+  dplyr::rename(homology_group = hgId, pangenome_class = class)
+
+currentSheet <- paste("Table_S", table_counter, sep = "")
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+openxlsx::writeData(
+  wb = wb, sheet = currentSheet,
+  x = paste("## Table S", table_counter, ": Prophage homology group functional categories", sep = "")
+)
+openxlsx::writeDataTable(
+  wb = wb, x = prophage_hg_ann, sheet = currentSheet,
+  startCol = 1, startRow = 2, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
+
+DT::datatable(
+  data = prophage_hg_ann,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 3),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+```
+
+## Table S`r table_counter`
+
+Anti-phage defense systems from DefenseFinder
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+defense_systems <- suppressMessages(
+  readr::read_tsv(confs$analysis$defense_systems$files$data)
+)
+
+currentSheet <- paste("Table_S", table_counter, sep = "")
+openxlsx::addWorksheet(wb, sheetName = currentSheet)
+openxlsx::writeData(
+  wb = wb, sheet = currentSheet,
+  x = paste("## Table S", table_counter, ": Anti-phage defense systems identified by DefenseFinder", sep = "")
+)
+openxlsx::writeDataTable(
+  wb = wb, x = defense_systems, sheet = currentSheet,
+  startCol = 1, startRow = 2, withFilter = TRUE,
+  keepNA = TRUE, na.string = "NA"
+)
+openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
+
+DT::datatable(
+  data = defense_systems,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 3),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+```
 
 ## Table S`r table_counter`
 
@@ -438,7 +530,7 @@ Inhouse sample information
 #| column: screen-inset-right
 
 inhouse_samples <- dplyr::filter(metadata, source != "NCBI") %>% 
-  dplyr::select(genomeId, source, sampleId, BioSampleAccn, BioprojectAccn)
+  dplyr::select(genomeId, source, sampleId, AssemblyAccession, BioSampleAccn, BioprojectAccn)
 
 currentSheet <- paste("Table_S", table_counter, sep = "")
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
