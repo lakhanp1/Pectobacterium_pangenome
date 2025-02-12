@@ -39,7 +39,7 @@ confs <- prefix_config_paths(
 
 prophageGrps <- c(
   # "phage_grp_71", "phage_grp_21", "phage_grp_12",
-   "phage_grp_45", "phage_grp_343", "phage_grp_107", "phage_grp_46"
+  "phage_grp_45", "phage_grp_343", "phage_grp_107", "phage_grp_46"
 )
 
 
@@ -85,10 +85,13 @@ phageClusters <- suppressMessages(
   ) %>% 
   dplyr::mutate(
     fragmented = dplyr::if_else(nFragments > 1, "y", "n"),
-    phage_grp = forcats::fct_relevel(phage_grp, !!!prophageGrps)
+    phage_grp = forcats::fct_relevel(phage_grp, !!!prophageGrps),
+    has_prophage = "y"
   ) %>% 
-  dplyr::select(prophage_id, genomeId, phage_grp, fragmented, fragments, nFragments,
-                prophage_length, nHg, completeness, taxonomy, is_root, root_id)
+  dplyr::select(
+    prophage_id, genomeId, phage_grp, fragmented, fragments, nFragments,
+    has_prophage, prophage_length, nHg, completeness, taxonomy, is_root, root_id
+  )
 ```
 
 ## Identify the genomes to show for phylogenetic tree
@@ -113,21 +116,34 @@ pt_phy <- ggtree_with_species(
   make_species_key = FALSE
 )
 
+cluster_pav_data <- tidyr::expand_grid(
+  genomeId = genomesToShow,
+  phage_grp = unique(phageClusters$phage_grp)
+) %>%
+  dplyr::full_join(y = phageClusters, by = c("genomeId", "phage_grp")) %>% 
+  tidyr::replace_na(list(has_prophage = "n"))
+
 pt_all <- pt_phy$tree +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   ggnewscale::new_scale_fill() +
   ggtreeExtra::geom_fruit(
-    geom = geom_tile, data = phageClusters,
-    mapping = aes(y = genomeId, x = phage_grp, fill = fragmented),
-    pwidth = 0.2, width = 0.02,
-    offset = 0.03,
+    geom = geom_tile, data = cluster_pav_data,
+    mapping = aes(y = genomeId, x = phage_grp, fill = has_prophage),
+    color = "grey50",
+    pwidth = 0.3, width = 0.03, offset = 0.03,
     axis.params = list(axis = "x", text.size = 5, hjust = 1, text.angle = 45)
   ) +
   scale_fill_manual(
     name = NULL,
-    values = c("y" = "black", "n" = "black"),
+    values = c("y" = "black", "n" = "white"),
     na.value = alpha("white", 1),
     guide = NULL,
     na.translate = FALSE
+  ) +
+  ggtreeExtra::geom_fruit(
+    mapping = aes(y = id, label = label),
+    geom = "geom_text", size = 4, hjust = "left",
+    pwidth = 0.3, offset = 0.04
   )
 
 ggsave(
