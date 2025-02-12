@@ -44,7 +44,8 @@ website:
       - icon: twitter
         href: https://x.com/lakhanp01
     contents:
-      - scripts/notebooks/index.qmd
+      - text: "Pectobacterium genus pangenome"
+        href: scripts/notebooks/index.qmd
       - section: "Preprocessing"
         contents:
           - text: "Preprocessing"
