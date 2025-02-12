@@ -71,32 +71,32 @@ quarto render scripts/analysis/pangenome_metadata.viz.qmd
 
 ``` bash
 ## UPGMA tree
-./scripts/analysis/phylo.process_newicks.R \
+./scripts/analysis/phylo_process_newicks.R \
 --tree ./analysis/pangenome_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick \
 --name "ani_upgma" --config project_config.yaml --save_leaf_order
 
 ## Neighbor joining tree
-./scripts/analysis/phylo.process_newicks.R \
+./scripts/analysis/phylo_process_newicks.R \
 --tree ./analysis/pangenome_v2/phylogeny/ani/ANI_NJ.pangenome.newick \
 --name "ani_nj" --config project_config.yaml --save_leaf_order
 
 ## gene distance NJ tree
-./scripts/analysis/phylo.process_newicks.R \
+./scripts/analysis/phylo_process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree \
 --name "gene_nj" --config project_config.yaml 
 
 ## kmer distance UPGMA tree
-./scripts/analysis/phylo.process_newicks.R \
+./scripts/analysis/phylo_process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick \
 --name "kmer_upgma" --config project_config.yaml --save_leaf_order
 
 ## kmer distance NJ tree
-./scripts/analysis/phylo.process_newicks.R \
+./scripts/analysis/phylo_process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick \
 --name "kmer_nj" --config project_config.yaml --save_leaf_order
 
 ## core-SNP ML tree
-./scripts/analysis/phylo.process_newicks.R \
+./scripts/analysis/phylo_process_newicks.R \
 --tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile \
 --name "core_snp_ml" --config project_config.yaml --save_leaf_order --bootstrap
 

@@ -433,32 +433,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="phylogeny-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="phylogeny-analysis">Phylogeny analysis</h2>
 <div class="sourceCode" id="cb4"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">## UPGMA tree</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb4-3"><a href="#cb4-3"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick <span class="dt">\</span></span>
 <span id="cb4-4"><a href="#cb4-4"></a>--name <span class="st">"ani_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb4-5"><a href="#cb4-5"></a></span>
 <span id="cb4-6"><a href="#cb4-6"></a><span class="co">## Neighbor joining tree</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb4-8"><a href="#cb4-8"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_NJ.pangenome.newick <span class="dt">\</span></span>
 <span id="cb4-9"><a href="#cb4-9"></a>--name <span class="st">"ani_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb4-10"><a href="#cb4-10"></a></span>
 <span id="cb4-11"><a href="#cb4-11"></a><span class="co">## gene distance NJ tree</span></span>
-<span id="cb4-12"><a href="#cb4-12"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb4-13"><a href="#cb4-13"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree <span class="dt">\</span></span>
 <span id="cb4-14"><a href="#cb4-14"></a>--name <span class="st">"gene_nj"</span> <span class="at">--config</span> project_config.yaml </span>
 <span id="cb4-15"><a href="#cb4-15"></a></span>
 <span id="cb4-16"><a href="#cb4-16"></a><span class="co">## kmer distance UPGMA tree</span></span>
-<span id="cb4-17"><a href="#cb4-17"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb4-18"><a href="#cb4-18"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick <span class="dt">\</span></span>
 <span id="cb4-19"><a href="#cb4-19"></a>--name <span class="st">"kmer_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb4-20"><a href="#cb4-20"></a></span>
 <span id="cb4-21"><a href="#cb4-21"></a><span class="co">## kmer distance NJ tree</span></span>
-<span id="cb4-22"><a href="#cb4-22"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb4-23"><a href="#cb4-23"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick <span class="dt">\</span></span>
 <span id="cb4-24"><a href="#cb4-24"></a>--name <span class="st">"kmer_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb4-25"><a href="#cb4-25"></a></span>
 <span id="cb4-26"><a href="#cb4-26"></a><span class="co">## core-SNP ML tree</span></span>
-<span id="cb4-27"><a href="#cb4-27"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb4-27"><a href="#cb4-27"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb4-28"><a href="#cb4-28"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile <span class="dt">\</span></span>
 <span id="cb4-29"><a href="#cb4-29"></a>--name <span class="st">"core_snp_ml"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span> <span class="at">--bootstrap</span></span>
 <span id="cb4-30"><a href="#cb4-30"></a></span>
@@ -1075,32 +1075,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-71"><a href="#cb13-71"></a></span>
 <span id="cb13-72"><a href="#cb13-72"></a><span class="kw">```</span> bash</span>
 <span id="cb13-73"><a href="#cb13-73"></a><span class="co">## UPGMA tree</span></span>
-<span id="cb13-74"><a href="#cb13-74"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb13-74"><a href="#cb13-74"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb13-75"><a href="#cb13-75"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_UPGMA.pangenome.newick <span class="dt">\</span></span>
 <span id="cb13-76"><a href="#cb13-76"></a>--name <span class="st">"ani_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb13-77"><a href="#cb13-77"></a></span>
 <span id="cb13-78"><a href="#cb13-78"></a><span class="co">## Neighbor joining tree</span></span>
-<span id="cb13-79"><a href="#cb13-79"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb13-79"><a href="#cb13-79"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb13-80"><a href="#cb13-80"></a>--tree ./analysis/pangenome_v2/phylogeny/ani/ANI_NJ.pangenome.newick <span class="dt">\</span></span>
 <span id="cb13-81"><a href="#cb13-81"></a>--name <span class="st">"ani_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb13-82"><a href="#cb13-82"></a></span>
 <span id="cb13-83"><a href="#cb13-83"></a><span class="co">## gene distance NJ tree</span></span>
-<span id="cb13-84"><a href="#cb13-84"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb13-84"><a href="#cb13-84"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb13-85"><a href="#cb13-85"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/gene_classification.100.0/gene_distance.tree <span class="dt">\</span></span>
 <span id="cb13-86"><a href="#cb13-86"></a>--name <span class="st">"gene_nj"</span> <span class="at">--config</span> project_config.yaml </span>
 <span id="cb13-87"><a href="#cb13-87"></a></span>
 <span id="cb13-88"><a href="#cb13-88"></a><span class="co">## kmer distance UPGMA tree</span></span>
-<span id="cb13-89"><a href="#cb13-89"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb13-89"><a href="#cb13-89"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb13-90"><a href="#cb13-90"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.upgma.newick <span class="dt">\</span></span>
 <span id="cb13-91"><a href="#cb13-91"></a>--name <span class="st">"kmer_upgma"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb13-92"><a href="#cb13-92"></a></span>
 <span id="cb13-93"><a href="#cb13-93"></a><span class="co">## kmer distance NJ tree</span></span>
-<span id="cb13-94"><a href="#cb13-94"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb13-94"><a href="#cb13-94"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb13-95"><a href="#cb13-95"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/kmer_classification.100.0/kmer.nj.newick <span class="dt">\</span></span>
 <span id="cb13-96"><a href="#cb13-96"></a>--name <span class="st">"kmer_nj"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span></span>
 <span id="cb13-97"><a href="#cb13-97"></a></span>
 <span id="cb13-98"><a href="#cb13-98"></a><span class="co">## core-SNP ML tree</span></span>
-<span id="cb13-99"><a href="#cb13-99"></a><span class="ex">./scripts/analysis/phylo.process_newicks.R</span> <span class="dt">\</span></span>
+<span id="cb13-99"><a href="#cb13-99"></a><span class="ex">./scripts/analysis/phylo_process_newicks.R</span> <span class="dt">\</span></span>
 <span id="cb13-100"><a href="#cb13-100"></a>--tree ./data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB/core_snp_tree/informative.fasta.treefile <span class="dt">\</span></span>
 <span id="cb13-101"><a href="#cb13-101"></a>--name <span class="st">"core_snp_ml"</span> <span class="at">--config</span> project_config.yaml <span class="at">--save_leaf_order</span> <span class="at">--bootstrap</span></span>
 <span id="cb13-102"><a href="#cb13-102"></a></span>
