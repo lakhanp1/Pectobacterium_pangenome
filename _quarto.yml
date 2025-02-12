@@ -21,6 +21,7 @@ project:
     - scripts/ms_figures/supplementary_tables.qmd
     - scripts/ms_figures/phage_grp_45.qmd
     - scripts/ms_figures/phage_grp_46.qmd
+    - scripts/ms_figures/phage_grp_107.qmd
     - scripts/ms_figures/phage_grp_71.qmd
 execute:
   freeze: true # never re-render during project render
@@ -84,6 +85,8 @@ website:
                 href: scripts/ms_figures/phage_grp_46.qmd
               - test: "Phage group 45"
                 href: scripts/ms_figures/phage_grp_45.qmd
+              - test: "Phage group 107"
+                href: scripts/ms_figures/phage_grp_107.qmd
               - test: "Phage group 71"
                 href: scripts/ms_figures/phage_grp_71.qmd
       - text: "Supplementary tables"
