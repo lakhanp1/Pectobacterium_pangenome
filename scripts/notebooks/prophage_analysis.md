@@ -281,6 +281,43 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
 ```
 
 ```r
+cluster_title <- "phage_grp_45"
+outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
+hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
+
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- "phage_grp_45"
+other_regions <- character(0)
+
+subSample <- FALSE 
+cutHeight <- 1.5
+addFlankingRegions <- TRUE
+flankingRegion <- 5000
+
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "host" # host, hg_pav, cluster_mash, default
+
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- TRUE 
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list(
+  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"),
+  g_194_reg = list(chr = "NZ_CP059956.1", start = 3940785, end = 3958060, genomeId = "g_194")
+)
+```
+
+### phage_grp_45 and phage_grp_343 mosaicsm
+
+```bash
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
+--genomes "g_406,g_194"
+```
+
+```r
 cluster_title <- "grp_45_mosaicsm"
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions

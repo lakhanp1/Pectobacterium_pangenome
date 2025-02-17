@@ -27,18 +27,18 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-cluster_title <- "grp_45_mosaicsm"
+cluster_title <- "phage_grp_45"
 outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
-region_cluster <- NA
-other_regions <- c("g_302.vir_1", "g_399.vir_1", "g_400.vir_2")
+region_cluster <- "phage_grp_45"
+other_regions <- character(0)
 
 subSample <- TRUE
 cutHeight <- 0.5
 addFlankingRegions <- TRUE
-flankingRegion <- 7000
+flankingRegion <- 5000
 
 # ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
 # "cluster_mash" for prophage MASH and "default" to use the provided
@@ -46,7 +46,7 @@ clusterOrder <- "host" # host, hg_pav, cluster_mash, default
 
 # whether to keep custom regions at the bottom or consider during phylogeny
 # based ordering
-regions_phy_ordered <- FALSE
+regions_phy_ordered <- TRUE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
