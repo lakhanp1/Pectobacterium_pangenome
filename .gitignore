@@ -15,10 +15,13 @@ Rplots.pdf
 *temp*
 *test*
 /logs
+/tmp
+/temp
 sample_info.txt
 /data/*
 /data/pangenomes/**/*.DB*/
 /data/pangenomes/**/org.*.eg.db/
+data/pangenomes/**/proteins_db/
 !/data/pangenomes/
 !/data/pangenomes/
 !/data/reference_data/
