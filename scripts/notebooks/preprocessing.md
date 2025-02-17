@@ -273,7 +273,7 @@ done > data/defense_finder/defense_systems_genes.tsv
 
 ## MMSeq2 database
 
-```
+```basg
 conda activate mmseq2
 
 mmseqs createdb data/pangenomes/pectobacterium.v2/mmseq_panproteome_db
