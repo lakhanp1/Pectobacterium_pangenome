@@ -80,11 +80,11 @@ website:
           - text: "Clustering summary"
             href: scripts/analysis/prophage_cluster_summary.qmd
           - section: "Prophage clusters"
-            contents:         
-              - text: "Phage group 46"
-                href: scripts/ms_figures/phage_grp_46.qmd
+            contents:
               - test: "Phage group 45"
                 href: scripts/ms_figures/phage_grp_45.qmd
+              - text: "Phage group 46"
+                href: scripts/ms_figures/phage_grp_46.qmd
               - test: "Phage group 107"
                 href: scripts/ms_figures/phage_grp_107.qmd
               - test: "Phage group 71"
