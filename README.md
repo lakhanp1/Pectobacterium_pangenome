@@ -1,7 +1,16 @@
+![GitHub Release Date](https://img.shields.io/github/release-date/lakhanp1/Pectobacterium_pangenome)
+![GitHub Release](https://img.shields.io/github/v/release/lakhanp1/pectobacterium_pangenome)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/lakhanp1/Pectobacterium_pangenome/latest)
+![GitHub License](https://img.shields.io/github/license/lakhanp1/pectobacterium_pangenome)
+
+[![Static Badge](https://img.shields.io/badge/doi-10.5281%2Fzenodo.14882427-blue)](https://doi.org/10.5281/zenodo.12772014)
+
+---
+
 # Pectobacterium pangenome analysis
 
 Please refer to https://lakhanp1.github.io/Pectobacterium_pangenome for data
-preprocessing, pangenome construction and analysis workflows.
+preprocessing, pangenome construction and prophage analysis workflow documents.
 
 ## Project workflow
 
@@ -51,7 +60,7 @@ QC --> pangenome
 
 ```
 
-### Preprocessing
+## [Preprocessing](https://lakhanp1.github.io/Pectobacterium_pangenome/scripts/notebooks/preprocessing.html)
 
 ```mermaid
 flowchart TB
@@ -85,7 +94,7 @@ flowchart TB
     end
 ```
 
-### Pangenome construction
+## [Pangenome construction](https://lakhanp1.github.io/Pectobacterium_pangenome/scripts/notebooks/pangenome_construction.html)
 
 ```mermaid
 flowchart TB
@@ -109,3 +118,7 @@ flowchart TB
     pangenome --> grouping
 
 ```
+
+## [Prophage analysis](https://lakhanp1.github.io/Pectobacterium_pangenome/scripts/notebooks/prophage_analysis.html)
+
+Tracing prophages in *Pectobacterium* genus pangenome to study their dynamics and contribution to the pangenome growth.
