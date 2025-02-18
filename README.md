@@ -1,4 +1,4 @@
-<p align="center">
+<div align="center">
 
 ![GitHub Release](https://img.shields.io/github/v/release/lakhanp1/pectobacterium_pangenome)
 ![GitHub Release Date](https://img.shields.io/github/release-date/lakhanp1/Pectobacterium_pangenome)
@@ -6,7 +6,7 @@
 ![GitHub License](https://img.shields.io/github/license/lakhanp1/pectobacterium_pangenome)
 <br>
 [![Static Badge](https://img.shields.io/badge/doi-10.5281%2Fzenodo.14882427-blue)](https://doi.org/10.5281/zenodo.12772014)
-<p>
+</div>
 
 ---
 
