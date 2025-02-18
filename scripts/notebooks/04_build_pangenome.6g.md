@@ -5,11 +5,11 @@
 shopt -s expand_aliases
 source ~/.bash_aliases
 
-source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
+source /mnt/scratch/${USER}/tools/miniconda3/etc/profile.d/conda.sh
 conda deactivate & conda activate pantools
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium/'
+PROJECT_DIR=/mnt/scratch/${USER}/projects/03_Pectobacterium/
 ANALYSIS_DIR="$PROJECT_DIR/analysis/03_pangenome_pecto_6g"
 analysis_prefix='pectobacterium.6g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
@@ -128,6 +128,6 @@ Rscript ${pan_db}/gene_classification/gene_distance_tree.R
 
 pantools rename_phylogeny -dp ${pan_db} --phenotype strain_name -if ${pan_db}/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile
 
-cat /mnt/scratch/parde001/projects/01_pantools_explore/data/pecto_dickeya_DB/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile_RENAMED
+cat /mnt/scratch/${USER}/projects/01_pantools_explore/data/pecto_dickeya_DB/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile_RENAMED
 
 ```

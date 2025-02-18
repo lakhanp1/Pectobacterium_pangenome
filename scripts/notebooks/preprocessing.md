@@ -183,7 +183,7 @@ download_eggnog_data.py -D -H -d 10239 --dbname viruses -q -y
 download_eggnog_data.py -D -H -d 4751 --dbname fungi -q -y
 download_eggnog_data.py -D -H -d 2157 --dbname archea -q -y
 
-mmseqs createindex "$EGGNOG_DATA_DIR"/mmseqs/mmseqs.db /local_scratch/parde001/tmp
+mmseqs createindex "$EGGNOG_DATA_DIR"/mmseqs/mmseqs.db /local_scratch/${USER}/tmp
 
 ## create mmseq database for bacteria, archea and viruses
 create_dbs.py -m mmseqs --dbname bact_arch_vir --taxids 2,2157,10239 -y
@@ -195,7 +195,7 @@ do
     
     emapper.py --cpu 20 -m mmseqs --dbmem --go_evidence all  \
     -i ${file_aa} -o ${i} --output_dir data/eggnog \
-    --scratch_dir /local_scratch/parde001/ --temp_dir /local_scratch/parde001/tmp
+    --scratch_dir /local_scratch/${USER}/ --temp_dir /local_scratch/${USER}/tmp
 
     error_exit $?
 done

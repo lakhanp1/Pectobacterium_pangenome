@@ -5,11 +5,11 @@
 shopt -s expand_aliases
 source ~/.bash_aliases
 
-source /mnt/scratch/parde001/tools/miniconda3/etc/profile.d/conda.sh
+source /mnt/scratch/${USER}/tools/miniconda3/etc/profile.d/conda.sh
 conda deactivate & conda activate pantools
 
 ## Setup
-PROJECT_DIR='/mnt/scratch/parde001/projects/03_Pectobacterium/'
+PROJECT_DIR=/mnt/scratch/${USER}/projects/03_Pectobacterium/
 ANALYSIS_DIR="$PROJECT_DIR/analysis/02_pangenome_pecto_197g"
 analysis_prefix='pectobacterium.197g'
 pan_db="$ANALYSIS_DIR/${analysis_prefix}.DB"
@@ -129,14 +129,14 @@ error_exit $?
 
 ## IQtree variable
 process_start iqtree_variable
-rm /mnt/scratch/parde001/projects/03_Pectobacterium/analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/variable.fasta.*
-iqtree -nt 20 -s /mnt/scratch/parde001/projects/03_Pectobacterium/analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/variable.fasta -redo -bb 1000
+rm /mnt/scratch/${USER}/projects/03_Pectobacterium/analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/variable.fasta.*
+iqtree -nt 20 -s /mnt/scratch/${USER}/projects/03_Pectobacterium/analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/variable.fasta -redo -bb 1000
 error_exit $?
 
 ## IQtree informative
 process_start iqtree_informative
-rm /mnt/scratch/parde001/projects/03_Pectobacterium//analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/informative.fasta.*
-iqtree -nt 20 -s /mnt/scratch/parde001/projects/03_Pectobacterium//analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/informative.fasta -redo -bb 1000
+rm /mnt/scratch/${USER}/projects/03_Pectobacterium//analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/informative.fasta.*
+iqtree -nt 20 -s /mnt/scratch/${USER}/projects/03_Pectobacterium//analysis/04_pangenome3/pectobacterium.3.DB/alignments/grouping_v4/core_snp_tree/informative.fasta -redo -bb 1000
 error_exit $?
 
 ## BUSCO multiqc
@@ -148,6 +148,6 @@ Rscript ${pan_db}/gene_classification/gene_distance_tree.R
 
 pantools rename_phylogeny -dp ${pan_db} --phenotype strain_name -if ${pan_db}/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile
 
-cat /mnt/scratch/parde001/projects/01_pantools_explore/data/pecto_dickeya_DB/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile_RENAMED
+cat /mnt/scratch/${USER}/projects/01_pantools_explore/data/pecto_dickeya_DB/alignments/grouping_v1/core_snp_tree/informative.fasta.treefile_RENAMED
 
 ```

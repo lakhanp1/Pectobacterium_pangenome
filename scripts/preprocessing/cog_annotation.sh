@@ -16,8 +16,8 @@ for id in $(cat data/reference_data/assembly_ids.txt); do
 
     emapper.py --cpu 20 -m mmseqs --dbmem --go_evidence all \
         -i ${file_aa} -o ${id} --output_dir data/prokka_annotation/${id} \
-        --scratch_dir /local_scratch/parde001/ \
-        --temp_dir /local_scratch/parde001/tmp
+        --scratch_dir /local_scratch/${USER}/ \
+        --temp_dir /local_scratch/${USER}/tmp
 
     error_exit $?
 done

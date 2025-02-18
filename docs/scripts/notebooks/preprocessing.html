@@ -532,7 +532,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-8"><a href="#cb9-8"></a><span class="ex">download_eggnog_data.py</span> <span class="at">-D</span> <span class="at">-H</span> <span class="at">-d</span> 4751 <span class="at">--dbname</span> fungi <span class="at">-q</span> <span class="at">-y</span></span>
 <span id="cb9-9"><a href="#cb9-9"></a><span class="ex">download_eggnog_data.py</span> <span class="at">-D</span> <span class="at">-H</span> <span class="at">-d</span> 2157 <span class="at">--dbname</span> archea <span class="at">-q</span> <span class="at">-y</span></span>
 <span id="cb9-10"><a href="#cb9-10"></a></span>
-<span id="cb9-11"><a href="#cb9-11"></a><span class="ex">mmseqs</span> createindex <span class="st">"</span><span class="va">$EGGNOG_DATA_DIR</span><span class="st">"</span>/mmseqs/mmseqs.db /local_scratch/parde001/tmp</span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="ex">mmseqs</span> createindex <span class="st">"</span><span class="va">$EGGNOG_DATA_DIR</span><span class="st">"</span>/mmseqs/mmseqs.db /local_scratch/<span class="va">${USER}</span>/tmp</span>
 <span id="cb9-12"><a href="#cb9-12"></a></span>
 <span id="cb9-13"><a href="#cb9-13"></a><span class="co">## create mmseq database for bacteria, archea and viruses</span></span>
 <span id="cb9-14"><a href="#cb9-14"></a><span class="ex">create_dbs.py</span> <span class="at">-m</span> mmseqs <span class="at">--dbname</span> bact_arch_vir <span class="at">--taxids</span> 2,2157,10239 <span class="at">-y</span></span>
@@ -544,7 +544,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-20"><a href="#cb9-20"></a>    </span>
 <span id="cb9-21"><a href="#cb9-21"></a>    <span class="ex">emapper.py</span> <span class="at">--cpu</span> 20 <span class="at">-m</span> mmseqs <span class="at">--dbmem</span> <span class="at">--go_evidence</span> all  <span class="dt">\</span></span>
 <span id="cb9-22"><a href="#cb9-22"></a>    <span class="at">-i</span> <span class="va">${file_aa}</span> <span class="at">-o</span> <span class="va">${i}</span> <span class="at">--output_dir</span> data/eggnog <span class="dt">\</span></span>
-<span id="cb9-23"><a href="#cb9-23"></a>    <span class="at">--scratch_dir</span> /local_scratch/parde001/ <span class="at">--temp_dir</span> /local_scratch/parde001/tmp</span>
+<span id="cb9-23"><a href="#cb9-23"></a>    <span class="at">--scratch_dir</span> /local_scratch/<span class="va">${USER}</span>/ <span class="at">--temp_dir</span> /local_scratch/<span class="va">${USER}</span>/tmp</span>
 <span id="cb9-24"><a href="#cb9-24"></a></span>
 <span id="cb9-25"><a href="#cb9-25"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
 <span id="cb9-26"><a href="#cb9-26"></a><span class="cf">done</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1308,7 +1308,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb19-183"><a href="#cb19-183"></a><span class="ex">download_eggnog_data.py</span> <span class="at">-D</span> <span class="at">-H</span> <span class="at">-d</span> 4751 <span class="at">--dbname</span> fungi <span class="at">-q</span> <span class="at">-y</span></span>
 <span id="cb19-184"><a href="#cb19-184"></a><span class="ex">download_eggnog_data.py</span> <span class="at">-D</span> <span class="at">-H</span> <span class="at">-d</span> 2157 <span class="at">--dbname</span> archea <span class="at">-q</span> <span class="at">-y</span></span>
 <span id="cb19-185"><a href="#cb19-185"></a></span>
-<span id="cb19-186"><a href="#cb19-186"></a><span class="ex">mmseqs</span> createindex <span class="st">"</span><span class="va">$EGGNOG_DATA_DIR</span><span class="st">"</span>/mmseqs/mmseqs.db /local_scratch/parde001/tmp</span>
+<span id="cb19-186"><a href="#cb19-186"></a><span class="ex">mmseqs</span> createindex <span class="st">"</span><span class="va">$EGGNOG_DATA_DIR</span><span class="st">"</span>/mmseqs/mmseqs.db /local_scratch/<span class="va">${USER}</span>/tmp</span>
 <span id="cb19-187"><a href="#cb19-187"></a></span>
 <span id="cb19-188"><a href="#cb19-188"></a><span class="co">## create mmseq database for bacteria, archea and viruses</span></span>
 <span id="cb19-189"><a href="#cb19-189"></a><span class="ex">create_dbs.py</span> <span class="at">-m</span> mmseqs <span class="at">--dbname</span> bact_arch_vir <span class="at">--taxids</span> 2,2157,10239 <span class="at">-y</span></span>
@@ -1320,7 +1320,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb19-195"><a href="#cb19-195"></a>    </span>
 <span id="cb19-196"><a href="#cb19-196"></a>    <span class="ex">emapper.py</span> <span class="at">--cpu</span> 20 <span class="at">-m</span> mmseqs <span class="at">--dbmem</span> <span class="at">--go_evidence</span> all  <span class="dt">\</span></span>
 <span id="cb19-197"><a href="#cb19-197"></a>    <span class="at">-i</span> <span class="va">${file_aa}</span> <span class="at">-o</span> <span class="va">${i}</span> <span class="at">--output_dir</span> data/eggnog <span class="dt">\</span></span>
-<span id="cb19-198"><a href="#cb19-198"></a>    <span class="at">--scratch_dir</span> /local_scratch/parde001/ <span class="at">--temp_dir</span> /local_scratch/parde001/tmp</span>
+<span id="cb19-198"><a href="#cb19-198"></a>    <span class="at">--scratch_dir</span> /local_scratch/<span class="va">${USER}</span>/ <span class="at">--temp_dir</span> /local_scratch/<span class="va">${USER}</span>/tmp</span>
 <span id="cb19-199"><a href="#cb19-199"></a></span>
 <span id="cb19-200"><a href="#cb19-200"></a>    <span class="ex">error_exit</span> <span class="va">$?</span></span>
 <span id="cb19-201"><a href="#cb19-201"></a><span class="cf">done</span></span>
