@@ -6,9 +6,9 @@
         <img alt="GitHub License" src="https://img.shields.io/github/license/lakhanp1/pectobacterium_pangenome">
     </p>
     <p>
-        <img alt="GitHub pages" src="https://img.shields.io/badge/Project-GitHub%20pages-green?link=https%3A%2F%2Flakhanp1.github.io%2FPectobacterium_pangenome%2Fscripts%2Fnotebooks%2F">
-        <img alt="bioRxiv" src="https://img.shields.io/badge/bioRxiv-10.1101%2F2024.09.02.610764-green?link=https%3A%2F%2Fdoi.org%2F10.1101%2F2024.09.02.610764">
-        <img alt="Zenodo" src="https://img.shields.io/badge/Zenodo-10.5281%2Fzenodo.12772014-blue?link=https%3A%2F%2Fdoi.org%2F10.5281%2Fzenodo.12772014">
+        <a href='https://lakhanp1.github.io/Pectobacterium_pangenome/scripts/notebooks/'><img alt="GitHub pages" src='https://img.shields.io/badge/Project-GitHub%20pages-green'></a>
+        <a href='https://doi.org/10.1101/2024.09.02.610764'><img alt="bioRxiv" src='https://img.shields.io/badge/bioRxiv-10.1101%2F2024.09.02.610764-green'></a>
+        <a href='https://doi.org/10.5281/zenodo.12772014'><img alt="Zenodo" src='https://img.shields.io/badge/Zenodo-10.5281%2Fzenodo.12772014-blue'></a>
     </p>
 </div>
 
