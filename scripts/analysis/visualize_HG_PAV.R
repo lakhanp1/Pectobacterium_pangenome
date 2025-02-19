@@ -30,13 +30,13 @@ confs <- prefix_config_paths(
 )
 
 phenotype <- "assay_FN"
-treeMethod <- "ani_upgma"     #ani_upgma, kmer_nj
+treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- file.path(confs$analysis$association$dir, 'pyseer_clades', phenotype)
+outDir <- file.path(confs$analysis$association$path, "pyseer_clades", phenotype)
 outPrefix <- file.path(outDir, phenotype)
-file_result <- file.path(outDir, 'pav.virulent_Pbrasiliense.asso.no_dist.significant.txt')
+file_result <- file.path(outDir, "pav.virulent_Pbrasiliense.asso.no_dist.significant.txt")
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 ################################################################################
 
@@ -59,17 +59,17 @@ speciesOrder <- suppressMessages(
 )
 
 ## add species order factor levels to SpeciesName column
-sampleInfo %<>%  dplyr::mutate(
+sampleInfo %<>% dplyr::mutate(
   SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 ## import homology group data
 g2hg <- suppressMessages(
   readr::read_tsv(confs$analysis$homology_groups$files$groups)
-) %>% 
+) %>%
   dplyr::mutate(Genome = as.character(Genome))
 
-assoRes <- suppressMessages(readr::read_tsv(file_result)) %>% 
+assoRes <- suppressMessages(readr::read_tsv(file_result)) %>%
   dplyr::filter(is.na(notes)) %>%
   dplyr::mutate(
     hg = stringr::str_replace(variant, "hg_", ""),
@@ -79,8 +79,8 @@ assoRes <- suppressMessages(readr::read_tsv(file_result)) %>%
 
 
 ################################################################################
-hgMat <- dplyr::select(g2hg, Genome, assoRes$hg) %>% 
-  tibble::column_to_rownames(var = "Genome") %>% 
+hgMat <- dplyr::select(g2hg, Genome, assoRes$hg) %>%
+  tibble::column_to_rownames(var = "Genome") %>%
   as.matrix()
 
 hgMat <- hgMat[rawTree$tip.label, ]
@@ -88,7 +88,7 @@ hgMat <- hgMat[rawTree$tip.label, ]
 htList <- homology_group_heatmap(
   mat = hgMat, phy = rawTree, metadata = sampleInfo,
   hgAn = assoRes,
-  width = c(10,24),
+  width = c(10, 24),
   markGenomes = associatedGenomes
 )
 
@@ -104,11 +104,11 @@ dev.off()
 
 # topGoDf <- topGO_enrichment(genes = assoRes$hg, orgdb = orgDb)
 
-## GO enrichment 
-grpGo <- dplyr::group_by(assoRes, betaSign) %>% 
+## GO enrichment
+grpGo <- dplyr::group_by(assoRes, betaSign) %>%
   dplyr::group_modify(
-    .f = ~topGO_enrichment(genes = .x$hg, orgdb = orgDb)
-  ) %>% 
+    .f = ~ topGO_enrichment(genes = .x$hg, orgdb = orgDb)
+  ) %>%
   dplyr::ungroup()
 
 readr::write_tsv(
@@ -122,4 +122,3 @@ ggsave(
   plot = pt_go, filename = paste(outPrefix, ".topGO.png", sep = ""),
   width = 8, height = 5
 )
-

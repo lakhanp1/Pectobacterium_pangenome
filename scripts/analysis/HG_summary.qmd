@@ -34,15 +34,15 @@ source("scripts/utils/homology_groups.R")
 set.seed(124)
 
 confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+    dir = "."
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 analysisName <- "homology_groups"
-outDir <- confs$analysis$homology_groups$dir
+outDir <- confs$analysis$homology_groups$path
 outPrefix <- file.path(outDir, analysisName)
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ```
@@ -53,38 +53,38 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 spOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$core_snp_ml$files$species_order)
+    readr::read_tsv(confs$analysis$phylogeny$core_snp_ml$files$species_order)
 )
 
 hgTable <- AnnotationDbi::select(
-  x = panOrgDb, keys = keys(panOrgDb),
-  columns = c("GID", "genomeId", "class")
+    x = panOrgDb, keys = keys(panOrgDb),
+    columns = c("GID", "genomeId", "class")
 ) %>%
-  dplyr::rename(hgId = GID) %>%
-  dplyr::count(hgId, genomeId, name = "nGenes")
+    dplyr::rename(hgId = GID) %>%
+    dplyr::count(hgId, genomeId, name = "nGenes")
 
 hgMeta <- AnnotationDbi::select(
-  x = panOrgDb, keys = keys(panOrgDb),
-  columns = c("GID", "class")
+    x = panOrgDb, keys = keys(panOrgDb),
+    columns = c("GID", "class")
 ) %>%
-  dplyr::rename(hgId = GID) %>%
-  dplyr::mutate(
-    class = dplyr::if_else(
-      condition = class == "core & single copy orthologous",
-      true = "core", false = class
+    dplyr::rename(hgId = GID) %>%
+    dplyr::mutate(
+        class = dplyr::if_else(
+            condition = class == "core & single copy orthologous",
+            true = "core", false = class
+        )
     )
-  )
 
 ## pangenome version HG stats
-grpStats <- suppressMessages(readr::read_tsv(file.path(outDir, "group_stats.tab"))) %>% 
-  dplyr::mutate(
-    data = forcats::as_factor(data),
-    group = forcats::fct_relevel(group, "core", "accessory", "unique")
-  )
+grpStats <- suppressMessages(readr::read_tsv(file.path(outDir, "group_stats.tab"))) %>%
+    dplyr::mutate(
+        data = forcats::as_factor(data),
+        group = forcats::fct_relevel(group, "core", "accessory", "unique")
+    )
 
 ## binary matrix for homology_group PAV
 hgPavMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
@@ -95,8 +95,8 @@ hgPavMat <- homology_groups_mat(pandb = panOrgDb, type = "pav")
 
 ```{r}
 spNames <- dplyr::count(sampleInfo, SpeciesName) %>%
-  # dplyr::filter(n >= 20) %>%
-  dplyr::pull(SpeciesName)
+    # dplyr::filter(n >= 20) %>%
+    dplyr::pull(SpeciesName)
 
 sppGrpStats <- NULL
 sppGrpGo <- NULL
@@ -109,42 +109,41 @@ sppGrpGo <- NULL
 #       nGenomes == 1 ~ "unique",
 #       nGenomes < !!nrow(hgPavMat) & nGenomes > 1 ~ "accessory"
 #     )
-#   ) %>% 
+#   ) %>%
 #   dplyr::count(class)
 
 ## get species wise core, accessory, unique group stats and GO
 for (sp in spNames) {
-  spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
-    dplyr::pull(genomeId)
-  
-  cat(sp, ": ", length(spGenomes), "\n")
-  
-  hgSum <- matrixStats::colSums2(
-    x = hgPavMat, useNames = T,
-    rows = which(rownames(hgPavMat) %in% spGenomes)
-  ) %>%
-    tibble::enframe(name = "hgId", value = "nGenomes") %>%
-    dplyr::filter(nGenomes != 0) %>%
-    dplyr::mutate(
-      subpan_class = dplyr::case_when(
-        nGenomes == !!length(spGenomes) ~ "core",
-        nGenomes == 1 ~ "unique",
-        nGenomes < !!length(spGenomes) & nGenomes > 1 ~ "accessory"
-      )
-    ) %>% 
-    dplyr::left_join(
-      y = dplyr::rename(hgMeta, pangenome_class = class),
-      by = "hgId"
-    )
-  
-  ## group stats
-  sppGrpStats <- dplyr::count(hgSum, pangenome_class, subpan_class, name = "count") %>%
-    dplyr::mutate(
-      SpeciesName = .env$sp, nHgs = !!nrow(hgSum),
-      n_genomes = length(spGenomes)
-    ) %>%
-    dplyr::bind_rows(sppGrpStats)
+    spGenomes <- dplyr::filter(sampleInfo, SpeciesName == .env$sp) %>%
+        dplyr::pull(genomeId)
 
+    cat(sp, ": ", length(spGenomes), "\n")
+
+    hgSum <- matrixStats::colSums2(
+        x = hgPavMat, useNames = T,
+        rows = which(rownames(hgPavMat) %in% spGenomes)
+    ) %>%
+        tibble::enframe(name = "hgId", value = "nGenomes") %>%
+        dplyr::filter(nGenomes != 0) %>%
+        dplyr::mutate(
+            subpan_class = dplyr::case_when(
+                nGenomes == !!length(spGenomes) ~ "core",
+                nGenomes == 1 ~ "unique",
+                nGenomes < !!length(spGenomes) & nGenomes > 1 ~ "accessory"
+            )
+        ) %>%
+        dplyr::left_join(
+            y = dplyr::rename(hgMeta, pangenome_class = class),
+            by = "hgId"
+        )
+
+    ## group stats
+    sppGrpStats <- dplyr::count(hgSum, pangenome_class, subpan_class, name = "count") %>%
+        dplyr::mutate(
+            SpeciesName = .env$sp, nHgs = !!nrow(hgSum),
+            n_genomes = length(spGenomes)
+        ) %>%
+        dplyr::bind_rows(sppGrpStats)
 }
 ```
 
@@ -152,27 +151,27 @@ for (sp in spNames) {
 
 ```{r}
 hgStats <- dplyr::count(hgMeta, class, name = "count") %>%
-  dplyr::mutate(
-    SpeciesName = "Pangenome",
-    nHgs = sum(count),
-    pangenome_class = class,
-    subpan_class = class,
-    n_genomes = nrow(hgPavMat)
-  ) %>%
-  dplyr::bind_rows(sppGrpStats) %>%
-  dplyr::select(SpeciesName, n_genomes, pangenome_class, subpan_class, count, nHgs) %>% 
-  dplyr::mutate(
-    fraction = round(count / nHgs, digits = 3),
-    dplyr::across(
-      .cols = c(subpan_class, pangenome_class),
-      .fns = ~ forcats::fct_relevel(.x, "core", "accessory", "unique")
-    ),
-    SpeciesName = forcats::fct_relevel(SpeciesName, "Pangenome", !!!spOrder$SpeciesName)
-  ) %>% 
-  dplyr::arrange(desc(n_genomes), SpeciesName, pangenome_class, subpan_class)
+    dplyr::mutate(
+        SpeciesName = "Pangenome",
+        nHgs = sum(count),
+        pangenome_class = class,
+        subpan_class = class,
+        n_genomes = nrow(hgPavMat)
+    ) %>%
+    dplyr::bind_rows(sppGrpStats) %>%
+    dplyr::select(SpeciesName, n_genomes, pangenome_class, subpan_class, count, nHgs) %>%
+    dplyr::mutate(
+        fraction = round(count / nHgs, digits = 3),
+        dplyr::across(
+            .cols = c(subpan_class, pangenome_class),
+            .fns = ~ forcats::fct_relevel(.x, "core", "accessory", "unique")
+        ),
+        SpeciesName = forcats::fct_relevel(SpeciesName, "Pangenome", !!!spOrder$SpeciesName)
+    ) %>%
+    dplyr::arrange(desc(n_genomes), SpeciesName, pangenome_class, subpan_class)
 
 readr::write_tsv(
-  x = hgStats, file = confs$analysis$homology_groups$files$spp_group_stats
+    x = hgStats, file = confs$analysis$homology_groups$files$spp_group_stats
 )
 
 ```
@@ -185,44 +184,44 @@ readr::write_tsv(
 #| out-width: "80%"
 
 species_to_show <- dplyr::count(sampleInfo, SpeciesName) %>%
-  dplyr::filter(n >= 20) %>% 
-  dplyr::arrange(desc(n)) %>% 
-  dplyr::mutate(
-    SpeciesName = forcats::as_factor(SpeciesName)
-  )
+    dplyr::filter(n >= 20) %>%
+    dplyr::arrange(desc(n)) %>%
+    dplyr::mutate(
+        SpeciesName = forcats::as_factor(SpeciesName)
+    )
 
 pt_stats <- dplyr::left_join(
-  x = species_to_show, y = hgStats, by = "SpeciesName"
-) %>% 
-  ggplot() +
-  geom_bar(
-    mapping = aes(
-      x = count, y = SpeciesName,
-      fill = forcats::fct_rev(subpan_class)
-    ),
-    stat = "sum", position = position_dodge(), width = 0.8
-  ) +
-  scale_fill_manual(
-    values = c(
-      confs$colors$core, confs$colors$accessory, confs$colors$unique
-    ),
-    breaks = c("core", "accessory", "unique")
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
-  theme_bw(base_size = 16) +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text = element_text(face = "bold"),
-    axis.text.y = element_text(face = "bold.italic"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
+    x = species_to_show, y = hgStats, by = "SpeciesName"
+) %>%
+    ggplot() +
+    geom_bar(
+        mapping = aes(
+            x = count, y = SpeciesName,
+            fill = forcats::fct_rev(subpan_class)
+        ),
+        stat = "sum", position = position_dodge(), width = 0.8
+    ) +
+    scale_fill_manual(
+        values = c(
+            confs$colors$core, confs$colors$accessory, confs$colors$unique
+        ),
+        breaks = c("core", "accessory", "unique")
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
+    theme_bw(base_size = 16) +
+    theme(
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_text(face = "bold"),
+        axis.text.y = element_text(face = "bold.italic"),
+        legend.position = "bottom",
+        legend.title = element_blank()
+    )
 
 
 ggsave(
-  plot = pt_stats, filename = file.path(outDir, "pangenome_spp_stats.pdf"),
-  width = 6, height = 4
+    plot = pt_stats, filename = file.path(outDir, "pangenome_spp_stats.pdf"),
+    width = 6, height = 4
 )
 
 pt_stats
@@ -236,24 +235,26 @@ pt_stats
 #| out-width: "80%"
 
 pt_hgStats <- ggplot2::ggplot(grpStats) +
-  geom_bar(
-    mapping = aes(x = data, y = count, fill = forcats::fct_rev(group)),
-    stat = "identity",
-    position = position_stack()
-  ) +
-  scale_y_continuous(expand = expansion(add = c(0, 100))) +
-  scale_fill_manual(
-    name = NULL,
-    values = c("core" = confs$colors$core, "accessory" = confs$colors$accessory,
-               "unique" = confs$colors$unique)
+    geom_bar(
+        mapping = aes(x = data, y = count, fill = forcats::fct_rev(group)),
+        stat = "identity",
+        position = position_stack()
     ) +
-  theme_bw(base_size = 24) +
-  theme(
-    panel.grid = element_blank(),
-    legend.position = "bottom",
-    axis.title = element_blank(),
-    axis.text.x = element_text(face = "italic")
-  )
+    scale_y_continuous(expand = expansion(add = c(0, 100))) +
+    scale_fill_manual(
+        name = NULL,
+        values = c(
+            "core" = confs$colors$core, "accessory" = confs$colors$accessory,
+            "unique" = confs$colors$unique
+        )
+    ) +
+    theme_bw(base_size = 24) +
+    theme(
+        panel.grid = element_blank(),
+        legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.text.x = element_text(face = "italic")
+    )
 
 ggsave(filename = file.path(outDir, "hg_cmp_stats.pdf"), plot = pt_hgStats, width = 6, height = 6)
 
@@ -269,30 +270,30 @@ pt_hgStats
 #| out-width: "80%"
 
 heaps <- suppressMessages(readr::read_tsv(file.path(outDir, "heaps_law.tab"))) %>%
-  dplyr::filter(species != "pangenome") %>%
-  dplyr::mutate(
-    complete = "complete",
-    species = forcats::fct_relevel(species, !!!levels(species_to_show$SpeciesName))
-  )
+    dplyr::filter(species != "pangenome") %>%
+    dplyr::mutate(
+        complete = "complete",
+        species = forcats::fct_relevel(species, !!!levels(species_to_show$SpeciesName))
+    )
 
 pt_alpha <- ggplot(data = heaps) +
-  geom_bar(
-    mapping = aes(y = species, x = alpha),
-    fill = "black", stat = "identity", width = 0.8
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
-  theme_bw(base_size = 16) +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text = element_text(face = "bold"),
-    axis.text.y = element_text(face = "bold.italic")
-  )
+    geom_bar(
+        mapping = aes(y = species, x = alpha),
+        fill = "black", stat = "identity", width = 0.8
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01))) +
+    theme_bw(base_size = 16) +
+    theme(
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text = element_text(face = "bold"),
+        axis.text.y = element_text(face = "bold.italic")
+    )
 
 
 ggsave(
-  plot = pt_alpha, filename = file.path(outDir, "pangenome_spp_alpha.pdf"),
-  width = 5, height = 4
+    plot = pt_alpha, filename = file.path(outDir, "pangenome_spp_alpha.pdf"),
+    width = 5, height = 4
 )
 
 pt_alpha
@@ -306,33 +307,33 @@ pt_alpha
 #| out-width: "100%"
 
 panGo <- suppressMessages(
-  readr::read_tsv(confs$analysis$homology_groups$files$spp_group_go)
-) %>% 
-  dplyr::filter(SpeciesName == "pangenome")
+    readr::read_tsv(confs$analysis$homology_groups$files$spp_group_go)
+) %>%
+    dplyr::filter(SpeciesName == "pangenome")
 
 ptDf <- dplyr::group_by(panGo, class) %>%
-  dplyr::arrange(pvalue, .by_group = TRUE) %>%
-  dplyr::slice(1:8) %>%
-  dplyr::ungroup() %>%
-  dplyr::mutate(
-    class = forcats::fct_relevel(class, "core", "accessory", "unique")
-  )
+    dplyr::arrange(pvalue, .by_group = TRUE) %>%
+    dplyr::slice(1:8) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+        class = forcats::fct_relevel(class, "core", "accessory", "unique")
+    )
 
 pt_go <- enrichment_bar(df = ptDf, title = "pangenome GO", colorCol = "class")
 
 pt_go <- pt_go +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
-  scale_x_discrete(labels = label_wrap(60)) +
-  scale_fill_manual(
-    values = c(
-      "core" = confs$colors$core, "accessory" = confs$colors$accessory,
-      "unique" = confs$colors$unique
+    scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+    scale_x_discrete(labels = label_wrap(60)) +
+    scale_fill_manual(
+        values = c(
+            "core" = confs$colors$core, "accessory" = confs$colors$accessory,
+            "unique" = confs$colors$unique
+        )
     )
-  )
 
 ggsave(
-  plot = pt_go, filename = file.path(outDir, "pangenome_GO.pdf"),
-  width = 8, height = 6
+    plot = pt_go, filename = file.path(outDir, "pangenome_GO.pdf"),
+    width = 8, height = 6
 )
 
 pt_go

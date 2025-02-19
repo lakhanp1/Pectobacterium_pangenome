@@ -207,7 +207,7 @@ script with the following.
 ```r
 analysisName <- "vir_lineage_prophages"
 
-outDir <- file.path(confs$analysis$prophages$dir)
+outDir <- file.path(confs$analysis$prophages$path)
 outPrefix <- file.path(outDir, analysisName)
 
 setIds <- c(
@@ -239,7 +239,7 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429500,hg_22429499 \
 
 ```r
 cluster_title <- "phage_grp_46"
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
+outDir <- paste(confs$analysis$prophages$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -282,7 +282,7 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
 
 ```r
 cluster_title <- "phage_grp_45"
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
+outDir <- paste(confs$analysis$prophages$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -319,7 +319,7 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22429319,hg_22429327 \
 
 ```r
 cluster_title <- "grp_45_mosaicsm"
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
+outDir <- paste(confs$analysis$prophages$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -351,7 +351,7 @@ customRegions <- list(
 
 ```r
 cluster_title <- "phage_grp_71"
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
+outDir <- paste(confs$analysis$prophages$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -386,7 +386,7 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427004,hg_22426993 \
 
 ```r
 cluster_title <- "phage_grp_107"
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz", sep = "")
+outDir <- paste(confs$analysis$prophages$path, "/cluster_viz", sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot

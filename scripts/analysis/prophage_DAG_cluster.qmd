@@ -48,16 +48,16 @@ source("scripts/utils/compare_hg_sets.R")
 set.seed(124)
 
 confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+    dir = "."
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-treeMethod <- "kmer_upgma"     #ani_upgma, kmer_upgma
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma
 
-outDir <- confs$analysis$prophages$preprocessing$dir
+outDir <- confs$analysis$prophages$preprocessing$path
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
 ```
@@ -68,38 +68,39 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 # get root-leaf node path as string for filtering purpose
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
-nodePaths <- nodepath_df(phy = rawTree) %>% 
-  dplyr::rename(genomeId = tip)
+nodePaths <- nodepath_df(phy = rawTree) %>%
+    dplyr::rename(genomeId = tip)
 
 phageAn <- suppressMessages(
-  readr::read_tsv(confs$data$prophages$files$data)
+    readr::read_tsv(confs$data$prophages$files$data)
 ) %>%
-  dplyr::mutate(
-    prophage_region = paste(chr, ":", start, "-", end, sep = ""),
-    prophage_region = dplyr::if_else(is.na(start), chr, prophage_region)
-  ) %>% 
-  dplyr::select(
-    prophage_id, prophage_length, prophage_taxonomy = taxonomy,
-    prophage_region, completeness, checkv_quality, sampleId, SpeciesName
-  )
+    dplyr::mutate(
+        prophage_region = paste(chr, ":", start, "-", end, sep = ""),
+        prophage_region = dplyr::if_else(is.na(start), chr, prophage_region)
+    ) %>%
+    dplyr::select(
+        prophage_id, prophage_length,
+        prophage_taxonomy = taxonomy,
+        prophage_region, completeness, checkv_quality, sampleId, SpeciesName
+    )
 
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+    readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>%
-  dplyr::rename(prophage_id = id) %>% 
-  dplyr::mutate(
-    hgs = stringr::str_split(hgs, ";")
-  ) %>% 
-  dplyr::select(prophage_id, hgs)
+    dplyr::rename(prophage_id = id) %>%
+    dplyr::mutate(
+        hgs = stringr::str_split(hgs, ";")
+    ) %>%
+    dplyr::select(prophage_id, hgs)
 
 phages <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$prophage_pool)
+    readr::read_tsv(confs$analysis$prophages$preprocessing$files$prophage_pool)
 )
 
 
@@ -110,37 +111,37 @@ phages <- suppressMessages(
 ### Categorize the nodes
 
 ```{r}
-# assign nodetype = root for all nodes that have a child 
+# assign nodetype = root for all nodes that have a child
 parents <- dplyr::filter(phages, !is.na(parent)) %>%
-  dplyr::select(parent) %>%
-  dplyr::distinct() %>%
-  dplyr::mutate(nodeType = "root")
+    dplyr::select(parent) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(nodeType = "root")
 
 # all the nodes without a parent are either "singletons" or "root" nodes
 nodeType <- dplyr::filter(phages, is.na(parent)) %>%
-  dplyr::select(child = prophage_id) %>%
-  dplyr::left_join(y = parents, by = c("child" = "parent")) %>%
-  tidyr::replace_na(replace = list(nodeType = "singleton"))
+    dplyr::select(child = prophage_id) %>%
+    dplyr::left_join(y = parents, by = c("child" = "parent")) %>%
+    tidyr::replace_na(replace = list(nodeType = "singleton"))
 
 phageRelations <- dplyr::left_join(
-  x = phages, y = nodeType, by = c("prophage_id" = "child")
+    x = phages, y = nodeType, by = c("prophage_id" = "child")
 ) %>%
-  tidyr::replace_na(replace = list(nodeType = "child")) %>%
-  dplyr::mutate(
-    # nodeType = if_else(mergedNode == "merged_child", mergedNode, nodeType),
-    nodeType = forcats::fct_relevel(
-      .f = nodeType, "root", "singleton", "child"
+    tidyr::replace_na(replace = list(nodeType = "child")) %>%
+    dplyr::mutate(
+        # nodeType = if_else(mergedNode == "merged_child", mergedNode, nodeType),
+        nodeType = forcats::fct_relevel(
+            .f = nodeType, "root", "singleton", "child"
+        )
     )
-  )
 
 
 phageRelations <- dplyr::mutate(
-  phageRelations,
-  child = stringr::str_split(fragments, ";"), .after = prophage_id
+    phageRelations,
+    child = stringr::str_split(fragments, ";"), .after = prophage_id
 ) %>%
-  tidyr::unnest(child) %>% 
-  dplyr::left_join(y = nodePaths, by = "genomeId") %>% 
-  dplyr::left_join(y = proHgs, by = c("child" = "prophage_id"))
+    tidyr::unnest(child) %>%
+    dplyr::left_join(y = nodePaths, by = "genomeId") %>%
+    dplyr::left_join(y = proHgs, by = c("child" = "prophage_id"))
 
 
 ```
@@ -149,12 +150,12 @@ phageRelations <- dplyr::mutate(
 #| fig-cap: Comparing the syntenic HGs vs shared HGs between child-parent prophage pairs
 
 ggplot(data = phageRelations) +
-  geom_point(mapping = aes(x = nSharedHgs, y = nSyntenicSharedHgs)) +
-  labs(
-    x = "# shared HGs", y = "# syntenic HGs",
-    title = "prophage similarity: intersect vs synteny"
-  ) +
-  theme_bw(base_size = 20)
+    geom_point(mapping = aes(x = nSharedHgs, y = nSyntenicSharedHgs)) +
+    labs(
+        x = "# shared HGs", y = "# syntenic HGs",
+        title = "prophage similarity: intersect vs synteny"
+    ) +
+    theme_bw(base_size = 20)
 ```
 
 Various node types of the prophages:
@@ -172,25 +173,25 @@ table(phageRelations$nodeType)
 ```{r}
 # make igraph
 nodes <- dplyr::select(
-  phageRelations, child, nodeType, genomeId,
-  nHg, perSharedParent
+    phageRelations, child, nodeType, genomeId,
+    nHg, perSharedParent
 ) %>%
-  dplyr::left_join(y = phageAn, by = c("child" = "prophage_id")) %>%
-  dplyr::rename(id = child)
+    dplyr::left_join(y = phageAn, by = c("child" = "prophage_id")) %>%
+    dplyr::rename(id = child)
 
 edges <- dplyr::filter(phageRelations, !is.na(parent)) %>%
-  dplyr::select(
-    from = child, to = parent, perSharedParent,
-    nSharedHgs, perSharedChild, relation, jaccardIndex
-  ) %>%
-  dplyr::mutate(weight = jaccardIndex)
+    dplyr::select(
+        from = child, to = parent, perSharedParent,
+        nSharedHgs, perSharedChild, relation, jaccardIndex
+    ) %>%
+    dplyr::mutate(weight = jaccardIndex)
 
 
 if (length(setdiff(union(edges$from, edges$to), nodes$id)) != 0) {
-  stop(
-    "Nodes from edges df are missing in nodes df: ",
-    paste(setdiff(union(edges$from, edges$to), nodes$id), collapse = "; ")
-  )
+    stop(
+        "Nodes from edges df are missing in nodes df: ",
+        paste(setdiff(union(edges$from, edges$to), nodes$id), collapse = "; ")
+    )
 }
 
 gf <- igraph::graph_from_data_frame(d = edges, directed = TRUE, vertices = nodes)
@@ -209,13 +210,15 @@ clu <- igraph::components(gf)
 compL <- igraph::groups(clu)
 
 # remove unused prophages for calculating summary stats
-proHgs <- tibble::as_tibble(igraph::vertex_attr(gf)) %>% 
-  dplyr::select(prophage_id = name, nodeType) %>% 
-  dplyr::left_join(proHgs, by = "prophage_id")
+proHgs <- tibble::as_tibble(igraph::vertex_attr(gf)) %>%
+    dplyr::select(prophage_id = name, nodeType) %>%
+    dplyr::left_join(proHgs, by = "prophage_id")
 
-rootHgsN <- dplyr::filter(proHgs, nodeType != "child") %>% 
-  dplyr::pull(hgs) %>% 
-  unlist() %>% unique() %>% length()
+rootHgsN <- dplyr::filter(proHgs, nodeType != "child") %>%
+    dplyr::pull(hgs) %>%
+    unlist() %>%
+    unique() %>%
+    length()
 
 ```
 
@@ -236,32 +239,32 @@ sort(clu$csize, decreasing = T)
 
 ```{r}
 compDf <- tibble::enframe(clu$membership, name = "prophage_id", value = "graph_component") %>%
-  dplyr::add_count(graph_component, name = "component_size")
+    dplyr::add_count(graph_component, name = "component_size")
 
 phageRelations <- dplyr::left_join(
-  phageRelations, compDf,
-  by = "prophage_id"
+    phageRelations, compDf,
+    by = "prophage_id"
 )
 
 compRoots <- dplyr::filter(phageRelations, !(nodeType %in% c("child", "merged_child"))) %>%
-  dplyr::select(
-    root_id = prophage_id, root_nHgs = nHg, root_hgs = hgs, graph_component
-  ) 
+    dplyr::select(
+        root_id = prophage_id, root_nHgs = nHg, root_hgs = hgs, graph_component
+    )
 
 networkDf <- dplyr::left_join(
-  x = phageRelations, y = compRoots, by = "graph_component"
+    x = phageRelations, y = compRoots, by = "graph_component"
 ) %>%
-  dplyr::rowwise() %>% 
-  dplyr::mutate(
-    root_shared = length(intersect(hgs, root_hgs))
-  ) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::select(-c(hgs, root_hgs)) %>% 
-  dplyr::arrange(graph_component, nodeType)
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+        root_shared = length(intersect(hgs, root_hgs))
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-c(hgs, root_hgs)) %>%
+    dplyr::arrange(graph_component, nodeType)
 
 readr::write_tsv(
-  x = networkDf,
-  file = confs$analysis$prophages$preprocessing$files$dag_clusters
+    x = networkDf,
+    file = confs$analysis$prophages$preprocessing$files$dag_clusters
 )
 ```
 
@@ -272,15 +275,19 @@ clique_size_counts(gf)
 ### visualize DAG
 
 ```{r}
-# DAG visualization 
-gf %>% 
-  plot(vertex.size = 1.5, vertex.label = NA,
-       edge.arrow.size = 0.3, edge.color = "black")
+# DAG visualization
+gf %>%
+    plot(
+        vertex.size = 1.5, vertex.label = NA,
+        edge.arrow.size = 0.3, edge.color = "black"
+    )
 
-gf %>% 
-  add_layout_(igraph::as_tree(), component_wise()) %>% 
-  plot(vertex.size = 1.5, vertex.label = NA,
-       edge.arrow.size = 0.3, edge.color = "black")
+gf %>%
+    add_layout_(igraph::as_tree(), component_wise()) %>%
+    plot(
+        vertex.size = 1.5, vertex.label = NA,
+        edge.arrow.size = 0.3, edge.color = "black"
+    )
 
 
 # visualization
@@ -292,8 +299,10 @@ lot <- layout_with_lgl(graph = gf)
 lot <- layout_with_kk(graph = gf)
 lot <- layout_with_fr(graph = gf)
 
-plot(gf, layout = lot, vertex.size = 1.5, vertex.label = NA,
-     edge.arrow.size = 0.3, edge.color = "black")
+plot(gf,
+    layout = lot, vertex.size = 1.5, vertex.label = NA,
+    edge.arrow.size = 0.3, edge.color = "black"
+)
 
 
 ```
@@ -301,7 +310,7 @@ plot(gf, layout = lot, vertex.size = 1.5, vertex.label = NA,
 ### Plot graph using `ggraph`
 
 ```{r}
-#| column: page 
+#| column: page
 #| fig-height: 7
 #| fig-width: 10
 #| out-width: '150%'
@@ -314,25 +323,27 @@ lotc <- igraph::layout_components(graph = gf, layout = layout_with_kk)
 
 (pt_net <- ggraph::ggraph(gf, layout = lotc) +
     ggraph::geom_edge_link(
-      # mapping = aes(color = weight),
-      arrow = arrow(length = unit(1, 'mm')),
-      end_cap = circle(1, 'mm')
+        # mapping = aes(color = weight),
+        arrow = arrow(length = unit(1, "mm")),
+        end_cap = circle(1, "mm")
     ) +
     ggraph::geom_node_point(
-      mapping = aes(fill = nodeType),
-      alpha = 0.7, shape = 21, color = "black"
+        mapping = aes(fill = nodeType),
+        alpha = 0.7, shape = 21, color = "black"
     ) +
     scale_fill_viridis_d() +
     scale_size_manual(
-      values = c("child" = 1.5, "root" = 3, "singleton" = 1.5)
+        values = c("child" = 1.5, "root" = 3, "singleton" = 1.5)
     ) +
     labs(title = "pangenome prophage hierarchy") +
     theme_void(base_size = 18) +
     theme(
-      legend.position = "bottom"
+        legend.position = "bottom"
     ))
 
-ggsave(filename = paste(outDir, "/prophage_DAG_clusters.pdf", sep = ""),
-       width = 10, height = 8)
+ggsave(
+    filename = paste(outDir, "/prophage_DAG_clusters.pdf", sep = ""),
+    width = 10, height = 8
+)
 
 ```

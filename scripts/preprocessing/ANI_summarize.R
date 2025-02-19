@@ -28,7 +28,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- confs$analysis$ANI$dir
+outDir <- confs$analysis$ANI$path
 genus <- "Pectobacterium"
 
 pt_theme <- theme_bw(base_size = 14) +
@@ -44,14 +44,14 @@ genusPattern <- paste("(", genus, " )(?!sp\\.)", sep = "")
 
 sampleInfo <- suppressMessages(
   readr::read_tsv(file = confs$analysis$qc$files$prebuild_metadata)
-) %>% 
+) %>%
   dplyr::filter(
     ## no need to include assemblies that already have problem
     dplyr::if_all(
       .cols = c(ExclFromRefSeq, Anomalous, replaced),
       .fns = ~ is.na(.x)
     )
-  ) %>% 
+  ) %>%
   dplyr::mutate(
     SpeciesName = stringi::stri_replace(
       str = SpeciesName, regex = genusPattern, replacement = "P. "
@@ -60,7 +60,7 @@ sampleInfo <- suppressMessages(
       str = SpeciesName, regex = "((\\w)[^ ]+ )((\\w)[^ ]+ )(subsp\\..*)",
       replacement = "$2. $4. $5"
     ),
-    nodeLabs = stringr::str_c("(", SpeciesName,")", sampleName, sep = ""),
+    nodeLabs = stringr::str_c("(", SpeciesName, ")", sampleName, sep = ""),
     type_material = dplyr::if_else(
       !is.na(type_material), true = "type strain", type_material
     )
@@ -68,8 +68,8 @@ sampleInfo <- suppressMessages(
 
 sampleInfoList <- dplyr::select(
   sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs
-) %>% 
-  purrr::transpose() %>% 
+) %>%
+  purrr::transpose() %>%
   purrr::set_names(nm = purrr::map(., "sampleId"))
 
 aniDf <- suppressMessages(readr::read_tsv(
@@ -80,10 +80,10 @@ aniDf <- suppressMessages(readr::read_tsv(
 aniDf %<>% dplyr::mutate(
   dplyr::across(
     .cols = c(id1, id2),
-    .fns = ~stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
+    .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1"),
   ),
-  dist = 1 - (ani/100)
-) %>% 
+  dist = 1 - (ani / 100)
+) %>%
   dplyr::arrange(id1, id2)
 
 
@@ -92,9 +92,9 @@ distMat <- tidyr::pivot_wider(
   id_cols = "id1",
   names_from = "id2",
   values_from = "dist"
-) %>% 
-  tibble::column_to_rownames(var = "id1") %>% 
-  as.matrix() %>% 
+) %>%
+  tibble::column_to_rownames(var = "id1") %>%
+  as.matrix() %>%
   as.dist()
 
 aniMat <- tidyr::pivot_wider(
@@ -102,17 +102,17 @@ aniMat <- tidyr::pivot_wider(
   id_cols = "id1",
   names_from = "id2",
   values_from = "ani"
-) %>% 
-  tibble::column_to_rownames(var = "id1") %>% 
+) %>%
+  tibble::column_to_rownames(var = "id1") %>%
   as.matrix()
 
-if(!all(rownames(as.matrix(distMat)) == rownames(aniMat))){
+if (!all(rownames(as.matrix(distMat)) == rownames(aniMat))) {
   stop("rownames did not match")
 }
 ################################################################################
 
 # plot(hclust(distMat))
-treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>% 
+treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>%
   ape::ladderize()
 
 ape::write.tree(
@@ -120,7 +120,7 @@ ape::write.tree(
   file = confs$analysis$ANI$files$ani_upgma
 )
 
-treeNj <- ape::nj(distMat) %>% 
+treeNj <- ape::nj(distMat) %>%
   ape::ladderize()
 
 corr_nj <- cor(as.vector(distMat), as.vector(as.dist(cophenetic(treeNj))))
@@ -130,9 +130,9 @@ corr_upgma <- cor(as.vector(distMat), as.vector(as.dist(cophenetic(treeUpgma))))
 copheneticDist <- tibble::tibble(
   dist = as.vector(distMat),
   UPGMA = as.vector(as.dist(cophenetic(treeUpgma))),
-  NJ =  as.vector(as.dist(cophenetic(treeNj)))
-) %>% 
-  tidyr::pivot_longer(cols = -dist, names_to = "tree", values_to = "cophenetic") %>% 
+  NJ = as.vector(as.dist(cophenetic(treeNj)))
+) %>%
+  tidyr::pivot_longer(cols = -dist, names_to = "tree", values_to = "cophenetic") %>%
   dplyr::mutate(tree = forcats::as_factor(tree))
 
 pt_copheneticCorr <- ggplot2::ggplot(
@@ -159,13 +159,13 @@ ggsave(
 
 speciesMat <- tibble::tibble(
   sampleId = rownames(aniMat)
-) %>% 
-  dplyr::left_join(y = dplyr::select(sampleInfo, sampleId, SpeciesName), by = "sampleId") %>% 
-  dplyr::mutate(sp = 1) %>% 
+) %>%
+  dplyr::left_join(y = dplyr::select(sampleInfo, sampleId, SpeciesName), by = "sampleId") %>%
+  dplyr::mutate(sp = 1) %>%
   tidyr::pivot_wider(
     id_cols = sampleId, names_from = SpeciesName, values_from = sp, values_fill = 0
-  ) %>% 
-  tibble::column_to_rownames(var = "sampleId") %>% 
+  ) %>%
+  tibble::column_to_rownames(var = "sampleId") %>%
   as.matrix()
 
 ht_ani <- ComplexHeatmap::Heatmap(
@@ -217,7 +217,7 @@ dev.off()
 ## UPGMA tree
 pt_upgma1 <- as_tibble(treeUpgma) %>%
   dplyr::full_join(y = sampleInfo, by = c("label" = "sampleId")) %>%
-  treeio::as.treedata() %>% 
+  treeio::as.treedata() %>%
   ggtree::ggtree() +
   labs(title = "UPGMA tree")
 
@@ -256,9 +256,9 @@ outGroup <- "104326-106-074"
 pt_aniDistr <- dplyr::bind_rows(
   dplyr::slice_sample(.data = aniDf, prop = 0.05),
   dplyr::filter(aniDf, id1 == outGroup)
-) %>% 
-  dplyr::filter(id2 != outGroup) %>% 
-  dplyr::distinct() %>% 
+) %>%
+  dplyr::filter(id2 != outGroup) %>%
+  dplyr::distinct() %>%
   ggplot2::ggplot(
     mapping = aes(x = "g1", y = ani, color = id1)
   ) +
@@ -293,7 +293,7 @@ pt_genomeLenDistr <- ggplot(
   ggrepel::geom_text_repel(
     data = dplyr::filter(sampleInfo, length %in% range(length) | sampleId == outGroup),
     mapping = aes(label = nodeLabs),
-    min.segment.length = 0, segment.size = 1, direction = "y", force = 0.5, 
+    min.segment.length = 0, segment.size = 1, direction = "y", force = 0.5,
     arrow = arrow(length = unit(0.015, "npc")), nudge_x = 0.25
   ) +
   scale_color_manual(
@@ -336,7 +336,7 @@ treeNjRooted <- ape::root(
 
 pt_nj1 <- as_tibble(treeNjRooted) %>%
   dplyr::full_join(y = sampleInfo, by = c("label" = "sampleId")) %>%
-  treeio::as.treedata() %>% 
+  treeio::as.treedata() %>%
   ggtree::ggtree() +
   labs(title = "NJ tree")
 
@@ -353,8 +353,10 @@ pt_nj3 <- pt_nj2 +
   scale_color_manual(
     values = setNames(
       c("red", "#E57A44", "#088734", "#088734"),
-      c(sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
-        "P. carotovorum", "P. c. subsp. carotovorum")
+      c(
+        sampleInfoList[[outGroup]]$SpeciesName, "P. brasiliense",
+        "P. carotovorum", "P. c. subsp. carotovorum"
+      )
     ),
     breaks = NULL,
     na.value = "black"
@@ -369,7 +371,7 @@ ggsave(
 )
 
 
-# cophenetic.phylo() computes the pairwise distances between the pairs of tips 
+# cophenetic.phylo() computes the pairwise distances between the pairs of tips
 # from a phylogenetic tree using its branch lengths.
 # drop.tip() Remove Tips in a Phylogenetic Tree
 # node.depth() Depth and Heights of Nodes and Tips
@@ -377,6 +379,3 @@ ggsave(
 # ladderize()
 
 ################################################################################
-
-
-

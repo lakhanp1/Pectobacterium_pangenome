@@ -28,7 +28,7 @@ confs <- prefix_config_paths(
 )
 
 cluster_title <- "phage_grp_45"
-outDir <- paste(confs$analysis$prophages$dir, "/cluster_viz/", cluster_title, sep = "")
+outDir <- paste(confs$analysis$prophages$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -159,8 +159,10 @@ function_types <- c(
 
 hg_function_col <- purrr::map2(
   .x = function_types,
-  .y = c(viridis::viridis(
-    n = length(function_types) - 2, option = "turbo"),
+  .y = c(
+    viridis::viridis(
+      n = length(function_types) - 2, option = "turbo"
+    ),
     "grey50", "white"
   ),
   .f = function(x, y) {
@@ -187,7 +189,6 @@ region_set <- union(clusterList[[region_cluster]]$members, other_regions)
 # if there are no members i.e. only show region of interests, then skip the next block
 # if (!is.null(region_set) && !is.null(other_regions)) {
 if (!is.null(region_set)) {
-
   # frequency for all HGs in the prophages in current cluster: used for heatmap plotting
   grpHgFreq <- regionList[region_set] %>%
     purrr::map("hgs") %>%
@@ -326,19 +327,18 @@ if (!is.null(region_set)) {
 
     grpMemberData <- dplyr::mutate(grpMemberData, shown = 1)
   }
-
 } else {
   grpMemberData <- NULL
 }
 
 
 # add custom region genomeId and metadata
-if(!is.null(customRegions) & is.list(customRegions)){
+if (!is.null(customRegions) & is.list(customRegions)) {
   grpMemberData <- dplyr::bind_rows(
     x = grpMemberData,
     y = purrr::map(
       .x = customRegions,
-      .f = function(x){
+      .f = function(x) {
         tibble::tibble(genomeId = x$genomeId, phage_grp = "custom_region", shown = 1)
       }
     ) %>%
@@ -347,7 +347,7 @@ if(!is.null(customRegions) & is.list(customRegions)){
 }
 
 # finally, add the host phylogeny order
-grpMemberData  %<>%  dplyr::left_join(
+grpMemberData %<>% dplyr::left_join(
   y = tibble::tibble(
     genomeId = ordered_tips_phylo(phy = coreTree),
     host_order = ape::Ntip.phylo(coreTree):1
@@ -360,7 +360,7 @@ grpMemberData  %<>%  dplyr::left_join(
   )
 
 # optionally, do not order appended regions as per phylogeny and keep them at bottom
-if(!regions_phy_ordered){
+if (!regions_phy_ordered) {
   grpMemberData %<>%
     dplyr::mutate(
       host_order = dplyr::if_else(phage_grp == "custom_region", NA, host_order)
@@ -391,7 +391,7 @@ viewRegions <- dplyr::case_when(
 
 regions_df <- purrr::map(
   .x = regionList[viewRegions],
-  .f = function(x){
+  .f = function(x) {
     tibble::tibble(
       genomeId = x$genomeId, chr = x$chr, start = x$start, end = x$end
     )
@@ -467,7 +467,8 @@ if (length(clusterList[[region_cluster]]$fragmented) > 0) {
       .x = regionList[
         clusterList[[region_cluster]]$fragmented
       ],
-      .f = "genomeId") %>%
+      .f = "genomeId"
+    ) %>%
       unname(),
     color = "#FFC107"
   )

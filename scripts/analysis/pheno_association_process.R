@@ -7,7 +7,7 @@ suppressPackageStartupMessages(library(here))
 
 ## save phenotype specific groups in a file
 ##**********
-##*replace this script later by a function
+##* replace this script later by a function
 ##**********
 
 rm(list = ls())
@@ -26,13 +26,13 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-panConf$db$gene_classification$phenotypes$dir
+panConf$db$gene_classification$phenotypes$path
 
 ################################################################################
 
 phnConf <- suppressMessages(
   readr::read_tsv(
-    file = panConf$analysis_confs$files$phenotype_association, 
+    file = panConf$analysis_confs$files$phenotype_association,
     col_types = "ccccc"
   )
 )
@@ -44,7 +44,6 @@ for (phn in phnConf$name) {
   cat("phenotype", phn, "\n")
   phenotype_specific_groups(
     phenotype = phn, panConf = panConf,
-   save = confs$analysis$association$files$pheno_specific_groups 
+    save = confs$analysis$association$files$pheno_specific_groups
   )
 }
-

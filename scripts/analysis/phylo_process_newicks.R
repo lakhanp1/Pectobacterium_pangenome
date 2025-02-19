@@ -39,7 +39,8 @@ parser <- optparse::add_option(
 # )
 
 parser <- optparse::add_option(
-  parser, default = FALSE,
+  parser,
+  default = FALSE,
   opt_str = c("-b", "--bootstrap"), type = "logical", action = "store_true",
   help = "LOGICAL: whether to parse the bootstrap values"
 )
@@ -56,7 +57,8 @@ parser <- optparse::add_option(
 )
 
 parser <- optparse::add_option(
-  parser, default = FALSE,
+  parser,
+  default = FALSE,
   opt_str = c("--save_leaf_order"), type = "logical", action = "store_true",
   help = "LOGICAL: Save the order of tip lables from phylogenetic tree"
 )
@@ -96,7 +98,7 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 outGroup <- confs$analysis$phylogeny$outgroup
 
-outDir <- confs$analysis$phylogeny[[opts$name]]$dir
+outDir <- confs$analysis$phylogeny[[opts$name]]$path
 
 if (!dir.exists(outDir)) {
   dir.create(outDir)
@@ -118,17 +120,16 @@ sampleInfoList <- as.list_metadata(
 )
 
 # read tree
-if(opts$bootstrap){
+if (opts$bootstrap) {
   rawTree <- treeio::read.newick(file = opts$tree, node.label = "support")
   bootstrapData <- dplyr::rename(rawTree@data, bootstrap = support)
   treePhy <- rawTree@phylo
-
-} else{
+} else {
   treePhy <- ape::read.tree(file = opts$tree)
 }
 
 # add a 'g_' prefix if tree tips are numeric
-if(any(grepl(pattern = "^\\d+$", treePhy$tip.label))){
+if (any(grepl(pattern = "^\\d+$", treePhy$tip.label))) {
   treePhy$tip.label <- paste("g_", treePhy$tip.label, sep = "")
 }
 
@@ -149,7 +150,7 @@ rootedTr <- ape::root(
 treePhyData <- tidytree::as.treedata(treePhy)
 rootedTreeData <- tidytree::as.treedata(rootedTr)
 
-if(opts$bootstrap){
+if (opts$bootstrap) {
   treePhyData <- treeio::full_join(
     x = treePhy, y = bootstrapData, by = "node"
   )
@@ -157,7 +158,6 @@ if(opts$bootstrap){
   rootedTreeData <- treeio::full_join(
     x = rootedTr, y = bootstrapData, by = "node"
   )
-
 }
 
 # store tree in BEAST format
@@ -255,7 +255,7 @@ pt_tree4 <- pt_tree3 +
     mapping = aes(y = id, label = geo_loc_country),
     geom = "geom_text", size = 3, hjust = "left",
     pwidth = 0.2, offset = 0.05
-  )  +
+  ) +
   ggnewscale::new_scale_color() +
   ## AssemblyAccession
   ggtreeExtra::geom_fruit(
@@ -281,10 +281,10 @@ sampleInfo %<>% dplyr::select(-genomeString)
 
 ################################################################################
 # optionally, save species order for plotting species key heatmap
-if(opts$save_leaf_order){
-
+if (opts$save_leaf_order) {
   leafOrder <- tibble:::enframe(
-    ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
+    ggtree::get_taxa_name(pt_tree),
+    name = "tipOrder", value = "genomeId"
   ) %>%
     dplyr::left_join(y = sampleInfo, by = "genomeId")
 
@@ -304,14 +304,14 @@ if(opts$save_leaf_order){
   )
 
   # add nodepath to the pangenome metadata file
-  nodePathCol <- paste('nodepath.', opts$name, sep = "")
+  nodePathCol <- paste("nodepath.", opts$name, sep = "")
   nodePaths <- nodepath_df(phy = rootedTr) %>%
     dplyr::rename(
       genomeId = tip,
       !!nodePathCol := nodepath
     )
 
-  if(tibble::has_name(sampleInfo, nodePathCol)){
+  if (tibble::has_name(sampleInfo, nodePathCol)) {
     sampleInfo %<>% dplyr::select(-!!nodePathCol)
   }
 
@@ -336,12 +336,8 @@ if(opts$save_leaf_order){
   # openxlsx::openXL(wb)
   openxlsx::saveWorkbook(
     wb = wb,
-    file = file.path(panConf$dir, "pangenome_metadata.xlsx"), overwrite = TRUE
+    file = file.path(panConf$path, "pangenome_metadata.xlsx"), overwrite = TRUE
   )
 }
 
 ################################################################################
-
-
-
-

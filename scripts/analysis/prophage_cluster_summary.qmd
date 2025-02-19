@@ -35,16 +35,16 @@ source("scripts/utils/compare_hg_sets.R")
 set.seed(124)
 
 confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+    dir = "."
 )
 
-treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj, core_snp_ml
+treeMethod <- "core_snp_ml" # ani_upgma, kmer_nj, core_snp_ml
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- confs$analysis$prophages$summary$dir
+outDir <- confs$analysis$prophages$summary$path
 
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ```
@@ -53,22 +53,22 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ```{r}
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+    readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
-sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>% 
-  dplyr::mutate(
-    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
-  )
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>%
+    dplyr::mutate(
+        SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+    )
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 ## read tree
 rawTree <- import_tree(
-  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
-  phylo = TRUE
+    confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
+    phylo = TRUE
 )
 
 rawTree <- representative_genomes_tree(phy = rawTree, metadata = sampleInfo)
@@ -79,21 +79,21 @@ rawTree <- representative_genomes_tree(phy = rawTree, metadata = sampleInfo)
 
 ```{r}
 phageAn <- suppressMessages(
-  readr::read_tsv(confs$data$prophages$files$data)
+    readr::read_tsv(confs$data$prophages$files$data)
 ) %>%
-  dplyr::select(prophage_id, completeness, checkv_quality, taxonomy)
+    dplyr::select(prophage_id, completeness, checkv_quality, taxonomy)
 
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+    readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
 ) %>%
-  dplyr::select(prophage_id = id, nHgs, hgs) %>%
-  dplyr::mutate(
-    hgs = stringr::str_split(hgs, ";")
-  )
+    dplyr::select(prophage_id = id, nHgs, hgs) %>%
+    dplyr::mutate(
+        hgs = stringr::str_split(hgs, ";")
+    )
 
 proHgL <- purrr::transpose(proHgs) %>%
-  purrr::set_names(nm = purrr::map(., "prophage_id"))
+    purrr::set_names(nm = purrr::map(., "prophage_id"))
 
 ```
 
@@ -101,21 +101,21 @@ proHgL <- purrr::transpose(proHgs) %>%
 
 ```{r}
 phageClusters <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$files$clusters)
+    readr::read_tsv(confs$analysis$prophages$files$clusters)
 )
 
-clusterList <- dplyr::group_by(phageClusters, phage_grp) %>% 
-  dplyr::group_map(
-    .f = ~{
-      list(
-        phage_grp = .x$phage_grp[1],
-        members = .x$prophage_id,
-        group_size = nrow(.x)
-      )
-    },
-    .keep = TRUE
-  ) %>% 
-  purrr::set_names(nm = purrr::map(., "phage_grp"))
+clusterList <- dplyr::group_by(phageClusters, phage_grp) %>%
+    dplyr::group_map(
+        .f = ~ {
+            list(
+                phage_grp = .x$phage_grp[1],
+                members = .x$prophage_id,
+                group_size = nrow(.x)
+            )
+        },
+        .keep = TRUE
+    ) %>%
+    purrr::set_names(nm = purrr::map(., "phage_grp"))
 
 ```
 
@@ -127,46 +127,46 @@ Number of clusters/prophage signatures: `r length(unique(phageClusters$phage_grp
 
 ```{r}
 defense_hgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
-) %>% 
-  dplyr::filter(
-    function_category %in% 
-      c("toxin-antitoxin", "restriction modification", "methyltransferase")
-  ) %>%
-  dplyr::mutate(
-    function_category = dplyr::case_match(
-      function_category,
-      "toxin-antitoxin" ~ "ta_system",
-      "restriction modification" ~ "rm_system",
-      "methyltransferase" ~ "rm_system",
-      .default = function_category
+    readr::read_tsv(confs$analysis$prophages$files$hg_broad_functions)
+) %>%
+    dplyr::filter(
+        function_category %in%
+            c("toxin-antitoxin", "restriction modification", "methyltransferase")
+    ) %>%
+    dplyr::mutate(
+        function_category = dplyr::case_match(
+            function_category,
+            "toxin-antitoxin" ~ "ta_system",
+            "restriction modification" ~ "rm_system",
+            "methyltransferase" ~ "rm_system",
+            .default = function_category
+        )
+    ) %>%
+    dplyr::left_join(
+        y = tidyr::unnest(proHgs, cols = hgs),
+        by = c("hg_id" = "hgs")
+    ) %>%
+    dplyr::summarise(
+        hgs = paste(sort(hg_id), collapse = ";"),
+        .by = c(prophage_id, function_category)
+    ) %>%
+    tidyr::pivot_wider(
+        names_from = function_category,
+        values_from = hgs
     )
-  ) %>% 
-  dplyr::left_join(
-    y = tidyr::unnest(proHgs, cols = hgs),
-    by = c("hg_id" = "hgs")
-  ) %>% 
-  dplyr::summarise(
-    hgs = paste(sort(hg_id), collapse = ";"),
-    .by = c(prophage_id, function_category)
-  ) %>% 
-  tidyr::pivot_wider(
-    names_from = function_category,
-    values_from = hgs
-  )
 
-phage_defense <- dplyr::select(phageClusters, prophage_id, phage_grp, fragments, grp_size) %>% 
-  tidyr::separate_longer_delim(cols = fragments, delim = ";") %>% 
-  dplyr::left_join(
-    y = defense_hgs, by = c("fragments" = "prophage_id")
-  ) %>% 
-  dplyr::filter(!is.na(ta_system) | !is.na(rm_system)) %>% 
-  dplyr::distinct(prophage_id, phage_grp, ta_system, rm_system, grp_size) %>% 
-  dplyr::arrange(desc(grp_size))
+phage_defense <- dplyr::select(phageClusters, prophage_id, phage_grp, fragments, grp_size) %>%
+    tidyr::separate_longer_delim(cols = fragments, delim = ";") %>%
+    dplyr::left_join(
+        y = defense_hgs, by = c("fragments" = "prophage_id")
+    ) %>%
+    dplyr::filter(!is.na(ta_system) | !is.na(rm_system)) %>%
+    dplyr::distinct(prophage_id, phage_grp, ta_system, rm_system, grp_size) %>%
+    dplyr::arrange(desc(grp_size))
 
 readr::write_tsv(
-  x = phage_defense,
-  file = confs$analysis$prophages$files$phage_defense
+    x = phage_defense,
+    file = confs$analysis$prophages$files$phage_defense
 )
 ```
 
@@ -174,37 +174,37 @@ readr::write_tsv(
 
 ```{r}
 n_genomes_phage <- dplyr::distinct(phageClusters, genomeId, SpeciesName) %>%
-  dplyr::count(SpeciesName, name = "n_genomes_phages", sort = TRUE)
+    dplyr::count(SpeciesName, name = "n_genomes_phages", sort = TRUE)
 
-clustWiseCounts <- dplyr::group_by(phageClusters, phage_grp, SpeciesName) %>% 
-  dplyr::summarise(n_genomes_clust = n(), .groups = "drop") %>% 
-  dplyr::add_count(phage_grp, name = "n_species_phages", sort = TRUE) %>% 
-  dplyr::left_join(
-    y = n_genomes_phage, by = "SpeciesName"
-  ) %>% 
-  dplyr::mutate(
-    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName),
-    SpeciesName = forcats::fct_drop(SpeciesName),
-    phage_grp = forcats::as_factor(phage_grp),
-    cluster_per_species = n_genomes_clust / n_genomes_phages
-  )
+clustWiseCounts <- dplyr::group_by(phageClusters, phage_grp, SpeciesName) %>%
+    dplyr::summarise(n_genomes_clust = n(), .groups = "drop") %>%
+    dplyr::add_count(phage_grp, name = "n_species_phages", sort = TRUE) %>%
+    dplyr::left_join(
+        y = n_genomes_phage, by = "SpeciesName"
+    ) %>%
+    dplyr::mutate(
+        SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName),
+        SpeciesName = forcats::fct_drop(SpeciesName),
+        phage_grp = forcats::as_factor(phage_grp),
+        cluster_per_species = n_genomes_clust / n_genomes_phages
+    )
 
 ```
 
 Generalist and specialist prophages statistics:
 
 ```{r}
-generalist <- dplyr::filter(clustWiseCounts, n_species_phages > 1) %>% 
-  dplyr::mutate(
-    dplyr::across(
-      .cols = c(phage_grp, SpeciesName), .fns = forcats::fct_drop
-    ),
-    category = "generalist"
-  )
+generalist <- dplyr::filter(clustWiseCounts, n_species_phages > 1) %>%
+    dplyr::mutate(
+        dplyr::across(
+            .cols = c(phage_grp, SpeciesName), .fns = forcats::fct_drop
+        ),
+        category = "generalist"
+    )
 
-specialist <- dplyr::filter(clustWiseCounts, n_species_phages == 1) %>% 
-  dplyr::arrange(dplyr::desc(n_genomes_clust)) %>% 
-  dplyr::mutate(category = "specialist")
+specialist <- dplyr::filter(clustWiseCounts, n_species_phages == 1) %>%
+    dplyr::arrange(dplyr::desc(n_genomes_clust)) %>%
+    dplyr::mutate(category = "specialist")
 
 
 ```
@@ -218,27 +218,27 @@ Distribution of number of species in which prophage signatures are found:
 ### Prophage target species number histogram
 
 ```{r}
-pt_hist <- dplyr::distinct(clustWiseCounts, phage_grp, n_species_phages) %>% 
-  ggplot2::ggplot(
-    mapping = aes(x = n_species_phages)
-  ) +
-  ggplot2::geom_histogram(binwidth = 1, color = "black", fill = "black") +
-  ggbreak::scale_y_break(
-    breaks = c(40, 360),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-  ggplot2::labs(
-    x = "Prophage in multiple species",
-    y = "Count"
-  ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
-  theme_bw(base_size = 24) +
-  theme(
-    panel.grid = element_blank(),
-    axis.ticks.y.right = element_blank(),
-    axis.text.y.right = element_blank()
-  )
+pt_hist <- dplyr::distinct(clustWiseCounts, phage_grp, n_species_phages) %>%
+    ggplot2::ggplot(
+        mapping = aes(x = n_species_phages)
+    ) +
+    ggplot2::geom_histogram(binwidth = 1, color = "black", fill = "black") +
+    ggbreak::scale_y_break(
+        breaks = c(40, 360),
+        expand = expansion(mult = c(0, 0.05))
+    ) +
+    ggplot2::labs(
+        x = "Prophage in multiple species",
+        y = "Count"
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+    theme_bw(base_size = 24) +
+    theme(
+        panel.grid = element_blank(),
+        axis.ticks.y.right = element_blank(),
+        axis.text.y.right = element_blank()
+    )
 
 ```
 
@@ -250,8 +250,8 @@ pt_hist <- dplyr::distinct(clustWiseCounts, phage_grp, n_species_phages) %>%
 #| echo: false
 
 ggplot2::ggsave(
-  filename = paste(outDir, "/prophage_across_species_hist.pdf", sep = ""),
-  plot = pt_hist, width = 7, height = 5
+    filename = paste(outDir, "/prophage_across_species_hist.pdf", sep = ""),
+    plot = pt_hist, width = 7, height = 5
 )
 
 pt_hist
@@ -263,36 +263,36 @@ pt_hist
 ```{r}
 # sort(table(specialist$SpeciesName), decreasing = TRUE)
 pt_species_count <- dplyr::bind_rows(
-  list(
-    specialist = dplyr::count(specialist, SpeciesName),
-    generalist = dplyr::count(generalist, SpeciesName)
-  ),
-  .id = "category"
-) %>% 
-  dplyr::mutate(
-    category = forcats::fct_relevel(category, "specialist")
-  ) %>% 
-  ggplot2::ggplot(
-    mapping = aes(y = forcats::fct_rev(SpeciesName), x = n, fill = category)
-  ) +
-  ggplot2::labs(
-    x = "Unique prophage signatures", y = NULL
-  ) +
-  ggplot2::geom_col(position = "stack", color = "black") +
-  ggplot2::scale_x_continuous(
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-  scale_fill_manual(
-    values = c("black", "white"),
-    breaks = c("generalist", "specialist")
-  ) +
-  theme_bw(base_size = 18) +
-  theme(
-    legend.position = "bottom",
-    axis.text.y = element_text(face = "italic"),
-    axis.ticks.y = element_blank(),
-    panel.grid = element_blank()
-  )
+    list(
+        specialist = dplyr::count(specialist, SpeciesName),
+        generalist = dplyr::count(generalist, SpeciesName)
+    ),
+    .id = "category"
+) %>%
+    dplyr::mutate(
+        category = forcats::fct_relevel(category, "specialist")
+    ) %>%
+    ggplot2::ggplot(
+        mapping = aes(y = forcats::fct_rev(SpeciesName), x = n, fill = category)
+    ) +
+    ggplot2::labs(
+        x = "Unique prophage signatures", y = NULL
+    ) +
+    ggplot2::geom_col(position = "stack", color = "black") +
+    ggplot2::scale_x_continuous(
+        expand = expansion(mult = c(0, 0.05))
+    ) +
+    scale_fill_manual(
+        values = c("black", "white"),
+        breaks = c("generalist", "specialist")
+    ) +
+    theme_bw(base_size = 18) +
+    theme(
+        legend.position = "bottom",
+        axis.text.y = element_text(face = "italic"),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank()
+    )
 
 ```
 
@@ -304,8 +304,8 @@ pt_species_count <- dplyr::bind_rows(
 #| echo: false
 
 ggplot2::ggsave(
-  filename = paste(outDir, "/species_phage_signatures.pdf", sep = ""),
-  plot = pt_species_count, width = 6, height = 8
+    filename = paste(outDir, "/species_phage_signatures.pdf", sep = ""),
+    plot = pt_species_count, width = 6, height = 8
 )
 
 pt_species_count
@@ -316,53 +316,53 @@ pt_species_count
 ```{r}
 
 sp_vs_sp_grid <- tidyr::expand_grid(
-  sp1 = speciesOrder$SpeciesName,
-  sp2 = speciesOrder$SpeciesName
-) %>% 
-  dplyr::filter(sp1 != sp2)
+    sp1 = speciesOrder$SpeciesName,
+    sp2 = speciesOrder$SpeciesName
+) %>%
+    dplyr::filter(sp1 != sp2)
 
 phage_common_targets <- split(
-  x = as.character(generalist$SpeciesName),
-  f = as.character(generalist$phage_grp)
-) %>% 
-  purrr::discard_at(at = "phage_grp_1") %>% 
-  purrr::map(
-    .f = function(x){
-      tidyr::expand_grid(sp1 = x, sp2 = x) %>% 
-        dplyr::filter(sp1 != sp2)
-    }
-  ) %>% 
-  purrr::list_rbind() %>% 
-  dplyr::count(sp1, sp2) %>% 
-  dplyr::right_join(y = sp_vs_sp_grid, by = c("sp1", "sp2")) %>% 
-  dplyr::mutate(
-    dplyr::across(
-      .cols = c(sp1, sp2),
-      .fns = ~forcats::fct_relevel(.x, !!speciesOrder$SpeciesName)
-    )
-  ) %>% 
-  dplyr::filter(sp1 != sp2) %>% 
-  tidyr::replace_na(replace = list(n = 0))
+    x = as.character(generalist$SpeciesName),
+    f = as.character(generalist$phage_grp)
+) %>%
+    purrr::discard_at(at = "phage_grp_1") %>%
+    purrr::map(
+        .f = function(x) {
+            tidyr::expand_grid(sp1 = x, sp2 = x) %>%
+                dplyr::filter(sp1 != sp2)
+        }
+    ) %>%
+    purrr::list_rbind() %>%
+    dplyr::count(sp1, sp2) %>%
+    dplyr::right_join(y = sp_vs_sp_grid, by = c("sp1", "sp2")) %>%
+    dplyr::mutate(
+        dplyr::across(
+            .cols = c(sp1, sp2),
+            .fns = ~ forcats::fct_relevel(.x, !!speciesOrder$SpeciesName)
+        )
+    ) %>%
+    dplyr::filter(sp1 != sp2) %>%
+    tidyr::replace_na(replace = list(n = 0))
 
 
 pt_phage_overlap <- ggplot2::ggplot(
-  data = phage_common_targets,
-  mapping = aes(x = sp1, y = forcats::fct_rev(sp2), size = n)
+    data = phage_common_targets,
+    mapping = aes(x = sp1, y = forcats::fct_rev(sp2), size = n)
 ) +
-  ggplot2::geom_point(color = "black", fill = "black", shape = 21) +
-  ggplot2::scale_size_continuous(
-    name = "Shared prophage signatures",
-    range = c(2, 10),
-    limits = c(1, NA),
-    breaks = c(1, 3, 5, 7, 11)
-  ) +
-  theme_bw(base_size = 18) +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.text = element_text(face = "italic"),
-    legend.position = "bottom",
-    axis.title = element_blank()
-  )
+    ggplot2::geom_point(color = "black", fill = "black", shape = 21) +
+    ggplot2::scale_size_continuous(
+        name = "Shared prophage signatures",
+        range = c(2, 10),
+        limits = c(1, NA),
+        breaks = c(1, 3, 5, 7, 11)
+    ) +
+    theme_bw(base_size = 18) +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(face = "italic"),
+        legend.position = "bottom",
+        axis.title = element_blank()
+    )
 
 ```
 
@@ -375,8 +375,8 @@ pt_phage_overlap <- ggplot2::ggplot(
 #| echo: false
 
 ggplot2::ggsave(
-  filename = paste(outDir, "/phage_target_overlap.pdf", sep = ""),
-  plot = pt_phage_overlap, width = 10, height = 10
+    filename = paste(outDir, "/phage_target_overlap.pdf", sep = ""),
+    plot = pt_phage_overlap, width = 10, height = 10
 )
 
 pt_phage_overlap
@@ -385,20 +385,20 @@ pt_phage_overlap
 ### Prophage signature overlap across two or more species
 
 ```{r}
-pt_dot <- ggplot2::ggplot(data = generalist) + 
-  ggplot2::geom_point(
-    mapping = aes(x = phage_grp, y = forcats::fct_rev(SpeciesName)),
-    size = 3
-  ) +
-  ggplot2::labs(
-    y = NULL, x = "Prophage clusters"
-  ) +
-  theme_bw(base_size = 16) +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.text.y = element_text(face = "italic"),
-    legend.position = "bottom"
-  )
+pt_dot <- ggplot2::ggplot(data = generalist) +
+    ggplot2::geom_point(
+        mapping = aes(x = phage_grp, y = forcats::fct_rev(SpeciesName)),
+        size = 3
+    ) +
+    ggplot2::labs(
+        y = NULL, x = "Prophage clusters"
+    ) +
+    theme_bw(base_size = 16) +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_text(face = "italic"),
+        legend.position = "bottom"
+    )
 
 ```
 
@@ -410,8 +410,8 @@ pt_dot <- ggplot2::ggplot(data = generalist) +
 #| echo: false
 
 ggplot2::ggsave(
-  filename = paste(outDir, "/generalist_phages.pdf", sep = ""),
-  plot = pt_dot, width = 12, height = 6
+    filename = paste(outDir, "/generalist_phages.pdf", sep = ""),
+    plot = pt_dot, width = 12, height = 6
 )
 
 pt_dot
@@ -423,41 +423,41 @@ pt_dot
 ```{r}
 
 cm <- ComplexHeatmap::make_comb_mat(
-  split(x = clustWiseCounts$phage_grp, f = clustWiseCounts$SpeciesName)
+    split(x = clustWiseCounts$phage_grp, f = clustWiseCounts$SpeciesName)
 )
 
 phage_upset <- ComplexHeatmap::UpSet(
-  m = cm,
-  column_title = "Prophage across species",
-  row_names_gp = gpar(fontface = "italic"),
-  column_title_gp = gpar(fontface = "bold", fontsize = 16),
-  set_order = speciesOrder$SpeciesName,
-  top_annotation = ComplexHeatmap::HeatmapAnnotation(
-    "Generalist\nprophages" = anno_barplot(
-      x = comb_size(cm), 
-      border = FALSE, 
-      gp = gpar(fill = "black"), 
-      height = unit(1.5, "cm")
+    m = cm,
+    column_title = "Prophage across species",
+    row_names_gp = gpar(fontface = "italic"),
+    column_title_gp = gpar(fontface = "bold", fontsize = 16),
+    set_order = speciesOrder$SpeciesName,
+    top_annotation = ComplexHeatmap::HeatmapAnnotation(
+        "Generalist\nprophages" = anno_barplot(
+            x = comb_size(cm),
+            border = FALSE,
+            gp = gpar(fill = "black"),
+            height = unit(1.5, "cm")
+        ),
+        annotation_name_side = "left",
+        annotation_name_rot = 0,
+        annotation_name_gp = gpar(fontface = "bold"),
+        gap = unit(4, "mm")
     ),
-    annotation_name_side = "left", 
-    annotation_name_rot = 0,
-    annotation_name_gp = gpar(fontface = "bold"),
-    gap = unit(4, "mm")
-  ),
-  right_annotation = upset_right_annotation(cm, add_numbers = TRUE)
+    right_annotation = upset_right_annotation(cm, add_numbers = TRUE)
 )
 
 phage_upset <- phage_upset +
-  ComplexHeatmap::rowAnnotation(
-    "Number of\ngenomes" = ComplexHeatmap::anno_barplot(
-      x = dplyr::count(sampleInfo, SpeciesName) %>% 
-        dplyr::pull(var = n, name = SpeciesName),
-      border = FALSE,
-      add_numbers = TRUE,
-      gp = gpar(fill = "black"), width = unit(2, "cm")
-    ),
-    gap = unit(3, "mm")
-  )
+    ComplexHeatmap::rowAnnotation(
+        "Number of\ngenomes" = ComplexHeatmap::anno_barplot(
+            x = dplyr::count(sampleInfo, SpeciesName) %>%
+                dplyr::pull(var = n, name = SpeciesName),
+            border = FALSE,
+            add_numbers = TRUE,
+            gp = gpar(fill = "black"), width = unit(2, "cm")
+        ),
+        gap = unit(3, "mm")
+    )
 
 ```
 
@@ -469,8 +469,8 @@ phage_upset <- phage_upset +
 #| echo: false
 
 pdf(
-  file = paste(outDir, "/generalist_phage_target_upset.pdf", sep = ""),
-  width = 12, height = 6
+    file = paste(outDir, "/generalist_phage_target_upset.pdf", sep = ""),
+    width = 12, height = 6
 )
 phage_upset
 dev.off()

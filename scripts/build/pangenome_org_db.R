@@ -18,7 +18,7 @@ confs <- prefix_config_paths(
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- panConf$dir
+outDir <- panConf$path
 ################################################################################
 
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) %>%
@@ -30,7 +30,7 @@ allHgs <- suppressMessages(
     col_select = 1, col_types = "c"
   )
 ) %>%
-  dplyr::rename(hg_id = "Homology group id") %>% 
+  dplyr::rename(hg_id = "Homology group id") %>%
   dplyr::mutate(hg_id = paste("hg_", hg_id, sep = ""))
 
 # pangenome GO infor
@@ -39,13 +39,13 @@ panDf <- suppressMessages(
 ) %>%
   dplyr::mutate(
     GID = paste("hg_", hg_id, sep = "")
-  ) %>% 
+  ) %>%
   dplyr::select(-hg_id)
 
 # chr info
 chrInfo <- suppressMessages(
   readr::read_tsv(file = panConf$files$chr_info)
-) %>% 
+) %>%
   dplyr::mutate(
     genomeId = paste("g_", genome, sep = "")
   )
@@ -55,11 +55,11 @@ geneInfo <- suppressMessages(readr::read_tsv(panConf$files$gene_info))
 
 geneCoordinates <- dplyr::select(
   geneInfo, mRNA_id, genome, chr_num, start, end, strand, gene_name
-  ) %>% 
-  dplyr::distinct() %>% 
-  dplyr::group_by(genome, chr_num) %>% 
-  dplyr::arrange(start, .by_group = TRUE) %>% 
-  dplyr::mutate(genePos = 1:n()) %>% 
+) %>%
+  dplyr::distinct() %>%
+  dplyr::group_by(genome, chr_num) %>%
+  dplyr::arrange(start, .by_group = TRUE) %>%
+  dplyr::mutate(genePos = 1:n()) %>%
   dplyr::ungroup()
 
 ################################################################################
@@ -83,7 +83,7 @@ hgDf <- dplyr::left_join(
     dplyr::across(
       .cols = c(genome, chr, start, end), .fns = as.integer
     )
-  ) %>% 
+  ) %>%
   dplyr::distinct()
 
 if (!setequal(hgDf$GID, allHgs$hg_id)) {
@@ -112,7 +112,7 @@ hgPfam <- dplyr::select(hgDf, GID, mRNA_id, genome, chr) %>%
     by = c("genome", "chr" = "chr_num", "mRNA_id")
   ) %>%
   dplyr::select(GID, starts_with("pfam_")) %>%
-  dplyr::filter(pfam_id != "None") %>% 
+  dplyr::filter(pfam_id != "None") %>%
   dplyr::distinct()
 
 ## homology group category for pangenome: core/accessory/unique
@@ -156,5 +156,3 @@ devtools::install(
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 columns(panOrgDb)
 keys(panOrgDb)
-
-

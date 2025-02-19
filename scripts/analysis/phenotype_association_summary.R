@@ -37,7 +37,7 @@ treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- file.path(confs$analysis$association$dir, phenotype)
+outDir <- file.path(confs$analysis$association$path, phenotype)
 outPrefix <- file.path(outDir, phenotype)
 
 ## sequence info file for mRNAs across all genomes belonging to homology groups

@@ -43,8 +43,8 @@ source("scripts/utils/homology_groups.R")
 set.seed(124)
 
 confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+    dir = "."
 )
 
 analysisName <- "lps_syn"
@@ -55,7 +55,7 @@ treeMethod <- "ani_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- file.path(confs$analysis$homology_groups$dir)
+outDir <- file.path(confs$analysis$homology_groups$path)
 outPrefix <- file.path(outDir, analysisName)
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
@@ -68,29 +68,29 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
 )
 
 rawTree <- ape::read.tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree)
 
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
+    readr::read_tsv(confs$analysis$phylogeny$ani_upgma$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
-  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 hgs <- AnnotationDbi::select(
-  x = orgDb, keys = goIds, keytype = "GOALL", columns = "GID"
+    x = orgDb, keys = goIds, keytype = "GOALL", columns = "GID"
 ) %>%
-  dplyr::filter(!is.na(GID)) %>%
-  dplyr::mutate(count = 1) %>%
-  dplyr::rename(hg_id = GID) %>%
-  tidyr::pivot_wider(
-    id_cols = hg_id, names_from = GOALL, values_from = count, values_fill = 0
-  )
+    dplyr::filter(!is.na(GID)) %>%
+    dplyr::mutate(count = 1) %>%
+    dplyr::rename(hg_id = GID) %>%
+    tidyr::pivot_wider(
+        id_cols = hg_id, names_from = GOALL, values_from = count, values_fill = 0
+    )
 
 
 ```
@@ -105,26 +105,26 @@ hgMat <- homology_groups_mat(pandb = orgDb, type = "cnv", groups = hgs$hg_id)
 hgMat <- hgMat[rawTree$tip.label, ]
 
 htList <- homology_group_heatmap(
-  mat = hgMat, phy = rawTree, speciesInfo = sampleInfo,
-  name = "hg"
+    mat = hgMat, phy = rawTree, speciesInfo = sampleInfo,
+    name = "hg"
 )
 
 # GO term top annotation
 goMat <- tibble::column_to_rownames(hgs, var = "hg_id") %>% as.matrix()
 go_lables <- AnnotationDbi::mapIds(
-  x = GO.db::GO.db, keys = colnames(goMat), keytype = "GOID", column = "TERM"
+    x = GO.db::GO.db, keys = colnames(goMat), keytype = "GOID", column = "TERM"
 )
 
 colnames(goMat) <- go_lables
 
 an_go <- ComplexHeatmap::HeatmapAnnotation(
-  go = goMat,
-  name = "go",
-  which = "column",
-  col = list(go = c("1" = "black", "0" = "white")),
-  annotation_name_side = "left",
-  annotation_name_gp = gpar(fontsize = 12),
-  height = unit(5, "cm")
+    go = goMat,
+    name = "go",
+    which = "column",
+    col = list(go = c("1" = "black", "0" = "white")),
+    annotation_name_side = "left",
+    annotation_name_gp = gpar(fontsize = 12),
+    height = unit(5, "cm")
 )
 
 # add top annotation to the main heatmap
@@ -137,10 +137,10 @@ htList@ht_list$hg@heatmap_param$width <- unit(18, "cm")
 
 pdf(file = paste(outPrefix, ".homology_grps.pdf", sep = ""), width = 15, height = 9)
 ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "hg",
-  row_dend_side = "left",
-  merge_legends = TRUE
+    object = htList,
+    main_heatmap = "hg",
+    row_dend_side = "left",
+    merge_legends = TRUE
 )
 dev.off()
 
@@ -148,17 +148,17 @@ dev.off()
 
 ```{r}
 #| echo: false
-#| column: page 
+#| column: page
 #| fig-height: 8
 #| fig-width: 12
 #| out-width: '100%'
 #| layout-valign: top
 
 ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "hg",
-  row_dend_side = "left",
-  merge_legends = TRUE
+    object = htList,
+    main_heatmap = "hg",
+    row_dend_side = "left",
+    merge_legends = TRUE
 )
 
 ```

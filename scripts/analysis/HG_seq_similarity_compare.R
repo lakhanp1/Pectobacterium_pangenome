@@ -75,7 +75,7 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 
-outDir <- file.path(confs$analysis$association$dir, phenotype)
+outDir <- file.path(confs$analysis$association$path, phenotype)
 outPrefix <- paste(outDir, "/", phenotype, ".hg_seq_identity.", g1, sep = "")
 
 ## sequence info file for mRNAs across all genomes belonging to homology groups
@@ -146,7 +146,7 @@ for (hg in filteredHgs$group_id) {
   cat(hg, " ")
 
   file_grpSeqInfo <- file.path(
-    panConf$db$dir, "alignments/msa_per_group/grouping_v4", hg, "input", "sequences.info"
+    panConf$db$path, "alignments/msa_per_group/grouping_v4", hg, "input", "sequences.info"
   )
 
   if (!file.exists(file_grpSeqInfo)) {
@@ -166,7 +166,7 @@ for (hg in filteredHgs$group_id) {
   }
 
   file_similarity <- file.path(
-    panConf$db$dir, "/alignments/msa_per_group/grouping_v4", hg,
+    panConf$db$path, "/alignments/msa_per_group/grouping_v4", hg,
     "output/similarity_identity", "nuc_trimmed_identity.csv"
   )
 

@@ -1,4 +1,3 @@
-
 #' Get genome ids used for a phenotype association
 #'
 #' @param phenotype a phenotype
@@ -8,15 +7,14 @@
 #' @export
 #'
 #' @examples
-get_phenotype_association_genomes <- function(phenotype, confFile){
-  
+get_phenotype_association_genomes <- function(phenotype, confFile) {
   stopifnot(
     !is.na(phenotype) | !is.null(phenotype)
   )
-  
-  assoConf <- suppressMessages(readr::read_tsv(confFile, col_types = "ccccc")) %>% 
+
+  assoConf <- suppressMessages(readr::read_tsv(confFile, col_types = "ccccc")) %>%
     dplyr::filter(name == !!phenotype)
-  
+
   associated <- list(
     compare = list(
       genomes = stringr::str_split_1(assoConf$compare, pattern = ","),
@@ -24,9 +22,10 @@ get_phenotype_association_genomes <- function(phenotype, confFile){
     ),
     against = list(
       genomes = stringr::str_split_1(assoConf$against, pattern = ","),
-      color = "green")
+      color = "green"
+    )
   )
-  
+
   return(associated)
 }
 
@@ -42,57 +41,54 @@ get_phenotype_association_genomes <- function(phenotype, confFile){
 #' @export
 #'
 #' @examples NA
-phenotype_specific_groups <- function(phenotype, panConf, save = NULL){
+phenotype_specific_groups <- function(phenotype, panConf, save = NULL) {
   file_phenoAsso <- file.path(
-    panConf$db$gene_classification$phenotypes$dir, phenotype, "phenotype_association.csv"
+    panConf$db$gene_classification$phenotypes$path, phenotype, "phenotype_association.csv"
   )
-  
+
   ## process phenotype association results
   res <- suppressMessages(
     readr::read_csv(file = file_phenoAsso, comment = "#")
-  ) %>% 
-    dplyr::rename_with(.fn = ~stringr::str_replace_all(.x, "( |-)", "_")) %>% 
-    dplyr::rename_with(.fn = ~tolower(.x)) %>% 
+  ) %>%
+    dplyr::rename_with(.fn = ~ stringr::str_replace_all(.x, "( |-)", "_")) %>%
+    dplyr::rename_with(.fn = ~ tolower(.x)) %>%
     dplyr::filter(phenotype == .env$phenotype, fisher_exact_p_value != "No test")
-  
+
   ## homology groups specific for a phenotype
   phenoSpecific <- dplyr::filter(
-    res, 
+    res,
     phenotype_members_absent == 0,
     other_phenotype_members_present == 0
   )
-  
-  phnSpeGrps <- dplyr::select(phenoSpecific, phenotype, homology_group_id) %>% 
-    dplyr::group_by(phenotype) %>% 
+
+  phnSpeGrps <- dplyr::select(phenoSpecific, phenotype, homology_group_id) %>%
+    dplyr::group_by(phenotype) %>%
     dplyr::summarize(
       homology_group_id = stringr::str_c(homology_group_id, collapse = ",")
     )
-  
+
   ## save the data
-  if(nrow(phenoSpecific) > 0){
-    
-    if(!is.null(save)){
-      if(file.exists(save)){
+  if (nrow(phenoSpecific) > 0) {
+    if (!is.null(save)) {
+      if (file.exists(save)) {
         df <- suppressMessages(
-          readr::read_tsv(save, col_names = c("phenotype", "homology_group_id"),
-                          col_types = "cc")
-        ) %>% 
-          dplyr::filter(phenotype != .env$phenotype) %>% 
+          readr::read_tsv(save,
+            col_names = c("phenotype", "homology_group_id"),
+            col_types = "cc"
+          )
+        ) %>%
+          dplyr::filter(phenotype != .env$phenotype) %>%
           dplyr::bind_rows(phnSpeGrps)
-        
+
         readr::write_tsv(x = df, file = save, col_names = F)
-      } else{
+      } else {
         readr::write_tsv(x = phnSpeGrps, file = save, col_names = F)
       }
     }
-    
   }
-  
+
   return(phenoSpecific$homology_group_id)
   # return(df)
 }
 
 ################################################################################
-
-
-

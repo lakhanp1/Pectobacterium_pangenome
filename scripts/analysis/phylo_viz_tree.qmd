@@ -45,7 +45,7 @@ treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- confs$analysis$phylogeny$core_snp_ml$dir
+outDir <- confs$analysis$phylogeny$core_snp_ml$path
 outPrefix <- paste(outDir, "/", treeMethod, sep = "")
 
 ```

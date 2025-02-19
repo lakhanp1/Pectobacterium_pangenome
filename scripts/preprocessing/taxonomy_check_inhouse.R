@@ -16,7 +16,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- confs$analysis$qc$dir
+outDir <- confs$analysis$qc$path
 
 cutoff_ani_species <- 95L
 cutoff_ani_ncbi <- 96L
@@ -52,7 +52,8 @@ aniDf <- suppressMessages(readr::read_tsv(
   )
 
 typeStrainAni <- dplyr::left_join(
-  typeStrains, aniDf, by = c("typeStrainId" = "id2")
+  typeStrains, aniDf,
+  by = c("typeStrainId" = "id2")
 )
 
 ################################################################################
@@ -61,7 +62,8 @@ typeStrainAni <- dplyr::left_join(
 ## NCBI data
 ncbiTaxCheck <- dplyr::filter(genomeMetadata, source == "NCBI") %>%
   dplyr::select(
-    sampleId, synonym_GB, ncbi_tax_status = taxonomy_check_status
+    sampleId, synonym_GB,
+    ncbi_tax_status = taxonomy_check_status
   ) %>%
   dplyr::left_join(
     y = dplyr::select(
@@ -103,18 +105,20 @@ inhouseTypeAni <- dplyr::select(genomeMetadata, sampleId, AssemblyAccession, sou
   dplyr::slice(1L) %>%
   dplyr::ungroup() %>%
   dplyr::select(
-    sampleId, source, AssemblyAccession, SpeciesName, inhouse_declared_id = typeStrainId,
+    sampleId, source, AssemblyAccession, SpeciesName,
+    inhouse_declared_id = typeStrainId,
     inhouse_declared_ANI = ani,
     inhouse_declared_species = type_organism_name
   )
 
-if(!all(ncbiTaxCheck$sampleId %in% inhouseTypeAni$sampleId)){
+if (!all(ncbiTaxCheck$sampleId %in% inhouseTypeAni$sampleId)) {
   stop(setdiff(ncbiTaxCheck$sampleId, inhouseTypeAni$sampleId))
 }
 
 ## get best ANI with its respective type species name
 inhouseTaxCheck <- dplyr::left_join(
-  inhouseTypeAni, y = typeStrainAni, by = c("sampleId" = "id1")
+  inhouseTypeAni,
+  y = typeStrainAni, by = c("sampleId" = "id1")
 ) %>%
   dplyr::group_by(sampleId) %>%
   dplyr::arrange(dplyr::desc(ani), .by_group = TRUE) %>%
@@ -150,7 +154,8 @@ inhouseTaxCheck <- dplyr::left_join(
   dplyr::select(-mapped, -total, -inhouse_best_ts_id, -inhouse_declared_id)
 
 taxCheckDf <- dplyr::left_join(
-  inhouseTaxCheck, ncbiTaxCheck, by = "sampleId"
+  inhouseTaxCheck, ncbiTaxCheck,
+  by = "sampleId"
 ) %>%
   dplyr::filter(
     inhouse_tax_status != "OK" | ncbi_tax_status != "OK" | source != "NCBI"
@@ -175,7 +180,8 @@ bestAni <- dplyr::select(taxCheckDf, c(sampleId, ends_with("_ANI"))) %>%
   dplyr::ungroup()
 
 taxCheckDf <- dplyr::left_join(
-  taxCheckDf, bestAni, by = "sampleId"
+  taxCheckDf, bestAni,
+  by = "sampleId"
 ) %>%
   dplyr::arrange(source, SpeciesName) %>%
   dplyr::mutate(
@@ -217,7 +223,8 @@ glimpse(taxCheckDf)
 readr::write_tsv(x = taxCheckDf, file = confs$analysis$qc$files$tax_check)
 
 file_xls <- paste(
-  tools::file_path_sans_ext(confs$analysis$qc$files$tax_check), ".xlsx", sep = ""
+  tools::file_path_sans_ext(confs$analysis$qc$files$tax_check), ".xlsx",
+  sep = ""
 )
 
 negStyle <- openxlsx::createStyle(fontColour = "#9C0006", bgFill = "#FFC7CE")
@@ -230,7 +237,7 @@ currentSheet <- "tax_check"
 if (file.exists(file_xls)) {
   wb <- openxlsx::loadWorkbook(file = file_xls)
   removeWorksheet(wb, sheet = currentSheet)
-} else{
+} else {
   wb <- openxlsx::createWorkbook()
 }
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
@@ -243,7 +250,6 @@ openxlsx::writeDataTable(
 )
 
 for (col in which(colnames(taxCheckDf) %in% c("inhouse_tax_status", "ncbi_tax_status"))) {
-
   openxlsx::conditionalFormatting(
     wb = wb, sheet = currentSheet,
     cols = col, rows = 1:nrow(taxCheckDf) + 1,
@@ -263,8 +269,11 @@ for (col in which(colnames(taxCheckDf) %in% c("inhouse_tax_status", "ncbi_tax_st
 
 for (col in which(
   colnames(taxCheckDf) %in%
-  c("inhouse_declared_ANI", "inhouse_best_ts_ANI", "ncbi_declared_ANI",
-    "ncbi_best_ts_ANI", "best_ANI"))) {
+    c(
+      "inhouse_declared_ANI", "inhouse_best_ts_ANI", "ncbi_declared_ANI",
+      "ncbi_best_ts_ANI", "best_ANI"
+    )
+)) {
   ## ANI column formatting
   openxlsx::conditionalFormatting(
     wb = wb, sheet = currentSheet,
@@ -293,6 +302,3 @@ openxlsx::saveWorkbook(
 )
 
 ################################################################################
-
-
-

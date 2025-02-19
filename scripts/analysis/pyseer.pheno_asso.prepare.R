@@ -26,7 +26,7 @@ panConf <- confs$data$pangenomes[[pangenome]]
 
 analysisName <- "pbr_virulence2"
 genomeSetName <- "pbr"
-outDir <- file.path(confs$analysis$association$dir, analysisName)
+outDir <- file.path(confs$analysis$association$path, analysisName)
 outPrefix <- file.path(outDir, analysisName)
 ################################################################################
 
@@ -39,7 +39,7 @@ sampleInfo %<>% dplyr::filter(SpeciesName == "P. brasiliense") %>%
   dplyr::filter(!is.na(virulence)) %>%
   dplyr::mutate(
     fasta = paste(
-      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna",
+      confs$data$prokka$path, "/", sampleId, "/", sampleId, ".fna",
       sep = ""
     )
   )

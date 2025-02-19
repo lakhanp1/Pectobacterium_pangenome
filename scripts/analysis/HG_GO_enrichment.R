@@ -28,7 +28,7 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 analysisName <- "homology_groups"
-outDir <- confs$analysis$homology_groups$dir
+outDir <- confs$analysis$homology_groups$path
 outPrefix <- file.path(outDir, analysisName)
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 ################################################################################
@@ -112,7 +112,7 @@ for (sp in spNames) {
 }
 
 
-panGo <- hgMeta  %>%
+panGo <- hgMeta %>%
   dplyr::group_by(class) %>%
   dplyr::group_modify(
     .f = ~ topGO_enrichment(genes = .x$hgId, orgdb = panOrgDb)

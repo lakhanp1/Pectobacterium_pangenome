@@ -39,25 +39,25 @@ source("scripts/utils/heatmap_utils.R")
 set.seed(124)
 
 confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+    dir = "."
 )
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 outGroup <- confs$analysis$phylogeny$outgroup
 
-outDir <- confs$analysis$phylogeny$ani$dir
+outDir <- confs$analysis$phylogeny$ani$path
 
 if (!dir.exists(outDir)) dir.create(outDir)
 
 pt_theme <- theme_bw(base_size = 14) +
-  theme(
-    axis.text = element_text(size = 14),
-    axis.title = element_text(size = 14, face = "bold"),
-    panel.grid = element_blank(),
-    plot.title = element_text(size = 15, face = "bold")
-  )
+    theme(
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14, face = "bold"),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 15, face = "bold")
+    )
 
 ```
 
@@ -67,18 +67,18 @@ pt_theme <- theme_bw(base_size = 14) +
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId
+    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId
 )
 
 genomeIds <- dplyr::pull(sampleInfo, genomeId, name = sampleId)
 
 fnGenomes <- dplyr::filter(
-  sampleInfo, virulence == "virulent", virulence_pcr == "negative"
-) %>% 
-  dplyr::pull(genomeId)
+    sampleInfo, virulence == "virulent", virulence_pcr == "negative"
+) %>%
+    dplyr::pull(genomeId)
 
 markGenomes <- list(
-  fn_pbr = list(genomes = fnGenomes, color = "red")
+    fn_pbr = list(genomes = fnGenomes, color = "red")
 )
 
 ```
@@ -88,57 +88,57 @@ markGenomes <- list(
 ```{r}
 ## process ANI data for pangenome and store ANI and ANI-distance matrices
 aniDf <- suppressMessages(readr::read_tsv(
-  file = confs$analysis$ANI$files$fastani_out,
-  col_names = c("id1", "id2", "ani", "mapped", "total")
+    file = confs$analysis$ANI$files$fastani_out,
+    col_names = c("id1", "id2", "ani", "mapped", "total")
 ))
 
 aniDf %<>% dplyr::mutate(
-  dplyr::across(
-    .cols = c(id1, id2),
-    .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1")
-  ),
-  dist = 1 - (ani / 100)
+    dplyr::across(
+        .cols = c(id1, id2),
+        .fns = ~ stringr::str_replace(string = .x, pattern = ".*/(.*).fna", replacement = "\\1")
+    ),
+    dist = 1 - (ani / 100)
 ) %>%
-  dplyr::mutate(
-    g1 = genomeIds[id1],
-    g2 = genomeIds[id2]
-  ) %>%
-  dplyr::filter(!is.na(g1) & !is.na(g2)) %>%
-  dplyr::arrange(g1, g2)
+    dplyr::mutate(
+        g1 = genomeIds[id1],
+        g2 = genomeIds[id2]
+    ) %>%
+    dplyr::filter(!is.na(g1) & !is.na(g2)) %>%
+    dplyr::arrange(g1, g2)
 
 aniDist <- tidyr::pivot_wider(
-  data = aniDf,
-  id_cols = "g1",
-  names_from = "g2",
-  values_from = "dist"
+    data = aniDf,
+    id_cols = "g1",
+    names_from = "g2",
+    values_from = "dist"
 )
 
 readr::write_tsv(
-  x = aniDist, file = confs$analysis$phylogeny$ani$files$ani_distance
+    x = aniDist, file = confs$analysis$phylogeny$ani$files$ani_distance
 )
 
 distMat <- tibble::column_to_rownames(aniDist, var = "g1") %>%
-  as.matrix() %>%
-  as.dist()
+    as.matrix() %>%
+    as.dist()
 
 aniMat <- tidyr::pivot_wider(
-  data = aniDf,
-  id_cols = "g1",
-  names_from = "g2",
-  values_from = "ani"
+    data = aniDf,
+    id_cols = "g1",
+    names_from = "g2",
+    values_from = "ani"
 )
 
 readr::write_tsv(
-  x = aniMat, file = confs$analysis$phylogeny$ani$files$ani_matrix
+    x = aniMat, file = confs$analysis$phylogeny$ani$files$ani_matrix
 )
 
 aniMat <- tibble::column_to_rownames(aniMat, var = "g1") %>%
-  as.matrix()
+    as.matrix()
 
 aniMat <- aniMat[, rownames(aniMat)]
 
 if (!all(rownames(as.matrix(distMat)) == rownames(aniMat))) {
-  stop("rownames did not match")
+    stop("rownames did not match")
 }
 
 ```
@@ -150,20 +150,20 @@ if (!all(rownames(as.matrix(distMat)) == rownames(aniMat))) {
 ```{r}
 # plot(hclust(distMat))
 treeUpgma <- ape::as.phylo(hclust(d = distMat, method = "average")) %>%
-  ape::ladderize() %>%
-  ape::makeNodeLabel(method = "number", prefix = "n")
+    ape::ladderize() %>%
+    ape::makeNodeLabel(method = "number", prefix = "n")
 
 ape::write.tree(
-  phy = treeUpgma, tree.names = "ani_upgma",
-  file = confs$analysis$phylogeny$ani_upgma$files$tree
+    phy = treeUpgma, tree.names = "ani_upgma",
+    file = confs$analysis$phylogeny$ani_upgma$files$tree
 )
 
 # plot(ape::root(phy = treeUpgma, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE))
 # nodelabels()
 
 treeNj <- ape::nj(distMat) %>%
-  ape::ladderize() %>%
-  ape::makeNodeLabel(method = "number", prefix = "n")
+    ape::ladderize() %>%
+    ape::makeNodeLabel(method = "number", prefix = "n")
 
 ## set negative length edges => 0
 treeNj$edge.length[treeNj$edge.length < 0] <- 0
@@ -171,8 +171,8 @@ treeNj$edge.length[treeNj$edge.length < 0] <- 0
 rootedNj <- ape::root(treeNj, outgroup = sampleInfoList[[outGroup]]$genomeId)
 
 ape::write.tree(
-  phy = treeNj, tree.names = "ANI_NJ",
-  file = confs$analysis$phylogeny$ani_nj$files$tree
+    phy = treeNj, tree.names = "ANI_NJ",
+    file = confs$analysis$phylogeny$ani_nj$files$tree
 )
 
 ```
@@ -182,35 +182,35 @@ ape::write.tree(
 ```{r}
 ## add data to tree
 treeTbl <- as_tibble(treeUpgma) %>%
-  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
-  treeio::as.treedata() %>%
-  treeio::root(outgroup = sampleInfoList[[outGroup]]$genomeId, edgelabel = TRUE)
+    dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
+    treeio::as.treedata() %>%
+    treeio::root(outgroup = sampleInfoList[[outGroup]]$genomeId, edgelabel = TRUE)
 
 pt_treeUpgma <- ggtree::ggtree(
-  tr = treeTbl
+    tr = treeTbl
 )
 
 ## get species order to arrange the species key columns
 leafOrder <- dplyr::arrange(.data = pt_treeUpgma$data, y) %>%
-  dplyr::filter(isTip)
+    dplyr::filter(isTip)
 
 speciesOrder <- dplyr::select(leafOrder, SpeciesName, y, type_material) %>%
-  dplyr::group_by(SpeciesName) %>%
-  dplyr::arrange(type_material, y, .by_group = TRUE) %>%
-  dplyr::slice(1L) %>%
-  dplyr::ungroup() %>%
-  dplyr::arrange(desc(y)) %>%
-  # dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %>%
-  dplyr::pull(SpeciesName)
+    dplyr::group_by(SpeciesName) %>%
+    dplyr::arrange(type_material, y, .by_group = TRUE) %>%
+    dplyr::slice(1L) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(desc(y)) %>%
+    # dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %>%
+    dplyr::pull(SpeciesName)
 
 ## add species order factor levels to SpeciesName column
 sampleInfo %<>% dplyr::mutate(
-  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder)
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder)
 )
 
 readr::write_tsv(
-  x = tibble::tibble(SpeciesName = speciesOrder),
-  file = confs$analysis$phylogeny$ani_upgma$files$species_order
+    x = tibble::tibble(SpeciesName = speciesOrder),
+    file = confs$analysis$phylogeny$ani_upgma$files$species_order
 )
 
 ```
@@ -222,41 +222,41 @@ readr::write_tsv(
 ```{r}
 
 colorAni <- list(
-  breaks = c(85, 90, 93, 94, 94.5, 95, 95.5, 96, 96.5, 97, 99),
-  colors = RColorBrewer::brewer.pal(n = 11, name = "RdBu")
-  # breaks = c(85, 90, 92, 93, 93.5, 94, 94.5, 95, 95.5, 96, 96.5, 97, 99),
-  # colors = viridisLite::viridis(n = 13, option = "B")
+    breaks = c(85, 90, 93, 94, 94.5, 95, 95.5, 96, 96.5, 97, 99),
+    colors = RColorBrewer::brewer.pal(n = 11, name = "RdBu")
+    # breaks = c(85, 90, 92, 93, 93.5, 94, 94.5, 95, 95.5, 96, 96.5, 97, 99),
+    # colors = viridisLite::viridis(n = 13, option = "B")
 )
 
 htList <- plot_species_ANI_heatmap(
-  mat = aniMat, phy = treeUpgma, speciesInfo = sampleInfo,
-  markGenomes = markGenomes,
-  col = circlize::colorRamp2(
-    breaks = colorAni$breaks, colors = colorAni$colors
-  ),
-  heatmap_legend_param = list(
-    direction = "horizontal", legend_width = unit(5, "cm")
-  ),
-  name = "ani",
-  show_column_dend = FALSE,
-  use_raster = TRUE,
-  raster_quality = 3
+    mat = aniMat, phy = treeUpgma, speciesInfo = sampleInfo,
+    markGenomes = markGenomes,
+    col = circlize::colorRamp2(
+        breaks = colorAni$breaks, colors = colorAni$colors
+    ),
+    heatmap_legend_param = list(
+        direction = "horizontal", legend_width = unit(5, "cm")
+    ),
+    name = "ani",
+    show_column_dend = FALSE,
+    use_raster = TRUE,
+    raster_quality = 3
 )
 
 htList@ht_list$species_key@matrix_param$width <- unit(12, "cm")
 htList@ht_list$ani@matrix_param$width <- unit(18, "cm")
 
 pdf(
-  file = file.path(outDir, "ANI_heatmap.pdf"),
-  width = 15, height = 10
+    file = file.path(outDir, "ANI_heatmap.pdf"),
+    width = 15, height = 10
 )
 
 ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "ani",
-  row_dend_side = "left",
-  merge_legend = TRUE,
-  heatmap_legend_side = "bottom"
+    object = htList,
+    main_heatmap = "ani",
+    row_dend_side = "left",
+    merge_legend = TRUE,
+    heatmap_legend_side = "bottom"
 )
 dev.off()
 ```
@@ -273,10 +273,10 @@ ht_species@row_dend_param$width <- unit(15, "cm")
 ht_species@matrix_param$width <- unit(15, "cm")
 
 ComplexHeatmap::draw(
-  object = ht_species,
-  row_dend_side = "left",
-  merge_legend = TRUE,
-  heatmap_legend_side = "bottom"
+    object = ht_species,
+    row_dend_side = "left",
+    merge_legend = TRUE,
+    heatmap_legend_side = "bottom"
 )
 
 ```
@@ -290,11 +290,11 @@ ComplexHeatmap::draw(
 #| fig-cap: "ANI heatmap for all species"
 
 ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "ani",
-  row_dend_side = "left",
-  merge_legend = TRUE,
-  heatmap_legend_side = "bottom"
+    object = htList,
+    main_heatmap = "ani",
+    row_dend_side = "left",
+    merge_legend = TRUE,
+    heatmap_legend_side = "bottom"
 )
 ```
 
@@ -302,7 +302,7 @@ ComplexHeatmap::draw(
 
 ```{r}
 nodeOfInterest <- dplyr::filter(leafOrder, SpeciesName == "P. brasiliense") %>%
-  dplyr::pull(label)
+    dplyr::pull(label)
 
 clade <- ape::getMRCA(phy = treeUpgma, tip = nodeOfInterest)
 subTree <- ape::extract.clade(phy = treeUpgma, node = clade)
@@ -315,28 +315,28 @@ subAni <- aniMat[subTree$tip.label, subTree$tip.label]
 lowerTr <- subAni[lower.tri(subAni, diag = FALSE)]
 
 htList2 <- plot_species_ANI_heatmap(
-  mat = subAni, phy = subTree,
-  col = circlize::colorRamp2(
-    breaks = colorAni$breaks, colors = colorAni$colors
-  ),
-  heatmap_legend_param = list(
-    direction = "horizontal", legend_width = unit(5, "cm")
-  ),
-  name = "ani",
-  use_raster = TRUE,
-  raster_quality = 3
+    mat = subAni, phy = subTree,
+    col = circlize::colorRamp2(
+        breaks = colorAni$breaks, colors = colorAni$colors
+    ),
+    heatmap_legend_param = list(
+        direction = "horizontal", legend_width = unit(5, "cm")
+    ),
+    name = "ani",
+    use_raster = TRUE,
+    raster_quality = 3
 )
 
 pdf(
-  file = file.path(outDir, "ANI_PBrasiliense.heatmap.pdf"),
-  width = 10, height = 10
+    file = file.path(outDir, "ANI_PBrasiliense.heatmap.pdf"),
+    width = 10, height = 10
 )
 ComplexHeatmap::draw(
-  object = htList2,
-  main_heatmap = "ani",
-  row_dend_side = "left",
-  merge_legend = TRUE,
-  heatmap_legend_side = "bottom"
+    object = htList2,
+    main_heatmap = "ani",
+    row_dend_side = "left",
+    merge_legend = TRUE,
+    heatmap_legend_side = "bottom"
 )
 dev.off()
 
@@ -350,11 +350,11 @@ dev.off()
 #| fig-cap: P. brasiliense clade ANI
 
 ComplexHeatmap::draw(
-  object = htList2,
-  main_heatmap = "ani",
-  row_dend_side = "left",
-  merge_legend = TRUE,
-  heatmap_legend_side = "bottom"
+    object = htList2,
+    main_heatmap = "ani",
+    row_dend_side = "left",
+    merge_legend = TRUE,
+    heatmap_legend_side = "bottom"
 )
 ```
 
@@ -369,17 +369,17 @@ In *P. brasiliense* genome ANI comparison, `r scales::percent(length(which(lower
 #| fig-cap: P. brasiliense ANI score distribution
 
 (
-  ptHist_pbrAni <- ggplot(data = tibble::tibble(ani = lowerTr)) +
-    geom_histogram(
-      mapping = aes(x = ani), bins = 60,
-      color = "black", fill = "black"
-    ) +
-    geom_vline(xintercept = 96, color = "red", linetype = "dashed", linewidth = 1) +
-    scale_x_continuous(expand = expansion(add = 0)) +
-    scale_y_continuous(expand = expansion(add = c(0, NULL))) +
-    labs(x = "ANI", y = "Count") +
-    theme_bw(base_size = 24) + 
-    theme(panel.grid = element_blank())
+    ptHist_pbrAni <- ggplot(data = tibble::tibble(ani = lowerTr)) +
+        geom_histogram(
+            mapping = aes(x = ani), bins = 60,
+            color = "black", fill = "black"
+        ) +
+        geom_vline(xintercept = 96, color = "red", linetype = "dashed", linewidth = 1) +
+        scale_x_continuous(expand = expansion(add = 0)) +
+        scale_y_continuous(expand = expansion(add = c(0, NULL))) +
+        labs(x = "ANI", y = "Count") +
+        theme_bw(base_size = 24) +
+        theme(panel.grid = element_blank())
 )
 
 ```
@@ -391,106 +391,106 @@ inhouseNodes <- dplyr::filter(sampleInfo, source %in% setdiff(confs$data$include
 
 subTree2 <- ape::keep.tip(phy = treeUpgma, tip = inhouseNodes$genomeId)
 subAni2 <- aniMat[subTree2$tip.label, subTree2$tip.label] %>%
-  tibble::as_tibble(rownames = "g1") %>%
-  tidyr::pivot_longer(
-    cols = -g1,
-    names_to = "g2", values_to = "ANI"
-  )
+    tibble::as_tibble(rownames = "g1") %>%
+    tidyr::pivot_longer(
+        cols = -g1,
+        names_to = "g2", values_to = "ANI"
+    )
 
 inhouseTreeTbl <- as_tibble(subTree2) %>%
-  dplyr::full_join(y = inhouseNodes, by = c("label" = "genomeId")) %>%
-  treeio::as.treedata()
+    dplyr::full_join(y = inhouseNodes, by = c("label" = "genomeId")) %>%
+    treeio::as.treedata()
 
 pt_inhouseTree <- ggtree::ggtree(
-  tr = inhouseTreeTbl
+    tr = inhouseTreeTbl
 ) +
-  ggtree::geom_tippoint(
-    mapping = aes(subset = c(SpeciesName == "P. brasiliense")),
-    color = "blue"
-  ) +
-  # ggtree::geom_tiplab(
-  #   mapping = aes(label = label),
-  #   size = 3, align = TRUE, linesize = 0.5
-  # ) +
-  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
-  ggnewscale::new_scale_color() +
-  ## virulence phenotype
-  ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, x = "virulence", color = virulence),
-    geom = "geom_point", shape = 17, size = 2,
-    pwidth = 0.01, offset = 0.1
-  ) +
-  scale_color_manual(
-    values = c("virulent" = "red", "avirulent" = "green"),
-    na.value = alpha("white", 0)
-  ) +
-  ggnewscale::new_scale_color() +
-  ## virulence PCR result
-  ggtreeExtra::geom_fruit(
-    mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
-    geom = "geom_point",
-    pwidth = 0.01, offset = 0.1
-  ) +
-  scale_color_manual(
-    values = c("positive" = "red", "negative" = "green"),
-    na.value = alpha("white", 0)
-  )
+    ggtree::geom_tippoint(
+        mapping = aes(subset = c(SpeciesName == "P. brasiliense")),
+        color = "blue"
+    ) +
+    # ggtree::geom_tiplab(
+    #   mapping = aes(label = label),
+    #   size = 3, align = TRUE, linesize = 0.5
+    # ) +
+    scale_x_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+    ggnewscale::new_scale_color() +
+    ## virulence phenotype
+    ggtreeExtra::geom_fruit(
+        mapping = aes(y = id, x = "virulence", color = virulence),
+        geom = "geom_point", shape = 17, size = 2,
+        pwidth = 0.01, offset = 0.1
+    ) +
+    scale_color_manual(
+        values = c("virulent" = "red", "avirulent" = "green"),
+        na.value = alpha("white", 0)
+    ) +
+    ggnewscale::new_scale_color() +
+    ## virulence PCR result
+    ggtreeExtra::geom_fruit(
+        mapping = aes(y = id, x = "vir_pcr", color = virulence_pcr),
+        geom = "geom_point",
+        pwidth = 0.01, offset = 0.1
+    ) +
+    scale_color_manual(
+        values = c("positive" = "red", "negative" = "green"),
+        na.value = alpha("white", 0)
+    )
 
 speciesKyeDf <- get_species_key_data(
-  genomes = inhouseNodes$genomeId, speciesInfo = sampleInfo, type = "long"
+    genomes = inhouseNodes$genomeId, speciesInfo = sampleInfo, type = "long"
 )
 
 pt_spKey <- ggplot2::ggplot(
-  data = speciesKyeDf,
-  mapping = aes(x = SpeciesName, y = genomeId), color = "black", fill = "black"
+    data = speciesKyeDf,
+    mapping = aes(x = SpeciesName, y = genomeId), color = "black", fill = "black"
 ) +
-  geom_tile() +
-  theme_bw() +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank(),
-    axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
-    plot.title = element_text(hjust = 0.5, vjust = 0)
-  )
+    geom_tile() +
+    theme_bw() +
+    theme(
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, vjust = 0)
+    )
 
 pt_ani <- dplyr::mutate(
-  subAni2,
-  g1 = forcats::fct_relevel(g1, ggtree::get_taxa_name(pt_inhouseTree)),
-  g2 = forcats::fct_relevel(g2, ggtree::get_taxa_name(pt_inhouseTree))
+    subAni2,
+    g1 = forcats::fct_relevel(g1, ggtree::get_taxa_name(pt_inhouseTree)),
+    g2 = forcats::fct_relevel(g2, ggtree::get_taxa_name(pt_inhouseTree))
 ) %>%
-  ggplot2::ggplot(mapping = aes(x = g1, y = g2)) +
-  geom_tile(mapping = aes(fill = ANI)) +
-  # scale_fill_viridis_c(name = "% identity", option = "B") +
-  scale_fill_stepsn(
-    breaks = colorAni$breaks,
-    values = scales::rescale(x = colorAni$breaks),
-    colours = colorAni$colors,
-    limits = c(85, 100) 
-  ) +
-  theme_bw() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    plot.title = element_text(hjust = 0.5, vjust = 0),
-    panel.grid = element_blank()
-  )
+    ggplot2::ggplot(mapping = aes(x = g1, y = g2)) +
+    geom_tile(mapping = aes(fill = ANI)) +
+    # scale_fill_viridis_c(name = "% identity", option = "B") +
+    scale_fill_stepsn(
+        breaks = colorAni$breaks,
+        values = scales::rescale(x = colorAni$breaks),
+        colours = colorAni$colors,
+        limits = c(85, 100)
+    ) +
+    theme_bw() +
+    theme(
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title = element_text(hjust = 0.5, vjust = 0),
+        panel.grid = element_blank()
+    )
 
 ## arrange plots one by one
 pt_all <- pt_spKey %>%
-  aplot::insert_left(pt_inhouseTree, width = 0.5) %>%
-  aplot::insert_right(pt_ani, width = 2)
+    aplot::insert_left(pt_inhouseTree, width = 0.5) %>%
+    aplot::insert_right(pt_ani, width = 2)
 
 
 ggsave(
-  plot = pt_all, width = 14, height = 8,
-  filename = file.path(outDir, "ANI_inhouse.heatmap.pdf")
+    plot = pt_all, width = 14, height = 8,
+    filename = file.path(outDir, "ANI_inhouse.heatmap.pdf")
 )
 
-pt_aniTree <-  pt_spKey %>%
-  aplot::insert_left(pt_inhouseTree, width = 1)
+pt_aniTree <- pt_spKey %>%
+    aplot::insert_left(pt_inhouseTree, width = 1)
 ```
 
 ```{r echo=FALSE}

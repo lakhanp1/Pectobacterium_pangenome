@@ -36,15 +36,15 @@ source("scripts/utils/homology_groups.R")
 set.seed(124)
 
 confs <- prefix_config_paths(
-  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
-  dir = "."
+    conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+    dir = "."
 )
 
-treeMethod <- "kmer_upgma"     #ani_upgma, kmer_nj
+treeMethod <- "kmer_upgma" # ani_upgma, kmer_nj
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
-outDir <- confs$analysis$prophages$dir
+outDir <- confs$analysis$prophages$path
 outPrefix <- ""
 
 orgDb <- org.Pectobacterium.spp.pan.eg.db
@@ -57,39 +57,39 @@ orgDb <- org.Pectobacterium.spp.pan.eg.db
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
 
 sampleInfoList <- as.list_metadata(
-  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
+    df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome
 )
 
 # read prophage HGs stored locally
 proHgs <- suppressMessages(
-  readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
-) %>% 
-  dplyr::rename(prophage_id = id) %>% 
-  dplyr::mutate(
-    hgs = stringr::str_split(hgs, ";")
-  ) %>% 
-  dplyr::left_join(
-    y = dplyr::select(sampleInfo, sampleId, SpeciesName, Genome, N50), by = "sampleId"
-  ) 
+    readr::read_tsv(confs$analysis$prophages$preprocessing$files$raw_prophage_hg)
+) %>%
+    dplyr::rename(prophage_id = id) %>%
+    dplyr::mutate(
+        hgs = stringr::str_split(hgs, ";")
+    ) %>%
+    dplyr::left_join(
+        y = dplyr::select(sampleInfo, sampleId, SpeciesName, Genome, N50), by = "sampleId"
+    )
 
-prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
-  dplyr::select(prophage_id, prophage_length, completeness)
+prophageDf <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>%
+    dplyr::select(prophage_id, prophage_length, completeness)
 
 rawTree <- import_tree(file = confs$analysis$phylogeny[[treeMethod]]$files$tree, phylo = TRUE)
 
 speciesOrder <- suppressMessages(
-  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+    readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
 )
 
 ## add species order factor levels to SpeciesName column
-sampleInfo %<>%  dplyr::mutate(
-  SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
+sampleInfo %<>% dplyr::mutate(
+    SpeciesName = forcats::fct_relevel(SpeciesName, !!!speciesOrder$SpeciesName)
 )
 
 phageRelations <- suppressMessages(
-  readr::read_tsv(file = confs$analysis$prophages$files$network)
-) %>% 
-  dplyr::left_join(y = prophageDf, by = c("prophage_id"))
+    readr::read_tsv(file = confs$analysis$prophages$files$network)
+) %>%
+    dplyr::left_join(y = prophageDf, by = c("prophage_id"))
 
 phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_hclust)
 
@@ -100,49 +100,48 @@ phageTree <- ape::read.tree(confs$analysis$prophages$files$mash_hclust)
 A function to get homology group counts in each genome of the pangenome
 
 ```{r}
-homology_groups_genome_counts <- function(h, pandb){
-  # ****
-  # replace this function by searching for a tandem match of homology groups
-  # ****
-  suppressMessages(
-    AnnotationDbi::select(
-      x = pandb, keys = unique(h),
-      columns = c("genome")
-    )
-  ) %>% 
-    dplyr::group_by(genome) %>% 
-    dplyr::summarise(n = n())
+homology_groups_genome_counts <- function(h, pandb) {
+    # ****
+    # replace this function by searching for a tandem match of homology groups
+    # ****
+    suppressMessages(
+        AnnotationDbi::select(
+            x = pandb, keys = unique(h),
+            columns = c("genome")
+        )
+    ) %>%
+        dplyr::group_by(genome) %>%
+        dplyr::summarise(n = n())
 }
 ```
 
 ```{r}
-proReps <- dplyr::filter(phageRelations, nodeType != "child") %>% 
-  dplyr::select(prophage_id, nodeType) %>% 
-  dplyr::left_join(proHgs, by = c("prophage_id" = "id")) %>% 
-  dplyr::select(-contig_id)
+proReps <- dplyr::filter(phageRelations, nodeType != "child") %>%
+    dplyr::select(prophage_id, nodeType) %>%
+    dplyr::left_join(proHgs, by = c("prophage_id" = "id")) %>%
+    dplyr::select(-contig_id)
 
 length(unique(unlist(proReps$hgs)))
 
 # prophage presence per genome
-proHgPerGenome <- dplyr::select(proReps, prophage_id, hgs, nHgs) %>% 
-  # dplyr::slice_head(n = 10) %>% 
-  dplyr::rowwise() %>% 
-  dplyr::mutate(
-    genomeCounts = list(homology_groups_genome_counts(h = hgs, pandb = orgDb)
-    )
-  ) %>% 
-  dplyr::select(-hgs) %>% 
-  tidyr::unnest(cols = genomeCounts) %>% 
-  dplyr::mutate(fraction = n/nHgs)
+proHgPerGenome <- dplyr::select(proReps, prophage_id, hgs, nHgs) %>%
+    # dplyr::slice_head(n = 10) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+        genomeCounts = list(homology_groups_genome_counts(h = hgs, pandb = orgDb))
+    ) %>%
+    dplyr::select(-hgs) %>%
+    tidyr::unnest(cols = genomeCounts) %>%
+    dplyr::mutate(fraction = n / nHgs)
 
 proHgCounts <- tidyr::pivot_wider(
-  data = proHgPerGenome,
-  id_cols = c(genome),
-  names_from = prophage_id,
-  values_from = fraction,
-  values_fill = 0,
-) %>% 
-  dplyr::select(genome, all_of(phageTree$tip.label))
+    data = proHgPerGenome,
+    id_cols = c(genome),
+    names_from = prophage_id,
+    values_from = fraction,
+    values_fill = 0,
+) %>%
+    dplyr::select(genome, all_of(phageTree$tip.label))
 
 ```
 
@@ -150,70 +149,70 @@ proHgCounts <- tidyr::pivot_wider(
 
 ```{r}
 
-countMat <- tibble::tibble(genome = rawTree$tip.label) %>% 
-  dplyr::left_join(y = proHgCounts, by = c("genome")) %>% 
-  tibble::column_to_rownames(var = "genome") %>% 
-  as.matrix()
+countMat <- tibble::tibble(genome = rawTree$tip.label) %>%
+    dplyr::left_join(y = proHgCounts, by = c("genome")) %>%
+    tibble::column_to_rownames(var = "genome") %>%
+    as.matrix()
 
 hist(matrixStats::colMaxs(countMat))
 hist(countMat)
 
 # species key heatmap
 ht_species <- species_key_heatmap(
-  genomes = rawTree$tip.label, speciesInfo = sampleInfo,
-  width = unit(10, "cm")
+    genomes = rawTree$tip.label, speciesInfo = sampleInfo,
+    width = unit(10, "cm")
 )
 
-prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>% 
-  dplyr::left_join(y = phageRelations, by = "prophage_id")
+prophageAnDf <- tibble::tibble(prophage_id = colnames(countMat)) %>%
+    dplyr::left_join(y = phageRelations, by = "prophage_id")
 
 ## ensure the row order is same: this is because of a bug in ComplexHeatmap
 stopifnot(
-  all(rownames(countMat) == rawTree$tip.label)
+    all(rownames(countMat) == rawTree$tip.label)
 )
 
 # bottom annotation: number of HGs in prophage, prophage completeness
 an_bar <- ComplexHeatmap::HeatmapAnnotation(
-  nHgs = ComplexHeatmap::anno_barplot(
-    x = prophageAnDf$nHgs,
-    axis_param = list(side = "right")
-  ),
-  completeness = ComplexHeatmap::anno_barplot(
-    x = prophageAnDf$completeness,
-    gp = gpar(col = "blue"),
-    axis_param = list(side = "right")
-  ),
-  which = "column",
-  annotation_name_side = "right",
-  annotation_name_rot = 0,
-  annotation_name_gp = gpar(fontsize = 12),
-  annotation_height = unit(c(2, 0.5), "cm")
+    nHgs = ComplexHeatmap::anno_barplot(
+        x = prophageAnDf$nHgs,
+        axis_param = list(side = "right")
+    ),
+    completeness = ComplexHeatmap::anno_barplot(
+        x = prophageAnDf$completeness,
+        gp = gpar(col = "blue"),
+        axis_param = list(side = "right")
+    ),
+    which = "column",
+    annotation_name_side = "right",
+    annotation_name_rot = 0,
+    annotation_name_gp = gpar(fontsize = 12),
+    annotation_height = unit(c(2, 0.5), "cm")
 )
 
 # prophage homology group count heatmap
 ht_count <- ComplexHeatmap::Heatmap(
-  matrix = countMat,
-  name = "hg_count",
-  col = viridisLite::viridis(n = 11, option = "B"),
-  bottom_annotation = an_bar,
-  cluster_rows = ape::as.hclust.phylo(rawTree), row_dend_reorder = FALSE,
-  row_dend_width = unit(3, "cm"), show_row_dend = TRUE,
-  cluster_columns = ape::as.hclust.phylo(phageTree), column_dend_reorder = FALSE,
-  column_dend_height = unit(3, "cm"), show_column_dend = TRUE,
-  show_column_names = FALSE,
-  show_row_names = FALSE,
-  column_title = "Prophage homology groups / genome",
-  width = unit(20, "cm")
+    matrix = countMat,
+    name = "hg_count",
+    col = viridisLite::viridis(n = 11, option = "B"),
+    bottom_annotation = an_bar,
+    cluster_rows = ape::as.hclust.phylo(rawTree), row_dend_reorder = FALSE,
+    row_dend_width = unit(3, "cm"), show_row_dend = TRUE,
+    cluster_columns = ape::as.hclust.phylo(phageTree), column_dend_reorder = FALSE,
+    column_dend_height = unit(3, "cm"), show_column_dend = TRUE,
+    show_column_names = FALSE,
+    show_row_names = FALSE,
+    column_title = "Prophage homology groups / genome",
+    width = unit(20, "cm")
 )
 
 htList <- ht_species + ht_count
 
 pdf(file = paste(outDir, "/prophage_pangenome_hgs.pdf", sep = ""), width = 15, height = 9)
 ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "hg_count",
-  row_dend_side = "left",
-  merge_legends = TRUE
+    object = htList,
+    main_heatmap = "hg_count",
+    row_dend_side = "left",
+    merge_legends = TRUE
 )
 dev.off()
 
@@ -221,17 +220,17 @@ dev.off()
 
 ```{r}
 #| echo: false
-#| column: page 
+#| column: page
 #| fig-height: 8
 #| fig-width: 15
 #| out-width: '100%'
 #| layout-valign: top
 
 ComplexHeatmap::draw(
-  object = htList,
-  main_heatmap = "hg_count",
-  row_dend_side = "left",
-  merge_legends = TRUE
+    object = htList,
+    main_heatmap = "hg_count",
+    row_dend_side = "left",
+    merge_legends = TRUE
 )
 ```
 

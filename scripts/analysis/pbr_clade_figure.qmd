@@ -45,7 +45,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- confs$analysis$phylogeny$dir
+outDir <- confs$analysis$phylogeny$path
 outPrefix <- paste(outDir, "/", analysisName, ".", treeMethod, sep = "")
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name

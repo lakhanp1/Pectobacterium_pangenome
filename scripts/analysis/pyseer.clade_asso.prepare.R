@@ -24,7 +24,7 @@ pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 
 analysisName <- "pyseer_clades"
-outDir <- file.path(confs$analysis$association$dir, analysisName)
+outDir <- file.path(confs$analysis$association$path, analysisName)
 outPrefix <- file.path(outDir, analysisName)
 ################################################################################
 

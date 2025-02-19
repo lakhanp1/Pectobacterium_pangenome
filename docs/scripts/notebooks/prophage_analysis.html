@@ -500,7 +500,7 @@ Caution
 <p>Visualize homology group sets for selected prophages as PAV heatmap across the pangenome. Replace the code block in <code>scripts/analysis/homology_group_viz.R</code> script with the following.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"vir_lineage_prophages"</span></span>
 <span id="cb16-2"><a href="#cb16-2"></a></span>
-<span id="cb16-3"><a href="#cb16-3"></a>outDir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir)</span>
+<span id="cb16-3"><a href="#cb16-3"></a>outDir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path)</span>
 <span id="cb16-4"><a href="#cb16-4"></a>outPrefix <span class="ot">&lt;-</span> <span class="fu">file.path</span>(outDir, analysisName)</span>
 <span id="cb16-5"><a href="#cb16-5"></a></span>
 <span id="cb16-6"><a href="#cb16-6"></a>setIds <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
@@ -520,7 +520,7 @@ Caution
 <div class="sourceCode" id="cb18"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22429500,hg_22429499 <span class="dt">\</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a>--inner_region <span class="at">--genomes</span> <span class="st">"g_63,g_190,g_193,g_411,g_415,g_406,g_194,g_263"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_46"</span></span>
-<span id="cb19-2"><a href="#cb19-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb19-2"><a href="#cb19-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb19-3"><a href="#cb19-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb19-4"><a href="#cb19-4"></a></span>
 <span id="cb19-5"><a href="#cb19-5"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -558,7 +558,7 @@ Caution
 <div class="sourceCode" id="cb20"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22429319,hg_22429327 <span class="dt">\</span></span>
 <span id="cb20-2"><a href="#cb20-2"></a>--genomes <span class="st">"g_406,g_194"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_45"</span></span>
-<span id="cb21-2"><a href="#cb21-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb21-2"><a href="#cb21-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb21-3"><a href="#cb21-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb21-4"><a href="#cb21-4"></a></span>
 <span id="cb21-5"><a href="#cb21-5"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -590,7 +590,7 @@ Caution
 <div class="sourceCode" id="cb22"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22429319,hg_22429327 <span class="dt">\</span></span>
 <span id="cb22-2"><a href="#cb22-2"></a>--genomes <span class="st">"g_406,g_194"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"grp_45_mosaicsm"</span></span>
-<span id="cb23-2"><a href="#cb23-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb23-2"><a href="#cb23-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb23-3"><a href="#cb23-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb23-4"><a href="#cb23-4"></a></span>
 <span id="cb23-5"><a href="#cb23-5"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -620,7 +620,7 @@ Caution
 <section id="phage_grp_71" class="level3">
 <h3 class="anchored" data-anchor-id="phage_grp_71">phage_grp_71</h3>
 <div class="sourceCode" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_71"</span></span>
-<span id="cb24-2"><a href="#cb24-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb24-2"><a href="#cb24-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb24-3"><a href="#cb24-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb24-4"><a href="#cb24-4"></a></span>
 <span id="cb24-5"><a href="#cb24-5"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -649,7 +649,7 @@ Caution
 <div class="sourceCode" id="cb25"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1"></a><span class="ex">Rscript</span> scripts/utils/HG_range_coordinates.R <span class="at">--hgs</span> hg_22427004,hg_22426993 <span class="dt">\</span></span>
 <span id="cb25-2"><a href="#cb25-2"></a>--inner_region <span class="at">--genomes</span> <span class="st">"g_63,g_194"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
-<span id="cb26-2"><a href="#cb26-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb26-2"><a href="#cb26-2"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb26-3"><a href="#cb26-3"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb26-4"><a href="#cb26-4"></a></span>
 <span id="cb26-5"><a href="#cb26-5"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -1460,7 +1460,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb33-207"><a href="#cb33-207"></a><span class="in">```r</span></span>
 <span id="cb33-208"><a href="#cb33-208"></a>analysisName <span class="ot">&lt;-</span> <span class="st">"vir_lineage_prophages"</span></span>
 <span id="cb33-209"><a href="#cb33-209"></a></span>
-<span id="cb33-210"><a href="#cb33-210"></a>outDir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir)</span>
+<span id="cb33-210"><a href="#cb33-210"></a>outDir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path)</span>
 <span id="cb33-211"><a href="#cb33-211"></a>outPrefix <span class="ot">&lt;-</span> <span class="fu">file.path</span>(outDir, analysisName)</span>
 <span id="cb33-212"><a href="#cb33-212"></a></span>
 <span id="cb33-213"><a href="#cb33-213"></a>setIds <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
@@ -1492,7 +1492,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb33-239"><a href="#cb33-239"></a></span>
 <span id="cb33-240"><a href="#cb33-240"></a><span class="in">```r</span></span>
 <span id="cb33-241"><a href="#cb33-241"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_46"</span></span>
-<span id="cb33-242"><a href="#cb33-242"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb33-242"><a href="#cb33-242"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb33-243"><a href="#cb33-243"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb33-244"><a href="#cb33-244"></a></span>
 <span id="cb33-245"><a href="#cb33-245"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -1535,7 +1535,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb33-282"><a href="#cb33-282"></a></span>
 <span id="cb33-283"><a href="#cb33-283"></a><span class="in">```r</span></span>
 <span id="cb33-284"><a href="#cb33-284"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_45"</span></span>
-<span id="cb33-285"><a href="#cb33-285"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb33-285"><a href="#cb33-285"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb33-286"><a href="#cb33-286"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb33-287"><a href="#cb33-287"></a></span>
 <span id="cb33-288"><a href="#cb33-288"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -1572,7 +1572,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb33-319"><a href="#cb33-319"></a></span>
 <span id="cb33-320"><a href="#cb33-320"></a><span class="in">```r</span></span>
 <span id="cb33-321"><a href="#cb33-321"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"grp_45_mosaicsm"</span></span>
-<span id="cb33-322"><a href="#cb33-322"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb33-322"><a href="#cb33-322"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb33-323"><a href="#cb33-323"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb33-324"><a href="#cb33-324"></a></span>
 <span id="cb33-325"><a href="#cb33-325"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -1604,7 +1604,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb33-351"><a href="#cb33-351"></a></span>
 <span id="cb33-352"><a href="#cb33-352"></a><span class="in">```r</span></span>
 <span id="cb33-353"><a href="#cb33-353"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_71"</span></span>
-<span id="cb33-354"><a href="#cb33-354"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb33-354"><a href="#cb33-354"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz/"</span>, cluster_title, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb33-355"><a href="#cb33-355"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb33-356"><a href="#cb33-356"></a></span>
 <span id="cb33-357"><a href="#cb33-357"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>
@@ -1639,7 +1639,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb33-386"><a href="#cb33-386"></a></span>
 <span id="cb33-387"><a href="#cb33-387"></a><span class="in">```r</span></span>
 <span id="cb33-388"><a href="#cb33-388"></a>cluster_title <span class="ot">&lt;-</span> <span class="st">"phage_grp_107"</span></span>
-<span id="cb33-389"><a href="#cb33-389"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>dir, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
+<span id="cb33-389"><a href="#cb33-389"></a>outDir <span class="ot">&lt;-</span> <span class="fu">paste</span>(confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>path, <span class="st">"/cluster_viz"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span>
 <span id="cb33-390"><a href="#cb33-390"></a>hg_color_categories <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>prophages<span class="sc">$</span>files<span class="sc">$</span>hg_broad_functions</span>
 <span id="cb33-391"><a href="#cb33-391"></a></span>
 <span id="cb33-392"><a href="#cb33-392"></a><span class="co"># a vector of prophage identifiers that will be included in clustermap plot</span></span>

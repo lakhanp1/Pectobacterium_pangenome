@@ -33,10 +33,10 @@ outGroup <- confs$analysis$phylogeny$outgroup
 
 phenotype <- "assay_FN"
 file_blastOut <- file.path(
-  confs$analysis$association$dir, phenotype, "pheno_specific.pangenome.blastn.out"
+  confs$analysis$association$path, phenotype, "pheno_specific.pangenome.blastn.out"
 )
 
-outDir <- file.path(confs$analysis$association$dir, phenotype)
+outDir <- file.path(confs$analysis$association$path, phenotype)
 outPrefix <- file.path(outDir, phenotype)
 
 file_associatedSeqInfo <- paste(outPrefix, ".pheno_specific.seq_info.txt", sep = "")

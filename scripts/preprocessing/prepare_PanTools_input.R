@@ -20,20 +20,21 @@ panConf <- confs$data$pangenomes$pectobacterium.v2
 testPanConf <- confs$data$pangenomes$pectobacterium.ts
 
 cols_metadata <- c(
-  "sampleName", "AssemblyAccession",	"AssemblyName", "SpeciesName", "taxonomy_check_status",
+  "sampleName", "AssemblyAccession", "AssemblyName", "SpeciesName", "taxonomy_check_status",
   "BioSampleAccn", "BioprojectAccn",
   "strain", "virulence", "virulence_pcr", "geo_loc_country", "continent",
   "host", "isolation_source", "collection_year", "collected_by", "env_broad_scale",
   "type_material", "virulence", "virulence_pcr",
   "source", "type_material", "representative_status", "sample_type",
-  "length", "N50", "L50", "n_contigs")
+  "length", "N50", "L50", "n_contigs"
+)
 
 #####################################################################
-! dir.exists(panConf$dir) && dir.create(path = panConf$dir, recursive = TRUE)
-! dir.exists(testPanConf$dir) && dir.create(path = testPanConf$dir, recursive = TRUE)
+!dir.exists(panConf$path) && dir.create(path = panConf$path, recursive = TRUE)
+!dir.exists(testPanConf$path) && dir.create(path = testPanConf$path, recursive = TRUE)
 
-if(! dir.exists(panConf$dir)){
-  dir.create(path = panConf$dir, recursive = TRUE)
+if (!dir.exists(panConf$path)) {
+  dir.create(path = panConf$path, recursive = TRUE)
 }
 
 metadata <- suppressMessages(
@@ -50,21 +51,25 @@ filteredMeta <- dplyr::filter(
     Genome = 1:n(),
     genomeId = paste("g_", Genome, sep = ""),
     fasta = paste(
-      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".fna", sep = ""
+      confs$data$prokka$path, "/", sampleId, "/", sampleId, ".fna",
+      sep = ""
     ),
     gff3 = paste(
-      confs$data$prokka$dir, "/", sampleId, "/", sampleId, ".gff3", sep = ""
+      confs$data$prokka$path, "/", sampleId, "/", sampleId, ".gff3",
+      sep = ""
     ),
     interpro = paste(
-      confs$data$interproscan$dir, "/", sampleId, ".interProScan.gff3", sep = ""
+      confs$data$interproscan$path, "/", sampleId, ".interProScan.gff3",
+      sep = ""
     ),
     cog = paste(
-      confs$data$cog$dir, "/", sampleId, ".emapper.annotations", sep = ""
+      confs$data$cog$path, "/", sampleId, ".emapper.annotations",
+      sep = ""
     ),
     ## replace "," with ";"
     dplyr::across(
       .cols = everything(),
-      .fns = ~stringr::str_replace_all(
+      .fns = ~ stringr::str_replace_all(
         string = .x, pattern = "[,;]", replacement = " and"
       )
     )
@@ -108,7 +113,8 @@ openxlsx::addWorksheet(wb, sheetName = currentSheet)
 openxlsx::writeDataTable(
   wb = wb, sheet = currentSheet, withFilter = TRUE, keepNA = TRUE, na.string = "NA",
   x = dplyr::select(
-    filteredMeta, Genome=genomeId, sampleId, !!!cols_metadata
+    filteredMeta,
+    Genome = genomeId, sampleId, !!!cols_metadata
   )
 )
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
@@ -116,7 +122,7 @@ openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstAct
 # openxlsx::openXL(wb)
 openxlsx::saveWorkbook(
   wb = wb,
-  file = file.path(panConf$dir, "pangenome_metadata.xlsx"), overwrite = TRUE
+  file = file.path(panConf$path, "pangenome_metadata.xlsx"), overwrite = TRUE
 )
 
 
@@ -144,8 +150,3 @@ dplyr::select(testSet, Genome, interpro) %>%
 ## metadata file
 dplyr::select(testSet, Genome, sampleId, !!!cols_metadata) %>%
   readr::write_csv(file = testPanConf$files$metadata, col_names = TRUE)
-
-
-
-
-

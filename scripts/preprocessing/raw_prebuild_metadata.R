@@ -26,7 +26,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- confs$analysis$qc$dir
+outDir <- confs$analysis$qc$path
 
 ################################################################################
 ## inhouse genomes and QC data
@@ -58,7 +58,7 @@ buscopMqc <- suppressMessages(
   dplyr::mutate(
     dplyr::across(
       .cols = c(starts_with("complete"), missing, fragmented),
-      .fns = ~ round(. * 100/total, digits = 3)
+      .fns = ~ round(. * 100 / total, digits = 3)
     )
   ) %>%
   dplyr::rename_with(
@@ -79,7 +79,7 @@ buscogMqc <- suppressMessages(
   dplyr::mutate(
     dplyr::across(
       .cols = c(starts_with("complete"), missing, fragmented),
-      .fns = ~ round(. * 100/total, digits = 3)
+      .fns = ~ round(. * 100 / total, digits = 3)
     )
   ) %>%
   dplyr::rename_with(
@@ -131,11 +131,11 @@ asmDf <- XML::xmlToDataFrame(nodes = asmNodes)
 # xmlList <- XML::xmlToList(node = asmNodes[[1]])
 # intersect(unlist(xmlList$PropertyList), c("latest_genbank", "latest_refseq"))
 
-parse_assembly_docsum <- function(node){
+parse_assembly_docsum <- function(node) {
   xmlList <- XML::xmlToList(node = node)
 
   exclFromRefSeq <- NA
-  if(!is.null(node[["ExclFromRefSeq"]])){
+  if (!is.null(node[["ExclFromRefSeq"]])) {
     exclFromRefSeq <- paste(
       XML::xmlSApply(node[["ExclFromRefSeq"]], xmlValue),
       sep = ";", collapse = ";"
@@ -144,7 +144,7 @@ parse_assembly_docsum <- function(node){
   }
 
   Anomalous <- NA
-  if(!is.null(node[["AnomalousList"]])){
+  if (!is.null(node[["AnomalousList"]])) {
     Anomalous <- paste(
       XML::xmlSApply(node[["AnomalousList"]][["Anomalous"]], xmlValue),
       sep = ";", collapse = ";"
@@ -153,7 +153,7 @@ parse_assembly_docsum <- function(node){
   }
 
   replaced <- NA
-  if(is.element(el = "replaced", xmlSApply(node[["PropertyList"]], xmlValue))){
+  if (is.element(el = "replaced", xmlSApply(node[["PropertyList"]], xmlValue))) {
     replaced <- "replaced"
     warning(xmlList$AssemblyAccession, replaced, ": replaced\n")
   }
@@ -172,7 +172,6 @@ parse_assembly_docsum <- function(node){
     BioprojectAccn = xmlList$GB_BioProjects$Bioproj$BioprojectAccn,
     synonym_similarity = xmlList$Synonym$Similarity
   ))
-
 }
 
 asmMetadata <- purrr::map_dfr(
@@ -191,7 +190,6 @@ asmMetadata <- purrr::map_dfr(
         replacement = NA_character_
       )
     )
-
   )
 
 
@@ -207,14 +205,14 @@ colInfo <- NULL
 
 bsMetadata <- purrr::map_dfr(
   .x = bsNodes,
-  .f = function(aNode){
+  .f = function(aNode) {
     aNodeDoc <- XML::xmlParse(XML::toString.XMLNode(aNode))
     aNodeList <- XML::xmlToList(node = aNode)
 
     ## parse all the metadata from Attribute nodes
     attrDf <- purrr::map_dfr(
       .x = XML::getNodeSet(doc = aNodeDoc, path = "//Attribute"),
-      .f = function(nd){
+      .f = function(nd) {
         return(c(
           XML::xmlAttrs(node = nd),
           value = XML::xmlValue(x = nd)
@@ -274,11 +272,11 @@ bsMetadata <- dplyr::select(
 assemblyCols <- c(
   "AssemblyAccession", "AssemblyName", "SpeciesName", "SpeciesTaxid", "Organism",
   "AssemblyStatus", "AssemblyType", "BioSampleAccn", "SubmissionDate", "SubmitterOrganization",
-  "FtpPath_RefSeq", "FtpPath_GenBank",  "Id"
+  "FtpPath_RefSeq", "FtpPath_GenBank", "Id"
 )
 
 ## merge all data
-ncbiData <- dplyr::select(.data = asmDf, !!!assemblyCols)  %>%
+ncbiData <- dplyr::select(.data = asmDf, !!!assemblyCols) %>%
   dplyr::mutate(
     AssemblyName = stringr::str_replace_all(
       string = AssemblyName, pattern = "\\s+", replacement = "_"
@@ -335,7 +333,7 @@ missingMetadata <- dplyr::left_join(
   by = "AssemblyAccession"
 )
 
-for(mtcol in setdiff(colnames(missingMetadata), c("AssemblyAccession", "rowIndex"))){
+for (mtcol in setdiff(colnames(missingMetadata), c("AssemblyAccession", "rowIndex"))) {
   genomeMetadata[[mtcol]][missingMetadata$rowIndex] <- dplyr::coalesce(
     genomeMetadata[[mtcol]][missingMetadata$rowIndex],
     missingMetadata[[mtcol]]
@@ -374,7 +372,7 @@ genomeMetadata %<>% tibble::add_column(geo_loc_country = NA, .after = "geo_loc_n
   )
 
 
-if(!all(is.element(na.omit(unique(genomeMetadata$geo_loc_country)), world$name_long))){
+if (!all(is.element(na.omit(unique(genomeMetadata$geo_loc_country)), world$name_long))) {
   stop("Unmatched country name")
 }
 
@@ -393,12 +391,12 @@ readr::write_tsv(
 
 ## if exists the open the excel, else create new
 wb <- openxlsx::createWorkbook()
-if(file.exists(confs$analysis$qc$files$prebuild_metadata_xls)){
+if (file.exists(confs$analysis$qc$files$prebuild_metadata_xls)) {
   wb <- openxlsx::loadWorkbook(file = confs$analysis$qc$files$prebuild_metadata_xls)
 }
 
 currentSheet <- "metadata"
-if(currentSheet %in% names(wb)){
+if (currentSheet %in% names(wb)) {
   openxlsx::removeWorksheet(wb, currentSheet)
 }
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
@@ -409,7 +407,7 @@ openxlsx::writeDataTable(
 openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 2, firstActiveCol = 2)
 
 currentSheet <- "column_info"
-if(currentSheet %in% names(wb)){
+if (currentSheet %in% names(wb)) {
   openxlsx::removeWorksheet(wb, currentSheet)
 }
 openxlsx::addWorksheet(wb, sheetName = currentSheet)
@@ -426,9 +424,3 @@ saveWorkbook(
 )
 
 ################################################################################
-
-
-
-
-
-
