@@ -334,7 +334,6 @@ analysis:
     files:
       clusters: "prophages_clusters.tab"
       hg_broad_functions: "prophage_HG_broad_functions.tab"
-      phage_defense: "prophages_with_defense.tab"
     preprocessing:
       dir: "preprocessing"
       files:

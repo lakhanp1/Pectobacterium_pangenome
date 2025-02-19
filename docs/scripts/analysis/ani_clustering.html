@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Lakhansing Pardeshi">
-<meta name="dcterms.date" content="2025-01-16">
+<meta name="dcterms.date" content="2025-02-19">
 
 <title>ANI comparison and visualization for genomes – Pectobacterium pangenome data analysis</title>
 <style>
@@ -5017,7 +5017,7 @@ overflow-x: auto;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 16, 2025</p>
+      <p class="date">February 19, 2025</p>
     </div>
   </div>
   
@@ -5059,25 +5059,25 @@ overflow-x: auto;
 <span id="cb1-22"><a href="#cb1-22"></a><span class="fu">set.seed</span>(<span class="dv">124</span>)</span>
 <span id="cb1-23"><a href="#cb1-23"></a></span>
 <span id="cb1-24"><a href="#cb1-24"></a>confs <span class="ot">&lt;-</span> <span class="fu">prefix_config_paths</span>(</span>
-<span id="cb1-25"><a href="#cb1-25"></a>  <span class="at">conf =</span> <span class="fu">suppressWarnings</span>(configr<span class="sc">::</span><span class="fu">read.config</span>(<span class="at">file =</span> <span class="st">&quot;project_config.yaml&quot;</span>)),</span>
-<span id="cb1-26"><a href="#cb1-26"></a>  <span class="at">dir =</span> <span class="st">&quot;.&quot;</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>    <span class="at">conf =</span> <span class="fu">suppressWarnings</span>(configr<span class="sc">::</span><span class="fu">read.config</span>(<span class="at">file =</span> <span class="st">&quot;project_config.yaml&quot;</span>)),</span>
+<span id="cb1-26"><a href="#cb1-26"></a>    <span class="at">dir =</span> <span class="st">&quot;.&quot;</span></span>
 <span id="cb1-27"><a href="#cb1-27"></a>)</span>
 <span id="cb1-28"><a href="#cb1-28"></a></span>
 <span id="cb1-29"><a href="#cb1-29"></a>pangenome <span class="ot">&lt;-</span> confs<span class="sc">$</span>data<span class="sc">$</span>pangenomes<span class="sc">$</span>pectobacterium.v2<span class="sc">$</span>name</span>
 <span id="cb1-30"><a href="#cb1-30"></a>panConf <span class="ot">&lt;-</span> confs<span class="sc">$</span>data<span class="sc">$</span>pangenomes[[pangenome]]</span>
 <span id="cb1-31"><a href="#cb1-31"></a>outGroup <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>outgroup</span>
 <span id="cb1-32"><a href="#cb1-32"></a></span>
-<span id="cb1-33"><a href="#cb1-33"></a>outDir <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani<span class="sc">$</span>dir</span>
+<span id="cb1-33"><a href="#cb1-33"></a>outDir <span class="ot">&lt;-</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani<span class="sc">$</span>path</span>
 <span id="cb1-34"><a href="#cb1-34"></a></span>
 <span id="cb1-35"><a href="#cb1-35"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(outDir)) <span class="fu">dir.create</span>(outDir)</span>
 <span id="cb1-36"><a href="#cb1-36"></a></span>
 <span id="cb1-37"><a href="#cb1-37"></a>pt_theme <span class="ot">&lt;-</span> <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
-<span id="cb1-38"><a href="#cb1-38"></a>  <span class="fu">theme</span>(</span>
-<span id="cb1-39"><a href="#cb1-39"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
-<span id="cb1-40"><a href="#cb1-40"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>),</span>
-<span id="cb1-41"><a href="#cb1-41"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb1-42"><a href="#cb1-42"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
-<span id="cb1-43"><a href="#cb1-43"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-38"><a href="#cb1-38"></a>    <span class="fu">theme</span>(</span>
+<span id="cb1-39"><a href="#cb1-39"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb1-40"><a href="#cb1-40"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb1-41"><a href="#cb1-41"></a>        <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb1-42"><a href="#cb1-42"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb1-43"><a href="#cb1-43"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -5089,18 +5089,18 @@ overflow-x: auto;
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>sampleInfo <span class="ot">&lt;-</span> <span class="fu">get_metadata</span>(<span class="at">file =</span> panConf<span class="sc">$</span>files<span class="sc">$</span>metadata, <span class="at">genus =</span> confs<span class="sc">$</span>genus)</span>
 <span id="cb2-2"><a href="#cb2-2"></a></span>
 <span id="cb2-3"><a href="#cb2-3"></a>sampleInfoList <span class="ot">&lt;-</span> <span class="fu">as.list_metadata</span>(</span>
-<span id="cb2-4"><a href="#cb2-4"></a>  <span class="at">df =</span> sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="at">df =</span> sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, Genome, genomeId</span>
 <span id="cb2-5"><a href="#cb2-5"></a>)</span>
 <span id="cb2-6"><a href="#cb2-6"></a></span>
 <span id="cb2-7"><a href="#cb2-7"></a>genomeIds <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">pull</span>(sampleInfo, genomeId, <span class="at">name =</span> sampleId)</span>
 <span id="cb2-8"><a href="#cb2-8"></a></span>
 <span id="cb2-9"><a href="#cb2-9"></a>fnGenomes <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(</span>
-<span id="cb2-10"><a href="#cb2-10"></a>  sampleInfo, virulence <span class="sc">==</span> <span class="st">&quot;virulent&quot;</span>, virulence_pcr <span class="sc">==</span> <span class="st">&quot;negative&quot;</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-12"><a href="#cb2-12"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(genomeId)</span>
+<span id="cb2-10"><a href="#cb2-10"></a>    sampleInfo, virulence <span class="sc">==</span> <span class="st">&quot;virulent&quot;</span>, virulence_pcr <span class="sc">==</span> <span class="st">&quot;negative&quot;</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>    dplyr<span class="sc">::</span><span class="fu">pull</span>(genomeId)</span>
 <span id="cb2-13"><a href="#cb2-13"></a></span>
 <span id="cb2-14"><a href="#cb2-14"></a>markGenomes <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb2-15"><a href="#cb2-15"></a>  <span class="at">fn_pbr =</span> <span class="fu">list</span>(<span class="at">genomes =</span> fnGenomes, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb2-15"><a href="#cb2-15"></a>    <span class="at">fn_pbr =</span> <span class="fu">list</span>(<span class="at">genomes =</span> fnGenomes, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>)</span>
 <span id="cb2-16"><a href="#cb2-16"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
@@ -5112,57 +5112,57 @@ overflow-x: auto;
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="do">## process ANI data for pangenome and store ANI and ANI-distance matrices</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a>aniDf <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(readr<span class="sc">::</span><span class="fu">read_tsv</span>(</span>
-<span id="cb3-3"><a href="#cb3-3"></a>  <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>ANI<span class="sc">$</span>files<span class="sc">$</span>fastani_out,</span>
-<span id="cb3-4"><a href="#cb3-4"></a>  <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;id1&quot;</span>, <span class="st">&quot;id2&quot;</span>, <span class="st">&quot;ani&quot;</span>, <span class="st">&quot;mapped&quot;</span>, <span class="st">&quot;total&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>ANI<span class="sc">$</span>files<span class="sc">$</span>fastani_out,</span>
+<span id="cb3-4"><a href="#cb3-4"></a>    <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">&quot;id1&quot;</span>, <span class="st">&quot;id2&quot;</span>, <span class="st">&quot;ani&quot;</span>, <span class="st">&quot;mapped&quot;</span>, <span class="st">&quot;total&quot;</span>)</span>
 <span id="cb3-5"><a href="#cb3-5"></a>))</span>
 <span id="cb3-6"><a href="#cb3-6"></a></span>
 <span id="cb3-7"><a href="#cb3-7"></a>aniDf <span class="sc">%&lt;&gt;%</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb3-8"><a href="#cb3-8"></a>  dplyr<span class="sc">::</span><span class="fu">across</span>(</span>
-<span id="cb3-9"><a href="#cb3-9"></a>    <span class="at">.cols =</span> <span class="fu">c</span>(id1, id2),</span>
-<span id="cb3-10"><a href="#cb3-10"></a>    <span class="at">.fns =</span> <span class="sc">~</span> stringr<span class="sc">::</span><span class="fu">str_replace</span>(<span class="at">string =</span> .x, <span class="at">pattern =</span> <span class="st">&quot;.*/(.*).fna&quot;</span>, <span class="at">replacement =</span> <span class="st">&quot;</span><span class="sc">\\</span><span class="st">1&quot;</span>)</span>
-<span id="cb3-11"><a href="#cb3-11"></a>  ),</span>
-<span id="cb3-12"><a href="#cb3-12"></a>  <span class="at">dist =</span> <span class="dv">1</span> <span class="sc">-</span> (ani <span class="sc">/</span> <span class="dv">100</span>)</span>
+<span id="cb3-8"><a href="#cb3-8"></a>    dplyr<span class="sc">::</span><span class="fu">across</span>(</span>
+<span id="cb3-9"><a href="#cb3-9"></a>        <span class="at">.cols =</span> <span class="fu">c</span>(id1, id2),</span>
+<span id="cb3-10"><a href="#cb3-10"></a>        <span class="at">.fns =</span> <span class="sc">~</span> stringr<span class="sc">::</span><span class="fu">str_replace</span>(<span class="at">string =</span> .x, <span class="at">pattern =</span> <span class="st">&quot;.*/(.*).fna&quot;</span>, <span class="at">replacement =</span> <span class="st">&quot;</span><span class="sc">\\</span><span class="st">1&quot;</span>)</span>
+<span id="cb3-11"><a href="#cb3-11"></a>    ),</span>
+<span id="cb3-12"><a href="#cb3-12"></a>    <span class="at">dist =</span> <span class="dv">1</span> <span class="sc">-</span> (ani <span class="sc">/</span> <span class="dv">100</span>)</span>
 <span id="cb3-13"><a href="#cb3-13"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-14"><a href="#cb3-14"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb3-15"><a href="#cb3-15"></a>    <span class="at">g1 =</span> genomeIds[id1],</span>
-<span id="cb3-16"><a href="#cb3-16"></a>    <span class="at">g2 =</span> genomeIds[id2]</span>
-<span id="cb3-17"><a href="#cb3-17"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb3-18"><a href="#cb3-18"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(g1) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(g2)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(g1, g2)</span>
+<span id="cb3-14"><a href="#cb3-14"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb3-15"><a href="#cb3-15"></a>        <span class="at">g1 =</span> genomeIds[id1],</span>
+<span id="cb3-16"><a href="#cb3-16"></a>        <span class="at">g2 =</span> genomeIds[id2]</span>
+<span id="cb3-17"><a href="#cb3-17"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-18"><a href="#cb3-18"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(g1) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(g2)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-19"><a href="#cb3-19"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(g1, g2)</span>
 <span id="cb3-20"><a href="#cb3-20"></a></span>
 <span id="cb3-21"><a href="#cb3-21"></a>aniDist <span class="ot">&lt;-</span> tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
-<span id="cb3-22"><a href="#cb3-22"></a>  <span class="at">data =</span> aniDf,</span>
-<span id="cb3-23"><a href="#cb3-23"></a>  <span class="at">id_cols =</span> <span class="st">&quot;g1&quot;</span>,</span>
-<span id="cb3-24"><a href="#cb3-24"></a>  <span class="at">names_from =</span> <span class="st">&quot;g2&quot;</span>,</span>
-<span id="cb3-25"><a href="#cb3-25"></a>  <span class="at">values_from =</span> <span class="st">&quot;dist&quot;</span></span>
+<span id="cb3-22"><a href="#cb3-22"></a>    <span class="at">data =</span> aniDf,</span>
+<span id="cb3-23"><a href="#cb3-23"></a>    <span class="at">id_cols =</span> <span class="st">&quot;g1&quot;</span>,</span>
+<span id="cb3-24"><a href="#cb3-24"></a>    <span class="at">names_from =</span> <span class="st">&quot;g2&quot;</span>,</span>
+<span id="cb3-25"><a href="#cb3-25"></a>    <span class="at">values_from =</span> <span class="st">&quot;dist&quot;</span></span>
 <span id="cb3-26"><a href="#cb3-26"></a>)</span>
 <span id="cb3-27"><a href="#cb3-27"></a></span>
 <span id="cb3-28"><a href="#cb3-28"></a>readr<span class="sc">::</span><span class="fu">write_tsv</span>(</span>
-<span id="cb3-29"><a href="#cb3-29"></a>  <span class="at">x =</span> aniDist, <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani<span class="sc">$</span>files<span class="sc">$</span>ani_distance</span>
+<span id="cb3-29"><a href="#cb3-29"></a>    <span class="at">x =</span> aniDist, <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani<span class="sc">$</span>files<span class="sc">$</span>ani_distance</span>
 <span id="cb3-30"><a href="#cb3-30"></a>)</span>
 <span id="cb3-31"><a href="#cb3-31"></a></span>
 <span id="cb3-32"><a href="#cb3-32"></a>distMat <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">column_to_rownames</span>(aniDist, <span class="at">var =</span> <span class="st">&quot;g1&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-33"><a href="#cb3-33"></a>  <span class="fu">as.matrix</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb3-34"><a href="#cb3-34"></a>  <span class="fu">as.dist</span>()</span>
+<span id="cb3-33"><a href="#cb3-33"></a>    <span class="fu">as.matrix</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-34"><a href="#cb3-34"></a>    <span class="fu">as.dist</span>()</span>
 <span id="cb3-35"><a href="#cb3-35"></a></span>
 <span id="cb3-36"><a href="#cb3-36"></a>aniMat <span class="ot">&lt;-</span> tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(</span>
-<span id="cb3-37"><a href="#cb3-37"></a>  <span class="at">data =</span> aniDf,</span>
-<span id="cb3-38"><a href="#cb3-38"></a>  <span class="at">id_cols =</span> <span class="st">&quot;g1&quot;</span>,</span>
-<span id="cb3-39"><a href="#cb3-39"></a>  <span class="at">names_from =</span> <span class="st">&quot;g2&quot;</span>,</span>
-<span id="cb3-40"><a href="#cb3-40"></a>  <span class="at">values_from =</span> <span class="st">&quot;ani&quot;</span></span>
+<span id="cb3-37"><a href="#cb3-37"></a>    <span class="at">data =</span> aniDf,</span>
+<span id="cb3-38"><a href="#cb3-38"></a>    <span class="at">id_cols =</span> <span class="st">&quot;g1&quot;</span>,</span>
+<span id="cb3-39"><a href="#cb3-39"></a>    <span class="at">names_from =</span> <span class="st">&quot;g2&quot;</span>,</span>
+<span id="cb3-40"><a href="#cb3-40"></a>    <span class="at">values_from =</span> <span class="st">&quot;ani&quot;</span></span>
 <span id="cb3-41"><a href="#cb3-41"></a>)</span>
 <span id="cb3-42"><a href="#cb3-42"></a></span>
 <span id="cb3-43"><a href="#cb3-43"></a>readr<span class="sc">::</span><span class="fu">write_tsv</span>(</span>
-<span id="cb3-44"><a href="#cb3-44"></a>  <span class="at">x =</span> aniMat, <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani<span class="sc">$</span>files<span class="sc">$</span>ani_matrix</span>
+<span id="cb3-44"><a href="#cb3-44"></a>    <span class="at">x =</span> aniMat, <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani<span class="sc">$</span>files<span class="sc">$</span>ani_matrix</span>
 <span id="cb3-45"><a href="#cb3-45"></a>)</span>
 <span id="cb3-46"><a href="#cb3-46"></a></span>
 <span id="cb3-47"><a href="#cb3-47"></a>aniMat <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">column_to_rownames</span>(aniMat, <span class="at">var =</span> <span class="st">&quot;g1&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-48"><a href="#cb3-48"></a>  <span class="fu">as.matrix</span>()</span>
+<span id="cb3-48"><a href="#cb3-48"></a>    <span class="fu">as.matrix</span>()</span>
 <span id="cb3-49"><a href="#cb3-49"></a></span>
 <span id="cb3-50"><a href="#cb3-50"></a>aniMat <span class="ot">&lt;-</span> aniMat[, <span class="fu">rownames</span>(aniMat)]</span>
 <span id="cb3-51"><a href="#cb3-51"></a></span>
 <span id="cb3-52"><a href="#cb3-52"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">all</span>(<span class="fu">rownames</span>(<span class="fu">as.matrix</span>(distMat)) <span class="sc">==</span> <span class="fu">rownames</span>(aniMat))) {</span>
-<span id="cb3-53"><a href="#cb3-53"></a>  <span class="fu">stop</span>(<span class="st">&quot;rownames did not match&quot;</span>)</span>
+<span id="cb3-53"><a href="#cb3-53"></a>    <span class="fu">stop</span>(<span class="st">&quot;rownames did not match&quot;</span>)</span>
 <span id="cb3-54"><a href="#cb3-54"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
@@ -5176,20 +5176,20 @@ overflow-x: auto;
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># plot(hclust(distMat))</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a>treeUpgma <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">as.phylo</span>(<span class="fu">hclust</span>(<span class="at">d =</span> distMat, <span class="at">method =</span> <span class="st">&quot;average&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a>  ape<span class="sc">::</span><span class="fu">ladderize</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a>  ape<span class="sc">::</span><span class="fu">makeNodeLabel</span>(<span class="at">method =</span> <span class="st">&quot;number&quot;</span>, <span class="at">prefix =</span> <span class="st">&quot;n&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3"></a>    ape<span class="sc">::</span><span class="fu">ladderize</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>    ape<span class="sc">::</span><span class="fu">makeNodeLabel</span>(<span class="at">method =</span> <span class="st">&quot;number&quot;</span>, <span class="at">prefix =</span> <span class="st">&quot;n&quot;</span>)</span>
 <span id="cb4-5"><a href="#cb4-5"></a></span>
 <span id="cb4-6"><a href="#cb4-6"></a>ape<span class="sc">::</span><span class="fu">write.tree</span>(</span>
-<span id="cb4-7"><a href="#cb4-7"></a>  <span class="at">phy =</span> treeUpgma, <span class="at">tree.names =</span> <span class="st">&quot;ani_upgma&quot;</span>,</span>
-<span id="cb4-8"><a href="#cb4-8"></a>  <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani_upgma<span class="sc">$</span>files<span class="sc">$</span>tree</span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="at">phy =</span> treeUpgma, <span class="at">tree.names =</span> <span class="st">&quot;ani_upgma&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8"></a>    <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani_upgma<span class="sc">$</span>files<span class="sc">$</span>tree</span>
 <span id="cb4-9"><a href="#cb4-9"></a>)</span>
 <span id="cb4-10"><a href="#cb4-10"></a></span>
 <span id="cb4-11"><a href="#cb4-11"></a><span class="co"># plot(ape::root(phy = treeUpgma, outgroup = sampleInfoList[[outGroup]]$Genome, edgelabel = TRUE))</span></span>
 <span id="cb4-12"><a href="#cb4-12"></a><span class="co"># nodelabels()</span></span>
 <span id="cb4-13"><a href="#cb4-13"></a></span>
 <span id="cb4-14"><a href="#cb4-14"></a>treeNj <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">nj</span>(distMat) <span class="sc">%&gt;%</span></span>
-<span id="cb4-15"><a href="#cb4-15"></a>  ape<span class="sc">::</span><span class="fu">ladderize</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb4-16"><a href="#cb4-16"></a>  ape<span class="sc">::</span><span class="fu">makeNodeLabel</span>(<span class="at">method =</span> <span class="st">&quot;number&quot;</span>, <span class="at">prefix =</span> <span class="st">&quot;n&quot;</span>)</span>
+<span id="cb4-15"><a href="#cb4-15"></a>    ape<span class="sc">::</span><span class="fu">ladderize</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>    ape<span class="sc">::</span><span class="fu">makeNodeLabel</span>(<span class="at">method =</span> <span class="st">&quot;number&quot;</span>, <span class="at">prefix =</span> <span class="st">&quot;n&quot;</span>)</span>
 <span id="cb4-17"><a href="#cb4-17"></a></span>
 <span id="cb4-18"><a href="#cb4-18"></a><span class="do">## set negative length edges =&gt; 0</span></span>
 <span id="cb4-19"><a href="#cb4-19"></a>treeNj<span class="sc">$</span>edge.length[treeNj<span class="sc">$</span>edge.length <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
@@ -5197,8 +5197,8 @@ overflow-x: auto;
 <span id="cb4-21"><a href="#cb4-21"></a>rootedNj <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">root</span>(treeNj, <span class="at">outgroup =</span> sampleInfoList[[outGroup]]<span class="sc">$</span>genomeId)</span>
 <span id="cb4-22"><a href="#cb4-22"></a></span>
 <span id="cb4-23"><a href="#cb4-23"></a>ape<span class="sc">::</span><span class="fu">write.tree</span>(</span>
-<span id="cb4-24"><a href="#cb4-24"></a>  <span class="at">phy =</span> treeNj, <span class="at">tree.names =</span> <span class="st">&quot;ANI_NJ&quot;</span>,</span>
-<span id="cb4-25"><a href="#cb4-25"></a>  <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani_nj<span class="sc">$</span>files<span class="sc">$</span>tree</span>
+<span id="cb4-24"><a href="#cb4-24"></a>    <span class="at">phy =</span> treeNj, <span class="at">tree.names =</span> <span class="st">&quot;ANI_NJ&quot;</span>,</span>
+<span id="cb4-25"><a href="#cb4-25"></a>    <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani_nj<span class="sc">$</span>files<span class="sc">$</span>tree</span>
 <span id="cb4-26"><a href="#cb4-26"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
@@ -5210,9 +5210,9 @@ overflow-x: auto;
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="do">## add data to tree</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a>treeTbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(treeUpgma) <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>  dplyr<span class="sc">::</span><span class="fu">full_join</span>(<span class="at">y =</span> sampleInfo, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;genomeId&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a>  treeio<span class="sc">::</span><span class="fu">as.treedata</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-5"><a href="#cb5-5"></a>  treeio<span class="sc">::</span><span class="fu">root</span>(<span class="at">outgroup =</span> sampleInfoList[[outGroup]]<span class="sc">$</span>genomeId, <span class="at">edgelabel =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-3"><a href="#cb5-3"></a>    dplyr<span class="sc">::</span><span class="fu">full_join</span>(<span class="at">y =</span> sampleInfo, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;genomeId&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>    treeio<span class="sc">::</span><span class="fu">as.treedata</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>    treeio<span class="sc">::</span><span class="fu">root</span>(<span class="at">outgroup =</span> sampleInfoList[[outGroup]]<span class="sc">$</span>genomeId, <span class="at">edgelabel =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>ℹ invalid tbl_tree object. Missing column: parent.
@@ -5226,12 +5226,12 @@ overflow-x: auto;
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>pt_treeUpgma <span class="ot">&lt;-</span> ggtree<span class="sc">::</span><span class="fu">ggtree</span>(</span>
-<span id="cb8-2"><a href="#cb8-2"></a>  <span class="at">tr =</span> treeTbl</span>
+<span id="cb8-2"><a href="#cb8-2"></a>    <span class="at">tr =</span> treeTbl</span>
 <span id="cb8-3"><a href="#cb8-3"></a>)</span>
 <span id="cb8-4"><a href="#cb8-4"></a></span>
 <span id="cb8-5"><a href="#cb8-5"></a><span class="do">## get species order to arrange the species key columns</span></span>
 <span id="cb8-6"><a href="#cb8-6"></a>leafOrder <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="at">.data =</span> pt_treeUpgma<span class="sc">$</span>data, y) <span class="sc">%&gt;%</span></span>
-<span id="cb8-7"><a href="#cb8-7"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(isTip)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-7"><a href="#cb8-7"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(isTip)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>! # Invaild edge matrix for &lt;phylo&gt;. A &lt;tbl_df&gt; is returned.
@@ -5240,22 +5240,22 @@ overflow-x: auto;
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>speciesOrder <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">select</span>(leafOrder, SpeciesName, y, type_material) <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(SpeciesName) <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(type_material, y, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a>  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>L) <span class="sc">%&gt;%</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a>  dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb10-6"><a href="#cb10-6"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(y)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-7"><a href="#cb10-7"></a>  <span class="co"># dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %&gt;%</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(SpeciesName)</span>
+<span id="cb10-2"><a href="#cb10-2"></a>    dplyr<span class="sc">::</span><span class="fu">group_by</span>(SpeciesName) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(type_material, y, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>    dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>L) <span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a>    dplyr<span class="sc">::</span><span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a>    dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(y)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a>    <span class="co"># dplyr::mutate(SpeciesName = forcats::as_factor(SpeciesName)) %&gt;%</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a>    dplyr<span class="sc">::</span><span class="fu">pull</span>(SpeciesName)</span>
 <span id="cb10-9"><a href="#cb10-9"></a></span>
 <span id="cb10-10"><a href="#cb10-10"></a><span class="do">## add species order factor levels to SpeciesName column</span></span>
 <span id="cb10-11"><a href="#cb10-11"></a>sampleInfo <span class="sc">%&lt;&gt;%</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb10-12"><a href="#cb10-12"></a>  <span class="at">SpeciesName =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(SpeciesName, <span class="sc">!!!</span>speciesOrder)</span>
+<span id="cb10-12"><a href="#cb10-12"></a>    <span class="at">SpeciesName =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(SpeciesName, <span class="sc">!!!</span>speciesOrder)</span>
 <span id="cb10-13"><a href="#cb10-13"></a>)</span>
 <span id="cb10-14"><a href="#cb10-14"></a></span>
 <span id="cb10-15"><a href="#cb10-15"></a>readr<span class="sc">::</span><span class="fu">write_tsv</span>(</span>
-<span id="cb10-16"><a href="#cb10-16"></a>  <span class="at">x =</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(<span class="at">SpeciesName =</span> speciesOrder),</span>
-<span id="cb10-17"><a href="#cb10-17"></a>  <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani_upgma<span class="sc">$</span>files<span class="sc">$</span>species_order</span>
+<span id="cb10-16"><a href="#cb10-16"></a>    <span class="at">x =</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(<span class="at">SpeciesName =</span> speciesOrder),</span>
+<span id="cb10-17"><a href="#cb10-17"></a>    <span class="at">file =</span> confs<span class="sc">$</span>analysis<span class="sc">$</span>phylogeny<span class="sc">$</span>ani_upgma<span class="sc">$</span>files<span class="sc">$</span>species_order</span>
 <span id="cb10-18"><a href="#cb10-18"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
@@ -5269,41 +5269,41 @@ overflow-x: auto;
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>colorAni <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb11-2"><a href="#cb11-2"></a>  <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">85</span>, <span class="dv">90</span>, <span class="dv">93</span>, <span class="dv">94</span>, <span class="fl">94.5</span>, <span class="dv">95</span>, <span class="fl">95.5</span>, <span class="dv">96</span>, <span class="fl">96.5</span>, <span class="dv">97</span>, <span class="dv">99</span>),</span>
-<span id="cb11-3"><a href="#cb11-3"></a>  <span class="at">colors =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="at">n =</span> <span class="dv">11</span>, <span class="at">name =</span> <span class="st">&quot;RdBu&quot;</span>)</span>
-<span id="cb11-4"><a href="#cb11-4"></a>  <span class="co"># breaks = c(85, 90, 92, 93, 93.5, 94, 94.5, 95, 95.5, 96, 96.5, 97, 99),</span></span>
-<span id="cb11-5"><a href="#cb11-5"></a>  <span class="co"># colors = viridisLite::viridis(n = 13, option = &quot;B&quot;)</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">85</span>, <span class="dv">90</span>, <span class="dv">93</span>, <span class="dv">94</span>, <span class="fl">94.5</span>, <span class="dv">95</span>, <span class="fl">95.5</span>, <span class="dv">96</span>, <span class="fl">96.5</span>, <span class="dv">97</span>, <span class="dv">99</span>),</span>
+<span id="cb11-3"><a href="#cb11-3"></a>    <span class="at">colors =</span> RColorBrewer<span class="sc">::</span><span class="fu">brewer.pal</span>(<span class="at">n =</span> <span class="dv">11</span>, <span class="at">name =</span> <span class="st">&quot;RdBu&quot;</span>)</span>
+<span id="cb11-4"><a href="#cb11-4"></a>    <span class="co"># breaks = c(85, 90, 92, 93, 93.5, 94, 94.5, 95, 95.5, 96, 96.5, 97, 99),</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>    <span class="co"># colors = viridisLite::viridis(n = 13, option = &quot;B&quot;)</span></span>
 <span id="cb11-6"><a href="#cb11-6"></a>)</span>
 <span id="cb11-7"><a href="#cb11-7"></a></span>
 <span id="cb11-8"><a href="#cb11-8"></a>htList <span class="ot">&lt;-</span> <span class="fu">plot_species_ANI_heatmap</span>(</span>
-<span id="cb11-9"><a href="#cb11-9"></a>  <span class="at">mat =</span> aniMat, <span class="at">phy =</span> treeUpgma, <span class="at">speciesInfo =</span> sampleInfo,</span>
-<span id="cb11-10"><a href="#cb11-10"></a>  <span class="at">markGenomes =</span> markGenomes,</span>
-<span id="cb11-11"><a href="#cb11-11"></a>  <span class="at">col =</span> circlize<span class="sc">::</span><span class="fu">colorRamp2</span>(</span>
-<span id="cb11-12"><a href="#cb11-12"></a>    <span class="at">breaks =</span> colorAni<span class="sc">$</span>breaks, <span class="at">colors =</span> colorAni<span class="sc">$</span>colors</span>
-<span id="cb11-13"><a href="#cb11-13"></a>  ),</span>
-<span id="cb11-14"><a href="#cb11-14"></a>  <span class="at">heatmap_legend_param =</span> <span class="fu">list</span>(</span>
-<span id="cb11-15"><a href="#cb11-15"></a>    <span class="at">direction =</span> <span class="st">&quot;horizontal&quot;</span>, <span class="at">legend_width =</span> <span class="fu">unit</span>(<span class="dv">5</span>, <span class="st">&quot;cm&quot;</span>)</span>
-<span id="cb11-16"><a href="#cb11-16"></a>  ),</span>
-<span id="cb11-17"><a href="#cb11-17"></a>  <span class="at">name =</span> <span class="st">&quot;ani&quot;</span>,</span>
-<span id="cb11-18"><a href="#cb11-18"></a>  <span class="at">show_column_dend =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb11-19"><a href="#cb11-19"></a>  <span class="at">use_raster =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb11-20"><a href="#cb11-20"></a>  <span class="at">raster_quality =</span> <span class="dv">3</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>    <span class="at">mat =</span> aniMat, <span class="at">phy =</span> treeUpgma, <span class="at">speciesInfo =</span> sampleInfo,</span>
+<span id="cb11-10"><a href="#cb11-10"></a>    <span class="at">markGenomes =</span> markGenomes,</span>
+<span id="cb11-11"><a href="#cb11-11"></a>    <span class="at">col =</span> circlize<span class="sc">::</span><span class="fu">colorRamp2</span>(</span>
+<span id="cb11-12"><a href="#cb11-12"></a>        <span class="at">breaks =</span> colorAni<span class="sc">$</span>breaks, <span class="at">colors =</span> colorAni<span class="sc">$</span>colors</span>
+<span id="cb11-13"><a href="#cb11-13"></a>    ),</span>
+<span id="cb11-14"><a href="#cb11-14"></a>    <span class="at">heatmap_legend_param =</span> <span class="fu">list</span>(</span>
+<span id="cb11-15"><a href="#cb11-15"></a>        <span class="at">direction =</span> <span class="st">&quot;horizontal&quot;</span>, <span class="at">legend_width =</span> <span class="fu">unit</span>(<span class="dv">5</span>, <span class="st">&quot;cm&quot;</span>)</span>
+<span id="cb11-16"><a href="#cb11-16"></a>    ),</span>
+<span id="cb11-17"><a href="#cb11-17"></a>    <span class="at">name =</span> <span class="st">&quot;ani&quot;</span>,</span>
+<span id="cb11-18"><a href="#cb11-18"></a>    <span class="at">show_column_dend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-19"><a href="#cb11-19"></a>    <span class="at">use_raster =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb11-20"><a href="#cb11-20"></a>    <span class="at">raster_quality =</span> <span class="dv">3</span></span>
 <span id="cb11-21"><a href="#cb11-21"></a>)</span>
 <span id="cb11-22"><a href="#cb11-22"></a></span>
 <span id="cb11-23"><a href="#cb11-23"></a>htList<span class="sc">@</span>ht_list<span class="sc">$</span>species_key<span class="sc">@</span>matrix_param<span class="sc">$</span>width <span class="ot">&lt;-</span> <span class="fu">unit</span>(<span class="dv">12</span>, <span class="st">&quot;cm&quot;</span>)</span>
 <span id="cb11-24"><a href="#cb11-24"></a>htList<span class="sc">@</span>ht_list<span class="sc">$</span>ani<span class="sc">@</span>matrix_param<span class="sc">$</span>width <span class="ot">&lt;-</span> <span class="fu">unit</span>(<span class="dv">18</span>, <span class="st">&quot;cm&quot;</span>)</span>
 <span id="cb11-25"><a href="#cb11-25"></a></span>
 <span id="cb11-26"><a href="#cb11-26"></a><span class="fu">pdf</span>(</span>
-<span id="cb11-27"><a href="#cb11-27"></a>  <span class="at">file =</span> <span class="fu">file.path</span>(outDir, <span class="st">&quot;ANI_heatmap.pdf&quot;</span>),</span>
-<span id="cb11-28"><a href="#cb11-28"></a>  <span class="at">width =</span> <span class="dv">15</span>, <span class="at">height =</span> <span class="dv">10</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a>    <span class="at">file =</span> <span class="fu">file.path</span>(outDir, <span class="st">&quot;ANI_heatmap.pdf&quot;</span>),</span>
+<span id="cb11-28"><a href="#cb11-28"></a>    <span class="at">width =</span> <span class="dv">15</span>, <span class="at">height =</span> <span class="dv">10</span></span>
 <span id="cb11-29"><a href="#cb11-29"></a>)</span>
 <span id="cb11-30"><a href="#cb11-30"></a></span>
 <span id="cb11-31"><a href="#cb11-31"></a>ComplexHeatmap<span class="sc">::</span><span class="fu">draw</span>(</span>
-<span id="cb11-32"><a href="#cb11-32"></a>  <span class="at">object =</span> htList,</span>
-<span id="cb11-33"><a href="#cb11-33"></a>  <span class="at">main_heatmap =</span> <span class="st">&quot;ani&quot;</span>,</span>
-<span id="cb11-34"><a href="#cb11-34"></a>  <span class="at">row_dend_side =</span> <span class="st">&quot;left&quot;</span>,</span>
-<span id="cb11-35"><a href="#cb11-35"></a>  <span class="at">merge_legend =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb11-36"><a href="#cb11-36"></a>  <span class="at">heatmap_legend_side =</span> <span class="st">&quot;bottom&quot;</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a>    <span class="at">object =</span> htList,</span>
+<span id="cb11-33"><a href="#cb11-33"></a>    <span class="at">main_heatmap =</span> <span class="st">&quot;ani&quot;</span>,</span>
+<span id="cb11-34"><a href="#cb11-34"></a>    <span class="at">row_dend_side =</span> <span class="st">&quot;left&quot;</span>,</span>
+<span id="cb11-35"><a href="#cb11-35"></a>    <span class="at">merge_legend =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb11-36"><a href="#cb11-36"></a>    <span class="at">heatmap_legend_side =</span> <span class="st">&quot;bottom&quot;</span></span>
 <span id="cb11-37"><a href="#cb11-37"></a>)</span>
 <span id="cb11-38"><a href="#cb11-38"></a><span class="fu">dev.off</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -5320,10 +5320,10 @@ overflow-x: auto;
 <span id="cb13-3"><a href="#cb13-3"></a>ht_species<span class="sc">@</span>matrix_param<span class="sc">$</span>width <span class="ot">&lt;-</span> <span class="fu">unit</span>(<span class="dv">15</span>, <span class="st">&quot;cm&quot;</span>)</span>
 <span id="cb13-4"><a href="#cb13-4"></a></span>
 <span id="cb13-5"><a href="#cb13-5"></a>ComplexHeatmap<span class="sc">::</span><span class="fu">draw</span>(</span>
-<span id="cb13-6"><a href="#cb13-6"></a>  <span class="at">object =</span> ht_species,</span>
-<span id="cb13-7"><a href="#cb13-7"></a>  <span class="at">row_dend_side =</span> <span class="st">&quot;left&quot;</span>,</span>
-<span id="cb13-8"><a href="#cb13-8"></a>  <span class="at">merge_legend =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb13-9"><a href="#cb13-9"></a>  <span class="at">heatmap_legend_side =</span> <span class="st">&quot;bottom&quot;</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a>    <span class="at">object =</span> ht_species,</span>
+<span id="cb13-7"><a href="#cb13-7"></a>    <span class="at">row_dend_side =</span> <span class="st">&quot;left&quot;</span>,</span>
+<span id="cb13-8"><a href="#cb13-8"></a>    <span class="at">merge_legend =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-9"><a href="#cb13-9"></a>    <span class="at">heatmap_legend_side =</span> <span class="st">&quot;bottom&quot;</span></span>
 <span id="cb13-10"><a href="#cb13-10"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display page-columns page-full">
@@ -5352,7 +5352,7 @@ overflow-x: auto;
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>nodeOfInterest <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(leafOrder, SpeciesName <span class="sc">==</span> <span class="st">&quot;P. brasiliense&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a>  dplyr<span class="sc">::</span><span class="fu">pull</span>(label)</span>
+<span id="cb14-2"><a href="#cb14-2"></a>    dplyr<span class="sc">::</span><span class="fu">pull</span>(label)</span>
 <span id="cb14-3"><a href="#cb14-3"></a></span>
 <span id="cb14-4"><a href="#cb14-4"></a>clade <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">getMRCA</span>(<span class="at">phy =</span> treeUpgma, <span class="at">tip =</span> nodeOfInterest)</span>
 <span id="cb14-5"><a href="#cb14-5"></a>subTree <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">extract.clade</span>(<span class="at">phy =</span> treeUpgma, <span class="at">node =</span> clade)</span>
@@ -5365,28 +5365,28 @@ overflow-x: auto;
 <span id="cb14-12"><a href="#cb14-12"></a>lowerTr <span class="ot">&lt;-</span> subAni[<span class="fu">lower.tri</span>(subAni, <span class="at">diag =</span> <span class="cn">FALSE</span>)]</span>
 <span id="cb14-13"><a href="#cb14-13"></a></span>
 <span id="cb14-14"><a href="#cb14-14"></a>htList2 <span class="ot">&lt;-</span> <span class="fu">plot_species_ANI_heatmap</span>(</span>
-<span id="cb14-15"><a href="#cb14-15"></a>  <span class="at">mat =</span> subAni, <span class="at">phy =</span> subTree,</span>
-<span id="cb14-16"><a href="#cb14-16"></a>  <span class="at">col =</span> circlize<span class="sc">::</span><span class="fu">colorRamp2</span>(</span>
-<span id="cb14-17"><a href="#cb14-17"></a>    <span class="at">breaks =</span> colorAni<span class="sc">$</span>breaks, <span class="at">colors =</span> colorAni<span class="sc">$</span>colors</span>
-<span id="cb14-18"><a href="#cb14-18"></a>  ),</span>
-<span id="cb14-19"><a href="#cb14-19"></a>  <span class="at">heatmap_legend_param =</span> <span class="fu">list</span>(</span>
-<span id="cb14-20"><a href="#cb14-20"></a>    <span class="at">direction =</span> <span class="st">&quot;horizontal&quot;</span>, <span class="at">legend_width =</span> <span class="fu">unit</span>(<span class="dv">5</span>, <span class="st">&quot;cm&quot;</span>)</span>
-<span id="cb14-21"><a href="#cb14-21"></a>  ),</span>
-<span id="cb14-22"><a href="#cb14-22"></a>  <span class="at">name =</span> <span class="st">&quot;ani&quot;</span>,</span>
-<span id="cb14-23"><a href="#cb14-23"></a>  <span class="at">use_raster =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb14-24"><a href="#cb14-24"></a>  <span class="at">raster_quality =</span> <span class="dv">3</span></span>
+<span id="cb14-15"><a href="#cb14-15"></a>    <span class="at">mat =</span> subAni, <span class="at">phy =</span> subTree,</span>
+<span id="cb14-16"><a href="#cb14-16"></a>    <span class="at">col =</span> circlize<span class="sc">::</span><span class="fu">colorRamp2</span>(</span>
+<span id="cb14-17"><a href="#cb14-17"></a>        <span class="at">breaks =</span> colorAni<span class="sc">$</span>breaks, <span class="at">colors =</span> colorAni<span class="sc">$</span>colors</span>
+<span id="cb14-18"><a href="#cb14-18"></a>    ),</span>
+<span id="cb14-19"><a href="#cb14-19"></a>    <span class="at">heatmap_legend_param =</span> <span class="fu">list</span>(</span>
+<span id="cb14-20"><a href="#cb14-20"></a>        <span class="at">direction =</span> <span class="st">&quot;horizontal&quot;</span>, <span class="at">legend_width =</span> <span class="fu">unit</span>(<span class="dv">5</span>, <span class="st">&quot;cm&quot;</span>)</span>
+<span id="cb14-21"><a href="#cb14-21"></a>    ),</span>
+<span id="cb14-22"><a href="#cb14-22"></a>    <span class="at">name =</span> <span class="st">&quot;ani&quot;</span>,</span>
+<span id="cb14-23"><a href="#cb14-23"></a>    <span class="at">use_raster =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb14-24"><a href="#cb14-24"></a>    <span class="at">raster_quality =</span> <span class="dv">3</span></span>
 <span id="cb14-25"><a href="#cb14-25"></a>)</span>
 <span id="cb14-26"><a href="#cb14-26"></a></span>
 <span id="cb14-27"><a href="#cb14-27"></a><span class="fu">pdf</span>(</span>
-<span id="cb14-28"><a href="#cb14-28"></a>  <span class="at">file =</span> <span class="fu">file.path</span>(outDir, <span class="st">&quot;ANI_PBrasiliense.heatmap.pdf&quot;</span>),</span>
-<span id="cb14-29"><a href="#cb14-29"></a>  <span class="at">width =</span> <span class="dv">10</span>, <span class="at">height =</span> <span class="dv">10</span></span>
+<span id="cb14-28"><a href="#cb14-28"></a>    <span class="at">file =</span> <span class="fu">file.path</span>(outDir, <span class="st">&quot;ANI_PBrasiliense.heatmap.pdf&quot;</span>),</span>
+<span id="cb14-29"><a href="#cb14-29"></a>    <span class="at">width =</span> <span class="dv">10</span>, <span class="at">height =</span> <span class="dv">10</span></span>
 <span id="cb14-30"><a href="#cb14-30"></a>)</span>
 <span id="cb14-31"><a href="#cb14-31"></a>ComplexHeatmap<span class="sc">::</span><span class="fu">draw</span>(</span>
-<span id="cb14-32"><a href="#cb14-32"></a>  <span class="at">object =</span> htList2,</span>
-<span id="cb14-33"><a href="#cb14-33"></a>  <span class="at">main_heatmap =</span> <span class="st">&quot;ani&quot;</span>,</span>
-<span id="cb14-34"><a href="#cb14-34"></a>  <span class="at">row_dend_side =</span> <span class="st">&quot;left&quot;</span>,</span>
-<span id="cb14-35"><a href="#cb14-35"></a>  <span class="at">merge_legend =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb14-36"><a href="#cb14-36"></a>  <span class="at">heatmap_legend_side =</span> <span class="st">&quot;bottom&quot;</span></span>
+<span id="cb14-32"><a href="#cb14-32"></a>    <span class="at">object =</span> htList2,</span>
+<span id="cb14-33"><a href="#cb14-33"></a>    <span class="at">main_heatmap =</span> <span class="st">&quot;ani&quot;</span>,</span>
+<span id="cb14-34"><a href="#cb14-34"></a>    <span class="at">row_dend_side =</span> <span class="st">&quot;left&quot;</span>,</span>
+<span id="cb14-35"><a href="#cb14-35"></a>    <span class="at">merge_legend =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb14-36"><a href="#cb14-36"></a>    <span class="at">heatmap_legend_side =</span> <span class="st">&quot;bottom&quot;</span></span>
 <span id="cb14-37"><a href="#cb14-37"></a>)</span>
 <span id="cb14-38"><a href="#cb14-38"></a><span class="fu">dev.off</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -5412,17 +5412,17 @@ overflow-x: auto;
 <details open class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>(</span>
-<span id="cb16-2"><a href="#cb16-2"></a>  ptHist_pbrAni <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(<span class="at">ani =</span> lowerTr)) <span class="sc">+</span></span>
-<span id="cb16-3"><a href="#cb16-3"></a>    <span class="fu">geom_histogram</span>(</span>
-<span id="cb16-4"><a href="#cb16-4"></a>      <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> ani), <span class="at">bins =</span> <span class="dv">60</span>,</span>
-<span id="cb16-5"><a href="#cb16-5"></a>      <span class="at">color =</span> <span class="st">&quot;black&quot;</span>, <span class="at">fill =</span> <span class="st">&quot;black&quot;</span></span>
-<span id="cb16-6"><a href="#cb16-6"></a>    ) <span class="sc">+</span></span>
-<span id="cb16-7"><a href="#cb16-7"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">96</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb16-8"><a href="#cb16-8"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">add =</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb16-9"><a href="#cb16-9"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">add =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NULL</span>))) <span class="sc">+</span></span>
-<span id="cb16-10"><a href="#cb16-10"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;ANI&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Count&quot;</span>) <span class="sc">+</span></span>
-<span id="cb16-11"><a href="#cb16-11"></a>    <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">24</span>) <span class="sc">+</span> </span>
-<span id="cb16-12"><a href="#cb16-12"></a>    <span class="fu">theme</span>(<span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb16-2"><a href="#cb16-2"></a>    ptHist_pbrAni <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(<span class="at">ani =</span> lowerTr)) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>        <span class="fu">geom_histogram</span>(</span>
+<span id="cb16-4"><a href="#cb16-4"></a>            <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> ani), <span class="at">bins =</span> <span class="dv">60</span>,</span>
+<span id="cb16-5"><a href="#cb16-5"></a>            <span class="at">color =</span> <span class="st">&quot;black&quot;</span>, <span class="at">fill =</span> <span class="st">&quot;black&quot;</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a>        ) <span class="sc">+</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a>        <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">96</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a>        <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">add =</span> <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb16-9"><a href="#cb16-9"></a>        <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">add =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NULL</span>))) <span class="sc">+</span></span>
+<span id="cb16-10"><a href="#cb16-10"></a>        <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;ANI&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Count&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-11"><a href="#cb16-11"></a>        <span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb16-12"><a href="#cb16-12"></a>        <span class="fu">theme</span>(<span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span>
 <span id="cb16-13"><a href="#cb16-13"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
@@ -5445,106 +5445,106 @@ overflow-x: auto;
 <span id="cb17-2"><a href="#cb17-2"></a></span>
 <span id="cb17-3"><a href="#cb17-3"></a>subTree2 <span class="ot">&lt;-</span> ape<span class="sc">::</span><span class="fu">keep.tip</span>(<span class="at">phy =</span> treeUpgma, <span class="at">tip =</span> inhouseNodes<span class="sc">$</span>genomeId)</span>
 <span id="cb17-4"><a href="#cb17-4"></a>subAni2 <span class="ot">&lt;-</span> aniMat[subTree2<span class="sc">$</span>tip.label, subTree2<span class="sc">$</span>tip.label] <span class="sc">%&gt;%</span></span>
-<span id="cb17-5"><a href="#cb17-5"></a>  tibble<span class="sc">::</span><span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">&quot;g1&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb17-6"><a href="#cb17-6"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(</span>
-<span id="cb17-7"><a href="#cb17-7"></a>    <span class="at">cols =</span> <span class="sc">-</span>g1,</span>
-<span id="cb17-8"><a href="#cb17-8"></a>    <span class="at">names_to =</span> <span class="st">&quot;g2&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;ANI&quot;</span></span>
-<span id="cb17-9"><a href="#cb17-9"></a>  )</span>
+<span id="cb17-5"><a href="#cb17-5"></a>    tibble<span class="sc">::</span><span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">&quot;g1&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a>    tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(</span>
+<span id="cb17-7"><a href="#cb17-7"></a>        <span class="at">cols =</span> <span class="sc">-</span>g1,</span>
+<span id="cb17-8"><a href="#cb17-8"></a>        <span class="at">names_to =</span> <span class="st">&quot;g2&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;ANI&quot;</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a>    )</span>
 <span id="cb17-10"><a href="#cb17-10"></a></span>
 <span id="cb17-11"><a href="#cb17-11"></a>inhouseTreeTbl <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(subTree2) <span class="sc">%&gt;%</span></span>
-<span id="cb17-12"><a href="#cb17-12"></a>  dplyr<span class="sc">::</span><span class="fu">full_join</span>(<span class="at">y =</span> inhouseNodes, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;genomeId&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb17-13"><a href="#cb17-13"></a>  treeio<span class="sc">::</span><span class="fu">as.treedata</span>()</span>
+<span id="cb17-12"><a href="#cb17-12"></a>    dplyr<span class="sc">::</span><span class="fu">full_join</span>(<span class="at">y =</span> inhouseNodes, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;label&quot;</span> <span class="ot">=</span> <span class="st">&quot;genomeId&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-13"><a href="#cb17-13"></a>    treeio<span class="sc">::</span><span class="fu">as.treedata</span>()</span>
 <span id="cb17-14"><a href="#cb17-14"></a></span>
 <span id="cb17-15"><a href="#cb17-15"></a>pt_inhouseTree <span class="ot">&lt;-</span> ggtree<span class="sc">::</span><span class="fu">ggtree</span>(</span>
-<span id="cb17-16"><a href="#cb17-16"></a>  <span class="at">tr =</span> inhouseTreeTbl</span>
+<span id="cb17-16"><a href="#cb17-16"></a>    <span class="at">tr =</span> inhouseTreeTbl</span>
 <span id="cb17-17"><a href="#cb17-17"></a>) <span class="sc">+</span></span>
-<span id="cb17-18"><a href="#cb17-18"></a>  ggtree<span class="sc">::</span><span class="fu">geom_tippoint</span>(</span>
-<span id="cb17-19"><a href="#cb17-19"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">subset =</span> <span class="fu">c</span>(SpeciesName <span class="sc">==</span> <span class="st">&quot;P. brasiliense&quot;</span>)),</span>
-<span id="cb17-20"><a href="#cb17-20"></a>    <span class="at">color =</span> <span class="st">&quot;blue&quot;</span></span>
-<span id="cb17-21"><a href="#cb17-21"></a>  ) <span class="sc">+</span></span>
-<span id="cb17-22"><a href="#cb17-22"></a>  <span class="co"># ggtree::geom_tiplab(</span></span>
-<span id="cb17-23"><a href="#cb17-23"></a>  <span class="co">#   mapping = aes(label = label),</span></span>
-<span id="cb17-24"><a href="#cb17-24"></a>  <span class="co">#   size = 3, align = TRUE, linesize = 0.5</span></span>
-<span id="cb17-25"><a href="#cb17-25"></a>  <span class="co"># ) +</span></span>
-<span id="cb17-26"><a href="#cb17-26"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.1</span>))) <span class="sc">+</span></span>
-<span id="cb17-27"><a href="#cb17-27"></a>  ggnewscale<span class="sc">::</span><span class="fu">new_scale_color</span>() <span class="sc">+</span></span>
-<span id="cb17-28"><a href="#cb17-28"></a>  <span class="do">## virulence phenotype</span></span>
-<span id="cb17-29"><a href="#cb17-29"></a>  ggtreeExtra<span class="sc">::</span><span class="fu">geom_fruit</span>(</span>
-<span id="cb17-30"><a href="#cb17-30"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">y =</span> id, <span class="at">x =</span> <span class="st">&quot;virulence&quot;</span>, <span class="at">color =</span> virulence),</span>
-<span id="cb17-31"><a href="#cb17-31"></a>    <span class="at">geom =</span> <span class="st">&quot;geom_point&quot;</span>, <span class="at">shape =</span> <span class="dv">17</span>, <span class="at">size =</span> <span class="dv">2</span>,</span>
-<span id="cb17-32"><a href="#cb17-32"></a>    <span class="at">pwidth =</span> <span class="fl">0.01</span>, <span class="at">offset =</span> <span class="fl">0.1</span></span>
-<span id="cb17-33"><a href="#cb17-33"></a>  ) <span class="sc">+</span></span>
-<span id="cb17-34"><a href="#cb17-34"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb17-35"><a href="#cb17-35"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;virulent&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span>, <span class="st">&quot;avirulent&quot;</span> <span class="ot">=</span> <span class="st">&quot;green&quot;</span>),</span>
-<span id="cb17-36"><a href="#cb17-36"></a>    <span class="at">na.value =</span> <span class="fu">alpha</span>(<span class="st">&quot;white&quot;</span>, <span class="dv">0</span>)</span>
-<span id="cb17-37"><a href="#cb17-37"></a>  ) <span class="sc">+</span></span>
-<span id="cb17-38"><a href="#cb17-38"></a>  ggnewscale<span class="sc">::</span><span class="fu">new_scale_color</span>() <span class="sc">+</span></span>
-<span id="cb17-39"><a href="#cb17-39"></a>  <span class="do">## virulence PCR result</span></span>
-<span id="cb17-40"><a href="#cb17-40"></a>  ggtreeExtra<span class="sc">::</span><span class="fu">geom_fruit</span>(</span>
-<span id="cb17-41"><a href="#cb17-41"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">y =</span> id, <span class="at">x =</span> <span class="st">&quot;vir_pcr&quot;</span>, <span class="at">color =</span> virulence_pcr),</span>
-<span id="cb17-42"><a href="#cb17-42"></a>    <span class="at">geom =</span> <span class="st">&quot;geom_point&quot;</span>,</span>
-<span id="cb17-43"><a href="#cb17-43"></a>    <span class="at">pwidth =</span> <span class="fl">0.01</span>, <span class="at">offset =</span> <span class="fl">0.1</span></span>
-<span id="cb17-44"><a href="#cb17-44"></a>  ) <span class="sc">+</span></span>
-<span id="cb17-45"><a href="#cb17-45"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb17-46"><a href="#cb17-46"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;positive&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span>, <span class="st">&quot;negative&quot;</span> <span class="ot">=</span> <span class="st">&quot;green&quot;</span>),</span>
-<span id="cb17-47"><a href="#cb17-47"></a>    <span class="at">na.value =</span> <span class="fu">alpha</span>(<span class="st">&quot;white&quot;</span>, <span class="dv">0</span>)</span>
-<span id="cb17-48"><a href="#cb17-48"></a>  )</span>
+<span id="cb17-18"><a href="#cb17-18"></a>    ggtree<span class="sc">::</span><span class="fu">geom_tippoint</span>(</span>
+<span id="cb17-19"><a href="#cb17-19"></a>        <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">subset =</span> <span class="fu">c</span>(SpeciesName <span class="sc">==</span> <span class="st">&quot;P. brasiliense&quot;</span>)),</span>
+<span id="cb17-20"><a href="#cb17-20"></a>        <span class="at">color =</span> <span class="st">&quot;blue&quot;</span></span>
+<span id="cb17-21"><a href="#cb17-21"></a>    ) <span class="sc">+</span></span>
+<span id="cb17-22"><a href="#cb17-22"></a>    <span class="co"># ggtree::geom_tiplab(</span></span>
+<span id="cb17-23"><a href="#cb17-23"></a>    <span class="co">#   mapping = aes(label = label),</span></span>
+<span id="cb17-24"><a href="#cb17-24"></a>    <span class="co">#   size = 3, align = TRUE, linesize = 0.5</span></span>
+<span id="cb17-25"><a href="#cb17-25"></a>    <span class="co"># ) +</span></span>
+<span id="cb17-26"><a href="#cb17-26"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.1</span>))) <span class="sc">+</span></span>
+<span id="cb17-27"><a href="#cb17-27"></a>    ggnewscale<span class="sc">::</span><span class="fu">new_scale_color</span>() <span class="sc">+</span></span>
+<span id="cb17-28"><a href="#cb17-28"></a>    <span class="do">## virulence phenotype</span></span>
+<span id="cb17-29"><a href="#cb17-29"></a>    ggtreeExtra<span class="sc">::</span><span class="fu">geom_fruit</span>(</span>
+<span id="cb17-30"><a href="#cb17-30"></a>        <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">y =</span> id, <span class="at">x =</span> <span class="st">&quot;virulence&quot;</span>, <span class="at">color =</span> virulence),</span>
+<span id="cb17-31"><a href="#cb17-31"></a>        <span class="at">geom =</span> <span class="st">&quot;geom_point&quot;</span>, <span class="at">shape =</span> <span class="dv">17</span>, <span class="at">size =</span> <span class="dv">2</span>,</span>
+<span id="cb17-32"><a href="#cb17-32"></a>        <span class="at">pwidth =</span> <span class="fl">0.01</span>, <span class="at">offset =</span> <span class="fl">0.1</span></span>
+<span id="cb17-33"><a href="#cb17-33"></a>    ) <span class="sc">+</span></span>
+<span id="cb17-34"><a href="#cb17-34"></a>    <span class="fu">scale_color_manual</span>(</span>
+<span id="cb17-35"><a href="#cb17-35"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;virulent&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span>, <span class="st">&quot;avirulent&quot;</span> <span class="ot">=</span> <span class="st">&quot;green&quot;</span>),</span>
+<span id="cb17-36"><a href="#cb17-36"></a>        <span class="at">na.value =</span> <span class="fu">alpha</span>(<span class="st">&quot;white&quot;</span>, <span class="dv">0</span>)</span>
+<span id="cb17-37"><a href="#cb17-37"></a>    ) <span class="sc">+</span></span>
+<span id="cb17-38"><a href="#cb17-38"></a>    ggnewscale<span class="sc">::</span><span class="fu">new_scale_color</span>() <span class="sc">+</span></span>
+<span id="cb17-39"><a href="#cb17-39"></a>    <span class="do">## virulence PCR result</span></span>
+<span id="cb17-40"><a href="#cb17-40"></a>    ggtreeExtra<span class="sc">::</span><span class="fu">geom_fruit</span>(</span>
+<span id="cb17-41"><a href="#cb17-41"></a>        <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">y =</span> id, <span class="at">x =</span> <span class="st">&quot;vir_pcr&quot;</span>, <span class="at">color =</span> virulence_pcr),</span>
+<span id="cb17-42"><a href="#cb17-42"></a>        <span class="at">geom =</span> <span class="st">&quot;geom_point&quot;</span>,</span>
+<span id="cb17-43"><a href="#cb17-43"></a>        <span class="at">pwidth =</span> <span class="fl">0.01</span>, <span class="at">offset =</span> <span class="fl">0.1</span></span>
+<span id="cb17-44"><a href="#cb17-44"></a>    ) <span class="sc">+</span></span>
+<span id="cb17-45"><a href="#cb17-45"></a>    <span class="fu">scale_color_manual</span>(</span>
+<span id="cb17-46"><a href="#cb17-46"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;positive&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span>, <span class="st">&quot;negative&quot;</span> <span class="ot">=</span> <span class="st">&quot;green&quot;</span>),</span>
+<span id="cb17-47"><a href="#cb17-47"></a>        <span class="at">na.value =</span> <span class="fu">alpha</span>(<span class="st">&quot;white&quot;</span>, <span class="dv">0</span>)</span>
+<span id="cb17-48"><a href="#cb17-48"></a>    )</span>
 <span id="cb17-49"><a href="#cb17-49"></a></span>
 <span id="cb17-50"><a href="#cb17-50"></a>speciesKyeDf <span class="ot">&lt;-</span> <span class="fu">get_species_key_data</span>(</span>
-<span id="cb17-51"><a href="#cb17-51"></a>  <span class="at">genomes =</span> inhouseNodes<span class="sc">$</span>genomeId, <span class="at">speciesInfo =</span> sampleInfo, <span class="at">type =</span> <span class="st">&quot;long&quot;</span></span>
+<span id="cb17-51"><a href="#cb17-51"></a>    <span class="at">genomes =</span> inhouseNodes<span class="sc">$</span>genomeId, <span class="at">speciesInfo =</span> sampleInfo, <span class="at">type =</span> <span class="st">&quot;long&quot;</span></span>
 <span id="cb17-52"><a href="#cb17-52"></a>)</span>
 <span id="cb17-53"><a href="#cb17-53"></a></span>
 <span id="cb17-54"><a href="#cb17-54"></a>pt_spKey <span class="ot">&lt;-</span> ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(</span>
-<span id="cb17-55"><a href="#cb17-55"></a>  <span class="at">data =</span> speciesKyeDf,</span>
-<span id="cb17-56"><a href="#cb17-56"></a>  <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> SpeciesName, <span class="at">y =</span> genomeId), <span class="at">color =</span> <span class="st">&quot;black&quot;</span>, <span class="at">fill =</span> <span class="st">&quot;black&quot;</span></span>
+<span id="cb17-55"><a href="#cb17-55"></a>    <span class="at">data =</span> speciesKyeDf,</span>
+<span id="cb17-56"><a href="#cb17-56"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> SpeciesName, <span class="at">y =</span> genomeId), <span class="at">color =</span> <span class="st">&quot;black&quot;</span>, <span class="at">fill =</span> <span class="st">&quot;black&quot;</span></span>
 <span id="cb17-57"><a href="#cb17-57"></a>) <span class="sc">+</span></span>
-<span id="cb17-58"><a href="#cb17-58"></a>  <span class="fu">geom_tile</span>() <span class="sc">+</span></span>
-<span id="cb17-59"><a href="#cb17-59"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb17-60"><a href="#cb17-60"></a>  <span class="fu">theme</span>(</span>
-<span id="cb17-61"><a href="#cb17-61"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-62"><a href="#cb17-62"></a>    <span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-63"><a href="#cb17-63"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-64"><a href="#cb17-64"></a>    <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-65"><a href="#cb17-65"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
-<span id="cb17-66"><a href="#cb17-66"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="dv">0</span>)</span>
-<span id="cb17-67"><a href="#cb17-67"></a>  )</span>
+<span id="cb17-58"><a href="#cb17-58"></a>    <span class="fu">geom_tile</span>() <span class="sc">+</span></span>
+<span id="cb17-59"><a href="#cb17-59"></a>    <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb17-60"><a href="#cb17-60"></a>    <span class="fu">theme</span>(</span>
+<span id="cb17-61"><a href="#cb17-61"></a>        <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-62"><a href="#cb17-62"></a>        <span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-63"><a href="#cb17-63"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-64"><a href="#cb17-64"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-65"><a href="#cb17-65"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>, <span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb17-66"><a href="#cb17-66"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="dv">0</span>)</span>
+<span id="cb17-67"><a href="#cb17-67"></a>    )</span>
 <span id="cb17-68"><a href="#cb17-68"></a></span>
 <span id="cb17-69"><a href="#cb17-69"></a>pt_ani <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
-<span id="cb17-70"><a href="#cb17-70"></a>  subAni2,</span>
-<span id="cb17-71"><a href="#cb17-71"></a>  <span class="at">g1 =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(g1, ggtree<span class="sc">::</span><span class="fu">get_taxa_name</span>(pt_inhouseTree)),</span>
-<span id="cb17-72"><a href="#cb17-72"></a>  <span class="at">g2 =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(g2, ggtree<span class="sc">::</span><span class="fu">get_taxa_name</span>(pt_inhouseTree))</span>
+<span id="cb17-70"><a href="#cb17-70"></a>    subAni2,</span>
+<span id="cb17-71"><a href="#cb17-71"></a>    <span class="at">g1 =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(g1, ggtree<span class="sc">::</span><span class="fu">get_taxa_name</span>(pt_inhouseTree)),</span>
+<span id="cb17-72"><a href="#cb17-72"></a>    <span class="at">g2 =</span> forcats<span class="sc">::</span><span class="fu">fct_relevel</span>(g2, ggtree<span class="sc">::</span><span class="fu">get_taxa_name</span>(pt_inhouseTree))</span>
 <span id="cb17-73"><a href="#cb17-73"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb17-74"><a href="#cb17-74"></a>  ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> g1, <span class="at">y =</span> g2)) <span class="sc">+</span></span>
-<span id="cb17-75"><a href="#cb17-75"></a>  <span class="fu">geom_tile</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">fill =</span> ANI)) <span class="sc">+</span></span>
-<span id="cb17-76"><a href="#cb17-76"></a>  <span class="co"># scale_fill_viridis_c(name = &quot;% identity&quot;, option = &quot;B&quot;) +</span></span>
-<span id="cb17-77"><a href="#cb17-77"></a>  <span class="fu">scale_fill_stepsn</span>(</span>
-<span id="cb17-78"><a href="#cb17-78"></a>    <span class="at">breaks =</span> colorAni<span class="sc">$</span>breaks,</span>
-<span id="cb17-79"><a href="#cb17-79"></a>    <span class="at">values =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(<span class="at">x =</span> colorAni<span class="sc">$</span>breaks),</span>
-<span id="cb17-80"><a href="#cb17-80"></a>    <span class="at">colours =</span> colorAni<span class="sc">$</span>colors,</span>
-<span id="cb17-81"><a href="#cb17-81"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">85</span>, <span class="dv">100</span>) </span>
-<span id="cb17-82"><a href="#cb17-82"></a>  ) <span class="sc">+</span></span>
-<span id="cb17-83"><a href="#cb17-83"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb17-84"><a href="#cb17-84"></a>  <span class="fu">theme</span>(</span>
-<span id="cb17-85"><a href="#cb17-85"></a>    <span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-86"><a href="#cb17-86"></a>    <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-87"><a href="#cb17-87"></a>    <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb17-88"><a href="#cb17-88"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="dv">0</span>),</span>
-<span id="cb17-89"><a href="#cb17-89"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb17-90"><a href="#cb17-90"></a>  )</span>
+<span id="cb17-74"><a href="#cb17-74"></a>    ggplot2<span class="sc">::</span><span class="fu">ggplot</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> g1, <span class="at">y =</span> g2)) <span class="sc">+</span></span>
+<span id="cb17-75"><a href="#cb17-75"></a>    <span class="fu">geom_tile</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">fill =</span> ANI)) <span class="sc">+</span></span>
+<span id="cb17-76"><a href="#cb17-76"></a>    <span class="co"># scale_fill_viridis_c(name = &quot;% identity&quot;, option = &quot;B&quot;) +</span></span>
+<span id="cb17-77"><a href="#cb17-77"></a>    <span class="fu">scale_fill_stepsn</span>(</span>
+<span id="cb17-78"><a href="#cb17-78"></a>        <span class="at">breaks =</span> colorAni<span class="sc">$</span>breaks,</span>
+<span id="cb17-79"><a href="#cb17-79"></a>        <span class="at">values =</span> scales<span class="sc">::</span><span class="fu">rescale</span>(<span class="at">x =</span> colorAni<span class="sc">$</span>breaks),</span>
+<span id="cb17-80"><a href="#cb17-80"></a>        <span class="at">colours =</span> colorAni<span class="sc">$</span>colors,</span>
+<span id="cb17-81"><a href="#cb17-81"></a>        <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">85</span>, <span class="dv">100</span>)</span>
+<span id="cb17-82"><a href="#cb17-82"></a>    ) <span class="sc">+</span></span>
+<span id="cb17-83"><a href="#cb17-83"></a>    <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb17-84"><a href="#cb17-84"></a>    <span class="fu">theme</span>(</span>
+<span id="cb17-85"><a href="#cb17-85"></a>        <span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-86"><a href="#cb17-86"></a>        <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-87"><a href="#cb17-87"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb17-88"><a href="#cb17-88"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">vjust =</span> <span class="dv">0</span>),</span>
+<span id="cb17-89"><a href="#cb17-89"></a>        <span class="at">panel.grid =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb17-90"><a href="#cb17-90"></a>    )</span>
 <span id="cb17-91"><a href="#cb17-91"></a></span>
 <span id="cb17-92"><a href="#cb17-92"></a><span class="do">## arrange plots one by one</span></span>
 <span id="cb17-93"><a href="#cb17-93"></a>pt_all <span class="ot">&lt;-</span> pt_spKey <span class="sc">%&gt;%</span></span>
-<span id="cb17-94"><a href="#cb17-94"></a>  aplot<span class="sc">::</span><span class="fu">insert_left</span>(pt_inhouseTree, <span class="at">width =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb17-95"><a href="#cb17-95"></a>  aplot<span class="sc">::</span><span class="fu">insert_right</span>(pt_ani, <span class="at">width =</span> <span class="dv">2</span>)</span>
+<span id="cb17-94"><a href="#cb17-94"></a>    aplot<span class="sc">::</span><span class="fu">insert_left</span>(pt_inhouseTree, <span class="at">width =</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb17-95"><a href="#cb17-95"></a>    aplot<span class="sc">::</span><span class="fu">insert_right</span>(pt_ani, <span class="at">width =</span> <span class="dv">2</span>)</span>
 <span id="cb17-96"><a href="#cb17-96"></a></span>
 <span id="cb17-97"><a href="#cb17-97"></a></span>
 <span id="cb17-98"><a href="#cb17-98"></a><span class="fu">ggsave</span>(</span>
-<span id="cb17-99"><a href="#cb17-99"></a>  <span class="at">plot =</span> pt_all, <span class="at">width =</span> <span class="dv">14</span>, <span class="at">height =</span> <span class="dv">8</span>,</span>
-<span id="cb17-100"><a href="#cb17-100"></a>  <span class="at">filename =</span> <span class="fu">file.path</span>(outDir, <span class="st">&quot;ANI_inhouse.heatmap.pdf&quot;</span>)</span>
+<span id="cb17-99"><a href="#cb17-99"></a>    <span class="at">plot =</span> pt_all, <span class="at">width =</span> <span class="dv">14</span>, <span class="at">height =</span> <span class="dv">8</span>,</span>
+<span id="cb17-100"><a href="#cb17-100"></a>    <span class="at">filename =</span> <span class="fu">file.path</span>(outDir, <span class="st">&quot;ANI_inhouse.heatmap.pdf&quot;</span>)</span>
 <span id="cb17-101"><a href="#cb17-101"></a>)</span>
 <span id="cb17-102"><a href="#cb17-102"></a></span>
-<span id="cb17-103"><a href="#cb17-103"></a>pt_aniTree <span class="ot">&lt;-</span>  pt_spKey <span class="sc">%&gt;%</span></span>
-<span id="cb17-104"><a href="#cb17-104"></a>  aplot<span class="sc">::</span><span class="fu">insert_left</span>(pt_inhouseTree, <span class="at">width =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-103"><a href="#cb17-103"></a>pt_aniTree <span class="ot">&lt;-</span> pt_spKey <span class="sc">%&gt;%</span></span>
+<span id="cb17-104"><a href="#cb17-104"></a>    aplot<span class="sc">::</span><span class="fu">insert_left</span>(pt_inhouseTree, <span class="at">width =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
