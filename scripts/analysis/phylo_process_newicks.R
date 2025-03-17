@@ -178,16 +178,18 @@ treeTbl <- dplyr::full_join(
 
 ################################################################################
 ## plotting
+legend_size <- 18
 
 pt_tree <- ggtree::ggtree(tr = treeTbl) +
   geom_treescale(
     x = 0, y = nrow(sampleInfo) * 0.8,
     fontsize = 8, linesize = 2, offset = 4
-  ) +
-  labs(title = opts$name)
+  )
 
 ## mark outgroup
-pt_tree2 <- mark_outgroup(pt = pt_tree, otg = outGroup, column = "sampleId")
+pt_tree2 <- mark_outgroup(
+  pt = pt_tree, otg = outGroup, column = "sampleId", size = legend_size
+)
 
 ## mark species of interest
 pt_tree3 <- pt_tree2 +
@@ -203,7 +205,7 @@ pt_tree3 <- pt_tree2 +
   scale_color_manual(
     values = c("type strain" = "blue"),
     name = "Type strain",
-    guide = guide_legend(order = 2),
+    guide = guide_legend(order = 2, override.aes = list(size = legend_size)),
     na.value = "black"
   ) +
   ggnewscale::new_scale_color()
@@ -227,7 +229,7 @@ pt_tree4 <- pt_tree3 +
     name = "Blackleg PCR",
     values = c("positive" = "red", "negative" = "green"),
     labels = c("positive" = "BL +ve", "negative" = "BL -ve"),
-    guide = guide_legend(order = 3),
+    guide = guide_legend(order = 3, override.aes = list(size = legend_size)),
     na.value = alpha("white", 0)
   ) +
   ggnewscale::new_scale_color() +
@@ -241,7 +243,7 @@ pt_tree4 <- pt_tree3 +
     name = "Blackleg phenotype",
     values = c("virulent" = "red", "avirulent" = "green"),
     labels = c("virulent" = "BL-causing", "avirulent" = "BL-non-causing"),
-    guide = guide_legend(order = 4),
+    guide = guide_legend(order = 4, override.aes = list(size = legend_size)),
     na.value = alpha("white", 0)
   ) +
   ## collection year
@@ -264,9 +266,14 @@ pt_tree4 <- pt_tree3 +
     pwidth = 0.2, offset = 0.15
   ) +
   scale_color_manual(
+    name = "Data source",
     values = c("NCBI" = "black", "NAK" = "#377eb8", "NIVIP" = "#ff7f00"),
     labels = c("NCBI" = "NCBI", "NAK" = "NAK (this study)", "NIVIP" = "NIVIP (this study)"),
-    guide = guide_legend(order = 5)
+    guide = guide_legend(order = 5, override.aes = list(size = legend_size))
+  ) +
+  theme(
+    legend.text = element_text(size = 36),
+    legend.title = element_text(size = 36, face = "bold")
   )
 
 

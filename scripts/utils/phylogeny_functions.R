@@ -346,7 +346,7 @@ build_annotated_tree <- function(file, metadata, name, outgroup = NULL) {
 #' @export
 #'
 #' @examples
-mark_outgroup <- function(pt, otg, column = "label", color = "red") {
+mark_outgroup <- function(pt, otg, column = "label", color = "red", size = 2) {
   stopifnot(
     tibble::has_name(pt$data, column),
     is.element(otg, pt$data[[column]])
@@ -361,7 +361,7 @@ mark_outgroup <- function(pt, otg, column = "label", color = "red") {
     scale_color_manual(
       name = "outgroup", values = setNames(color, otg),
       labels = setNames("outgroup", otg),
-      guide = guide_legend(order = 1)
+      guide = guide_legend(order = 1, override.aes = list(size = size))
       ) +
     ggnewscale::new_scale_color()
 
