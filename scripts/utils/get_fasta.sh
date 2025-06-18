@@ -20,10 +20,12 @@ usage="USAGE:
 ${scriptName} --region_file <FILE> 
 
 region_file : FILE   Path to the genomic region file.
+separate    : LOGICAL If true, a separate FASTA file will be created for each region.
+              Otherwise, output will be in multi-FASTA format, which is the default.
 -------------------------------------------------------------
 "
 
-if [ $# -ne 2 ]; then
+if [ $# -lt 2 ]; then
     printf "Error: argument missing\n${usage}" >&2
     error_exit 1
 fi
@@ -35,10 +37,9 @@ while [[ "$#" -gt 0 ]]; do
         region_file="$2"
         shift # Shift past the argument value
         ;;
-    # -o | --out)
-    #     out_fasta="$2"
-    #     shift # Shift past the argument value
-    #     ;;
+    --separate)
+        separate=true
+        ;;
     -h | --help)
         echo "${usage}"
         exit 0
@@ -51,10 +52,19 @@ while [[ "$#" -gt 0 ]]; do
     shift # Shift past the current argument (option or value)
 done
 
+if [ ! -f "${region_file}" ]; then
+    echo "Error: The specified region file does not exist: ${region_file}" >&2
+    error_exit 1
+fi
+
 dir_path=$(dirname "${region_file}")
 out_fasta="${region_file%.*}".fasta
 
-true >"${out_fasta}" # Clear the output file
+if [ "${separate}" = true ]; then
+    mkdir -p "${dir_path}/region_fasta"
+else
+    true >"${out_fasta}" # empty output file
+fi
 
 declare -A COL_INDEX
 
@@ -94,6 +104,10 @@ tail -n +2 "${region_file}" |
 
         error_exit $?
 
-        printf "${seq}\n" >>${out_fasta}
+        if [ "${separate}" = true ]; then
+            printf "${seq}\n" >"${dir_path}/region_fasta/${name}.fasta"
+        else
+            printf "${seq}\n" >>${out_fasta}
+        fi
 
     done
