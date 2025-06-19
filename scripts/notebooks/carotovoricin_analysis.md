@@ -281,9 +281,9 @@ grp <- list(
 ### Nitric oxide deoxygenase (hg_22427623)
 
 ```bash
-Rscript scripts/utils/HG_range_coordinates.R --hgs hg_*,hg_* \
---haplotypes --inner_region --overlapping \
---out analysis/pangenome_v2/carotovoricin/nitric_oxide/hg_regions.tab
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427625,hg_22427622 \
+--haplotypes --max_genes 10 \
+--out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions.tab
 ```
 
 ### Tape measure protein
@@ -293,8 +293,8 @@ This region is also represented by multiple combinations of homology groups.
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
---haplotypes --inner_region --overlapping \
---out analysis/pangenome_v2/carotovoricin/tape_measure/hg_regions.tab
+--haplotypes --inner_region --overlapping --max_genes 10 \
+--out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions.tab
 ```
 
 ### Tail fiber region
@@ -604,14 +604,10 @@ progressiveMauve --output="${mauve_out}.mauve.xmfa" \
 mauve_out="ctv_hgt.opt"
 
 progressiveMauve --output="${mauve_out}.mauve.xmfa" \
---seed-weight 10 \
+--seed-weight 5 \
 --backbone-output="${mauve_out}.mauve.backbone" \
 --output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
 *.gbk  > "${mauve_out}".mauve.log 2>&1
-
-
-
-# --seed-weight 5 \
 
 ```
 
@@ -740,7 +736,7 @@ gbk_files/g_391.P_brasiliense.gbk  > "${mauve_out}".log 2>&1
 
 ```bash
 subsetName="tfl_pecto"
-genomeSet=""
+genomeSet="g_435,g_58,g_110,g_149"
 ```
 
 #### Mauve analysis for TFL HGT example genomes

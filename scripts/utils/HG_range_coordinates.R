@@ -41,6 +41,12 @@ parser <- optparse::add_option(
   help = "LOGICAL: TRUE: use the inner boundry of the region, othewise outer"
 )
 
+parser <- optparse::add_option(
+  parser, default = NULL,
+  opt_str = c("--max_genes"), type = "integer", action = "store",
+  help = "INTEGER: Maximum number of genes expected for a region"
+)
+
 
 parser <- optparse::add_option(
   parser, default = FALSE,
@@ -67,10 +73,12 @@ if (any(is.null(opts$hgs))) {
   stop(optparse::print_help(parser), call. = TRUE)
 }
 
-# opts$hgs <- "hg_22427604,hg_22427603"
-# opts$out <- "analysis/pangenome_v2/carotovoricin/ctv_tail"
-# opts$inner_region <- TRUE
+# opts$hgs <- "hg_22427625,hg_22427622"
+# opts$out <- "analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions.tab"
+# opts$inner_region <- FALSE
 # opts$haplotypes <- TRUE
+# opts$max_genes <- 10
+# opts$genomes <- "g_162,g_85,g_418,g_294,g_20,g_116,g_64,g_1,g_10,g_100,g_262,g_149"
 ################################################################################
 
 confs <- prefix_config_paths(
@@ -87,6 +95,17 @@ panOrgDb <- org.Pectobacterium.spp.pan.eg.db
 
 ################################################################################
 sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+if(!dir.exists(dirname(opts$out))){
+  stop(
+    paste("Output directory does not exist:", dirname(opts$out)),
+    call. = FALSE
+  )
+}
+
+if(is.null(opts$max_genes)){
+  opts$max_genes <- Inf
+}
 
 if(is.null(opts$genomes)){
   genomes <- sampleInfo$genomeId
@@ -115,8 +134,54 @@ hgPos <- suppressMessages(
   dplyr::filter(n >= 2, nUniq == 2) %>%
   dplyr::ungroup()
 
+# ensure that there is only the closest hg1-hg2 pair in the output
+hg1Gr <- GenomicRanges::makeGRangesFromDataFrame(
+  df = dplyr::filter(hgPos, GID == !!hgs[1]),
+  seqnames.field = "chr_id",
+  keep.extra.columns = TRUE
+)
+
+hg2Gr <- GenomicRanges::makeGRangesFromDataFrame(
+  df = dplyr::filter(hgPos, GID == !!hgs[2]),
+  seqnames.field = "chr_id",
+  keep.extra.columns = TRUE
+)
+
+hg1ToHg2 <- GenomicRanges::nearest(
+  x = hg1Gr, subject = hg2Gr, ignore.strand = TRUE
+)
+
+hg2ToHg1 <- GenomicRanges::nearest(
+  x = hg2Gr, subject = hg1Gr, ignore.strand = TRUE
+)
+
+hgGrPairs <- tibble::tibble(
+  hg1 = 1:length(hg1ToHg2),
+  hg2 = hg1ToHg2
+) %>%
+  dplyr::bind_rows(tibble::tibble(hg1 = hg2ToHg1, hg2 = 1:length(hg2ToHg1))) %>%
+  dplyr::distinct()
+
+hgGrPairs$dist <- GenomicRanges::distance(
+  x = hg1Gr[hgGrPairs$hg1], y = hg2Gr[hgGrPairs$hg2], ignore.strand = TRUE
+)
+
+hgGrPairs$chr <- as.character(GenomicRanges::seqnames(hg1Gr[hgGrPairs$hg1]))
+
+closestGrPairs <- dplyr::group_by(hgGrPairs, chr) %>%
+  dplyr::arrange(dist, .by_group = TRUE) %>%
+  dplyr::slice(1L) %>%
+  dplyr::ungroup()
+
+# new closest hg1-hg2 pairs
+hg1GrNew <- hg1Gr[closestGrPairs$hg1]
+hg2GrNew <- hg2Gr[closestGrPairs$hg2]
+
+# convert to GRangesList for region border extraction
 hgGrl <- GenomicRanges::makeGRangesListFromDataFrame(
-  df = hgPos, split.field = "genomeId", keep.extra.columns = TRUE
+  df = as.data.frame(c(hg1GrNew, hg2GrNew)), split.field = "genomeId",
+  keep.extra.columns = TRUE,
+  seqnames.field = "seqnames"
 )
 
 hgRange <- unlist(range(hgGrl, ignore.strand = TRUE))
@@ -132,12 +197,13 @@ if(opts$inner_region){
 
 hgRegions <- as.data.frame(hgRegionGr) %>%
   tibble::rownames_to_column(var = "genomeId") %>%
-  dplyr::select(genomeId, chr = seqnames, start, end) %>%
+  dplyr::select(genomeId, chr_id = seqnames, start, end) %>%
   tibble::as_tibble() %>%
   dplyr::left_join(
-    y = dplyr::filter(hgPos, GID == !!hgs[1]) %>%
-      dplyr::select(genomeId, chr, chr_name, strand),
-    by = c("genomeId", "chr")
+    y = as.data.frame(hg1GrNew) %>%
+      dplyr::select(genomeId, chr_id = seqnames, chr, chr_name, strand) %>%
+      dplyr::distinct(),
+    by = c("genomeId", "chr_id")
   ) %>%
   dplyr::left_join(
     y = dplyr::select(sampleInfo, genomeId, sampleId, SpeciesName),
@@ -175,18 +241,19 @@ if(opts$haplotypes){
       hgs = paste(hgs, collapse = ";"),
     )
 
-  hgRegions %<>%
-    dplyr::ungroup() %>%
+  hgRegions <- dplyr::ungroup(hgRegions) %>%
     dplyr::add_count(hgs, name = "grp_n") %>%
     dplyr::arrange(desc(grp_n)) %>%
     dplyr::mutate(
       haplotype = paste("haplotype_", dplyr::cur_group_id(), sep = ""),
       .by = hgs
-    )
-
+    ) %>%
+    dplyr::filter(nHgs <= opts$max_genes)
 
   outCols <- c(outCols, "nHgs", "hgs", "haplotype")
 }
+
+
 
 if(is.null(opts$out)){
   dplyr::select(hgRegions, dplyr::all_of(outCols)) %>%
