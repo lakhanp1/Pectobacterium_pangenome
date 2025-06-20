@@ -361,8 +361,11 @@ analysis:
         prophage_stats_genome: "prophage_stats_genome.tab"
   ctv:
     dir: "pangenome_v2/carotovoricin"
+    data:
+      dir: "data"
+      files:
+        hg_broad_functions: "ctv_hg_broad_functions.tab"
     files:
-      hg_broad_functions: "data/ctv_hg_broad_functions.tab"
       hg_regions: "ctv_region/hg_regions.tab"
       mash_dist: "ctv_region/distance_mash.tab"
     tfl:
