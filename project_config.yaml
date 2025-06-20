@@ -364,26 +364,26 @@ analysis:
     files:
       hg_broad_functions: "data/ctv_hg_broad_functions.tab"
       hg_regions: "ctv_region/hg_regions.tab"
-      mash_dist: "ctv_region/mash_dist.tab"
+      mash_dist: "ctv_region/distance_mash.tab"
     tfl:
       dir: "ctv_tfl"
       files:
         hg_regions: "hg_regions.tab"
-        mash_dist: "mash_dist.tab"
-        sourmash_dist: "hg_regions.sourmash.csv"
-        dashing_dist: "distance.dashing.txt"
+        mash_dist: "distance_mash.tab"
+        sourmash_dist: "distance_sourmash.csv"
+        dashing_dist: "distance_dashing.txt"
     conserved:
       dir: "ctv_conserved"
       files:
         hg_regions: "hg_regions.tab"
-        mash_dist: "mash_dist.tab"
-        sourmash_dist: "hg_regions.sourmash.csv"
-        dashing_dist: "distance.dashing.txt"
+        mash_dist: "distance_mash.tab"
+        sourmash_dist: "distance_sourmash.csv"
+        dashing_dist: "distance_dashing.txt"
     tape_measure:
       dir: "ctv_tape_measure"
       files:
         hg_regions: "hg_regions.tab"
-        mash_dist: "mash_dist.tab"
+        mash_dist: "distance_mash.tab"
     nitric_oxide:
       dir: "ctv_nitric_oxide"
       files:

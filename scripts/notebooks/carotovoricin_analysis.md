@@ -396,49 +396,30 @@ Rscript scripts/utils/HGs_gff_from_regions.R \
 #### Extract DNA sequence for the regions
 
 ```bash
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions.tab"
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab"
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tfl/selected_haplotypes.tab"
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_tfl/selected_haplotypes_flanking.tab"
-# file_regions="analysis/pangenome_v2/carotovoricin/ctv_conserved/selected_conserved.tab"
-# file_regions="analysis/pangenome_v2/carotovoricin/upstream_core/selected_upstream.tab"
+bash scripts/utils/get_fasta.sh --region_file analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions.tab
+bash scripts/utils/get_fasta.sh --region_file analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab
+bash scripts/utils/get_fasta.sh --region_file analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions.tab
 
-dir_path=$(dirname "${file_regions}")
-out_fasta="${file_regions%.*}".fasta
-
-tail -n +2 ${file_regions} |
-  cut -f 1,3-5 |
-  while read name sampleId pos strand; do
-    rc=""
-    if [ ${strand} == "-" ]; then
-        rc="--reverse-complement"
-    fi
-    outFa="${dir_path}/fasta/${name}.fasta"
-
-    seq=">${name}\n"
-    seq+=`samtools faidx ${rc} data/prokka_annotation/${sampleId}/${sampleId}.fna $pos | tail -n +2`
-
-    # printf "${seq}\n" > ${outFa}
-    printf "${seq}\n" > ${out_fasta}
-  done
-
+bash scripts/utils/get_fasta.sh --separate --region_file analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions.tab
+bash scripts/utils/get_fasta.sh --separate --region_file analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab
+bash scripts/utils/get_fasta.sh --separate --region_file analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions.tab
 ```
 
 #### Calculate the distance using `mash`
 
 ```bash
 cd analysis/pangenome_v2/carotovoricin/ctv_tfl
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_dist.tab
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > distance_mash.tab
 
 cd analysis/pangenome_v2/carotovoricin/ctv_conserved
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_dist.tab
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > distance_mash.tab
 
-cd analysis/pangenome_v2/carotovoricin/tape_measure
-mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > mash_dist.tab
+cd analysis/pangenome_v2/carotovoricin/ctv_tape_measure
+mash dist -p 8 -k 12 -s 2000 -i -S 124 hg_regions.fasta hg_regions.fasta > distance_mash.tab
 
-grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/ctv_dist.tab
-grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/ctv_dist.tab
-grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/ctv_dist.tab
+grep -e 'g_(53|106|57|221|125).*g_(53|106|57|221|125)' ctv_*/distance_mash.tab
+grep -e 'g_(150|447|434).*g_(150|447|434)' ctv_*/distance_mash.tab
+grep -e 'g_(53|106|57).*g_(53|106|57)' ctv_*/distance_mash.tab
 
 ```
 
@@ -449,11 +430,13 @@ A-B-C-D and A-B. Therefore, another tool was tried to calculate the Jaccard
 index between sequences.
 
 ```bash
-# file_fa="ctv_conserved/hg_regions.fasta"
-# file_fa="ctv_tail/hg_regions.fasta"
+mamba activate smash
 
-file_sig="${file_fa%.*}".sig.zip
-file_dist="${file_fa%.*}".sourmash.csv
+file_fa="ctv_conserved/hg_regions.fasta"
+# file_fa="ctv_tfl/hg_regions.fasta"
+
+file_sig="${file_fa%/*}"/sourmash_signatures.zip
+file_dist="${file_fa%/*}/"distance_sourmash.csv
 
 # # sketch: scaled=5
 # sourmash sketch dna -f -p k=7,k=9,k=11,scaled=5,abund,seed=124 --singleton \
@@ -461,24 +444,29 @@ file_dist="${file_fa%.*}".sourmash.csv
 
 # sketch: num=2000
 sourmash sketch dna -f -p k=7,k=9,k=11,k=13,num=2000,abund,seed=124 --singleton \
--o ${file_sig} ${file_fa}
+-o "${file_sig}" "${file_fa}"
 
 sourmash compare --ignore-abundance --distance-matrix -p 12 -k 13 --dna \
---csv ${file_dist} ${file_sig} 
+--csv "${file_dist}" "${file_sig}"
 
 ```
 
 #### Calculate Jaccard distance using `dashing`
 
 ```bash
-# dir_fa="ctv_conserved/fasta"
-# dir_fa="ctv_tail/fasta"
+mamba activate smash
 
-file_dist="${dir_fa%/*}/"distance.dashing.txt
+cd analysis/pangenome_v2/carotovoricin
+
+# dir_fa="ctv_conserved/region_fasta"
+dir_fa="ctv_tfl/region_fasta"
+
+file_dist="${dir_fa%/*}/"distance_dashing.txt
 
 dashing cmp -k 11 --seed 124 --nthreads 12 --full-mash-dist  \
--O ${file_dist} ${dir_fa}/*.fasta
+-O "${file_dist}" "${dir_fa}"/*.fasta
 
+zip -m -r "${dir_fa}".zip "${dir_fa}"
 ```
 
 #### Process the sequence distance comparison results

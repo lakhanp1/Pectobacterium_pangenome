@@ -17,7 +17,7 @@ scriptName=$(basename ${BASH_SOURCE[0]})
 
 usage="USAGE:
 -------------------------------------------------------------
-${scriptName} --region_file <FILE> 
+${scriptName} [--separate] --region_file <FILE> 
 
 region_file : FILE   Path to the genomic region file.
 separate    : LOGICAL If true, a separate FASTA file will be created for each region.

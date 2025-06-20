@@ -46,7 +46,7 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-outDir <- paste(confs$analysis$ctv$path)
+outDir <- paste(confs$analysis$ctv$tfl_hgt$path)
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
@@ -91,7 +91,7 @@ Build a pairwise tail loci comparison table
 
 ```{r}
 tailRegions <- suppressMessages(
-  readr::read_tsv(confs$analysis$ctv$files$tail_regions)
+  readr::read_tsv(confs$analysis$ctv$tfl$files$hg_regions)
 ) %>%
   dplyr::left_join(
     y = dplyr::select(
@@ -132,14 +132,14 @@ Import Mash distance
 ```{r}
 tailMash <- suppressMessages(
   readr::read_tsv(
-    file = confs$analysis$ctv$files$tail_mash,
+    file = confs$analysis$ctv$tfl$files$mash_dist,
     col_names = c("r1", "r2", "mash_tail", "mash_pval_tail", "hash_tail")
   )
 )
 
 conservedMash <- suppressMessages(
   readr::read_tsv(
-    file = confs$analysis$ctv$files$conserved_mash,
+    file = confs$analysis$ctv$conserved$files$mash_dist,
     col_names = c("r1", "r2", "mash_conserv", "mash_pval_conserved", "hash_conserved")
   )
 )
@@ -176,10 +176,10 @@ import_dashing_matrix <- function(file) {
   )
 }
 
-tailDash <- import_dashing_matrix(confs$analysis$ctv$files$tail_dashing) %>%
+tailDash <- import_dashing_matrix(confs$analysis$ctv$tfl$files$dashing_dist) %>%
   dplyr::rename(dash_tail = distance)
 
-conservedDash <- import_dashing_matrix(confs$analysis$ctv$files$conserved_dashing) %>%
+conservedDash <- import_dashing_matrix(confs$analysis$ctv$conserved$files$dashing_dist) %>%
   dplyr::rename(dash_conserv = distance)
 
 ```
@@ -202,7 +202,7 @@ ctvDist <- dplyr::left_join(
 
 ```
 
-## Show the Mash distance matrix for all TFLs
+## Analyze Mash distance matrix for all TFLs
 
 ```{r}
 
@@ -222,7 +222,7 @@ combinedDist <- dplyr::left_join(
 
 readr::write_tsv(
   x = combinedDist,
-  file = paste(outDir, "/data/ctv_loci_distances.tab", sep = "")
+  file = paste(outDir, "/conserved_tfl_loci_distances.tab", sep = "")
 )
 
 distLongDf <- tidyr::pivot_longer(
@@ -233,7 +233,7 @@ distLongDf <- tidyr::pivot_longer(
 )
 ```
 
-Visualize the distribution of cophenetic distances
+### Visualize the distribution of cophenetic distances
 
 ```{r}
 dens_cophn <- ggplot2::ggplot(
@@ -249,7 +249,7 @@ dens_cophn <- ggplot2::ggplot(
 dens_cophn
 ```
 
-### Compare Mash distances distributions between TFL and conserved loci
+### Compare Mash distances distributions between conserved and tail fiber loci
 
 Shapiro-Wilk test to check if the Mash distances are normally distributed:
 
@@ -268,6 +268,7 @@ of TFL and conserved loci.
 ```{r}
 pairwise.wilcox.test(x = distLongDf$mash, g = distLongDf$locus)
 ```
+
 ```{r}
 
 pt_distribution <- ggplot2::ggplot(
@@ -359,7 +360,7 @@ scatter_ctvPhylo <- ggplot2::ggplot(
 #| echo: false
 
 ggsave(
-  filename = paste(outDir, "/tail_vs_phy_scatter.pdf", sep = ""),
+  filename = paste(outDir, "/conserved_vs_tfl_scatter.pdf", sep = ""),
   plot = scatter_ctvPhylo, width = 14, height = 8
 )
 
@@ -479,5 +480,20 @@ dplyr::filter(
     ),
     selection = "none"
   )
+```
+
+## Process conserved and TFL region phylogenetic trees
+
+```{r}
+
+tflTree <- treeio::read.newick(
+  file.path(confs$analysis$ctv$tfl_hgt$path, "iqtree", "genomeset_1_tfl.msa.fasta.treefile"),
+  node.label = "support"
+)
+
+conservedTree <- treeio::read.newick(
+  file.path(confs$analysis$ctv$tfl_hgt$path, "iqtree", "genomeset_1_conserved.msa.fasta.treefile"),
+  node.label = "support"
+)
 ```
 
