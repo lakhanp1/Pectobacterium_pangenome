@@ -4,13 +4,13 @@
 ## Extract all homology groups representing CTV region across the pangenome
 
 Genes and their respective homology groups flanking CTV:
-- ybiB: hg_22427603
 - tolC_2: hg_22427641
+- ybiB: hg_22427603
 
 Extract genomic coordinates for CTV region together with the haplotypes
 
 ```bash
-Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427603,hg_22427641 \
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427641,hg_22427603 \
 --inner_region --haplotypes \
 --out analysis/pangenome_v2/carotovoricin/ctv_region/hg_regions.tab
 ```
@@ -19,22 +19,30 @@ Process the output file from the previous step to build CTV homology group
 table and then manually annotate the homology groups with broad functionl
 categories based on the keywords in GO, COG and PFAM annotations.
 
-Intact CTV is present in 366 genomes.
+CTV present in 428 genomes.
 
-CTV is missing or deleted in the following 25 genomes:
-- *P. brasiliense*: g_149, g_177, g_182, g_185, g_236
-- *P. carotovorum*: g_15
-- *P_atrosepticum*: g_124, g_200, g_27, g_283, g_311, g_322, g_336, g_348, g_382,
-  g_385, g_389, g_392, g_396, g_50, g_51, g_55
-- *P. betavasculorum*: g_383, g_386
-- *P. cacticida*: g_451
-- *P. versatile*: g_313 (deletion of 5 genes including tail sheath, tail tube
-  and tape measure genes). Check g_313.vir_2
+- Intact CTV along with flanking genes *tolC_2* and *ybiB*: 365 genomes
+- Present at the end of the contig: 31 genomes
+- Fragmented into multiple contigs: 32 genomes
 
-Genome g_149 CTV cluster has integration of another prophage and hence it is 
-disrupted. It was detected as g_149.vir_1	and was part of phage_grp_89 with 3 members.
+CTV is missing or deleted in the following 26 genomes:
 
-CTV fragmented into multiple contigs in rest of the genomes.
+- Complete deletion:
+
+  - *P. brasiliense*: g_177, g_182, g_185, g_236
+  - *P. carotovorum*: g_15
+  - *P. cacticida*: g_451
+
+- Partial deletion:
+
+  - *P. atrosepticum* (all 16 genomes): g_124, g_200, g_27, g_283, g_311, g_322, g_336, g_348, g_382,
+    g_385, g_389, g_392, g_396, g_50, g_51, g_55
+  - *P. betavasculorum*: g_383, g_386
+  - *P. versatile*: g_313 (deletion of 5 genes including tail sheath, tail tube
+    and tape measure genes). Check g_313.vir_2
+
+- Insertion of another prophage:
+  - *P. brasiliense*: g_149 CTV cluster has integration of another prophage and   hence it is disrupted. It was detected as g_149.vir_1	and was part of phage_grp_89 with 3 members.
 
 ## Clustermap visualization of CTV clusters
 
@@ -720,11 +728,20 @@ gbk_files/g_391.P_brasiliense.gbk  > "${mauve_out}".log 2>&1
 
 ```
 
-#### TFL haplotype variation across *Pectobacterium* species
+#### Variation of TFL haplotype with *ein* across *Pectobacterium* species
 
 ```bash
-subsetName="tfl_pecto"
-genomeSet="g_435,g_58,g_110,g_149"
+subsetName="tfl_ein_pecto"
+genomeSet="g_148,g_110,g_279,g_428,g_53,g_160,g_121,g_218,g_421,g_259,g_206,g_14,g_247,g_344,g_333,g_305,g_351,g_31"
+outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
+```
+
+#### Variation of TFL haplotype (without *ein*) across *Pectobacterium* species
+
+```bash
+subsetName="tfl_ein_del_pecto"
+genomeSet=""
+outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
 ```
 
 #### Mauve analysis for TFL HGT example genomes
@@ -787,6 +804,10 @@ Right inverted repeat for Ein: TTCTCGCAAACCTCGGTTTTGGAGAA
 Right inverted repeat for Ein(rev): AAGAGGTTTTGGCTCCAAACGCTCTT  
 Right inverted repeat for Ein(rev-com): TTCTCCAAAACCGAGGTTTGCGAGAA (AAACCGAGGTTTGCGAGAA, AAACCGAGGTTTGCG)  
 Right inverted repeat for Ein(comp): AAGAGCGTTTGGAGCCAAAACCTCTT
+
+## CTV gene tree vs species tree comparison
+
+Normalised Robinson-Foulds distance between the gene trees and the species tree.
 
 ## O-antigen coevolution
 
