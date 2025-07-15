@@ -155,11 +155,11 @@ region_homology_groups <- function(
   # filter for genomic coordinates
   if (overlapping) {
     df <- dplyr::filter(
-      df, chr_name == !!chr, end >= .env$start, start <= .env$end
+      df, chr_name == .env$chr, end >= .env$start, start <= .env$end
     )
   } else{
     df <- dplyr::filter(
-      df, chr_name == !!chr, start >= .env$start, end <= .env$end
+      df, chr_name == .env$chr, start >= .env$start, end <= .env$end
     )
   }
 

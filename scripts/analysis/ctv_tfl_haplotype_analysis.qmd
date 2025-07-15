@@ -1,5 +1,5 @@
 ---
-title: "Analyze HG haplotypes for a region across pangenome"
+title: "Analyze tail fiber loci haplotypes"
 date: "`r Sys.time()`"
 format: 
   html: 
@@ -40,14 +40,13 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-file_regionHaplotypes <- confs$analysis$ctv$files$tail_regions
+file_haplotypes <- confs$analysis$ctv$tfl$files$hg_regions
 
-outDir <- dirname(file_regionHaplotypes)
+outDir <- dirname(file_haplotypes)
 
 pangenome <- confs$data$pangenomes$pectobacterium.v2$name
 panConf <- confs$data$pangenomes[[pangenome]]
 panOrgDb <- org.Pectobacterium.spp.pan.eg.db
-prophageLenCutoff <- confs$analysis$prophages$cutoff_length
 treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj
 
 ```
@@ -71,12 +70,6 @@ speciesOrder <- suppressMessages(
 ) %>% 
   dplyr::mutate(order = n():1)
 
-distCophen <- tibble::as_tibble(x = cophenetic.phylo(rawTree), rownames = "r1_genomeId") %>% 
-  tidyr::pivot_longer(
-    cols = -r1_genomeId,
-    names_to = "r2_genomeId", values_to = "cophenetic"
-  )
-
 ```
 
 ## Import tail regions and distance tables
@@ -84,7 +77,7 @@ distCophen <- tibble::as_tibble(x = cophenetic.phylo(rawTree), rownames = "r1_ge
 Build a pairwise tail loci comparison table
 
 ```{r}
-regionHaplotypes <- suppressMessages(readr::read_tsv(file_regionHaplotypes)) %>% 
+regionHaplotypes <- suppressMessages(readr::read_tsv(file_haplotypes)) %>% 
   dplyr::left_join(
     y = dplyr::select(
       sampleInfo, genomeId, SpeciesName, geo_loc_country, collection_year,
@@ -129,8 +122,13 @@ combMetadata <- purrr::imap_dfr(
     )
   }
 ) %>% 
-  dplyr::left_join(haplotypes, by = "haplotype") %>% 
-  dplyr::arrange(desc(n_genomes))
+  dplyr::left_join(haplotypes, by = "haplotype") |> 
+  dplyr::mutate(
+    comb = forcats::fct_relevel(
+      .f = comb, !!ComplexHeatmap::comb_name(cm)
+    )
+  ) |> 
+  dplyr::arrange(comb)
 
 ht_upset <- ComplexHeatmap::UpSet(
   m = cm,
@@ -138,13 +136,15 @@ ht_upset <- ComplexHeatmap::UpSet(
   row_names_gp = gpar(fontface = "italic"),
   column_title_gp = gpar(fontface = "bold", fontsize = 16),
   set_order = order(
-    dplyr::pull(speciesOrder, order, name = SpeciesName)[set_name(cm)]
+    dplyr::pull(speciesOrder, order, name = SpeciesName)[set_name(cm)],
+    decreasing = TRUE
   ),
   # comb_order = order(comb_degree(cm), comb_size(cm), decreasing = TRUE),
   right_annotation = upset_right_annotation(cm, add_numbers = TRUE),
   top_annotation = ComplexHeatmap::HeatmapAnnotation(
     "Number of\ngenomes" = anno_barplot(
-      x = combMetadata$n_genomes, border = FALSE, add_numbers = TRUE,
+      x = dplyr::pull(combMetadata, var = n_genomes, name = "comb"),
+      border = FALSE, add_numbers = TRUE,
       gp = gpar(fill = "black"), height = unit(1.5, "cm")
     ),
     "Number of\nshared tail\nfiber locus" = anno_barplot(

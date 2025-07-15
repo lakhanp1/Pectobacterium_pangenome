@@ -289,16 +289,17 @@ grp <- list(
 ### Nitric oxide deoxygenase (hg_22427623)
 
 ```bash
-# all genomes
+# all genomes that have CTV
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427625,hg_22427622 \
 --haplotypes --max_genes 10 \
---out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions.tab
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions_all_genomes.tab
 
 # only for intact CTV genomes
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427625,hg_22427622 \
 --haplotypes --max_genes 10 \
---genomes_file analysis/pangenome_v2/carotovoricin/data/intact_ctv_genomes.txt \
---out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions_intact_ctvs.tab
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv_intact.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions.tab
 ```
 
 ### Tape measure protein
@@ -307,30 +308,32 @@ Tape measure genes is located between the homology groups hg_22427622 and hg_224
 This region is also represented by multiple combinations of homology groups.
 
 ```bash
-# all genomes
+# all genomes that have CTV
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
 --haplotypes --inner_region --overlapping --max_genes 10 \
---out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions.tab
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions_all_genomes.tab
 
 # only for intact CTV genomes
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
 --haplotypes --inner_region --overlapping --max_genes 10 \
---genomes_file analysis/pangenome_v2/carotovoricin/data/intact_ctv_genomes.txt \
---out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions_intact_ctvs.tab
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv_intact.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions.tab
 ```
 
 ### Tail fiber region
 
 ```bash
-# all genomes
+# all genomes that have CTV
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --inner_region --haplotypes \
---genomes_file analysis/pangenome_v2/carotovoricin/data/intact_ctv_genomes.txt \
---out analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions_intact_ctvs.tab
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions_all_genomes.tab
 
 # only for intact CTV genomes
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --inner_region --haplotypes \
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv_intact.txt \
 --out analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions.tab
 ```
 
@@ -341,12 +344,10 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
 --out analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab
 ```
 
-### Haplotype analysis and visualization
-
-Haplotypes for all the above regions can be visualized on the phylogeny.
+### Haplotype analysis and visualization for the tail fiber locus
 
 ```bash
-quarto render scripts/analysis/HG_haplotype_analysis.qmd --execute-dir $PWD
+quarto render scripts/analysis/ctv_tfl_haplotype_analysis.qmd --execute-dir $PWD
 ```
 
 Optionally, tandem homology groups can be mapped to the genomes and visualized
@@ -371,6 +372,10 @@ quarto render scripts/analysis/HG_tandem_match_viz.qmd --execute-dir $PWD
 ### Combined visualization for haplotypes of all variable region in CTV cluster
 
 TO-DO
+
+```bash
+quarto render scripts/analysis/ctv_variable_haplotype_summary.qmd --execute-dir $PWD
+```
 
 ## Inter-species horizontal gene transfer of CTV
 
