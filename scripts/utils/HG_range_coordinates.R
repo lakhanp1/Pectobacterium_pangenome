@@ -30,9 +30,15 @@ parser <- optparse::add_option(
 )
 
 parser <- optparse::add_option(
-  parser, default = NULL,
+  parser, default = NA,
   opt_str = c("--genomes"), type = "character", action = "store",
-  help = "[optional] a COMMA separated list of genome ids. Default: use all genomes"
+  help = "STRING [optional]: a COMMA separated list of genome ids. Default: use all genomes"
+)
+
+parser <- optparse::add_option(
+  parser, default = NA,
+  opt_str = c("--genomes_file"), type = "character", action = "store",
+  help = "PATH [optional]: A subset of genomes to use for the analysis. Default: use all genomes"
 )
 
 parser <- optparse::add_option(
@@ -61,6 +67,7 @@ parser <- optparse::add_option(
   groups signatures for all extracted regions"
 )
 
+
 parser <- optparse::add_option(
   parser, default = NULL,
   opt_str = c("-o", "--out"), type = "character", action = "store",
@@ -73,12 +80,16 @@ if (any(is.null(opts$hgs))) {
   stop(optparse::print_help(parser), call. = TRUE)
 }
 
+
 # opts$hgs <- "hg_22427625,hg_22427622"
 # opts$out <- "analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions.tab"
 # opts$inner_region <- FALSE
 # opts$haplotypes <- TRUE
 # opts$max_genes <- 10
 # opts$genomes <- "g_162,g_85,g_418,g_294,g_20,g_116,g_64,g_1,g_10,g_100,g_262,g_149"
+
+# print(opts)
+
 ################################################################################
 
 confs <- prefix_config_paths(
@@ -107,10 +118,26 @@ if(is.null(opts$max_genes)){
   opts$max_genes <- Inf
 }
 
-if(is.null(opts$genomes)){
+
+if(all(!is.na(opts$genomes), !is.na(opts$genomes_file))){
+  stop(
+    "Please provide either --genomes or --genomes_file, not both.",
+    "\n--genomes:", opts$genomes, "\n--genomes_file:", opts$genomes_file,
+    call. = FALSE
+  )
+}
+
+if (!is.na(opts$genomes)){
+  genomes <- stringr::str_split_1(string = opts$genomes, pattern = ",") |>
+    unique()
+} else if (!is.na(opts$genomes_file)){
+  genomes <- suppressMessages(
+    readr::read_tsv(file = opts$genomes_file, col_select = 1, col_names = FALSE)
+  ) |>
+    dplyr::pull() |>
+    unique()
+} else {
   genomes <- sampleInfo$genomeId
-} else{
-  genomes <- stringr::str_split_1(string = opts$genomes, pattern = ",")
 }
 
 hgPos <- suppressMessages(
@@ -127,7 +154,7 @@ hgPos <- suppressMessages(
     dplyr::across(.cols = c(start, end), .fns = as.numeric),
     length = end - start + 1
   ) %>%
-  dplyr::filter(genomeId %in% !!genomes) %>%
+  dplyr::filter(genomeId %in% .env$genomes) %>%
   dplyr::group_by(genomeId, chr_id) %>%
   dplyr::mutate(n = n(), nUniq = length(unique(GID))) %>%
   # dplyr::add_count(genomeId, chr_id) %>%

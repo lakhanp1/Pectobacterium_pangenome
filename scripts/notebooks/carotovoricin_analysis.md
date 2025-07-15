@@ -30,7 +30,7 @@ CTV is missing or deleted in the following 26 genomes:
 - Complete deletion:
 
   - *P. brasiliense*: g_177, g_182, g_185, g_236
-  - *P. carotovorum*: g_15
+  - *P. carotovorum*: g_15 (now renamed to *P. araliae*)
   - *P. cacticida*: g_451
 
 - Partial deletion:
@@ -289,9 +289,16 @@ grp <- list(
 ### Nitric oxide deoxygenase (hg_22427623)
 
 ```bash
+# all genomes
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427625,hg_22427622 \
 --haplotypes --max_genes 10 \
 --out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions.tab
+
+# only for intact CTV genomes
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427625,hg_22427622 \
+--haplotypes --max_genes 10 \
+--genomes_file analysis/pangenome_v2/carotovoricin/data/intact_ctv_genomes.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_nitric_oxide/hg_regions_intact_ctvs.tab
 ```
 
 ### Tape measure protein
@@ -300,17 +307,31 @@ Tape measure genes is located between the homology groups hg_22427622 and hg_224
 This region is also represented by multiple combinations of homology groups.
 
 ```bash
+# all genomes
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
 --haplotypes --inner_region --overlapping --max_genes 10 \
 --out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions.tab
+
+# only for intact CTV genomes
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427622,hg_22427616 \
+--haplotypes --inner_region --overlapping --max_genes 10 \
+--genomes_file analysis/pangenome_v2/carotovoricin/data/intact_ctv_genomes.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_tape_measure/hg_regions_intact_ctvs.tab
 ```
 
 ### Tail fiber region
 
 ```bash
+# all genomes
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 --inner_region --haplotypes \
---out analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions.tab 
+--genomes_file analysis/pangenome_v2/carotovoricin/data/intact_ctv_genomes.txt \
+--out analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions_intact_ctvs.tab
+
+# only for intact CTV genomes
+Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
+--inner_region --haplotypes \
+--out analysis/pangenome_v2/carotovoricin/ctv_tfl/hg_regions.tab
 ```
 
 ### CTV conserved loci
