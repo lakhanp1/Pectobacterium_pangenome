@@ -99,7 +99,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
     dplyr::full_join(y = metadata, by = c("label" = "genomeId")) %>%
     treeio::as.treedata()
 
-  pt_tree <- ggtree::ggtree(phy, ladderize = TRUE)
+  pt_tree <- ggtree::ggtree(tr = treeTbl, ladderize = TRUE)
 
   species_order <-  tibble:::enframe(
     ggtree::get_taxa_name(pt_tree), name = "tipOrder", value = "genomeId"
@@ -125,7 +125,7 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
       x = 0.05, y = nrow(metadata) * 0.9,
       fontsize = 8, linesize = 2, offset = 2
     ) +
-    scale_y_continuous(expand=c(0, 10)) +
+    # scale_y_continuous(expand=c(0, 10)) +
     ggtree::geom_tiplab(
       mapping = aes(label = NA),
       align = TRUE, linesize = 0.4
@@ -148,31 +148,33 @@ ggtree_with_species <- function(phy, metadata, genomes = NULL, trim_branch = NUL
         SpeciesName = forcats::fct_drop(SpeciesName)
       )
 
-    pt_tree2 <- pt_tree2 +
-      # species key
-      ggtreeExtra::geom_fruit(
-        geom = geom_tile, data = spKeyDf,
-        mapping = aes(y = genomeId, x = SpeciesName, fill = species),
-        pwidth = 0.5, offset = 0.03
+    # species key
+    pt_spKey <- dplyr::rename(spKeyDf, label = genomeId) %>%
+      ggplot2::ggplot(mapping = aes(x = SpeciesName, y = label)) +
+      ggplot2::geom_tile(
+        mapping = aes(fill = species)
       ) +
       scale_fill_manual(
         values = c("0" = "grey95", "1" = "black"),
-        na.value = "grey95",
-        guide = "none"
+        na.value = "grey95", guide = "none"
       ) +
       theme(
-        legend.position = c(0.05, 0.80),
-        legend.justification = c(0, 1),
-        legend.box = "vertical",
-        legend.text = element_text(size = 16),
-        # axis.title.x = element_text(hjust = 1),
-        legend.title = element_text(size = 18, face = "bold")
+        axis.text.y = element_blank(),
+        panel.grid = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank()
       )
+
+    pt_tree3 <- pt_spKey %>% aplot::insert_left(pt_tree2, width = 8)
 
   }
 
   return(
-    list(tree = pt_tree2, species_order = species_order)
+    list(tree = pt_tree2, species_key = pt_spKey, species_order = species_order)
   )
 }
 
