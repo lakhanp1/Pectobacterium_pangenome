@@ -364,6 +364,8 @@ analysis:
     data:
       dir: "data"
       files:
+        ctv_prophages: "ctv_prophages_data.tsv"
+        ctv_pav: "ctv_genomes_table.tsv"
         hg_broad_functions: "ctv_hg_broad_functions.tab"
     ctv_region:
       dir: "ctv_region"
