@@ -162,14 +162,14 @@ ht_upset <- ComplexHeatmap::UpSet(
 
 ht_upset <- ht_upset +
   ComplexHeatmap::rowAnnotation(
-   "Number of\ngenomes" = ComplexHeatmap::anno_barplot(
+    "Number of\ngenomes" = ComplexHeatmap::anno_barplot(
       x = dplyr::count(regionHaplotypes, SpeciesName) %>% 
         dplyr::pull(var = n, name = SpeciesName),
       border = FALSE,
       add_numbers = TRUE,
       gp = gpar(fill = "black"), width = unit(2, "cm")
     ),
-   gap = unit(3, "mm")
+    gap = unit(3, "mm")
   )
 ```
 
@@ -212,7 +212,9 @@ DT::datatable(
 )
 ```
 
-## Visualize haplotypes with the phylogeny
+## Visualize tail-fiber locus haplotypes with the phylogeny
+
+Generate core phylogeny plot and species key heatmap.
 
 ```{r}
 pt_phy <- ggtree_with_species(
@@ -220,52 +222,42 @@ pt_phy <- ggtree_with_species(
   genomes = c(regionHaplotypes$genomeId, confs$analysis$phylogeny$outgroup_genome),
   trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch
 )
+```
 
+Generate tail-fiber locus haplotype presence-absence heatmap.
+
+```{r}
+# TFL haplotypes plot
 hap_df <- dplyr::select(regionHaplotypes, genomeId, haplotype, n) %>% 
   dplyr::filter(n > 1) %>% 
   dplyr::mutate(hap = "y")
 
-## *** alignment is not working for this plot + phylogeny 
-# pt_hap <- dplyr::select(regionHaplotypes, genomeId, haplotype, n) %>% 
-#   dplyr::filter(n > 1) %>% 
-#   dplyr::mutate(hap = "y") %>% 
-#   ggplot2::ggplot(mapping = aes(x = haplotype, y = genomeId)) +
-#   geom_tile(mapping = aes(fill = hap), width = 0.9) +
-#   scale_fill_manual(
-#     name = NULL,
-#     values = c("y" = "black"),
-#     na.value = alpha("white", 1),
-#     guide = NULL,
-#     na.translate = FALSE
-#   ) +
-#   theme_minimal() +
-#   theme(
-#     panel.grid = element_blank(),
-#     axis.text.x = element_text(angle = 45, hjust = 1),
-#     axis.text.y = element_blank(),
-#     axis.title = element_blank(),
-#     legend.title = element_text(size = 18, face = "bold")
-#   )
+theme_haplotypes <- theme_bw() +
+  theme(
+    panel.grid.major.y = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    legend.title = element_text(size = 18, face = "bold")
+  )
 
-pt_all <- pt_phy$tree +
-  ggnewscale::new_scale_fill() +
-  ggtreeExtra::geom_fruit(
-    geom = geom_tile, data = hap_df,
-    mapping = aes(y = genomeId, x = haplotype, fill = hap),
-    pwidth = 1, width = 0.01,
-    offset = 0.03,
-    axis.params = list(axis = "x", text.size = 1, hjust = 1, text.angle = 45)
-  ) +
+pt_hap <- dplyr::select(regionHaplotypes, label = genomeId, haplotype, n) %>%
+  dplyr::filter(n > 1) %>%
+  dplyr::mutate(hap = "y") %>%
+  ggplot2::ggplot(mapping = aes(x = haplotype, y = label)) +
+  geom_tile(mapping = aes(fill = hap), width = 0.9) +
   scale_fill_manual(
     name = NULL,
-    values = c("y" = "black"),
+    values = c("y" = "#FDA532"),
     na.value = alpha("white", 1),
     guide = NULL,
     na.translate = FALSE
-  ) 
+  ) +
+  theme_haplotypes
 
-# pt_all <- pt_hap %>% 
-#   aplot::insert_left(pt_phy$tree, width = 0.5)
+pt_all <- pt_phy$species_key |> 
+  aplot::insert_left(pt_phy$tree, width = 3) |> 
+  aplot::insert_right(pt_hap, width = 4)
 
 ```
 
@@ -277,7 +269,7 @@ pt_all <- pt_phy$tree +
 #| echo: false
 #| column: page 
 
-pdf(file = paste(outDir, "/haplotype_phylogeny.pdf", sep = ""), width = 10, height = 10)
+pdf(file = paste(outDir, "/tfl_haplotype_phylo.pdf", sep = ""), width = 10, height = 10)
 pt_all
 dev.off()
 
@@ -340,4 +332,5 @@ DT::datatable(
   selection = 'none'
 )
 ```
+
 

@@ -365,9 +365,11 @@ analysis:
       dir: "data"
       files:
         hg_broad_functions: "ctv_hg_broad_functions.tab"
-    files:
-      hg_regions: "ctv_region/hg_regions.tab"
-      mash_dist: "ctv_region/distance_mash.tab"
+    ctv_region:
+      dir: "ctv_region"
+      files:
+        hg_regions: "hg_regions.tab"
+        mash_dist: "distance_mash.tab"
     tfl:
       dir: "ctv_tfl"
       files:
