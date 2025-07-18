@@ -1,6 +1,21 @@
 
 # Carotovoricin (CTV) cluster or phage_grp_1 data analysis
 
+## Extract carotovoricin data from prophage clustering output
+
+Prophage cluster `phage_grp_1` belongs to the carotovoricin. Hence, prepare
+a table with prophage identifiers, their genomic coordinates, homology group
+signatures and other relevant information for all the prophages in the
+`phage_grp_1` cluster.
+
+```bash
+Rscript scripts/analysis/ctv_prophages_table.R
+```
+
+Manually check the output file `analysis/pangenome_v2/carotovoricin/data/ctv_prophages_data.tsv`
+and verify carotovoricin presence/absence status in the genomes. The manually
+curated table is saved as `analysis/pangenome_v2/carotovoricin/data/ctv_genome_table.tsv`.
+
 ## Extract all homology groups representing CTV region across the pangenome
 
 Genes and their respective homology groups flanking CTV:
@@ -61,14 +76,14 @@ visualize the CTV cluster in *P. brasiliense*.
 
 ```r
 cluster_title <- "ctv_typeStrains"
-outDir <- paste(confs$analysis$ctv$path, "/cluster_viz", sep = "")
+outDir <- paste(confs$analysis$ctv$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
 region_cluster <- NA
 other_regions <- c(
   "g_345.vir_1", "g_446.vir_4", "g_66.vir_3", "g_222.vir_2", "g_365.vir_3",
-  "g_442.vir_1", "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
+  "g_8.vir_2", "g_38.vir_2", "g_273.vir_2", "g_259.vir_4",
   "g_305.vir_1", "g_378.vir_6", "g_428.vir_1", "g_248.vir_1", "g_449.vir_1",
   "g_54.vir_1", "g_116.vir_3", "g_423.vir_3", "g_375.vir_2", "g_381.vir_2"
 )
@@ -96,29 +111,16 @@ customRegions <- list(
 
 ```
 
-### carotovoricin cluster absent in some *P. brasiliense* isolates
-
-*P. brasiliense* lacking CTV cluster: g_149, g_177, g_182, g_185, g_236. Genome
-g_149 CTV cluster has integration of another prophage and hence it is disrupted.
-
-Extract genomic coordinates for the CTV region in these genomes.
-
-```bash
-Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427641,hg_22427603 \
---inner_region --genomes "g_149,g_177,g_182,g_185,g_236,g_15,g_313"
-```
-
-Update the `scripts/analysis/clustersmap_data_prophages.R` script as below to
-visualize the CTV cluster in *P. brasiliense*.
+### carotovoricin cluster in *P. brasiliense* isolates
 
 ```r
 cluster_title <- "ctv_pbr"
-outDir <- paste(confs$analysis$ctv$path, "/cluster_viz", sep = "")
+outDir <- paste(confs$analysis$ctv$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
 region_cluster <- "phage_grp_1"
-other_regions <- c("g_368.vir_3")
+other_regions <- c()
 
 subSample <- TRUE
 cutHeight <- 1.5
@@ -164,7 +166,7 @@ visualize the CTV clusters.
 
 ```r
 cluster_title <- "ctv_deletion"
-outDir <- paste(confs$analysis$ctv$path, "/cluster_viz", sep = "")
+outDir <- paste(confs$analysis$ctv$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -212,7 +214,7 @@ disrupted. It was detected as g_149.vir_1	and was part of phage_grp_89 which has
 
 ```r
 cluster_title <- "prophage_in_ctv"
-outDir <- paste(confs$analysis$ctv$path, "/cluster_viz", sep = "")
+outDir <- paste(confs$analysis$ctv$path, "/cluster_viz/", cluster_title, sep = "")
 hg_color_categories <- confs$analysis$ctv$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
@@ -244,21 +246,40 @@ Update the `scripts/analysis/clustersmap_data_prophages.R` script as below to
 visualize the CTV cluster in *P. versatile*.
 
 ```r
-grpToView <- "ctv_pvs"
+cluster_title <- "ctv_pv"
+outDir <- paste(confs$analysis$ctv$path, "/cluster_viz/", cluster_title, sep = "")
+hg_color_categories <- confs$analysis$ctv$data$files$hg_broad_functions
+
+# a vector of prophage identifiers that will be included in clustermap plot
+region_cluster <- "phage_grp_1"
+other_regions <- c()
+
 subSample <- TRUE
 cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
+# ordering factor for prophages: "host" phylogeny, "hg_pav" for prophage HG PAV,
+# "cluster_mash" for prophage MASH and "default" to use the provided
+clusterOrder <- "host" # host, hg_pav, cluster_mash, default
 
-grp <- list(
-  phage_grp = grpToView,
-  members = dplyr::filter(
-    regionClusters,
-    SpeciesName == "P. versatile", nFragments == 1, phage_grp == "phage_grp_1"
-  ) %>%
-    dplyr::pull(prophage_id)
+# whether to keep custom regions at the bottom or consider during phylogeny
+# based ordering
+regions_phy_ordered <- TRUE
+
+# regions to append as list of list with following structure
+# list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
+customRegions <- list()
+
+regionClusters <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$clusters)
 )
+
+# optional filter
+regionClusters %<>%
+  dplyr::filter(
+    SpeciesName == "P. versatile"
+  )
 ```
 
 ### CTV cluster in *P. versatile* collected from France
@@ -341,6 +362,7 @@ Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427604,hg_22427603 \
 
 ```bash
 Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22427640,hg_22427604 \
+--genomes_file analysis/pangenome_v2/carotovoricin/data/genomes_ctv_intact.txt \
 --out analysis/pangenome_v2/carotovoricin/ctv_conserved/hg_regions.tab
 ```
 
@@ -369,12 +391,10 @@ hgSets <- list(
 quarto render scripts/analysis/HG_tandem_match_viz.qmd --execute-dir $PWD
 ```
 
-### Combined visualization for haplotypes of all variable region in CTV cluster
-
-TO-DO
+### Summary of carotovoricin cluster
 
 ```bash
-quarto render scripts/analysis/ctv_variable_haplotype_summary.qmd --execute-dir $PWD
+quarto render scripts/analysis/ctv_summary.qmd --execute-dir $PWD
 ```
 
 ## Inter-species horizontal gene transfer of CTV
@@ -515,7 +535,7 @@ Extract sequences for some example tail fiber loci haplotypes that are present
 in multiple *Pectobacterium* species.
 
 ```bash
-genomeSet="g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,g_395,g_108,g_444,g_160"
+genomeSet="g_279,g_425,g_299,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_352"
 setName="genomeset_1"
 
 # tail fiber locus
@@ -550,6 +570,8 @@ done
 #### Perform MSA and generate phylogenetic trees
 
 ```bash
+mamba activate pantools_4_3_3
+
 nohup mafft --reorder --allowshift --unalignlevel 0.2 --leavegappyregion \
 --maxiterate 0 --globalpair \
 "analysis/pangenome_v2/carotovoricin/tfl_hgt/${setName}_tfl.fasta" \
@@ -570,6 +592,7 @@ Generate a maximum-likelihood phylogenetic tree for MSAs
 
 ```bash
 cd analysis/pangenome_v2/carotovoricin/tfl_hgt
+mkdir iqtree
 
 nohup nice iqtree2 -T 40 -s "${setName}_tfl.msa.fasta" -B 1000 \
 --prefix "iqtree/${setName}_tfl.msa.fasta" >> iqtree_tree.log 2>&1 &
@@ -579,57 +602,6 @@ nohup nice iqtree2 -T 40 -s "${setName}_conserved.msa.fasta" -B 1000 \
 
 nohup nice iqtree2 -T 40 -s "${setName}_upstream_core.msa.fasta" -B 1000 \
 --prefix "iqtree/${setName}_upstream_core.msa.fasta" >> iqtree_tree3.log 2>&1 &
-
-```
-
-### Use Mauve to detect the structural variation and consevation
-
-[DNA sequence extraction for TFL regions](#extract-dna-sequence-for-the-regions)
-
-Mauve aligns sequences provided in `fasta` and `genbank` format. However, the
-sequence annotation is shown only if the alignment input was in `genbank`
-format. Therefore, we need to combine the homology group annotation in `gff3`
-format with the `fasta` sequences to generate a `genbank` formatted files. To
-do this, Emboss tool `seqret` was used.
-
-```bash
-conda activate omics_py37
-
-mkdir gbk_files
-
-for vir in `cut -f 1 hg_regions.tab | tail -n +2`
-do
-  seqret -sequence region_fasta/${vir}.fasta -feature -fformat1 gff3 \
-  -fopenfile1 gff3/${vir}.gff3 -osformat2 genbank -osextension2 gbk \
-  -osname2 ${vir} -osdirectory2 gbk_files -auto 
-done
-```
-
-Correct GenBank file as per Mauve requirement
-
-```bash
-sed -i.bak -r -e 's/(^\s+CDS\s+(complement\()?)[^:]+:([[:digit:]]+\.\.[[:digit:]]+\)?).*/\1\3/' \
-  -e 's/\/note="\*([^:]+): /\/\1="/' *.gbk
-```
-
-Align and visualize sequences using Mauve.
-
-```bash
-mauve_out="ctv_hgt.defaults"
-
-progressiveMauve --output="${mauve_out}.mauve.xmfa" \
---backbone-output="${mauve_out}.mauve.backbone" \
---output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
-*.gbk  > "${mauve_out}".mauve.log 2>&1
-
-# mauve with custom settings
-mauve_out="ctv_hgt.opt"
-
-progressiveMauve --output="${mauve_out}.mauve.xmfa" \
---seed-weight 5 \
---backbone-output="${mauve_out}.mauve.backbone" \
---output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
-*.gbk  > "${mauve_out}".mauve.log 2>&1
 
 ```
 
@@ -774,7 +746,7 @@ outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
 
 ```bash
 subsetName="tfl_hgt"
-genomeSet="g_279,g_425,g_149,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,g_395,g_108,g_444,g_160"
+genomeSet="g_279,g_425,g_299,g_133,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_352"
 outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
 ```
 
