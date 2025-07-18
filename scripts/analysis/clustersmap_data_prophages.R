@@ -27,16 +27,16 @@ confs <- prefix_config_paths(
   dir = "."
 )
 
-cluster_title <- "phage_grp_45"
-outDir <- paste(confs$analysis$prophages$path, "/cluster_viz/", cluster_title, sep = "")
-hg_color_categories <- confs$analysis$prophages$files$hg_broad_functions
+cluster_title <- "ctv_pbr"
+outDir <- paste(confs$analysis$ctv$path, "/cluster_viz/", cluster_title, sep = "")
+hg_color_categories <- confs$analysis$ctv$data$files$hg_broad_functions
 
 # a vector of prophage identifiers that will be included in clustermap plot
-region_cluster <- "phage_grp_45"
-other_regions <- character(0)
+region_cluster <- "phage_grp_1"
+other_regions <- c()
 
 subSample <- TRUE
-cutHeight <- 0.5
+cutHeight <- 1.5
 addFlankingRegions <- TRUE
 flankingRegion <- 5000
 
@@ -50,21 +50,18 @@ regions_phy_ordered <- TRUE
 
 # regions to append as list of list with following structure
 # list(r1 = list(chr, start, end, genomeId), r2 = list(chr, start, end, genomeId))
-customRegions <- list(
-  g_406_reg = list(chr = "NAK641_contig_10_consensus", start = 671040, end = 674984, genomeId = "g_406"),
-  g_194_reg = list(chr = "NZ_CP059956.1", start = 3940785, end = 3958060, genomeId = "g_194")
-)
+customRegions <- list()
 
 regionClusters <- suppressMessages(
   readr::read_tsv(confs$analysis$prophages$files$clusters)
 )
 
-# # optional filter
-# regionClusters %<>%
-#   dplyr::filter(
-#     SpeciesName == "P. brasiliense",
-#     !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
-#   )
+# optional filter
+regionClusters %<>%
+  dplyr::filter(
+    SpeciesName == "P. brasiliense",
+    !prophage_id %in% c("g_408.vir_3", "g_403.vir_3", "g_399.vir_3")
+  )
 
 treeMethod <- "kmer_upgma" # ani_upgma, kmer_upgma, core_snp_ml
 hostPhy <- "kmer_upgma"
