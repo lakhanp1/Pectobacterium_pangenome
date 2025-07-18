@@ -28,6 +28,7 @@ suppressPackageStartupMessages(library(ggtree))
 suppressPackageStartupMessages(library(ggbeeswarm))
 suppressPackageStartupMessages(library(ggrastr))
 suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(patchwork))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
 
@@ -272,14 +273,14 @@ pairwise.wilcox.test(x = distLongDf$mash, g = distLongDf$locus)
 ```{r}
 
 pt_distribution <- ggplot2::ggplot(
-    data = distLongDf,
-    mapping = aes(x = locus, y = mash)
-  ) +
+  data = distLongDf,
+  mapping = aes(x = locus, y = mash)
+) +
   ggrastr::rasterize(ggbeeswarm::geom_quasirandom(), dpi = 300) +
   ggpubr::stat_compare_means(
     # method = "wilcox.test", paired = TRUE,
     label.y.npc = 0.9, label.x.npc = "center", vjust = -1, hjust = 0.5, size = 6
-    ) +
+  ) +
   labs(y = "Mash distance") +
   scale_x_discrete(
     labels = c("mash_tail" = "TFL", "mash_conserv" = "Conserved")
@@ -293,11 +294,6 @@ pt_distribution <- ggplot2::ggplot(
 ```
 
 ```{r}
-#| fig-height: 8
-#| fig-width: 12
-#| out-width: '100%'
-#| layout-valign: top
-#| column: page
 #| echo: false
 
 ggsave(
@@ -351,12 +347,14 @@ scatter_ctvPhylo <- ggplot2::ggplot(
 
 ```
 
+:::{.scrolling_x}
+
 ```{r}
 #| fig-height: 8
 #| fig-width: 12
 #| out-width: '100%'
 #| layout-valign: top
-#| column: page
+#| column: page-right
 #| echo: false
 
 ggsave(
@@ -367,6 +365,7 @@ ggsave(
 scatter_ctvPhylo
 
 ```
+:::
 
 Compare the pairwise genomic Mash distance between conserved CTV loci vs TFL loci.
 
@@ -484,16 +483,114 @@ dplyr::filter(
 
 ## Process conserved and TFL region phylogenetic trees
 
+Tree generated from the region upstream of carotovoricin cluster locus.
+
+```{r}
+upstreamTree <- treeio::read.newick(
+  file.path(confs$analysis$ctv$tfl_hgt$path, "iqtree", "genomeset_1_upstream_core.msa.fasta.treefile"),
+  node.label = "support"
+)
+
+pt_upstream_tree <- ggtree::ggtree(tr = upstreamTree, size = 1.5) +
+  scale_x_continuous(expand = expansion(mult = c(0.02, 0.2))) +
+  geom_treescale(
+    x = 0, y = length(upstreamTree@phylo$tip.label) * 0.8,
+    fontsize = 8, linesize = 2, offset = 0.5
+  ) +
+  ggtree::geom_tiplab(
+    mapping = aes(label = label),
+    size = 5, align = TRUE, linesize = 1
+  ) +
+  ggtree::geom_nodelab(
+    mapping = aes(label = support),
+    node = "internal", size = 5, hjust = 1.3, vjust = -1, color = "red"
+  )
+```
+
+Conserved locus tree:
+
+```{r}
+
+conservedTree <- treeio::read.newick(
+  file.path(confs$analysis$ctv$tfl_hgt$path, "iqtree", "genomeset_1_conserved.msa.fasta.treefile"),
+  node.label = "support"
+) |> 
+  dplyr::left_join(
+    y = dplyr::select(tailRegions, label = regionId, haplotype),
+    by = "label"
+  )
+
+
+pt_conserved_tree <- ggtree::ggtree(tr = conservedTree, size = 1.5) +
+  scale_x_continuous(expand = expansion(mult = c(0.02, 0.3))) +
+  ggtree::geom_treescale(
+    x = 0, y = length(conservedTree@phylo$tip.label) * 0.8,
+    fontsize = 5, linesize = 2, offset = 0.5
+  ) +
+  ggtree::geom_tiplab(
+    mapping = aes(label = label),
+    size = 3, align = TRUE, linesize = 0.7
+  ) +
+  ggtree::geom_nodelab(
+    mapping = aes(label = support),
+    node = "internal", size = 3, hjust = 1.3, vjust = -1, color = "red"
+  ) +
+  ggtree::geom_tippoint(mapping = aes(color = haplotype), size = 2) +
+  theme(legend.position = "bottom")
+
+# pt_conserved_tree
+```
+
+Tail-fiber locus tree:
+
 ```{r}
 
 tflTree <- treeio::read.newick(
   file.path(confs$analysis$ctv$tfl_hgt$path, "iqtree", "genomeset_1_tfl.msa.fasta.treefile"),
   node.label = "support"
+) |> 
+  dplyr::left_join(
+    y = dplyr::select(tailRegions, label = regionId, haplotype),
+    by = "label"
+  )
+
+pt_tfl_tree <- ggtree::ggtree(tr = tflTree, size = 1) +
+  scale_x_reverse(expand = expansion(mult = c(0.3, 0.02))) +
+  ggtree::geom_treescale(
+    x = 0, y = length(tflTree@phylo$tip.label) * 0.8,
+    fontsize = 5, linesize = 2, offset = 0.5
+  ) +
+  ggtree::geom_tiplab(
+    mapping = aes(label = label),
+    size = 3, align = TRUE, linesize = 0.7, hjust = 1
+  ) +
+  ggtree::geom_nodelab(
+    mapping = aes(label = support),
+    node = "internal", size = 3, hjust = -0.5, vjust = -1, color = "red"
+  ) +
+  ggtree::geom_tippoint(mapping = aes(color = haplotype), size = 2) +
+  theme(legend.position = "bottom")
+
+# pt_tfl_tree
+```
+
+Combine the conserved and TFL trees for comparison
+
+```{r}
+#| fig-height: 7
+#| fig-width: 12
+#| out-width: '100%'
+#| layout-valign: top
+#| column: page-right
+#| echo: false
+
+pt_compare <- pt_conserved_tree + pt_tfl_tree
+
+ggsave(
+  filename = paste(outDir, "/conserved_vs_tfl_tree.pdf", sep = ""),
+  plot = pt_compare, width = 14, height = 7
 )
 
-conservedTree <- treeio::read.newick(
-  file.path(confs$analysis$ctv$tfl_hgt$path, "iqtree", "genomeset_1_conserved.msa.fasta.treefile"),
-  node.label = "support"
-)
+pt_compare
 ```
 
