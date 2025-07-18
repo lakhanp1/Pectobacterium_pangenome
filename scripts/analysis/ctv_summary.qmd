@@ -1,0 +1,385 @@
+---
+title: "CTV summary across *Pectobacterium* genus"
+date: "`r Sys.time()`"
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+This script will summarize CTV in the *Pectobacterium* genus, including the following steps:
+
+- Intact CTV statistics
+- Haplotype summary for various CTV regions
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(ggbeeswarm))
+suppressPackageStartupMessages(library(ggrastr))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
+source("scripts/utils/heatmap_utils.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+outDir <- paste(confs$analysis$ctv$ctv_region$path)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+prophageLenCutoff <- confs$analysis$prophages$cutoff_length
+treeMethod <- "core_snp_ml" # ani_upgma, kmer_nj
+
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus)
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId
+)
+
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted
+)
+
+# rawTree <- ape::ladderize(rawTree, right = FALSE)
+
+speciesOrder <- suppressMessages(
+  readr::read_tsv(confs$analysis$phylogeny[[treeMethod]]$files$species_order)
+) %>%
+  dplyr::mutate(order = n():1)
+
+
+```
+
+## Carotovoricin presence-absence across the *Pectobacterium* genus
+
+```{r}
+
+ctvPav <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$data$files$ctv_pav)
+) |> 
+  dplyr::left_join(
+    y = dplyr::select(
+      sampleInfo, genomeId, strain, AssemblyAccession, geo_loc_country,
+      collection_year, isolation_source
+      ),
+    by = "genomeId"
+  )
+
+intact_ctv_genomes <- dplyr::filter(ctvPav, ctv_presence == "present") |> 
+  dplyr::pull(genomeId)
+
+# create a descriptive lable for phylogenetic tree
+label_cols <- c("SpeciesName", "collection_year", "geo_loc_country", "AssemblyAccession")
+names(label_cols) <- paste("padded_", label_cols, sep = "")
+
+ctvPav <- dplyr::mutate(
+    ctvPav,
+    dplyr::across(
+      .cols =  tidyselect::all_of(label_cols),
+      .fns = ~stringi::stri_sprintf(
+        format = paste("%-", max(stringr::str_length(.x), na.rm = TRUE) + 1, "s", sep = ""),
+        .x,
+        na_string = ""
+      )
+    )
+  ) |> 
+    tidyr::unite(col = "nodeLabs", tidyselect::all_of(names(label_cols)), sep = " ") |> 
+    dplyr::select(genomeId, everything())
+
+```
+
+Carotovoricin across 454 *Pectobacterium* genomes:
+
+```{r}
+table(ctvPav$ctv_presence)
+```
+
+## *Pectobacterium* phylogeny with carotovoricin metadata
+
+```{r}
+legend_size <- 18
+legend_text_size <- 22
+outGroup <- confs$analysis$phylogeny$outgroup
+
+treeTbl <- tidytree::as_tibble(rawTree) %>%
+  dplyr::full_join(y = sampleInfo, by = c("label" = "genomeId")) %>%
+  treeio::as.treedata()
+
+pt_tree <- ggtree::ggtree(treeTbl) +
+  geom_treescale(
+    x = 0, y = nrow(sampleInfo) * 0.8,
+    fontsize = 8, linesize = 2
+  )
+
+longestBranch <- which(pt_tree$data$x > confs$analysis$phylogeny[[treeMethod]]$cut_branch)
+pt_tree$data$x[longestBranch] <- confs$analysis$phylogeny[[treeMethod]]$cut_branch
+
+rootNode <- rootnode(treeTbl)
+
+pt_phy_theme <- ggplot2::theme_bw() +
+  theme(
+    axis.text.y = element_blank(),
+    # panel.grid = element_blank(),
+    panel.background = element_blank(),
+    # panel.border = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.text = element_text(size = legend_text_size),
+    legend.title = element_text(size = legend_text_size + 2, face = "bold"),
+    axis.title = element_blank()
+  )
+
+# bootstrap values
+pt_tree <- pt_tree +
+  ggtree::geom_point2(
+    mapping = aes(
+      subset = !isTip & node != rootNode, 
+      color = cut(bootstrap, c(0, 50, 70, 90, 100))),
+    shape = 16, size = 2
+  ) +
+  scale_color_manual(
+    values = c("red", "#f781bf", "blue", "black"),
+    guide = guide_legend(override.aes = list(size = legend_size), order = 1),
+    name = 'Bootstrap %', 
+    breaks = c('(0,50]', '(50,70]', '(70,90]'), 
+    labels = expression(BP < "50%", "50%" <= BP * " < 70%", "70%" <= BP * " < 90%"),
+    na.value = "transparent"
+  ) +
+  ggnewscale::new_scale_color()
+
+## mark outgroup
+pt_tree2 <- mark_outgroup(
+  pt = pt_tree, otg = outGroup, column = "sampleId"
+) + 
+  theme(
+    legend.text = element_text(size = legend_text_size),
+    legend.title = element_text(size = legend_text_size + 2, face = "bold")
+  )
+
+pt_tree3 <- pt_tree2 +
+  # ggtree::geom_nodelab(
+  #   mapping = aes(label = label),
+  #   node = "internal", size = 3, hjust = 1.3, color = "red"
+  # ) +
+  ggtree::geom_tiplab(
+    mapping = aes(label = label, color = type_material),
+    size = 3, align = TRUE, linesize = 0.5
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.05))) +
+  scale_color_manual(
+    values = c("type strain" = "blue"),
+    name = "Type strain",
+    guide = guide_legend(
+      order = 2, 
+      override.aes = list(size = legend_size)
+    ),
+    na.value = "black"
+  ) +
+  ggnewscale::new_scale_color()
+
+## add metadata
+pt_labels <- dplyr::select(ctvPav, label = genomeId, nodeLabs) |>
+  ggplot2::ggplot(mapping = aes(x = "desc", y = label)) +
+  ggplot2::geom_text(
+    mapping = aes(label = nodeLabs),
+    hjust = 0, family = "mono"
+  ) +
+  ggplot2::scale_x_discrete(
+    expand = expansion(mult = c(0.01, 0.5)), position = "top"
+  ) +
+  pt_phy_theme +
+  theme(axis.text.x = element_blank())
+
+pt_ctv_pav <- dplyr::select(ctvPav, label = genomeId, ctv_presence) |>
+  ggplot2::ggplot(mapping = aes(x = "ctv", y = label)) +
+  ggplot2::geom_text(
+    mapping = aes(label = ctv_presence),
+    hjust = 0, family = "mono"
+  ) +
+  ggplot2::scale_x_discrete(
+    expand = expansion(mult = c(0.01, 0.5)), position = "top"
+  ) +
+  pt_phy_theme +
+  theme(axis.text.x = element_blank())
+
+pt_tree4 <- pt_labels |> 
+  aplot::insert_left(pt_tree3, width = 1.6) |> 
+  aplot::insert_right(pt_ctv_pav, width = 0.3)
+
+ggsave(
+  plot = pt_tree4, width = 12, height = 22, scale = 2,
+  filename = paste(outDir, "/ctv_detailed_phylo.pdf", sep = "")
+)
+```
+
+:::{.scrolling_y}
+
+```{r}
+#| column: page-right
+#| fig-height: 50
+#| fig-width: 22
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+
+pt_tree4
+```
+
+:::
+
+## Combine and summarize all variable region haplotypes
+
+### Phylogenetic tree for genomes that have intact carotovoricin cluster
+
+```{r}
+pt_phy <- ggtree_with_species(
+  phy = rawTree@phylo, metadata = sampleInfo,
+  genomes = c(intact_ctv_genomes, confs$analysis$phylogeny$outgroup_genome),
+  trim_branch = confs$analysis$phylogeny[[treeMethod]]$cut_branch
+)
+```
+
+
+```{r}
+
+gg_haplotype_pav <- function(data, fill_color = "black") {
+  stopifnot(
+    is.data.frame(data),
+    all(c("haplotype", "label") %in% colnames(data))
+  )
+  
+  pt_pav <- dplyr::filter(data, !is.na(haplotype) | haplotype != "") |> 
+    dplyr::mutate(hap = "y") |> 
+    ggplot2::ggplot(data, mapping = aes(x = haplotype, y = label)) +
+    geom_tile(mapping = aes(fill = hap), width = 0.9) +
+    scale_fill_manual(
+      name = NULL,
+      values = fill_color,
+      na.value = alpha("white", 1),
+      guide = NULL,
+      na.translate = FALSE
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid.major.y = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.title = element_blank(),
+      legend.title = element_text(size = 18, face = "bold")
+    )
+  
+  return(pt_pav)
+}
+
+```
+
+### Nitric oxide haplotypes
+
+```{r}
+nox_data <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$nitric_oxide$files$hg_regions)
+) |> 
+  dplyr::add_count(haplotype, name = "n")
+
+pt_nox <- gg_haplotype_pav(
+  data = dplyr::select(nox_data, label = genomeId, haplotype),
+  fill_color = "#30123B"
+)
+
+```
+
+### Tail tape measure gene haplotypes
+
+```{r}
+tape_data <-  suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$tape_measure$files$hg_regions)
+) |> 
+  dplyr::add_count(haplotype, name = "n")
+
+pt_tape <- gg_haplotype_pav(
+  data = dplyr::select(tape_data, label = genomeId, haplotype),
+  fill_color = "#EF5B12"
+)
+
+```
+
+### Tail-fiber locus haplotypes
+
+```{r}
+tfl_data <-  suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$tfl$files$hg_regions)
+) |> 
+  dplyr::add_count(haplotype, name = "n")
+
+pt_tfl <- gg_haplotype_pav(
+  data = dplyr::select(tfl_data, label = genomeId, haplotype, n) |> 
+    dplyr::filter(n > 1),
+  fill_color = "#FDA532"
+)
+
+```
+
+### DNA invertase *ein* (hg_22431685) precence-absence information
+
+```{r}
+ein_data <- AnnotationDbi::select(
+  x = panOrgDb, keys = "hg_22431685", columns = c("genomeId"), keytype = "GID"
+) |> 
+  dplyr::mutate(hap = "y") |> 
+  dplyr::filter(genomeId %in% .env$intact_ctv_genomes) |> 
+  dplyr::mutate(haplotype = "ein")
+
+pt_ein <- gg_haplotype_pav(
+  data = dplyr::select(ein_data, label = genomeId, haplotype, hap),
+  fill_color = "#46F783"
+)
+
+```
+
+```{r}
+#| fig-height: 8
+#| fig-width: 10
+#| out-width: '100%'
+#| layout-valign: top
+#| echo: false
+#| column: page 
+
+pt_haplotypes <- pt_phy$species_key |> 
+  aplot::insert_left(pt_phy$tree, width = 3) |> 
+  aplot::insert_right(pt_nox, width = 0.2) |> 
+  aplot::insert_right(pt_tape, width = 0.5) |> 
+  aplot::insert_right(pt_tfl, width = 4) |> 
+  aplot::insert_right(pt_ein, width = 0.1)
+
+pdf(file = paste(outDir, "/ctv_haplotypes_phylo.pdf", sep = ""), width = 12, height = 10)
+pt_haplotypes
+dev.off()
+
+pt_haplotypes
+```
+
+
