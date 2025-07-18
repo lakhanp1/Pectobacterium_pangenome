@@ -1,10 +1,6 @@
 ---
 title: "Analyze tail fiber loci haplotypes"
 date: "`r Sys.time()`"
-format: 
-  html: 
-    embed-resources: true
-    df-print: paged
 knitr: 
   opts_chunk:
     fig.height: 7
@@ -267,7 +263,7 @@ pt_all <- pt_phy$species_key |>
 #| out-width: '100%'
 #| layout-valign: top
 #| echo: false
-#| column: page 
+#| column: page-right
 
 pdf(file = paste(outDir, "/tfl_haplotype_phylo.pdf", sep = ""), width = 10, height = 10)
 pt_all
