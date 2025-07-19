@@ -729,9 +729,81 @@ gbk_files/g_391.P_brasiliense.gbk  > "${mauve_out}".log 2>&1
 #### Variation of TFL haplotype with *ein* across *Pectobacterium* species
 
 ```bash
-subsetName="tfl_ein_pecto"
-genomeSet="g_148,g_110,g_279,g_428,g_53,g_160,g_121,g_218,g_421,g_259,g_206,g_14,g_247,g_344,g_333,g_305,g_351,g_31"
+subsetName="tfl_pecto"
+genomeSet="g_14,g_121,g_339,g_367,g_324,g_148,g_357,g_309,g_351,g_375,g_20,g_449,g_265,g_138,g_254,g_278,g_344,g_120,g_333,g_428,g_12,g_110,g_58,g_368,g_259,g_279,g_315,g_280,g_16,g_21,g_160,g_53,g_305,g_206,g_1,g_426,g_186,g_264,g_218,g_439,g_421,g_79,g_371,g_431,g_29,g_420,g_247,g_338,g_403,g_31"
 outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
+```
+
+```bash
+# set_a_ein_5kb
+mauve_out="set_a_ein_5kb"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+gbk_files/g_79.P_polaris.gbk gbk_files/g_371.P_brasiliense.gbk \
+gbk_files/g_431.P_aroidearum.gbk gbk_files/g_29.P_brasiliense.gbk \
+gbk_files/g_247.P_carotovorum.gbk gbk_files/g_338.P_polaris.gbk \
+gbk_files/g_31.P_quasiaquaticum.gbk
+
+# set_b_5kb
+mauve_out="set_b_5kb"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+gbk_files/g_1.P_carotovorum.gbk gbk_files/g_426.P_brasiliense.gbk \
+gbk_files/g_186.P_versatile.gbk gbk_files/g_264.P_carotovorum.gbk \
+gbk_files/g_439.P_brasiliense.gbk gbk_files/g_421.P_aroidearum.gbk \
+gbk_files/g_420.P_carotovorum.gbk gbk_files/g_403.P_brasiliense.gbk
+
+# set_c_2kb
+mauve_out="set_c_2kb"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+gbk_files/g_14.P_polonicum.gbk gbk_files/g_339.P_polaris.gbk \
+gbk_files/g_367.P_brasiliense.gbk gbk_files/g_324.P_odoriferum.gbk \
+gbk_files/g_357.P_brasiliense.gbk gbk_files/g_309.P_parmentieri.gbk \
+gbk_files/g_351.P_wasabiae.gbk gbk_files/g_375.P_fontis.gbk \
+gbk_files/g_20.P_actinidiae.gbk gbk_files/g_449.P_actinidiae.gbk
+
+# set_d_2_5kb
+mauve_out="set_d_2_5kb"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+gbk_files/g_375.P_fontis.gbk gbk_files/g_20.P_actinidiae.gbk \
+gbk_files/g_449.P_actinidiae.gbk gbk_files/g_265.P_polonicum.gbk \
+gbk_files/g_138.P_brasiliense.gbk gbk_files/g_254.P_polaris.gbk \
+gbk_files/g_278.P_aquaticum.gbk gbk_files/g_344.P_actinidiae.gbk \
+gbk_files/g_120.P_versatile.gbk gbk_files/g_333.P_odoriferum.gbk
+
+# set_e_3kb
+mauve_out="set_e_3kb"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+gbk_files/g_12.P_versatile.gbk gbk_files/g_58.P_odoriferum.gbk \
+gbk_files/g_368.P_brasiliense.gbk gbk_files/g_259.P_parvum.gbk \
+gbk_files/g_315.P_versatile.gbk gbk_files/g_280.P_aquaticum.gbk \
+gbk_files/g_16.P_carotovorum.gbk gbk_files/g_21.P_punjabense.gbk
+
+# set_mixed
+mauve_out="set_mixed"
+
+progressiveMauve --output="${mauve_out}.mauve.xmfa" \
+--backbone-output="${mauve_out}.mauve.backbone" \
+--output-guide-tree="${mauve_out}.mauve.guide_tree.newick" \
+gbk_files/g_14.P_polonicum.gbk gbk_files/g_351.P_wasabiae.gbk \
+gbk_files/g_148.P_brasiliense.gbk gbk_files/g_333.P_odoriferum.gbk \
+gbk_files/g_206.P_parmentieri.gbk gbk_files/g_428.P_punjabense.gbk \
+gbk_files/g_31.P_quasiaquaticum.gbk gbk_files/g_421.P_aroidearum.gbk \
+gbk_files/g_53.P_versatile.gbk gbk_files/g_160.P_polaris.gbk
+
 ```
 
 #### Variation of TFL haplotype (without *ein*) across *Pectobacterium* species
@@ -746,7 +818,7 @@ outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
 
 ```bash
 subsetName="tfl_hgt"
-genomeSet="g_279,g_425,g_299,g_133,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_352"
+genomeSet="g_279,g_425,g_299,g_377,g_100,g_106,g_331,g_249,g_125,g_221,g_53,g_395,g_108,g_444,g_160,g_352"
 outDir="analysis/pangenome_v2/carotovoricin/mauve/${subsetName}"
 ```
 
@@ -807,47 +879,3 @@ Right inverted repeat for Ein(comp): AAGAGCGTTTGGAGCCAAAACCTCTT
 
 Normalised Robinson-Foulds distance between the gene trees and the species tree.
 
-## O-antigen coevolution
-
-### O-antigen homology groups
-
-#### ABC transporter dependent O-antigen synthesis
-
-- *Wzm* (ABC transporter permease):
-- *Wzt* (ABC transporter ATP binding protein):
-
-#### G4C or O-antigen capsule cluster
-
-- *Wza*: hg_22428205
-- *Wzb*: hg_22428204
-- *Wzc*: hg_22428201
-- *WaaL* (ligase):
-- *rfbB*: found & conserved, GCF_009873295.1
-- *rfbA*: found & conserved
-- *rfbC*: found & conserved
-
-- ?: hg_22428182
-- *GfcB*: hg_22428181
-- *GfcC*: hg_22428167
-- *YbjH*: hg_22428166
-
-- *wecA* (hg_22429666)
-
-#### *Wzx/Wzy*-dependent pathway
-
-- *Wzx* (flipase):
-- *Wxy* (O-antigen polymerase):
-- *Wzz* (chain length regulator):
-
-*Dickeya solani* genome : https://www.ncbi.nlm.nih.gov/nuccore/CP015137.1
-
-GCF_002068115.1: genes in LPS biosynthesis
-
-### O-antigen HGs
-
-hg_22428205,hg_22428166
-
-```bash
-Rscript scripts/utils/HG_range_coordinates.R --hgs hg_22428205,hg_22428166 \
---out analysis/pangenome_v2/o_antigen/abc_transporter_hg_regions.tab
-```
