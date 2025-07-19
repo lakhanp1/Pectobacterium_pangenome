@@ -1,5 +1,5 @@
 ---
-title: "Supplementary tables"
+title: "Supplementary tables for prophage analysis"
 author: "Lakhansing Pardeshi"
 date: "`r Sys.Date()`"
 format: 

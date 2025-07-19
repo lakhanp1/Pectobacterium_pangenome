@@ -1,0 +1,371 @@
+---
+title: "Supplementary tables for carotovoricin analysis"
+author: "Lakhansing Pardeshi"
+date: "`r Sys.Date()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(openxlsx))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/homology_groups.R")
+
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+
+## write tables to excel file
+wb <- openxlsx::createWorkbook()
+
+add_table_to_workbook <- function(data, wb, table_num, description = "## Table"){
+  currentSheet <- paste("Table_S", table_num, sep = "")
+  openxlsx::addWorksheet(wb, sheetName = currentSheet)
+  
+  openxlsx::writeData(
+    wb = wb, sheet = currentSheet,
+    x = description
+  )
+  openxlsx::writeDataTable(
+    wb = wb, x = data, sheet = currentSheet,
+    startCol = 1, startRow = 2, withFilter = TRUE,
+    keepNA = TRUE, na.string = "NA"
+  )
+  openxlsx::freezePane(wb = wb, sheet = currentSheet, firstActiveRow = 3, firstActiveCol = 2)
+  
+  return(wb)
+}
+
+table_counter <- 1
+```
+
+::: {.panel-tabset}
+
+## Table S`r table_counter`
+
+Metadata for all the genome in the current pangenome along with carotovoricin presence/absence information
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+metadata <- suppressMessages(readr::read_csv(panConf$files$metadata)) %>% 
+  dplyr::select(-starts_with("nodepath."), -Genome) %>% 
+  dplyr::select(
+    genomeId, SpeciesName, sampleId, strain, AssemblyAccession, geo_loc_country, collection_year,
+    host, env_broad_scale, type_material, AssemblyName, BioprojectAccn,
+    BioSampleAccn, length, N50, L50, n_contigs
+  )
+
+wb <- add_table_to_workbook(
+  data = metadata, wb = wb, table_num = table_counter,
+  description = paste(
+    "## Table S", table_counter, ": Metadata for genome assemblies used in the current pangenome",
+    sep = ""
+  )
+)
+
+DT::datatable(
+  data = metadata,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+```
+
+## Table S`r table_counter`
+
+geNomad prophage prediction result summary for 454 genomes
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+prophages <- suppressMessages(readr::read_tsv(confs$data$prophages$files$data)) %>% 
+  dplyr::mutate(
+    integrated = dplyr::if_else(
+      condition = is.na(start) & is.na(end), true = "N", false = "Y" 
+    )
+  ) %>% 
+  dplyr::select(prophage_id, genomeId, everything()) %>% 
+  dplyr::relocate(integrated, .after = end) %>% 
+  dplyr::left_join(
+    y = dplyr::select(metadata, genomeId, strain),
+    by = "genomeId"
+  ) %>%
+  dplyr::relocate(strain, .after = SpeciesName)
+
+wb <- add_table_to_workbook(
+  data = prophages, wb = wb, table_num = table_counter,
+  description = paste(
+    "## Table S", table_counter, ": geNomad prophage prediction result summary for 454 genomes",
+    sep = ""
+  )
+)
+
+DT::datatable(
+  data = prophages,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+
+```
+
+
+## Table S`r table_counter`
+
+Prophage clustering based on syntenic Jaccard index
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+phage_grps <- suppressMessages(
+  readr::read_tsv(confs$analysis$prophages$files$clusters)
+) %>% 
+  dplyr::select(-starts_with("nodepath.")) %>%
+  dplyr::left_join(
+    y = dplyr::select(metadata, genomeId, strain),
+    by = "genomeId"
+  ) %>%
+  dplyr::relocate(strain, .after = SpeciesName)
+
+wb <- add_table_to_workbook(
+  data = phage_grps, wb = wb, table_num = table_counter,
+  description = paste(
+    "## Table S", table_counter, ": Prophage clustering based on syntenic Jaccard index",
+    sep = ""
+  )
+)
+
+DT::datatable(
+  data = phage_grps,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+
+```
+
+## Table S`r table_counter`
+
+Carotovoricin cluster presence/absence data
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+ctvPav <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$data$files$ctv_pav)
+) |> 
+  dplyr::rename(
+    "n_homology_groups" = nHgs,
+    "homology_group_signature" = hgs,
+    "coordinates" = pos
+  )
+
+wb <- add_table_to_workbook(
+  data = ctvPav, wb = wb, table_num = table_counter,
+  description = paste(
+    "## Table S", table_counter, ": Carotovoricin presence.absence data for 454 genomes.",
+    "In case of carotovoricin cluster split onto multiple contigs, \"|\" seperator is used for coordinates and homology_group_signature columns",
+    sep = ""
+  )
+)
+
+DT::datatable(
+  data = ctvPav,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 2),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+```
+
+## Table S`r table_counter`
+
+Carotovoricin cluster homology groups and their functional categories
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+ctvHgs <- suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$data$files$hg_broad_functions)
+) |> 
+  dplyr::rename(homology_group = hgId)
+
+wb <- add_table_to_workbook(
+  data = ctvHgs, wb = wb, table_num = table_counter,
+  description = paste(
+    "## Table S", table_counter, ": Carotovoricin cluster homology groups and their functional categories",
+    sep = ""
+  )
+)
+
+DT::datatable(
+  data = ctvHgs,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 3),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+
+```
+
+## Table S`r table_counter`
+
+Homology group based haplotypes for the tail fiber locus
+
+```{r}
+#| echo: false
+#| column: screen-inset-right
+
+tfl_haplotypes <-  suppressMessages(
+  readr::read_tsv(file = confs$analysis$ctv$tfl$files$hg_regions)
+) |> 
+  dplyr::add_count(haplotype, name = "n") |> 
+  dplyr::rename(
+    "n_homology_groups" = nHgs,
+    "homology_group_signature" = hgs
+  )
+
+wb <- add_table_to_workbook(
+  data = tfl_haplotypes, wb = wb, table_num = table_counter,
+  description = paste(
+    "## Table S", table_counter, ": Carotovoricin tail fiber locus haplotypes",
+    sep = ""
+  )
+)
+
+DT::datatable(
+  data = tfl_haplotypes,
+  rownames = FALSE,
+  filter = "top",
+  class = 'compact hover',
+  extensions = c('KeyTable', 'Scroller', 'Select', 'SearchBuilder', 'FixedColumns'),
+  options = list(
+    autoWidth = FALSE,
+    dom = 'Qlfrtip',
+    scrollX = TRUE,
+    fixedColumns = list(leftColumns = 3),
+    keys = TRUE,
+    scroller = TRUE,
+    scrollY = 600
+  ),
+  selection = 'none'
+)
+
+table_counter <- table_counter + 1
+```
+
+
+:::
+
+```{r}
+#| echo: false
+
+# save all table to Excel file
+openxlsx::saveWorkbook(
+  wb = wb, overwrite = TRUE,
+  file = file.path("reports/manuscript_ctv", "ms_ctv_supplementary_data.xlsx")
+)
+
+```
+
