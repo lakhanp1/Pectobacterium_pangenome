@@ -1,0 +1,18 @@
+---
+title: "Carotovoricin variation in *P. versatile*"
+date: "`r Sys.time()`"
+format: 
+  html: 
+    embed-resources: true
+    df-print: paged
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+<!-- remember to source clustermap.min.js from the github account -->
+<!-- <script src="https://cdn.jsdelivr.net/gh/lakhanp1/Pectobacterium_pangenome/scripts/lib/clustermap.min.js"></script> -->
+
+```{=html}
+{{< include "../../analysis/pangenome_v2/carotovoricin/cluster_viz/ctv_pv/prophage_clusters.html" >}}
+```

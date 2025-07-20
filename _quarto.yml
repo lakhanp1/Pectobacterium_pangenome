@@ -18,11 +18,20 @@ project:
     - scripts/analysis/prophage_clustering.qmd
     - scripts/analysis/prophage_cluster_summary.qmd
     - scripts/notebooks/prophage_analysis.md
-    - scripts/ms_figures/supplementary_tables.qmd
+    - scripts/ms_figures/supplementary_tables_prophages.qmd
     - scripts/ms_figures/phage_grp_45.qmd
     - scripts/ms_figures/phage_grp_46.qmd
     - scripts/ms_figures/phage_grp_107.qmd
     - scripts/ms_figures/phage_grp_71.qmd
+    - scripts/notebooks/carotovoricin_analysis.md
+    - scripts/analysis/ctv_summary.qmd
+    - scripts/analysis/ctv_tfl_haplotype_analysis.qmd
+    - scripts/analysis/ctv_tfl_hgt.qmd
+    - scripts/ms_figures/ctv_genus.qmd
+    - scripts/ms_figures/ctv_brasiliense.qmd
+    - scripts/ms_figures/ctv_versatile.qmd
+    - scripts/ms_figures/ctv_degradation.qmd
+    - scripts/ms_figures/supplementary_tables_carotovoricin.qmd
 execute:
   freeze: true # never re-render during project render
 website:
@@ -89,13 +98,37 @@ website:
                 href: scripts/ms_figures/phage_grp_107.qmd
               - test: "Phage group 71"
                 href: scripts/ms_figures/phage_grp_71.qmd
-      - text: "Supplementary tables"
-        href: scripts/ms_figures/supplementary_tables.qmd
+          - text: "Supplementary tables"
+            href: scripts/ms_figures/supplementary_tables_prophages.qmd
+      - section: "Carotovoricin"
+        contents:
+          - text: "Analysis"
+            href: scripts/notebooks/carotovoricin_analysis.md
+          - text: "Carotovoricin summary"
+            href: scripts/analysis/ctv_summary.qmd
+          - text: "TFL haplotype analysis"
+            href: scripts/analysis/ctv_tfl_haplotype_analysis.qmd
+          - text: "Horizontal transfer of TFLs"
+            href: scripts/analysis/ctv_tfl_hgt.qmd
+          - section: "Carotovoricin clusters"
+            contents:
+              - text: "Carotovoricin in Pectobacterium genus"
+                href: scripts/ms_figures/ctv_genus.qmd
+              - text: "Carotovoricin in P. brasiliense"
+                href: scripts/ms_figures/ctv_brasiliense.qmd
+              - text: "Carotovoricin in P. versatile"
+                href: scripts/ms_figures/ctv_versatile.qmd
+              - text: "Carotovoricin degradation"
+                href: scripts/ms_figures/ctv_degradation.qmd
+          - text: "Supplementary tables"
+            href: scripts/ms_figures/supplementary_tables_carotovoricin.qmd
 format:
   html:
     toc: true
     toc-depth: 3
     html-math-method: katex
+    embed-resources: true    
+    df-print: paged
     code-fold: show
     code-tools: true
     code-overflow: scroll
