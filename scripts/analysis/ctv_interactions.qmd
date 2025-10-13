@@ -1,0 +1,186 @@
+---
+title: "Associate TFL haplotype with tailocin interaction experimental data"
+date: "`r Sys.time()`"
+knitr: 
+  opts_chunk:
+    fig.height: 7
+---
+
+
+## Initial setup
+
+```{r}
+#| label: setup
+#| warning: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ape))
+suppressPackageStartupMessages(library(treeio))
+suppressPackageStartupMessages(library(ggtree))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(jsonlite))
+suppressPackageStartupMessages(library(org.Pectobacterium.spp.pan.eg.db))
+
+rm(list = ls())
+
+source("https://raw.githubusercontent.com/lakhanp1/omics_utils/main/RScripts/utils.R")
+source("scripts/utils/config_functions.R")
+source("scripts/utils/phylogeny_functions.R")
+source("scripts/utils/homology_groups.R")
+source("scripts/utils/heatmap_utils.R")
+################################################################################
+set.seed(124)
+
+confs <- prefix_config_paths(
+  conf = suppressWarnings(configr::read.config(file = "project_config.yaml")),
+  dir = "."
+)
+
+file_tfl_haplotypes <- confs$analysis$ctv$tfl$files$hg_regions
+
+outDir <- dirname(file_tfl_haplotypes)
+
+pangenome <- confs$data$pangenomes$pectobacterium.v2$name
+panConf <- confs$data$pangenomes[[pangenome]]
+panOrgDb <- org.Pectobacterium.spp.pan.eg.db
+treeMethod <- "core_snp_ml"     #ani_upgma, kmer_nj
+
+```
+
+## Import data
+
+```{r}
+sampleInfo <- get_metadata(file = panConf$files$metadata, genus = confs$genus) |> 
+  dplyr::mutate(
+    GenBank = stringr::str_remove(AssemblyAccession, "\\.\\d+$")
+  )
+
+sampleInfoList <- as.list_metadata(
+  df = sampleInfo, sampleId, sampleName, SpeciesName, strain, nodeLabs, genomeId 
+)
+
+rawTree <- import_tree(
+  confs$analysis$phylogeny[[treeMethod]]$files$tree_rooted,
+  phylo = TRUE
+)
+
+validInteractions <- suppressMessages(
+  readr::read_tsv(confs$data$other$files$tailocin_interactions)
+) |> 
+  tidyr::pivot_longer(
+    cols = -GenBank,
+    names_to = "target_GenBank",
+    values_to = "kills"
+  ) |> 
+  dplyr::rename(producer_GenBank = GenBank) |> 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = ends_with("_GenBank"),
+      .fns = ~ stringr::str_remove(.x, "\\.\\d+$")
+    )
+  )
+
+tailMash <- suppressMessages(
+  readr::read_tsv(
+    file = confs$analysis$ctv$tfl$files$mash_dist,
+    col_names = c("r1", "r2", "mash_tail", "mash_pval_tail", "hash_tail")
+  )
+)
+
+```
+
+## Import tail regions and distance tables
+
+Build a pairwise tail loci comparison table
+
+```{r}
+tflHaplotypes <- suppressMessages(readr::read_tsv(file_tfl_haplotypes)) %>% 
+  dplyr::left_join(
+    y = dplyr::select(
+      sampleInfo, genomeId, GenBank, SpeciesName, geo_loc_country, collection_year,
+      collection_year, nodepath.kmer_nj, host, isolation_source
+    ),
+    by = "genomeId"
+  ) %>% 
+  dplyr::add_count(haplotype) %>% 
+  dplyr::arrange(desc(n), haplotype, SpeciesName) %>% 
+  dplyr::mutate(
+    haplotype = forcats::as_factor(haplotype)
+  )
+
+interactionCombs <- tidyr::expand_grid(
+  producer = dplyr::select(tflHaplotypes, genomeId, SpeciesName, regionId, GenBank, haplotype, hgs) |> 
+    dplyr::rename_with(.fn = ~paste0("producer_", .x)),
+  target = dplyr::select(sampleInfo, genomeId, SpeciesName, GenBank) |> 
+    dplyr::rename_with(.fn = ~paste0("target_", .x))
+) |> 
+  tidyr::unnest(cols = c(producer, target)) |> 
+  dplyr::left_join(
+    y = dplyr::select(
+      tflHaplotypes, target_genomeId = genomeId, target_regionId = regionId,
+      target_haplotype = haplotype, target_hgs = hgs
+    ),
+    by = c("target_genomeId" = "target_genomeId")
+  ) |> 
+  dplyr::left_join(
+    y = dplyr::select(tailMash, r1, r2, mash_tail),
+    by = c("producer_regionId" = "r1", "target_regionId" = "r2")
+  ) |> 
+  dplyr::select(-ends_with("_regionId")) |> 
+  dplyr::mutate(
+    tmp_x = stringr::str_split(producer_hgs, ";"),
+    tmp_y = stringr::str_split(target_hgs, ";"),
+    nIntersectHgs = purrr::map2_int(tmp_x, tmp_y, ~ length(setdiff(intersect(.x, .y), "hg_22431685"))),
+    nUnionHgs = purrr::map2_int(tmp_x, tmp_y, ~ length(setdiff(union(.x, .y), "hg_22431685"))),
+    jaccardHgs = nIntersectHgs / nUnionHgs,
+    producer_is_target = producer_genomeId == target_genomeId
+  ) |> 
+  dplyr::select(-tmp_x, -tmp_y)
+
+tailocinInteractions <- dplyr::left_join(
+  x = interactionCombs, y = validInteractions,
+  by = c("producer_GenBank", "target_GenBank")
+) |> 
+  tidyr::replace_na(list(kills = NA_integer_))
+```
+
+
+```{r}
+tailocinInteractions |> 
+  dplyr::filter(!is.na(kills)) |> 
+  readr::write_tsv(file.path(outDir, "tailocin_experimental_interactions.tsv"))
+
+df <- dplyr::filter(tailocinInteractions, !is.na(kills), producer_genomeId != target_genomeId) |> 
+  dplyr::mutate(
+    kills2 = dplyr::case_when(
+      kills == 1 ~ "kills",
+      kills == 0 ~ "no_kill",
+      TRUE ~ NA_character_
+    ),
+    sharedHg = dplyr::case_when(
+      nIntersectHgs == 0 ~ "no_shared_hg",
+      nIntersectHgs > 0 ~ "shared_hg",
+      TRUE ~ NA_character_
+    ),
+    kills2 = forcats::fct_relevel(kills2, "no_kill"),
+    sharedHg = forcats::fct_relevel(sharedHg, "shared_hg")
+  ) |> 
+  dplyr::select(kills, kills2, nIntersectHgs, sharedHg, mash_tail, jaccardHgs)
+
+table(df$sharedHg, df$kills2)
+```
+
+```{r}
+fisher.test(table(df$sharedHg, df$kills2))
+```
+
+```{r}
+chisq.test(table(df$sharedHg, df$kills2))
+```
+
+```{r}
+t.test(mash_tail ~ kills, data = df)
+```
+
+

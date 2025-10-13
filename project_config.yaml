@@ -52,6 +52,7 @@ data:
       assay_probes: "pecto_assay/pectobacterium_assay_probes.fasta"
       probe_info: "pecto_assay/probe_info.txt"
       pecto1_metadata: "pecto1_data/WUR_assemblies_metadata.txt"
+      tailocin_interactions: "Biriwucz_tailocin_interactions_data.tsv"
   prokka:
     dir: "prokka_annotation"
   interproscan:

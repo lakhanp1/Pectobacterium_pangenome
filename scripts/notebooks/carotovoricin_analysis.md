@@ -22,6 +22,9 @@ Genes and their respective homology groups flanking CTV:
 - tolC_2: hg_22427641
 - ybiB: hg_22427603
 
+Other important genes in the CTV cluster:
+- ein: hg_22431685
+
 Extract genomic coordinates for CTV region together with the haplotypes
 
 ```bash
