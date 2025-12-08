@@ -64,8 +64,10 @@ briteProteins <- jsonlite::fromJSON(txt = bright)$children |>
   tidyr::unnest(cols = children) |>
   tidyr::separate_wider_regex(
     cols = children,
-    pattern = c(gene = "\\w+", " ", description = ".*", "\\t", ko = "\\w+", " ",
-                ko_symbol = ".*?", "; ", ko_name = ".*")
+    pattern = c(
+      gene = "\\w+", " ", description = ".*", "\\t", ko = "\\w+", " ",
+      ko_symbol = ".*?", "; ", ko_name = ".*"
+    )
   )
 
 # https://rest.kegg.jp/get/gn:pvz
@@ -86,5 +88,6 @@ genes <- suppressMessages(readr::read_tsv(
   )
 
 briteProteins <- dplyr::left_join(
-  briteProteins, genes, by = c("org", "gene")
+  briteProteins, genes,
+  by = c("org", "gene")
 )

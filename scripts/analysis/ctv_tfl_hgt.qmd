@@ -231,7 +231,8 @@ distLongDf <- tidyr::pivot_longer(
   cols = c(mash_tail, mash_conserv),
   names_to = "locus",
   values_to = "mash"
-)
+) |> 
+  dplyr::mutate(locus = forcats::fct_relevel(.f = locus, "mash_conserv"))
 ```
 
 ### Visualize the distribution of cophenetic distances
@@ -262,12 +263,11 @@ shapiro.test(x = sample(combinedDist$mash_tail, size = 5000))
 shapiro.test(x = sample(combinedDist$mash_conserv, size = 5000))
 ```
 
-The Mash distances are not normally distributed. Therefore, non-parametric 
-pairwise Wilcoxon test is used to compare Mash distance distributions
-of TFL and conserved loci.
+The Mash distances are not normally distributed. Therefore, Levene's test for
+homogeneity of Mash distance variance across two loci groups (TFL and conserved) is used.
 
 ```{r}
-pairwise.wilcox.test(x = distLongDf$mash, g = distLongDf$locus)
+car::leveneTest(mash ~ locus, data = distLongDf)
 ```
 
 ```{r}
