@@ -882,3 +882,31 @@ Right inverted repeat for Ein(comp): AAGAGCGTTTGGAGCCAAAACCTCTT
 
 Normalised Robinson-Foulds distance between the gene trees and the species tree.
 
+## dN/dS calculation for CTV genes
+
+```bash
+export PANTOOLS="micromamba run -n pantools_4_3_3 pantools -Xms40g -Xmx120g"
+export ENV_PREFIX="micromamba run -n pantools_4_3_3"
+
+process_start "msa for homology groups excluded without trimming"
+$PANTOOLS msa -t 30 --method per-group --align-nucleotide --no-trimming \
+-H analysis/pangenome_v2/carotovoricin/data/dn_ds_hgs.csv \
+data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB
+error_exit $?
+
+## MSA for homology groups
+process_start "msa for homology groups: protein"
+$PANTOOLS msa -t 30 --method per-group --align-protein \
+-H analysis/pangenome_v2/carotovoricin/data/dn_ds_hgs.csv \
+data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB
+error_exit $?
+
+process_start "msa for homology groups excluded based on trimming"
+$PANTOOLS msa -t 30 --method per-group --align-nucleotide --trim-using-proteins \
+-H analysis/pangenome_v2/carotovoricin/data/dn_ds_hgs.csv \
+data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB
+error_exit $?
+
+$PANTOOLS calculate_dn_ds -H analysis/pangenome_v2/carotovoricin/data/dn_ds_hgs.csv \
+-t 40 data/pangenomes/pectobacterium.v2/pectobacterium.v2.DB
+```
