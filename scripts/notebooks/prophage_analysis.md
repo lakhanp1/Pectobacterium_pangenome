@@ -180,6 +180,17 @@ Output:
 - yaml: `confs$analysis$prophages$files$clusters`
 - file: `analysis/pangenome_v2/prophages/prophages_clusters.tab`
 
+### Approach 3 (Used in the main analysis)
+
+Finally, we used a simple hierarchical clustering using "complete" linkage on the
+syntenic Jaccard distance matrix and cut the clusters using a distance cutoff of
+0.66. This cutoff was selected based on the dendrogram and the carotovoricin cluster
+separation.
+
+```bash
+quarto render scripts/analysis/prophage_clustering.qmd --execute-dir $PWD
+```
+
 ### Summarize prophage clusters
 
 Summarize the representative prophages in the pangenome.
